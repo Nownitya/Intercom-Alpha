@@ -51,7 +51,7 @@
             android:name=".service.IntercomForegroundService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="microphone|connectedDevice" />
+            android:foregroundServiceType="connectedDevice|microphone" />
 
     </application>
 

@@ -18,3 +18,18 @@
 - Formulated Sprint 06 user stories in `tasks/ralph/prd.json` (`ICA-601` through `ICA-605`).
 - **Ready for Story 1 execution (`ICA-601: Android Foreground Service`)**.
 ---
+
+## 2026-09-27 18:40:00 — Story Execution: ICA-601
+- **Story**: ICA-601: Android Foreground Service & Sticky Notification
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`)
+- **Changes**:
+  - Implemented `IntercomForegroundService.kt` with persistent notification, bidirectional audio routing pipelines (`AudioEngine` <-> `MeshTransport`), and Bluetooth SCO audio routing lock (`HeadsetManager.setScoAudioRoute(true)`).
+  - Configured `android:foregroundServiceType="connectedDevice|microphone"` in `AndroidManifest.xml` matching Android 14+ requirements.
+  - Added direct dependency on `project(":app:sharedLogic")` in `app/androidApp/build.gradle.kts`.
+  - Added clean explicit disconnect handling (`ACTION_STOP`), releasing SCO audio route, stopping audio engine and mesh transport, and tearing down the persistent notification.
+- **Verification**:
+  - `./gradlew :app:androidApp:assembleDebug test`: 117 actionable tasks passed cleanly in 28s.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 2s (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+---
+

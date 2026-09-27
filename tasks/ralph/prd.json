@@ -20,7 +20,7 @@
         "Service declared with foregroundServiceType='connectedDevice|microphone' in AndroidManifest",
         "Service stops cleanly on explicit user disconnect"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-602",
