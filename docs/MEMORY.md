@@ -92,7 +92,13 @@
   - Implemented `BackgroundKeepAlive` wrapping `UIApplication.beginBackgroundTaskWithName`.
   - Configured an atomic expiration handler that releases assertions cleanly before the OS watchdog threshold is breached.
   - Guarded incoming mesh audio playback and outgoing microphone transmissions with `keepAlive.withKeepAlive(...)`.
-  - Exposed reactive `observeKeepAliveState` callback returning `CancellationHandle` to Swift.
+### 2.10 Screen-Off Continuity Verification Suite (`BackgroundContinuityTest.kt`)
+- **Challenge**: Automated verification of background packet continuity across all KMP targets without needing real physical phone hardware in CI.
+- **Solution**:
+  - Implemented `SimulatedBackgroundMeshTransport` simulating rapid bursts of incoming audio packets under simulated screen-off conditions.
+  - Verified 0 dropped packets across consecutive audio frames under burst load.
+  - Verified bounded memory behavior of `PacketDeduplicator` under high load (1,500 unique packets into max 1,000 capacity cache).
+  - Verified relay loop suppression under multi-hop relay forwarding.
 
 ---
 

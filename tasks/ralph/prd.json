@@ -81,7 +81,7 @@
         "Verifies zero dropped packets and zero sliding-window memory leak",
         "100% passing across ./gradlew test suite"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }
