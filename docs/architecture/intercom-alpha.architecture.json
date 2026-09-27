@@ -1,0 +1,232 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Intercom-Alpha Cross-Platform Mesh Architecture",
+    "subtitle": "KMP Shared Core, Native SwiftUI & Compose, Multi-Hop BLE Flooding & RFC 8439 AEAD Encryption",
+    "output": "docs/architecture/intercom-alpha-architecture.html",
+    "visual_preset": "blueprint",
+    "animation": "trace",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "audio-pipeline",
+        "label": "Voice & Mesh Pipeline",
+        "focus": ["android_ui", "ios_ui", "swift_bridge", "audio_engine", "packet_cipher", "deduplicator", "mesh_transport", "remote_peers"],
+        "note": "Follow audio from client capture through ChaCha20-Poly1305 encryption, deduplication, and BLE flooding relay."
+      },
+      {
+        "id": "multiplatform-clients",
+        "label": "Native Clients & KMP Bridge",
+        "focus": ["android_ui", "ios_ui", "swift_bridge", "audio_engine"],
+        "note": "Observe strict architectural separation: Android Compose vs 100% Native SwiftUI via IntercomBridge."
+      },
+      {
+        "id": "security-and-routing",
+        "label": "Group Key Security & Cloud Fallback",
+        "focus": ["group_mgr", "packet_cipher", "deduplicator", "mesh_transport", "signaling_server"],
+        "note": "QR code key derivation, sliding-window broadcast storm suppression, and Ktor cloud fallback."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "android_ui",
+      "type": "frontend",
+      "label": "Android Client",
+      "sublabel": "Compose + Nav 3",
+      "tag": "Kotlin / Koin",
+      "pos": [80, 180],
+      "size": [136, 62]
+    },
+    {
+      "id": "ios_ui",
+      "type": "frontend",
+      "label": "iOS Client",
+      "sublabel": "Native SwiftUI",
+      "tag": "Swift / AVFoundation",
+      "pos": [80, 400],
+      "size": [136, 62]
+    },
+    {
+      "id": "swift_bridge",
+      "type": "backend",
+      "label": "Swift Bridge",
+      "sublabel": "IntercomBridge.kt",
+      "tag": "Native Observers",
+      "pos": [300, 400],
+      "size": [136, 62]
+    },
+    {
+      "id": "group_mgr",
+      "type": "security",
+      "label": "Group Manager",
+      "sublabel": "QR Onboarding",
+      "tag": "INTERCOM:v1:",
+      "pos": [520, 180],
+      "size": [136, 62]
+    },
+    {
+      "id": "audio_engine",
+      "type": "backend",
+      "label": "Audio Engine",
+      "sublabel": "16-bit PCM / VOX",
+      "tag": "RMS Metering",
+      "pos": [520, 400],
+      "size": [136, 62]
+    },
+    {
+      "id": "packet_cipher",
+      "type": "security",
+      "label": "Packet Cipher",
+      "sublabel": "RFC 8439 AEAD",
+      "tag": "ChaCha20-Poly1305",
+      "pos": [740, 180],
+      "size": [136, 62]
+    },
+    {
+      "id": "deduplicator",
+      "type": "backend",
+      "label": "Deduplicator",
+      "sublabel": "Sliding TTL=5s",
+      "tag": "Storm Suppression",
+      "pos": [740, 400],
+      "size": [136, 62]
+    },
+    {
+      "id": "signaling_server",
+      "type": "cloud",
+      "label": "Signaling Server",
+      "sublabel": "Ktor WebSocket",
+      "tag": "Cloud Fallback",
+      "pos": [960, 180],
+      "size": [136, 62]
+    },
+    {
+      "id": "mesh_transport",
+      "type": "messagebus",
+      "label": "Mesh Transport",
+      "sublabel": "GATT 0x180D",
+      "tag": "Flooding Relay",
+      "pos": [960, 400],
+      "size": [136, 62]
+    },
+    {
+      "id": "remote_peers",
+      "type": "external",
+      "label": "Mesh Peers",
+      "sublabel": "Decentralized",
+      "tag": "Multi-Hop Hops",
+      "pos": [1180, 400],
+      "size": [136, 62]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Client Presentation Layer",
+      "wraps": ["android_ui", "ios_ui", "swift_bridge"],
+      "pad": 16
+    },
+    {
+      "kind": "security-group",
+      "label": "KMP Core Engine (:app:sharedLogic)",
+      "wraps": ["group_mgr", "audio_engine", "packet_cipher", "deduplicator", "mesh_transport"],
+      "pad": 16
+    },
+    {
+      "kind": "region",
+      "label": "Network & Cloud Infrastructure",
+      "wraps": ["signaling_server", "remote_peers"],
+      "pad": 16
+    }
+  ],
+  "connections": [
+    {
+      "from": "android_ui",
+      "to": "audio_engine",
+      "label": "Audio",
+      "fromSide": "right",
+      "toSide": "top",
+      "variant": "emphasis"
+    },
+    {
+      "from": "ios_ui",
+      "to": "swift_bridge",
+      "label": "SwiftUI",
+      "variant": "emphasis"
+    },
+    {
+      "from": "swift_bridge",
+      "to": "audio_engine",
+      "label": "Cinterop",
+      "variant": "emphasis"
+    },
+    {
+      "from": "group_mgr",
+      "to": "packet_cipher",
+      "label": "Key",
+      "variant": "security"
+    },
+    {
+      "from": "audio_engine",
+      "to": "deduplicator",
+      "label": "Frames",
+      "variant": "emphasis"
+    },
+    {
+      "from": "packet_cipher",
+      "to": "deduplicator",
+      "label": "AEAD",
+      "labelAt": [820, 320],
+      "variant": "security"
+    },
+    {
+      "from": "deduplicator",
+      "to": "mesh_transport",
+      "label": "Relay",
+      "variant": "emphasis"
+    },
+    {
+      "from": "mesh_transport",
+      "to": "signaling_server",
+      "label": "Relay WS",
+      "variant": "dashed"
+    },
+    {
+      "from": "mesh_transport",
+      "to": "remote_peers",
+      "label": "GATT BLE",
+      "variant": "emphasis"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Dual-Platform Client Architecture",
+      "items": [
+        "Android: Jetpack Compose with Navigation 3, Koin Multiplatform DI, and Bluetooth SCO",
+        "iOS: 100% Native SwiftUI UI via reactive IntercomBridge (Do Not Share UI strictly honored)",
+        "Zero shared UI across platforms; 100% shared business logic and networking in KMP"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Mesh Reliability & Storm Suppression",
+      "items": [
+        "Multi-hop flooding relay automatically decrements TTL (3 down to 1) across intermediate peers",
+        "Sliding-window packet deduplicator tracks composite keys within a 5,000ms TTL cache",
+        "Inner packet extraction locally dispatches voice and control packets without extra hops"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Zero-Trust Mesh Encryption",
+      "items": [
+        "Pure Kotlin RFC 8439 ChaCha20-Poly1305 AEAD cipher with 128-bit authentication tags",
+        "Group symmetric key derived from QR code invite secret via FIPS 180-4 SHA-256",
+        "Intermediate relay nodes forward encrypted voice frames without ability to tamper or eavesdrop"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,2270 @@
+{
+  "app/androidApp/build.gradle.kts": {
+    "mtime": 1790447387.7901795,
+    "seen": 1790448953.5210721,
+    "ast_hash": "7d40c40e02415dfa4c9107654b0bb6af",
+    "semantic_hash": ""
+  },
+  "app/androidApp/src/main/kotlin/org/nowni/intercom_alpha/MainActivity.kt": {
+    "mtime": 1790448492.0705383,
+    "seen": 1790448953.5210721,
+    "ast_hash": "dff33b126d802a7d216f8b774a4597a0",
+    "semantic_hash": ""
+  },
+  "app/desktopApp/build.gradle.kts": {
+    "mtime": 1789894675.6861835,
+    "seen": 1790355098.1877036,
+    "ast_hash": "11de27da9fda8adb2c03c3e476c2f690",
+    "semantic_hash": "11de27da9fda8adb2c03c3e476c2f690"
+  },
+  "app/desktopApp/src/main/kotlin/org/nowni/intercom_alpha/main.kt": {
+    "mtime": 1789894675.7208865,
+    "seen": 1790355098.187706,
+    "ast_hash": "d48521be070093344d7e51c30e848a68",
+    "semantic_hash": "d48521be070093344d7e51c30e848a68"
+  },
+  "app/iosApp/iosApp/Assets.xcassets/AccentColor.colorset/Contents.json": {
+    "mtime": 1789894675.8133516,
+    "seen": 1790355098.1877084,
+    "ast_hash": "88cd26db3e6a44fc46b1d81444089bbc",
+    "semantic_hash": "88cd26db3e6a44fc46b1d81444089bbc"
+  },
+  "app/iosApp/iosApp/Assets.xcassets/AppIcon.appiconset/Contents.json": {
+    "mtime": 1789894675.8396597,
+    "seen": 1790355098.1877108,
+    "ast_hash": "0b0e0edf5d5b6f98aa035c617a1afb60",
+    "semantic_hash": "0b0e0edf5d5b6f98aa035c617a1afb60"
+  },
+  "app/iosApp/iosApp/Assets.xcassets/Contents.json": {
+    "mtime": 1789894675.8133516,
+    "seen": 1790355098.1877134,
+    "ast_hash": "afeb3bfa4cfb0884ca431ffe27a35432",
+    "semantic_hash": "afeb3bfa4cfb0884ca431ffe27a35432"
+  },
+  "app/iosApp/iosApp/ContentView.swift": {
+    "mtime": 1790439200.1532483,
+    "seen": 1790439295.1741276,
+    "ast_hash": "82862c755eb3350493329e82773ff689",
+    "semantic_hash": ""
+  },
+  "app/iosApp/iosApp/Preview Content/Preview Assets.xcassets/Contents.json": {
+    "mtime": 1789894675.8453794,
+    "seen": 1790355098.1877177,
+    "ast_hash": "afeb3bfa4cfb0884ca431ffe27a35432",
+    "semantic_hash": "afeb3bfa4cfb0884ca431ffe27a35432"
+  },
+  "app/iosApp/iosApp/iOSApp.swift": {
+    "mtime": 1789894675.7973962,
+    "seen": 1790355098.1877196,
+    "ast_hash": "f6a01e7c9aa7a979c4ef926df57fe088",
+    "semantic_hash": "f6a01e7c9aa7a979c4ef926df57fe088"
+  },
+  "app/sharedLogic/build.gradle.kts": {
+    "mtime": 1790447340.7305236,
+    "seen": 1790448953.5210721,
+    "ast_hash": "b96677308d18325a1e52bd72c81290ae",
+    "semantic_hash": ""
+  },
+  "app/sharedLogic/src/androidHostTest/kotlin/org/nowni/intercom_alpha/SharedLogicAndroidHostTest.kt": {
+    "mtime": 1789894675.8935428,
+    "seen": 1790355098.1877248,
+    "ast_hash": "1c50bf64b08c92401fa4bd9ba7e145b2",
+    "semantic_hash": "1c50bf64b08c92401fa4bd9ba7e145b2"
+  },
+  "app/sharedLogic/src/androidMain/kotlin/org/nowni/intercom_alpha/Platform.android.kt": {
+    "mtime": 1790393628.6914384,
+    "seen": 1790393733.0999117,
+    "ast_hash": "4280ce911f803bbbf92d75bfc41a996f",
+    "semantic_hash": ""
+  },
+  "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/Greeting.kt": {
+    "mtime": 1789894675.974053,
+    "seen": 1790355098.187729,
+    "ast_hash": "2f81513f9988acb039eddf6f5d5c6acf",
+    "semantic_hash": "2f81513f9988acb039eddf6f5d5c6acf"
+  },
+  "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/Platform.kt": {
+    "mtime": 1790393622.832522,
+    "seen": 1790393733.0999117,
+    "ast_hash": "9d0945b260bc8924eee73e7d86639bde",
+    "semantic_hash": ""
+  },
+  "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/SharedLogicCommonTest.kt": {
+    "mtime": 1789894676.005983,
+    "seen": 1790355098.187733,
+    "ast_hash": "b19ee60aa107f3d05fd7835c126e1144",
+    "semantic_hash": "b19ee60aa107f3d05fd7835c126e1144"
+  },
+  "app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/Platform.ios.kt": {
+    "mtime": 1790393651.7150726,
+    "seen": 1790393733.0999117,
+    "ast_hash": "d87a23d0137bba93cd4eca01f993c0ff",
+    "semantic_hash": ""
+  },
+  "app/sharedLogic/src/iosTest/kotlin/org/nowni/intercom_alpha/SharedLogicIOSTest.kt": {
+    "mtime": 1789894676.0940783,
+    "seen": 1790355098.1877372,
+    "ast_hash": "253f54706fd305e7820b2b6095c6ca15",
+    "semantic_hash": "253f54706fd305e7820b2b6095c6ca15"
+  },
+  "app/sharedLogic/src/jsMain/kotlin/org/nowni/intercom_alpha/Platform.js.kt": {
+    "mtime": 1790393657.3811555,
+    "seen": 1790393733.0999117,
+    "ast_hash": "c85b4c4017b7d028c7973ba08e7651ed",
+    "semantic_hash": ""
+  },
+  "app/sharedLogic/src/jvmMain/kotlin/org/nowni/intercom_alpha/Platform.jvm.kt": {
+    "mtime": 1790393641.9286177,
+    "seen": 1790393733.0999117,
+    "ast_hash": "25f3f4fb043a8f6b71d6c3c2a6eb5af1",
+    "semantic_hash": ""
+  },
+  "app/sharedLogic/src/jvmTest/kotlin/org/nowni/intercom_alpha/SharedLogicDesktopTest.kt": {
+    "mtime": 1789894676.200672,
+    "seen": 1790355098.1877441,
+    "ast_hash": "7ea8f4855788c6f5ebccf798d402e5d1",
+    "semantic_hash": "7ea8f4855788c6f5ebccf798d402e5d1"
+  },
+  "app/sharedLogic/src/wasmJsMain/kotlin/org/nowni/intercom_alpha/Platform.wasmJs.kt": {
+    "mtime": 1790393662.66292,
+    "seen": 1790393733.0999117,
+    "ast_hash": "4a976875199f4b2e06c7339ed6d13113",
+    "semantic_hash": ""
+  },
+  "app/sharedLogic/src/webTest/kotlin/org/nowni/intercom_alpha/SharedLogicWebTest.kt": {
+    "mtime": 1789894676.3546498,
+    "seen": 1790355098.1877491,
+    "ast_hash": "85ab3632a00b3448edaf9df737988072",
+    "semantic_hash": "85ab3632a00b3448edaf9df737988072"
+  },
+  "app/sharedUI/build.gradle.kts": {
+    "mtime": 1790449607.9042087,
+    "seen": 1790451377.548362,
+    "ast_hash": "5106d0606cbf7411c6066bc9f8e5c9b3",
+    "semantic_hash": ""
+  },
+  "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/App.kt": {
+    "mtime": 1790448462.6972387,
+    "seen": 1790448953.5210721,
+    "ast_hash": "490369de4cb5c0f9a6324a3686de52d3",
+    "semantic_hash": ""
+  },
+  "app/sharedUI/src/commonTest/kotlin/org/nowni/intercom_alpha/SharedUICommonTest.kt": {
+    "mtime": 1789894676.4787016,
+    "seen": 1790355098.1877558,
+    "ast_hash": "b8361ec2b9a66c7aa64e7a62ebe3a419",
+    "semantic_hash": "b8361ec2b9a66c7aa64e7a62ebe3a419"
+  },
+  "app/webApp/build.gradle.kts": {
+    "mtime": 1789894676.494524,
+    "seen": 1790355098.187758,
+    "ast_hash": "7ece83ba99c0e41530573bb52212ccad",
+    "semantic_hash": "7ece83ba99c0e41530573bb52212ccad"
+  },
+  "app/webApp/src/webMain/kotlin/org/nowni/intercom_alpha/main.kt": {
+    "mtime": 1789894676.5420127,
+    "seen": 1790355098.1877604,
+    "ast_hash": "448d443aec9b39d57cce2f14349600a1",
+    "semantic_hash": "448d443aec9b39d57cce2f14349600a1"
+  },
+  "build.gradle.kts": {
+    "mtime": 1789894675.3996472,
+    "seen": 1790355098.1877625,
+    "ast_hash": "9c4e3be48062967bfb56e900fcbe8c76",
+    "semantic_hash": "9c4e3be48062967bfb56e900fcbe8c76"
+  },
+  "core/build.gradle.kts": {
+    "mtime": 1790366253.7895918,
+    "seen": 1790366651.001253,
+    "ast_hash": "40f1f8a17046cf1637ccc8f41385ef7b",
+    "semantic_hash": ""
+  },
+  "core/src/commonMain/kotlin/org/nowni/intercom_alpha/GreetingUtil.kt": {
+    "mtime": 1789894676.6235993,
+    "seen": 1790355098.1877666,
+    "ast_hash": "1688df5bddd61a28cf5b1f8cd19b95d9",
+    "semantic_hash": "1688df5bddd61a28cf5b1f8cd19b95d9"
+  },
+  "gradlew": {
+    "mtime": 1789894675.4155307,
+    "seen": 1790355098.187769,
+    "ast_hash": "45bf2667b1fbec0e07e42808dc662b6b",
+    "semantic_hash": "45bf2667b1fbec0e07e42808dc662b6b"
+  },
+  "server/build.gradle.kts": {
+    "mtime": 1790366259.0972104,
+    "seen": 1790366651.001253,
+    "ast_hash": "918ffa56d9eeec2294205f801eef9ddd",
+    "semantic_hash": ""
+  },
+  "server/src/main/kotlin/org/nowni/intercom_alpha/Application.kt": {
+    "mtime": 1790366402.1548207,
+    "seen": 1790366651.001253,
+    "ast_hash": "9d83b2536487998fccd67fc5e8680212",
+    "semantic_hash": ""
+  },
+  "server/src/test/kotlin/org/nowni/intercom_alpha/ApplicationTest.kt": {
+    "mtime": 1790366321.823219,
+    "seen": 1790366651.001253,
+    "ast_hash": "a11707080d51c50e9fa30f2d52548bc4",
+    "semantic_hash": ""
+  },
+  "settings.gradle.kts": {
+    "mtime": 1789894675.4315374,
+    "seen": 1790355098.187778,
+    "ast_hash": "af9ef30cd0f544eb4a5196283ed17e3f",
+    "semantic_hash": "af9ef30cd0f544eb4a5196283ed17e3f"
+  },
+  "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/signaling/IntercomSignalingClient.kt": {
+    "mtime": 1790399955.4073887,
+    "seen": 1790400645.7929063,
+    "ast_hash": "59763b919344a699c81206f0c5594c1c",
+    "semantic_hash": ""
+  },
+  "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/signaling/IntercomSignalingClientTest.kt": {
+    "mtime": 1790366381.1725924,
+    "seen": 1790366651.001253,
+    "ast_hash": "9b08f049277ea48e17fdead184e79120",
+    "semantic_hash": ""
+  },
+  "core/src/commonMain/kotlin/org/nowni/intercom_alpha/protocol/SignalingProtocol.kt": {
+    "mtime": 1790366270.4478238,
+    "seen": 1790366651.001253,
+    "ast_hash": "c411df1962548ee49c8a1a087806200f",
+    "semantic_hash": ""
+  },
+  "core/src/commonTest/kotlin/org/nowni/intercom_alpha/protocol/SignalingProtocolTest.kt": {
+    "mtime": 1790366276.614649,
+    "seen": 1790366651.001253,
+    "ast_hash": "f547c064cbc7d516db634519dc7df707",
+    "semantic_hash": ""
+  },
+  "server/src/main/kotlin/org/nowni/intercom_alpha/signaling/PeerSession.kt": {
+    "mtime": 1790366299.6393938,
+    "seen": 1790366651.001253,
+    "ast_hash": "375bb3a73787da5e212c0f7a3a661d68",
+    "semantic_hash": ""
+  },
+  "server/src/main/kotlin/org/nowni/intercom_alpha/signaling/SignalingServerManager.kt": {
+    "mtime": 1790366306.573908,
+    "seen": 1790366651.001253,
+    "ast_hash": "629c2366388bd995357bde7048c96d19",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1789894675.3996472,
+    "seen": 1790366651.001253,
+    "ast_hash": "76d78914c8253d70674c007cfeddf308",
+    "semantic_hash": ""
+  },
+  "app/webApp/src/webMain/resources/index.html": {
+    "mtime": 1789894676.5577993,
+    "seen": 1790366651.001253,
+    "ast_hash": "2c10d559d89817308c22a176a312e301",
+    "semantic_hash": ""
+  },
+  "app/androidApp/src/main/res/mipmap-hdpi/ic_launcher.png": {
+    "mtime": 1789894675.574777,
+    "seen": 1790366651.001253,
+    "ast_hash": "adcaf5b958ee155708e77f23ac6b3cdb",
+    "semantic_hash": ""
+  },
+  "app/androidApp/src/main/res/mipmap-hdpi/ic_launcher_round.png": {
+    "mtime": 1789894675.574777,
+    "seen": 1790366651.001253,
+    "ast_hash": "698fe3c4ded44129534ed811a4024bbc",
+    "semantic_hash": ""
+  },
+  "app/androidApp/src/main/res/mipmap-mdpi/ic_launcher.png": {
+    "mtime": 1789894675.5905936,
+    "seen": 1790366651.001253,
+    "ast_hash": "472c3ecb86996bed8516b338935a51d0",
+    "semantic_hash": ""
+  },
+  "app/androidApp/src/main/res/mipmap-mdpi/ic_launcher_round.png": {
+    "mtime": 1789894675.5905936,
+    "seen": 1790366651.001253,
+    "ast_hash": "f3aac23c5162c50c0a41cdd205a004a8",
+    "semantic_hash": ""
+  },
+  "app/androidApp/src/main/res/mipmap-xhdpi/ic_launcher.png": {
+    "mtime": 1789894675.6063986,
+    "seen": 1790366651.001253,
+    "ast_hash": "7f108fe7b46884cf7953694e5245d021",
+    "semantic_hash": ""
+  },
+  "app/androidApp/src/main/res/mipmap-xhdpi/ic_launcher_round.png": {
+    "mtime": 1789894675.6221857,
+    "seen": 1790366651.001253,
+    "ast_hash": "c6db0296101bf462a82b88ba6d256842",
+    "semantic_hash": ""
+  },
+  "app/androidApp/src/main/res/mipmap-xxhdpi/ic_launcher.png": {
+    "mtime": 1789894675.6384258,
+    "seen": 1790366651.001253,
+    "ast_hash": "e8e005a4a7425340fd2ff7dab98d99b5",
+    "semantic_hash": ""
+  },
+  "app/androidApp/src/main/res/mipmap-xxhdpi/ic_launcher_round.png": {
+    "mtime": 1789894675.6384258,
+    "seen": 1790366651.001253,
+    "ast_hash": "9e3000786992bbd78c3f075df7d2d4b3",
+    "semantic_hash": ""
+  },
+  "app/androidApp/src/main/res/mipmap-xxxhdpi/ic_launcher.png": {
+    "mtime": 1789894675.6575406,
+    "seen": 1790366651.001253,
+    "ast_hash": "1e49d495a78909ab8754ec436bc39147",
+    "semantic_hash": ""
+  },
+  "app/androidApp/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png": {
+    "mtime": 1789894675.6575406,
+    "seen": 1790366651.001253,
+    "ast_hash": "5800e2a5dbde6ab1c96157767f29ef04",
+    "semantic_hash": ""
+  },
+  "app/sharedLogic/src/androidMain/kotlin/org/nowni/intercom_alpha/mesh/MeshTransport.android.kt": {
+    "mtime": 1790453482.8550608,
+    "seen": 1790454410.0390785,
+    "ast_hash": "0050b920ca3d80b52b1d9f41dd1c14d3",
+    "semantic_hash": ""
+  },
+  "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/AudioEngine.kt": {
+    "mtime": 1790438987.1879964,
+    "seen": 1790439295.1751397,
+    "ast_hash": "0862da7f3380bc8074440b458cbe7147",
+    "semantic_hash": ""
+  },
+  "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/common/AudioProfile.kt": {
+    "mtime": 1790366876.464219,
+    "seen": 1790367177.253156,
+    "ast_hash": "1b7b13c0958df6b2c998fb950cd1fbc0",
+    "semantic_hash": ""
+  },
+  "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/group/GroupManager.kt": {
+    "mtime": 1790367112.9833496,
+    "seen": 1790367177.253156,
+    "ast_hash": "f5e4209239b4961c34bc40eff91ba560",
+    "semantic_hash": ""
+  },
+  "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/headset/HeadsetManager.kt": {
+    "mtime": 1790367118.814013,
+    "seen": 1790367177.253156,
+    "ast_hash": "c00a4cdf9e92bbe5bff7e6fff019d2a8",
+    "semantic_hash": ""
+  },
+  "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/MeshTransport.kt": {
+    "mtime": 1790400416.8617437,
+    "seen": 1790400645.7929063,
+    "ast_hash": "030afcc902b080114cb600e5a34a66fc",
+    "semantic_hash": ""
+  },
+  ".agents/rules/graphify.md": {
+    "mtime": 1790355191.1367946,
+    "seen": 1790367177.253156,
+    "ast_hash": "a0e4d192b9e2e17256124dbfc8e24e6a",
+    "semantic_hash": ""
+  },
+  ".agents/workflows/graphify.md": {
+    "mtime": 1790355191.1367946,
+    "seen": 1790367177.253156,
+    "ast_hash": "a831cf3669f1e6ab85d8a80ebe655f99",
+    "semantic_hash": ""
+  },
+  "app/androidApp/PROJECT-OVERVIEW.md": {
+    "mtime": 1790451217.6715865,
+    "seen": 1790451377.548362,
+    "ast_hash": "b124cd7bfe45d4433c1fe3e8a335ee1b",
+    "semantic_hash": ""
+  },
+  "app/androidApp/PROJECT-SPEC.md": {
+    "mtime": 1790011784.5106812,
+    "seen": 1790367177.253156,
+    "ast_hash": "4584b7a140f90181f2a29a732543051a",
+    "semantic_hash": ""
+  },
+  "app/androidApp/docs/PROJECT-OVERVIEW.md": {
+    "mtime": 1790451230.7955422,
+    "seen": 1790451377.548362,
+    "ast_hash": "b124cd7bfe45d4433c1fe3e8a335ee1b",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/androidApp/build.gradle.kts": {
+    "mtime": 1789894675.4473565,
+    "seen": 1790367524.4102128,
+    "ast_hash": "95894c2c874d00c047f821a91c2de864",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/androidApp/src/main/kotlin/org/nowni/intercom_alpha/MainActivity.kt": {
+    "mtime": 1789894675.5111468,
+    "seen": 1790367524.4102128,
+    "ast_hash": "2e6e2b3a21a3fbb9e5bf447c733bcb63",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/desktopApp/build.gradle.kts": {
+    "mtime": 1789894675.6861835,
+    "seen": 1790367524.4102128,
+    "ast_hash": "11de27da9fda8adb2c03c3e476c2f690",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/desktopApp/src/main/kotlin/org/nowni/intercom_alpha/main.kt": {
+    "mtime": 1789894675.7208865,
+    "seen": 1790367524.4102128,
+    "ast_hash": "d48521be070093344d7e51c30e848a68",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/iosApp/iosApp/Assets.xcassets/AccentColor.colorset/Contents.json": {
+    "mtime": 1789894675.8133516,
+    "seen": 1790367524.4102128,
+    "ast_hash": "88cd26db3e6a44fc46b1d81444089bbc",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/iosApp/iosApp/Assets.xcassets/AppIcon.appiconset/Contents.json": {
+    "mtime": 1789894675.8396597,
+    "seen": 1790367524.4102128,
+    "ast_hash": "0b0e0edf5d5b6f98aa035c617a1afb60",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/iosApp/iosApp/Assets.xcassets/Contents.json": {
+    "mtime": 1789894675.8133516,
+    "seen": 1790367524.4102128,
+    "ast_hash": "afeb3bfa4cfb0884ca431ffe27a35432",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/iosApp/iosApp/ContentView.swift": {
+    "mtime": 1789894675.7813425,
+    "seen": 1790367524.4102128,
+    "ast_hash": "86c4f621ab64cd2eec54ed70393fa483",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/iosApp/iosApp/Preview Content/Preview Assets.xcassets/Contents.json": {
+    "mtime": 1789894675.8453794,
+    "seen": 1790367524.4102128,
+    "ast_hash": "afeb3bfa4cfb0884ca431ffe27a35432",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/iosApp/iosApp/iOSApp.swift": {
+    "mtime": 1789894675.7973962,
+    "seen": 1790367524.4102128,
+    "ast_hash": "f6a01e7c9aa7a979c4ef926df57fe088",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/sharedLogic/build.gradle.kts": {
+    "mtime": 1790366443.9099724,
+    "seen": 1790367524.4102128,
+    "ast_hash": "a7dba463f5a77c0d09dd5190835d0027",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/sharedLogic/src/androidHostTest/kotlin/org/nowni/intercom_alpha/SharedLogicAndroidHostTest.kt": {
+    "mtime": 1789894675.8935428,
+    "seen": 1790367524.4102128,
+    "ast_hash": "1c50bf64b08c92401fa4bd9ba7e145b2",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/sharedLogic/src/androidMain/kotlin/org/nowni/intercom_alpha/Platform.android.kt": {
+    "mtime": 1789894675.941591,
+    "seen": 1790367524.4102128,
+    "ast_hash": "c396da66f8b7817d5d104a9bdf31c728",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/Greeting.kt": {
+    "mtime": 1789894675.974053,
+    "seen": 1790367524.4102128,
+    "ast_hash": "2f81513f9988acb039eddf6f5d5c6acf",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/Platform.kt": {
+    "mtime": 1789894675.974053,
+    "seen": 1790367524.4102128,
+    "ast_hash": "5d1226462975c5419272e4e38d652153",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/signaling/IntercomSignalingClient.kt": {
+    "mtime": 1790366328.5215585,
+    "seen": 1790367524.4102128,
+    "ast_hash": "8765d6ab47d5e8642460e41370b12f57",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/SharedLogicCommonTest.kt": {
+    "mtime": 1789894676.005983,
+    "seen": 1790367524.4102128,
+    "ast_hash": "b19ee60aa107f3d05fd7835c126e1144",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/signaling/IntercomSignalingClientTest.kt": {
+    "mtime": 1790366381.1725924,
+    "seen": 1790367524.4102128,
+    "ast_hash": "9b08f049277ea48e17fdead184e79120",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/Platform.ios.kt": {
+    "mtime": 1789894676.0555005,
+    "seen": 1790367524.4102128,
+    "ast_hash": "6b40d4c9fb111d5b26ecd3790a02ef58",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/sharedLogic/src/iosTest/kotlin/org/nowni/intercom_alpha/SharedLogicIOSTest.kt": {
+    "mtime": 1789894676.0940783,
+    "seen": 1790367524.4102128,
+    "ast_hash": "253f54706fd305e7820b2b6095c6ca15",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/sharedLogic/src/jsMain/kotlin/org/nowni/intercom_alpha/Platform.js.kt": {
+    "mtime": 1789894676.1306486,
+    "seen": 1790367524.4102128,
+    "ast_hash": "f64fbd3d3503a87bbc2fcdf6dab0f5af",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/sharedLogic/src/jvmMain/kotlin/org/nowni/intercom_alpha/Platform.jvm.kt": {
+    "mtime": 1789894676.1641586,
+    "seen": 1790367524.4102128,
+    "ast_hash": "9d8044b0db521731ab70b73f31e78b28",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/sharedLogic/src/jvmTest/kotlin/org/nowni/intercom_alpha/SharedLogicDesktopTest.kt": {
+    "mtime": 1789894676.200672,
+    "seen": 1790367524.4102128,
+    "ast_hash": "7ea8f4855788c6f5ebccf798d402e5d1",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/sharedLogic/src/wasmJsMain/kotlin/org/nowni/intercom_alpha/Platform.wasmJs.kt": {
+    "mtime": 1789894676.2439272,
+    "seen": 1790367524.4102128,
+    "ast_hash": "de0829ff1b677d244937a9cfb14b7a00",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/sharedLogic/src/webTest/kotlin/org/nowni/intercom_alpha/SharedLogicWebTest.kt": {
+    "mtime": 1789894676.3546498,
+    "seen": 1790367524.4102128,
+    "ast_hash": "85ab3632a00b3448edaf9df737988072",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/sharedUI/build.gradle.kts": {
+    "mtime": 1789894676.3724172,
+    "seen": 1790367524.4102128,
+    "ast_hash": "90162eebaeaff391e6ea4fc87c007a70",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/App.kt": {
+    "mtime": 1789894676.4474702,
+    "seen": 1790367524.4102128,
+    "ast_hash": "5fc7f6698769b1d4e91f3060941e5e4e",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/sharedUI/src/commonTest/kotlin/org/nowni/intercom_alpha/SharedUICommonTest.kt": {
+    "mtime": 1789894676.4787016,
+    "seen": 1790367524.4102128,
+    "ast_hash": "b8361ec2b9a66c7aa64e7a62ebe3a419",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/webApp/build.gradle.kts": {
+    "mtime": 1789894676.494524,
+    "seen": 1790367524.4102128,
+    "ast_hash": "7ece83ba99c0e41530573bb52212ccad",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/webApp/src/webMain/kotlin/org/nowni/intercom_alpha/main.kt": {
+    "mtime": 1789894676.5420127,
+    "seen": 1790367524.4102128,
+    "ast_hash": "448d443aec9b39d57cce2f14349600a1",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/build.gradle.kts": {
+    "mtime": 1789894675.3996472,
+    "seen": 1790367524.4102128,
+    "ast_hash": "9c4e3be48062967bfb56e900fcbe8c76",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/core/build.gradle.kts": {
+    "mtime": 1790366253.7895918,
+    "seen": 1790367524.4102128,
+    "ast_hash": "40f1f8a17046cf1637ccc8f41385ef7b",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/core/src/commonMain/kotlin/org/nowni/intercom_alpha/GreetingUtil.kt": {
+    "mtime": 1789894676.6235993,
+    "seen": 1790367524.4102128,
+    "ast_hash": "1688df5bddd61a28cf5b1f8cd19b95d9",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/core/src/commonMain/kotlin/org/nowni/intercom_alpha/protocol/SignalingProtocol.kt": {
+    "mtime": 1790366270.4478238,
+    "seen": 1790367524.4102128,
+    "ast_hash": "c411df1962548ee49c8a1a087806200f",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/core/src/commonTest/kotlin/org/nowni/intercom_alpha/protocol/SignalingProtocolTest.kt": {
+    "mtime": 1790366276.614649,
+    "seen": 1790367524.4102128,
+    "ast_hash": "f547c064cbc7d516db634519dc7df707",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/gradlew": {
+    "mtime": 1789894675.4155307,
+    "seen": 1790367524.4102128,
+    "ast_hash": "45bf2667b1fbec0e07e42808dc662b6b",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/server/build.gradle.kts": {
+    "mtime": 1790366259.0972104,
+    "seen": 1790367524.4102128,
+    "ast_hash": "918ffa56d9eeec2294205f801eef9ddd",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/server/src/main/kotlin/org/nowni/intercom_alpha/Application.kt": {
+    "mtime": 1790366402.1548207,
+    "seen": 1790367524.4102128,
+    "ast_hash": "9d83b2536487998fccd67fc5e8680212",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/server/src/main/kotlin/org/nowni/intercom_alpha/signaling/PeerSession.kt": {
+    "mtime": 1790366299.6393938,
+    "seen": 1790367524.4102128,
+    "ast_hash": "375bb3a73787da5e212c0f7a3a661d68",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/server/src/main/kotlin/org/nowni/intercom_alpha/signaling/SignalingServerManager.kt": {
+    "mtime": 1790366306.573908,
+    "seen": 1790367524.4102128,
+    "ast_hash": "629c2366388bd995357bde7048c96d19",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/server/src/test/kotlin/org/nowni/intercom_alpha/ApplicationTest.kt": {
+    "mtime": 1790366321.823219,
+    "seen": 1790367524.4102128,
+    "ast_hash": "a11707080d51c50e9fa30f2d52548bc4",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/settings.gradle.kts": {
+    "mtime": 1789894675.4315374,
+    "seen": 1790367524.4102128,
+    "ast_hash": "af9ef30cd0f544eb4a5196283ed17e3f",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/README.md": {
+    "mtime": 1789894675.3996472,
+    "seen": 1790367524.4102128,
+    "ast_hash": "76d78914c8253d70674c007cfeddf308",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/webApp/src/webMain/resources/index.html": {
+    "mtime": 1789894676.5577993,
+    "seen": 1790367524.4102128,
+    "ast_hash": "2c10d559d89817308c22a176a312e301",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/androidApp/src/main/res/mipmap-hdpi/ic_launcher.png": {
+    "mtime": 1789894675.574777,
+    "seen": 1790367524.4102128,
+    "ast_hash": "adcaf5b958ee155708e77f23ac6b3cdb",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/androidApp/src/main/res/mipmap-hdpi/ic_launcher_round.png": {
+    "mtime": 1789894675.574777,
+    "seen": 1790367524.4102128,
+    "ast_hash": "698fe3c4ded44129534ed811a4024bbc",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/androidApp/src/main/res/mipmap-mdpi/ic_launcher.png": {
+    "mtime": 1789894675.5905936,
+    "seen": 1790367524.4102128,
+    "ast_hash": "472c3ecb86996bed8516b338935a51d0",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/androidApp/src/main/res/mipmap-mdpi/ic_launcher_round.png": {
+    "mtime": 1789894675.5905936,
+    "seen": 1790367524.4102128,
+    "ast_hash": "f3aac23c5162c50c0a41cdd205a004a8",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/androidApp/src/main/res/mipmap-xhdpi/ic_launcher.png": {
+    "mtime": 1789894675.6063986,
+    "seen": 1790367524.4102128,
+    "ast_hash": "7f108fe7b46884cf7953694e5245d021",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/androidApp/src/main/res/mipmap-xhdpi/ic_launcher_round.png": {
+    "mtime": 1789894675.6221857,
+    "seen": 1790367524.4102128,
+    "ast_hash": "c6db0296101bf462a82b88ba6d256842",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/androidApp/src/main/res/mipmap-xxhdpi/ic_launcher.png": {
+    "mtime": 1789894675.6384258,
+    "seen": 1790367524.4102128,
+    "ast_hash": "e8e005a4a7425340fd2ff7dab98d99b5",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/androidApp/src/main/res/mipmap-xxhdpi/ic_launcher_round.png": {
+    "mtime": 1789894675.6384258,
+    "seen": 1790367524.4102128,
+    "ast_hash": "9e3000786992bbd78c3f075df7d2d4b3",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/androidApp/src/main/res/mipmap-xxxhdpi/ic_launcher.png": {
+    "mtime": 1789894675.6575406,
+    "seen": 1790367524.4102128,
+    "ast_hash": "1e49d495a78909ab8754ec436bc39147",
+    "semantic_hash": ""
+  },
+  "Intercom-Alpha/app/androidApp/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png": {
+    "mtime": 1789894675.6575406,
+    "seen": 1790367524.4102128,
+    "ast_hash": "5800e2a5dbde6ab1c96157767f29ef04",
+    "semantic_hash": ""
+  },
+  "app/androidApp/src/main/kotlin/org/nowni/intercom_alpha/service/IntercomForegroundService.kt": {
+    "mtime": 1790391308.7089076,
+    "seen": 1790391512.6416426,
+    "ast_hash": "07d1027a99ddffc3933d2c27e18ea104",
+    "semantic_hash": ""
+  },
+  "app/sharedLogic/src/androidMain/kotlin/org/nowni/intercom_alpha/audio/AudioEngine.android.kt": {
+    "mtime": 1790439000.5734873,
+    "seen": 1790439295.1741276,
+    "ast_hash": "b437e29ea8331d8cb7aecb12abd2af33",
+    "semantic_hash": ""
+  },
+  "app/sharedLogic/src/androidMain/kotlin/org/nowni/intercom_alpha/headset/HeadsetManager.android.kt": {
+    "mtime": 1790391275.9848351,
+    "seen": 1790391512.6416426,
+    "ast_hash": "9b6b7ab1e6a0b67a280110ad6fe8b3fc",
+    "semantic_hash": ""
+  },
+  "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/group/GroupManagerImpl.kt": {
+    "mtime": 1790399670.8489091,
+    "seen": 1790400645.7929063,
+    "ast_hash": "eedbd8c56c31c47dd497fdcec0ff0322",
+    "semantic_hash": ""
+  },
+  "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/AudioLevelMeter.kt": {
+    "mtime": 1790391597.993954,
+    "seen": 1790391652.4479744,
+    "ast_hash": "054610389eddf71a7769f3d10945d5af",
+    "semantic_hash": ""
+  },
+  "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/PeerList.kt": {
+    "mtime": 1790391603.7593472,
+    "seen": 1790391652.4479744,
+    "ast_hash": "d081ffdac477dbfd9accd25abb52af63",
+    "semantic_hash": ""
+  },
+  "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/PttButton.kt": {
+    "mtime": 1790391592.5001075,
+    "seen": 1790391652.4479744,
+    "ast_hash": "61e393f37311d34984aab59768e1a4fc",
+    "semantic_hash": ""
+  },
+  "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/HomeScreen.kt": {
+    "mtime": 1790440328.539059,
+    "seen": 1790440418.3306894,
+    "ast_hash": "146cc7f39db2e848cd26a0c3ca41beea",
+    "semantic_hash": ""
+  },
+  "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/state/HomeUiState.kt": {
+    "mtime": 1790440293.2016287,
+    "seen": 1790440418.3306894,
+    "ast_hash": "80b4303463ae17f1d03a3b44b563ace6",
+    "semantic_hash": ""
+  },
+  "app/desktopApp/bin/main/org/nowni/intercom_alpha/main.kt": {
+    "mtime": 1789894675.72,
+    "seen": 1790393733.0999117,
+    "ast_hash": "d48521be070093344d7e51c30e848a68",
+    "semantic_hash": ""
+  },
+  "server/bin/main/org/nowni/intercom_alpha/Application.kt": {
+    "mtime": 1790366402.154,
+    "seen": 1790393733.0999117,
+    "ast_hash": "9d83b2536487998fccd67fc5e8680212",
+    "semantic_hash": ""
+  },
+  "server/bin/main/org/nowni/intercom_alpha/signaling/PeerSession.kt": {
+    "mtime": 1790366299.639,
+    "seen": 1790393733.0999117,
+    "ast_hash": "375bb3a73787da5e212c0f7a3a661d68",
+    "semantic_hash": ""
+  },
+  "server/bin/main/org/nowni/intercom_alpha/signaling/SignalingServerManager.kt": {
+    "mtime": 1790366306.573,
+    "seen": 1790393733.0999117,
+    "ast_hash": "629c2366388bd995357bde7048c96d19",
+    "semantic_hash": ""
+  },
+  "server/bin/test/org/nowni/intercom_alpha/ApplicationTest.kt": {
+    "mtime": 1790366321.823,
+    "seen": 1790393733.0999117,
+    "ast_hash": "a11707080d51c50e9fa30f2d52548bc4",
+    "semantic_hash": ""
+  },
+  "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/CrossPlatformGattMeshTest.kt": {
+    "mtime": 1790454288.0486577,
+    "seen": 1790454410.0390785,
+    "ast_hash": "af33a762321c01390c955a82db757b82",
+    "semantic_hash": ""
+  },
+  "app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/audio/AudioEngine.ios.kt": {
+    "mtime": 1790439017.938458,
+    "seen": 1790439295.1751397,
+    "ast_hash": "62f7b7a50cc34613ee56694e86c0057e",
+    "semantic_hash": ""
+  },
+  "app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/headset/HeadsetManager.ios.kt": {
+    "mtime": 1790400236.7887828,
+    "seen": 1790400645.7929063,
+    "ast_hash": "eb7dcea64dd3045bb0eaf5dbb78e50ab",
+    "semantic_hash": ""
+  },
+  "app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/mesh/MeshTransport.ios.kt": {
+    "mtime": 1790453513.006382,
+    "seen": 1790454410.0390785,
+    "ast_hash": "a95a32a099c6f4ae6dad409664a9f3f5",
+    "semantic_hash": ""
+  },
+  "JOURNAL.md": {
+    "mtime": 1790454437.576645,
+    "seen": 1790503463.6423318,
+    "ast_hash": "b8e9388c0ab3aa5120d3254ea44a986a",
+    "semantic_hash": ""
+  },
+  "NOTES.md": {
+    "mtime": 1790404032.1037364,
+    "seen": 1790414828.7254164,
+    "ast_hash": "0e357fd54326bacc128ca19ad9dd1148",
+    "semantic_hash": ""
+  },
+  "SPRINT.md": {
+    "mtime": 1790454422.101888,
+    "seen": 1790503463.6423318,
+    "ast_hash": "c7b889c00139760f049e5f5647e22b55",
+    "semantic_hash": ""
+  },
+  "SPRINT-RULES.md": {
+    "mtime": 1790414750.7919264,
+    "seen": 1790414828.7254164,
+    "ast_hash": "fc4fc6ab953fcfeb90160868572f149f",
+    "semantic_hash": ""
+  },
+  ".vscode/settings.json": {
+    "mtime": 1790447363.0739007,
+    "seen": 1790448953.5210721,
+    "ast_hash": "9ac6bd1bcdf2a786c358cd5b0e65a6d2",
+    "semantic_hash": ""
+  },
+  "app/iosApp/iosApp/IntercomViewModel.swift": {
+    "mtime": 1790439167.2922192,
+    "seen": 1790439295.1741276,
+    "ast_hash": "b0bcc80ef46509c429b7b06c729f79f6",
+    "semantic_hash": ""
+  },
+  "app/iosApp/iosApp/QrScannerView.swift": {
+    "mtime": 1790439155.7286146,
+    "seen": 1790439295.1741276,
+    "ast_hash": "6d6e933aaedff2d4c418801c25798239",
+    "semantic_hash": ""
+  },
+  "app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomBridge.kt": {
+    "mtime": 1790439091.1145222,
+    "seen": 1790439295.1751397,
+    "ast_hash": "4116ff9126452ccdb871f7615009756e",
+    "semantic_hash": ""
+  },
+  "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/QrDialogs.kt": {
+    "mtime": 1790440313.1062524,
+    "seen": 1790440418.3306894,
+    "ast_hash": "d967968f247e97b4a42c416d1fd2eb20",
+    "semantic_hash": ""
+  },
+  "app/androidApp/src/main/kotlin/org/nowni/intercom_alpha/IntercomAlphaApplication.kt": {
+    "mtime": 1790448473.648392,
+    "seen": 1790448953.5210721,
+    "ast_hash": "b7e74765af4bb360c757c740d6078891",
+    "semantic_hash": ""
+  },
+  "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/di/AppModule.kt": {
+    "mtime": 1790448434.2931986,
+    "seen": 1790448953.5210721,
+    "ast_hash": "802e0ece9929dd7ae5d768b1fc6d3c79",
+    "semantic_hash": ""
+  },
+  "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/HomeViewModel.kt": {
+    "mtime": 1790448419.5926764,
+    "seen": 1790448953.5210721,
+    "ast_hash": "62b649ebefaa1fbac1c5532d26c5290b",
+    "semantic_hash": ""
+  },
+  "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/navigation/AppNavGraph.kt": {
+    "mtime": 1790452623.798254,
+    "seen": 1790452709.644395,
+    "ast_hash": "20ce85c85344ba4c54c7ead0e8e390dc",
+    "semantic_hash": ""
+  },
+  "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/PacketCipher.kt": {
+    "mtime": 1790454182.3435638,
+    "seen": 1790454410.0390785,
+    "ast_hash": "7717e5b849a3c77779640b91f199fab0",
+    "semantic_hash": ""
+  },
+  "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/PacketDeduplicator.kt": {
+    "mtime": 1790453237.615992,
+    "seen": 1790454410.0390785,
+    "ast_hash": "a28b8457a8ab08b6fc047ba3ea850144",
+    "semantic_hash": ""
+  },
+  "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/PacketCipherTest.kt": {
+    "mtime": 1790454219.6730447,
+    "seen": 1790454410.0390785,
+    "ast_hash": "f49f387d9817ea341ef8d4f21c10c783",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/bin/archify.mjs": {
+    "mtime": 1790502090.4048374,
+    "seen": 1790503463.6413426,
+    "ast_hash": "7c1b096f8ad52809d4568b79aa7db67f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/bin/open-artifact.mjs": {
+    "mtime": 1790502090.4048374,
+    "seen": 1790503463.6413426,
+    "ast_hash": "6d0d0c95d50e9c6c11002b1ba7bc1ae0",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/bin/preview.mjs": {
+    "mtime": 1790502090.4048374,
+    "seen": 1790503463.6413426,
+    "ast_hash": "528e218fd081059d524c2f6c675906cf",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/bin/visual-check.mjs": {
+    "mtime": 1790502090.4048374,
+    "seen": 1790503463.6413426,
+    "ast_hash": "c72f9bc5d6c88041797da3faaf0487a2",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/brand-marks/catalog.json": {
+    "mtime": 1790502090.415845,
+    "seen": 1790503463.6413426,
+    "ast_hash": "083a7d31af387969495003887753440b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/delta/architecture-delta.mjs": {
+    "mtime": 1790502090.4197016,
+    "seen": 1790503463.6413426,
+    "ast_hash": "cafff7f9737c4246fca763854190243b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/examples/agent-run.lifecycle.json": {
+    "mtime": 1790502090.4197016,
+    "seen": 1790503463.6413426,
+    "ast_hash": "25a55b84a1e733481e7e5c04d75a71d0",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/examples/agent-tool-call.workflow.json": {
+    "mtime": 1790502090.4197016,
+    "seen": 1790503463.6413426,
+    "ast_hash": "276f3fecc729b9addd6f53ed82e8c3c0",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/examples/async-job-roundtrip.sequence.json": {
+    "mtime": 1790502090.4197016,
+    "seen": 1790503463.6413426,
+    "ast_hash": "1a5bc663413441ff488de5c0b14e0292",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/examples/brand-aware-delivery.architecture.json": {
+    "mtime": 1790502090.4247239,
+    "seen": 1790503463.6413426,
+    "ast_hash": "16e052b809653f3a16931619a2c9ffc2",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/examples/cache-miss-request.sequence.json": {
+    "mtime": 1790502090.4247239,
+    "seen": 1790503463.6413426,
+    "ast_hash": "5982ffdd86585d9dc8bede41491cfa61",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/examples/checkout-platform.base.architecture.json": {
+    "mtime": 1790502090.4247239,
+    "seen": 1790503463.6413426,
+    "ast_hash": "7b1504c86dd542d652b2155ce3f5a0c6",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/examples/checkout-platform.head.architecture.json": {
+    "mtime": 1790502090.4247239,
+    "seen": 1790503463.6413426,
+    "ast_hash": "fc1c8313df6ff3600d806dccd12e723e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/examples/deployment-release.lifecycle.json": {
+    "mtime": 1790502090.4349637,
+    "seen": 1790503463.6413426,
+    "ast_hash": "040c9c97810ee9318bb0148dbede56c4",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/examples/event-stream.dataflow.json": {
+    "mtime": 1790502090.4349637,
+    "seen": 1790503463.6413426,
+    "ast_hash": "f0cc0ababaf8e0c4a693c358a65ab24f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/examples/incident-response.workflow.json": {
+    "mtime": 1790502090.4349637,
+    "seen": 1790503463.6413426,
+    "ast_hash": "453c96c111a3d66edbec9d9fcb26dd1e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/examples/product-analytics.dataflow.json": {
+    "mtime": 1790502090.439607,
+    "seen": 1790503463.6413426,
+    "ast_hash": "88a53e7cec863193fa3e9dd9efab205d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/examples/production-deployment.architecture.json": {
+    "mtime": 1790502090.4448564,
+    "seen": 1790503463.6413426,
+    "ast_hash": "323582f1efcde99c858b92e979a804e2",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/examples/release-delivery.workflow.json": {
+    "mtime": 1790502090.4448564,
+    "seen": 1790503463.6413426,
+    "ast_hash": "f48513f18f2bde7869b69d11c8a13f1d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/examples/web-app.architecture.json": {
+    "mtime": 1790502090.4548526,
+    "seen": 1790503463.6413426,
+    "ast_hash": "ac3daf46ac0be20e1a5bcf0e16fb2e98",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/migrations/workflow-v2.mjs": {
+    "mtime": 1790502090.4575055,
+    "seen": 1790503463.6413426,
+    "ast_hash": "708f40a2be88f8f4b5291b758470d26c",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/package.json": {
+    "mtime": 1790502090.4575055,
+    "seen": 1790503463.6413426,
+    "ast_hash": "6f923ef7cf04996bea7e8fef5c611427",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/recipes/scenarios.mjs": {
+    "mtime": 1790502090.4668121,
+    "seen": 1790503463.6413426,
+    "ast_hash": "73b6c2be77280404f5b763dcfe8cb00e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/renderers/architecture/grid.mjs": {
+    "mtime": 1790502090.4787605,
+    "seen": 1790503463.6413426,
+    "ast_hash": "1ee383ccc2fd72323bdad98189270b9d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/renderers/architecture/render-architecture.mjs": {
+    "mtime": 1790502090.479385,
+    "seen": 1790503463.6413426,
+    "ast_hash": "5d67ffe86e0011ad07ab65cb945ef9a1",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/renderers/dataflow/render-dataflow.mjs": {
+    "mtime": 1790502090.485113,
+    "seen": 1790503463.6413426,
+    "ast_hash": "510b3336335c12d19046a68589d87c11",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/renderers/lifecycle/render-lifecycle.mjs": {
+    "mtime": 1790502090.4896915,
+    "seen": 1790503463.6413426,
+    "ast_hash": "817cfbec42c855a7baed8c2a2e35098f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/renderers/sequence/render-sequence.mjs": {
+    "mtime": 1790502090.4896915,
+    "seen": 1790503463.6413426,
+    "ast_hash": "870fbe956c85e185183842552603a782",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/renderers/shared/brand-marks.mjs": {
+    "mtime": 1790502090.4947023,
+    "seen": 1790503463.6413426,
+    "ast_hash": "c527536979d6106d735c3cb489a61117",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/renderers/shared/cli.mjs": {
+    "mtime": 1790502090.4947023,
+    "seen": 1790503463.6413426,
+    "ast_hash": "90625eea1df11d613d04d7ee928b0043",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/renderers/shared/desktop-readability.mjs": {
+    "mtime": 1790502090.4997604,
+    "seen": 1790503463.6413426,
+    "ast_hash": "6fde6b95a303020a79296ca89b383592",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/renderers/shared/diagnostics.mjs": {
+    "mtime": 1790502090.5007465,
+    "seen": 1790503463.6413426,
+    "ast_hash": "03eb850c1f53625993c0638558ceb550",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/renderers/shared/engineering-profiles.mjs": {
+    "mtime": 1790502090.5027578,
+    "seen": 1790503463.6413426,
+    "ast_hash": "05a81c043ea97a912be0378a39776d8a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/renderers/shared/generated-brand-marks.mjs": {
+    "mtime": 1790502090.5083055,
+    "seen": 1790503463.6413426,
+    "ast_hash": "98c8686a9cc08e7b09b4a54f6cf4997a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/renderers/shared/generated-validators.mjs": {
+    "mtime": 1790502090.5112925,
+    "seen": 1790503463.6413426,
+    "ast_hash": "6e904810ddd7d34e01cbac8dca3a0487",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/renderers/shared/geometry.mjs": {
+    "mtime": 1790502090.513311,
+    "seen": 1790503463.6413426,
+    "ast_hash": "1a3f7a1bd5511457ef61462cbd9186c0",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/renderers/shared/i18n.mjs": {
+    "mtime": 1790502090.5148194,
+    "seen": 1790503463.6413426,
+    "ast_hash": "38677922ae654b109a554f928d8db5fa",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/renderers/shared/layout-report.mjs": {
+    "mtime": 1790502090.5174513,
+    "seen": 1790503463.6413426,
+    "ast_hash": "8edbe80bc1e1668a40207c0a4fb85cba",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/renderers/shared/legend.mjs": {
+    "mtime": 1790502090.5191467,
+    "seen": 1790503463.6413426,
+    "ast_hash": "8892f8577280cf1b98902df5df0dc365",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/renderers/shared/output-path.mjs": {
+    "mtime": 1790502090.522239,
+    "seen": 1790503463.6413426,
+    "ast_hash": "2176c1d24558d10f2905d76c94cfe8ea",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/renderers/shared/repository-evidence.mjs": {
+    "mtime": 1790502090.5247183,
+    "seen": 1790503463.6413426,
+    "ast_hash": "cc05c858e39fb270fb267d2e1c01789f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/renderers/shared/repository-location.mjs": {
+    "mtime": 1790502090.5247183,
+    "seen": 1790503463.6413426,
+    "ast_hash": "6fa090483373e324b8c14300065773f5",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/renderers/shared/text-fit.mjs": {
+    "mtime": 1790502090.5247183,
+    "seen": 1790503463.6413426,
+    "ast_hash": "670bbfaa557cc1105c8b75afcfae0799",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/renderers/shared/utils.mjs": {
+    "mtime": 1790502090.5247183,
+    "seen": 1790503463.6413426,
+    "ast_hash": "8e82adeb2b39e72b9bcd122ea5688d7f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/renderers/shared/validator.mjs": {
+    "mtime": 1790502090.5316637,
+    "seen": 1790503463.6413426,
+    "ast_hash": "7321120cbbb8547dca7288a66c3a0ac0",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/renderers/workflow/render-workflow.mjs": {
+    "mtime": 1790502090.5347931,
+    "seen": 1790503463.6413426,
+    "ast_hash": "ace6214e25c0e1891d03c82539bf66a2",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/renderers/workflow/workflow-compiler.mjs": {
+    "mtime": 1790502090.539914,
+    "seen": 1790503463.6413426,
+    "ast_hash": "651ecb290eb78449e437e577f89ef945",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/renderers/workflow/workflow-migration-geometry.mjs": {
+    "mtime": 1790502090.539914,
+    "seen": 1790503463.6413426,
+    "ast_hash": "11859aa7815dc3a28aaf32733ce6b80a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/schemas/architecture.schema.json": {
+    "mtime": 1790502090.5450234,
+    "seen": 1790503463.6413426,
+    "ast_hash": "8ff647b391f2e894ea3f79c8d2797dbd",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/schemas/common.schema.json": {
+    "mtime": 1790502090.5450234,
+    "seen": 1790503463.6413426,
+    "ast_hash": "63770b7853cf1cb6cf11c3e8eefaa770",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/schemas/dataflow.schema.json": {
+    "mtime": 1790502090.54932,
+    "seen": 1790503463.6413426,
+    "ast_hash": "5b4deaf9459d331665befd98bca4f900",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/schemas/lifecycle.schema.json": {
+    "mtime": 1790502090.54932,
+    "seen": 1790503463.6413426,
+    "ast_hash": "1e5ced513d9285cb586682b7b058ad24",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/schemas/sequence.schema.json": {
+    "mtime": 1790502090.54932,
+    "seen": 1790503463.6413426,
+    "ast_hash": "79badc446feec6d71bbce57e3a60ab1d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/schemas/workflow.schema.json": {
+    "mtime": 1790502090.5546038,
+    "seen": 1790503463.6413426,
+    "ast_hash": "ac64d660e64491fe5294493a5a770f60",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/scripts/check-render-output.mjs": {
+    "mtime": 1790502090.5546038,
+    "seen": 1790503463.6413426,
+    "ast_hash": "ff596a2539dd51e386bc0b2cb2517ea5",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/scripts/check-update.mjs": {
+    "mtime": 1790502090.559721,
+    "seen": 1790503463.6413426,
+    "ast_hash": "76825132d0f5366a18e18851f22ce244",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/scripts/generate-brand-marks.mjs": {
+    "mtime": 1790502090.559721,
+    "seen": 1790503463.6413426,
+    "ast_hash": "9beb28a95d0b2cd18ede0704aabca9ca",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/scripts/generate-validators.mjs": {
+    "mtime": 1790502090.559721,
+    "seen": 1790503463.6413426,
+    "ast_hash": "a829f4ddb265b391a906847ec91c5709",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/scripts/render-examples.mjs": {
+    "mtime": 1790502090.559721,
+    "seen": 1790503463.6413426,
+    "ast_hash": "8702e168ddc797984323a84da7c26865",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/scripts/update-contract.mjs": {
+    "mtime": 1790502090.5660553,
+    "seen": 1790503463.6413426,
+    "ast_hash": "4ffbe812021f02d332d09a54ae1e1b33",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/skill-release.json": {
+    "mtime": 1790502090.5660553,
+    "seen": 1790503463.6413426,
+    "ast_hash": "540cb5aa8454cd87a8b119f713c06cce",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/adaptive-reader-layout.test.mjs": {
+    "mtime": 1790502090.5660553,
+    "seen": 1790503463.6413426,
+    "ast_hash": "f538fe5634f7434ba83193b65dc28546",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/animation.test.mjs": {
+    "mtime": 1790502090.5660553,
+    "seen": 1790503463.6413426,
+    "ast_hash": "5078619b250eba756e5cf2132d38a127",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/architecture-compare-recovery.test.mjs": {
+    "mtime": 1790502090.5748427,
+    "seen": 1790503463.6413426,
+    "ast_hash": "598a3e283405392db2ac80dd33290e02",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/architecture-delta-markers.test.mjs": {
+    "mtime": 1790502090.5748427,
+    "seen": 1790503463.6413426,
+    "ast_hash": "91d9024b8c269f7b2681d5bfa3266e2b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/architecture-delta.test.mjs": {
+    "mtime": 1790502090.5748427,
+    "seen": 1790503463.6413426,
+    "ast_hash": "1e76b80e9a8ad7fc9667ba58dc025edc",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/artifact-receipt-flush.test.mjs": {
+    "mtime": 1790502090.5748427,
+    "seen": 1790503463.6413426,
+    "ast_hash": "74d0c8335865a1b1b8b078bd52efeb07",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/authored-reachability.test.mjs": {
+    "mtime": 1790502090.5817294,
+    "seen": 1790503463.6413426,
+    "ast_hash": "ec53852f14e7b870a9ef6ed69cbf7d2b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/authoring-safety-contract.test.mjs": {
+    "mtime": 1790502090.5826468,
+    "seen": 1790503463.6413426,
+    "ast_hash": "fbe4de73a0089de4d942157a8ad47c39",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/automatic-port-spread.test.mjs": {
+    "mtime": 1790502090.5846713,
+    "seen": 1790503463.6413426,
+    "ast_hash": "84c0148e3f94426851c01e670058aceb",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/base-input-compatibility.test.mjs": {
+    "mtime": 1790502090.5846713,
+    "seen": 1790503463.6413426,
+    "ast_hash": "45511728eb27a7cca307e48f46c52954",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/brand-marks.test.mjs": {
+    "mtime": 1790502090.5846713,
+    "seen": 1790503463.6413426,
+    "ast_hash": "7fdb7535bede459348e869023dfc143a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/chapter-delta-preview.test.mjs": {
+    "mtime": 1790502090.5846713,
+    "seen": 1790503463.6413426,
+    "ast_hash": "1ab4b2d9df852119cc8340eb028fb93e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/chapter-handoff.test.mjs": {
+    "mtime": 1790502090.5846713,
+    "seen": 1790503463.6413426,
+    "ast_hash": "7d9d1b22d4f42753259c4c73c37c4b1f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/chapter-rail.test.mjs": {
+    "mtime": 1790502090.5846713,
+    "seen": 1790503463.6413426,
+    "ast_hash": "ecacd7470d5ccca6973bcc37e34cd694",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/checkout-line-endings.test.mjs": {
+    "mtime": 1790502090.5846713,
+    "seen": 1790503463.6413426,
+    "ast_hash": "5634d3404ae67dccb3c7b8fe12c16815",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/ci-scope.test.mjs": {
+    "mtime": 1790502090.595097,
+    "seen": 1790503463.6413426,
+    "ast_hash": "6ad0c47f80da31da3346d7693cc32a97",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/clean-skill-staging.test.mjs": {
+    "mtime": 1790502090.595097,
+    "seen": 1790503463.6413426,
+    "ast_hash": "e89d250f9c514ca53f76ae2e00b10bb1",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/cli-output-types.test.mjs": {
+    "mtime": 1790502090.5987928,
+    "seen": 1790503463.6413426,
+    "ast_hash": "7b32b2777e4bfb84ab4f2ad05b5f4c98",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/cli.test.mjs": {
+    "mtime": 1790502090.6016831,
+    "seen": 1790503463.6413426,
+    "ast_hash": "007ee07c3086369fa8a0c08609e24b3b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/community-proof-intake.test.mjs": {
+    "mtime": 1790502090.6044166,
+    "seen": 1790503463.6413426,
+    "ast_hash": "27697e7ac0f064400db062d9266b17bb",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/cursor-onboarding.test.mjs": {
+    "mtime": 1790502090.605762,
+    "seen": 1790503463.6413426,
+    "ast_hash": "d28093e74ad82abd78942c0aab9ccee1",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/degraded.test.mjs": {
+    "mtime": 1790502090.6070473,
+    "seen": 1790503463.6413426,
+    "ast_hash": "15495010a15e9aace77a8838907395c0",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/delivery-contract.test.mjs": {
+    "mtime": 1790502090.6089647,
+    "seen": 1790503463.6413426,
+    "ast_hash": "44c5fd7aee98f04cb36e099404f12146",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/desktop-reader-browser.test.mjs": {
+    "mtime": 1790502090.6102378,
+    "seen": 1790503463.6413426,
+    "ast_hash": "f5bc68e7157a4f00c07642490dfb4b47",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/diagram-guide.test.mjs": {
+    "mtime": 1790502090.6115115,
+    "seen": 1790503463.6413426,
+    "ast_hash": "009b6a3bddc84647adbbb2beddf314a6",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/engineering-profile.test.mjs": {
+    "mtime": 1790502090.6127791,
+    "seen": 1790503463.6413426,
+    "ast_hash": "9e4be076c4c20f43f404a63a86b24dad",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/export-browser.test.mjs": {
+    "mtime": 1790502090.6148126,
+    "seen": 1790503463.6413426,
+    "ast_hash": "b9bbed1ecfb72fcf9f8089da5fef721a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/export-cleanup-browser.test.mjs": {
+    "mtime": 1790502090.6161852,
+    "seen": 1790503463.6413426,
+    "ast_hash": "ec8a20e93c6636096ef601df4449c07a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/finder-browser.test.mjs": {
+    "mtime": 1790502090.6161852,
+    "seen": 1790503463.6413426,
+    "ast_hash": "63982694e1b288466e9b4a4b4ede3883",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/finder.test.mjs": {
+    "mtime": 1790502090.6161852,
+    "seen": 1790503463.6413426,
+    "ast_hash": "25e404e2ba7ceeaf185a116293258ef5",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/fixtures/automatic-routing-node-border-clearance.workflow.json": {
+    "mtime": 1790502090.6161852,
+    "seen": 1790503463.6413426,
+    "ast_hash": "8555fa88dcae6ccf9d127497aeaec74f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/fixtures/fail-migration-cleanup.mjs": {
+    "mtime": 1790502090.624582,
+    "seen": 1790503463.6413426,
+    "ast_hash": "ee76b491db868d244f229f17d370731e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/fixtures/issue-126/custom-widths.workflow.json": {
+    "mtime": 1790502090.624582,
+    "seen": 1790503463.6413426,
+    "ast_hash": "2ea507ac60395ef8a6f3b5f41bba2b9b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/fixtures/issue-126/explicit-route.workflow.json": {
+    "mtime": 1790502090.624582,
+    "seen": 1790503463.6413426,
+    "ast_hash": "50304bdb54bca0b3a1051630d28790ee",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/fixtures/issue-126/explicit-viewbox.workflow.json": {
+    "mtime": 1790502090.6297026,
+    "seen": 1790503463.6413426,
+    "ast_hash": "515cc2a8aa7339204f09259a1dee17c5",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/fixtures/issue-126/labels.workflow.json": {
+    "mtime": 1790502090.632301,
+    "seen": 1790503463.6413426,
+    "ast_hash": "42a95bbe78cd0a111336602abae9fde5",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/fixtures/v1-baseline/agent-run.lifecycle.json": {
+    "mtime": 1790502090.6348443,
+    "seen": 1790503463.6413426,
+    "ast_hash": "3909060b366d363f73d2b96dcc031790",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/fixtures/v1-baseline/agent-tool-call.workflow.json": {
+    "mtime": 1790502090.6358542,
+    "seen": 1790503463.6413426,
+    "ast_hash": "24e30f3feb43c62158ee4e4ed7dad35a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/fixtures/v1-baseline/cache-miss-request.sequence.json": {
+    "mtime": 1790502090.636881,
+    "seen": 1790503463.6413426,
+    "ast_hash": "0acb98cc10d084e570247df336b88d2d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/fixtures/v1-baseline/event-stream.dataflow.json": {
+    "mtime": 1790502090.6388805,
+    "seen": 1790503463.6413426,
+    "ast_hash": "f0cc0ababaf8e0c4a693c358a65ab24f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/fixtures/v1-baseline/product-analytics.dataflow.json": {
+    "mtime": 1790502090.6399562,
+    "seen": 1790503463.6413426,
+    "ast_hash": "7f6986bf1f6bf5d4751b339c2dd5f50f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/fixtures/v1-baseline/production-deployment.architecture.json": {
+    "mtime": 1790502090.6404946,
+    "seen": 1790503463.6413426,
+    "ast_hash": "f2bfbed1bab49c7c25ef7277319469ff",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/fixtures/v1-baseline/web-app.architecture.json": {
+    "mtime": 1790502090.6415899,
+    "seen": 1790503463.6413426,
+    "ast_hash": "6ef7b52172a72b36cf8fac134b357af4",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/fixtures/v1-workflow-700x400.workflow.json": {
+    "mtime": 1790502090.6435957,
+    "seen": 1790503463.6413426,
+    "ast_hash": "64bd119f95b5a7b87a5eebc673b0dac6",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/fixtures/v1-workflow-explicit-coordinates.workflow.json": {
+    "mtime": 1790502090.6435957,
+    "seen": 1790503463.6413426,
+    "ast_hash": "013a7277f8a209b399af885fb140e15e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/focus-browser.test.mjs": {
+    "mtime": 1790502090.6452174,
+    "seen": 1790503463.6413426,
+    "ast_hash": "8d7fecbedececf07d0b203282ba2555c",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/gallery.test.mjs": {
+    "mtime": 1790502090.6462207,
+    "seen": 1790503463.6413426,
+    "ast_hash": "bbb32d3cc1f6c8cff7e03745b205975d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/generate-validators.test.mjs": {
+    "mtime": 1790502090.6473274,
+    "seen": 1790503463.6413426,
+    "ast_hash": "69440f4df69ac854cdff75786788ed87",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/generate-viewer.test.mjs": {
+    "mtime": 1790502090.648221,
+    "seen": 1790503463.6413426,
+    "ast_hash": "e8c7f96a2ff2d94354c229c14f538dca",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/generated-artifact-xml.test.mjs": {
+    "mtime": 1790502090.6492229,
+    "seen": 1790503463.6413426,
+    "ast_hash": "6f1d6e286a2bd49ef8e4f5a5382097f6",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/geometry.test.mjs": {
+    "mtime": 1790502090.650033,
+    "seen": 1790503463.6413426,
+    "ast_hash": "7b8d8e8d348296d8202ae0fdf97d4d0f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/golden.mjs": {
+    "mtime": 1790502090.6505072,
+    "seen": 1790503463.6413426,
+    "ast_hash": "580258dd983ed85332cb6ca553c583d2",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/grid.test.mjs": {
+    "mtime": 1790502090.6516364,
+    "seen": 1790503463.6413426,
+    "ast_hash": "4758019f2cbabca71279f7a8563e18ba",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/guide-page.test.mjs": {
+    "mtime": 1790502090.6536565,
+    "seen": 1790503463.6413426,
+    "ast_hash": "7c769641abd8477a334db186b0661035",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/guide.test.mjs": {
+    "mtime": 1790502090.6546264,
+    "seen": 1790503463.6413426,
+    "ast_hash": "93dfa3ffc2ebd66c5b20023e2c7040db",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/guided-views-browser.test.mjs": {
+    "mtime": 1790502090.6546264,
+    "seen": 1790503463.6413426,
+    "ast_hash": "da8b396ba33b531df73ca075a89ae775",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/guided-views.test.mjs": {
+    "mtime": 1790502090.657692,
+    "seen": 1790503463.6413426,
+    "ast_hash": "94333a294d500d015d67ef0b100f8e2e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/helpers/desktop-browser.mjs": {
+    "mtime": 1790502090.657692,
+    "seen": 1790503463.6413426,
+    "ast_hash": "88530d21446dd86318ab0e5910a66135",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/helpers/offline-fonts.mjs": {
+    "mtime": 1790502090.657692,
+    "seen": 1790503463.6413426,
+    "ast_hash": "26404d93bda971a0731c6099549edc6d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/helpers/viewer-click.mjs": {
+    "mtime": 1790502090.657692,
+    "seen": 1790503463.6413426,
+    "ast_hash": "52dfed707d68f0ccc10b681e0ffca3b4",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/helpers/xml.mjs": {
+    "mtime": 1790502090.657692,
+    "seen": 1790503463.6413426,
+    "ast_hash": "da2ab599d548df403f8c10471e274608",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/i18n.test.mjs": {
+    "mtime": 1790502090.6648083,
+    "seen": 1790503463.6413426,
+    "ast_hash": "dd2330028e308be3c4eb40c5f9f8e338",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/intent-trace-browser.test.mjs": {
+    "mtime": 1790502090.6667867,
+    "seen": 1790503463.6413426,
+    "ast_hash": "bdc54a2aaf40fbac5d7b4369a20b762f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/intent-trace.test.mjs": {
+    "mtime": 1790502090.6696103,
+    "seen": 1790503463.6413426,
+    "ast_hash": "f8b10508993fa6e97fb15cc3f2de86f4",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/landing.test.mjs": {
+    "mtime": 1790502090.6696103,
+    "seen": 1790503463.6413426,
+    "ast_hash": "36f981e10fa51758c1abe0f909f27477",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/layout-rules.test.mjs": {
+    "mtime": 1790502090.6696103,
+    "seen": 1790503463.6413426,
+    "ast_hash": "74d1fae49b4a92fa76c6f0f1730a346d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/legend-contract.test.mjs": {
+    "mtime": 1790502090.675009,
+    "seen": 1790503463.6413426,
+    "ast_hash": "9ffeb59a895b2493362f9e1919c89115",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/motion-governor-browser.test.mjs": {
+    "mtime": 1790502090.675009,
+    "seen": 1790503463.6413426,
+    "ast_hash": "6037eed0d82b5128b65090134a1c91de",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/motion-governor.test.mjs": {
+    "mtime": 1790502090.675009,
+    "seen": 1790503463.6413426,
+    "ast_hash": "33b82a6f7ab48481d830c857c1a33e3b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/offline-font-browser.test.mjs": {
+    "mtime": 1790502090.6798277,
+    "seen": 1790503463.6413426,
+    "ast_hash": "e5d5d4f51a15b96fec9c64e1689c1282",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/offline-self-containment.test.mjs": {
+    "mtime": 1790502090.680938,
+    "seen": 1790503463.6413426,
+    "ast_hash": "24f61015530d44f1756e46080160fb2a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/open-artifact.test.mjs": {
+    "mtime": 1790502090.6826553,
+    "seen": 1790503463.6413426,
+    "ast_hash": "03af594587db061b712c53ed35e42e9e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/ordinary-model-floor.test.mjs": {
+    "mtime": 1790502090.684673,
+    "seen": 1790503463.6413426,
+    "ast_hash": "e1aaccf64c7aad36e8e603cc84c98e67",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/output-path.test.mjs": {
+    "mtime": 1790502090.684673,
+    "seen": 1790503463.6413426,
+    "ast_hash": "327f9663648118ed6455a3acebf79ddc",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/presentation.test.mjs": {
+    "mtime": 1790502090.684673,
+    "seen": 1790503463.6413426,
+    "ast_hash": "f4b737eb02b84b3addb262d30161305e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/preset-tryon.test.mjs": {
+    "mtime": 1790502090.684673,
+    "seen": 1790503463.6413426,
+    "ast_hash": "0521bd5599b0e234711950c1595c056c",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/preview-contract.test.mjs": {
+    "mtime": 1790502090.6899476,
+    "seen": 1790503463.6413426,
+    "ast_hash": "2b3f704358901b67062b2dd751128de3",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/preview.test.mjs": {
+    "mtime": 1790502090.6899476,
+    "seen": 1790503463.6413426,
+    "ast_hash": "e0d80abbde4c450aec8fa8cde2fa7688",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/proof-aperture.test.mjs": {
+    "mtime": 1790502090.6899476,
+    "seen": 1790503463.6413426,
+    "ast_hash": "4c2e112c608af721d8688e3bdfd4e9d3",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/reach-share-card.test.mjs": {
+    "mtime": 1790502090.6899476,
+    "seen": 1790503463.6413426,
+    "ast_hash": "69083cc537f83a91eb3b4ddbf31c0bbf",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/reader-layout-browser.test.mjs": {
+    "mtime": 1790502090.695014,
+    "seen": 1790503463.6413426,
+    "ast_hash": "4d13559537cd9df333fc96f8fefb4604",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/readme-showcase.test.mjs": {
+    "mtime": 1790502090.695014,
+    "seen": 1790503463.6413426,
+    "ast_hash": "6a9ef5dad9bb55d89557fbe946538cff",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/real-repository-proof.test.mjs": {
+    "mtime": 1790502090.6975951,
+    "seen": 1790503463.6413426,
+    "ast_hash": "d7501af6767bfa104dbdfe38cb48ac40",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/relationship-direct-explorer.test.mjs": {
+    "mtime": 1790502090.7001967,
+    "seen": 1790503463.6413426,
+    "ast_hash": "4e2d098c223b599f4862b01dfc0fb46a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/relationship-lens.test.mjs": {
+    "mtime": 1790502090.7001967,
+    "seen": 1790503463.6413426,
+    "ast_hash": "38c022c5a8fb2b0c7357b40654cd9902",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/relationship-permalink.test.mjs": {
+    "mtime": 1790502090.7001967,
+    "seen": 1790503463.6413426,
+    "ast_hash": "e676eb70dd156c031680a91f564c2a55",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/relationship-pulse.test.mjs": {
+    "mtime": 1790502090.7046807,
+    "seen": 1790503463.6413426,
+    "ast_hash": "c1232c3d5b3f1dca1735ad228c8f1053",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/release-identity.test.mjs": {
+    "mtime": 1790502090.7046807,
+    "seen": 1790503463.6413426,
+    "ast_hash": "e23cd2470907b112dd16e4c4ad6c74ea",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/release-package-gates.test.mjs": {
+    "mtime": 1790502090.7046807,
+    "seen": 1790503463.6413426,
+    "ast_hash": "59054a419f87946fad70208ad2f726ef",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/render-output-checks.test.mjs": {
+    "mtime": 1790502090.7097623,
+    "seen": 1790503463.6413426,
+    "ast_hash": "fc3f8bf9b3bcef05b8cdf34560ed6a03",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/renderer-diagnostic-boundary.test.mjs": {
+    "mtime": 1790502090.7097623,
+    "seen": 1790503463.6413426,
+    "ast_hash": "aff468fdc96540fa9f6265d8b1f6ab46",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/repair-receipt.test.mjs": {
+    "mtime": 1790502090.7097623,
+    "seen": 1790503463.6413426,
+    "ast_hash": "5110ebcbd751d855772bbb78cd8a4414",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/repository-evidence-replacement.test.mjs": {
+    "mtime": 1790502090.7097623,
+    "seen": 1790503463.6413426,
+    "ast_hash": "59e4f17f95b6def98ca56b813748c9d0",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/repository-evidence.test.mjs": {
+    "mtime": 1790502090.7147763,
+    "seen": 1790503463.6413426,
+    "ast_hash": "22002badb74500df48be29a5a334117b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/repository-language-metadata.test.mjs": {
+    "mtime": 1790502090.7163873,
+    "seen": 1790503463.6413426,
+    "ast_hash": "6091543fb95a6bcf7fcd4b246a08c5c6",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/route-journey.test.mjs": {
+    "mtime": 1790502090.7163873,
+    "seen": 1790503463.6413426,
+    "ast_hash": "1a62d1232056186bcaf291001b0d316e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/route-probe-browser.test.mjs": {
+    "mtime": 1790502090.7163873,
+    "seen": 1790503463.6413426,
+    "ast_hash": "b99b8f21217ce87dd7f566ce89c1d416",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/route-probe.test.mjs": {
+    "mtime": 1790502090.7163873,
+    "seen": 1790503463.6413426,
+    "ast_hash": "0fb3c337d1894772b6c3162e894c0338",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/route-share-card.test.mjs": {
+    "mtime": 1790502090.7163873,
+    "seen": 1790503463.6413426,
+    "ast_hash": "c2f5e655ff331272d7d6ed96c090347a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/semantic-camera.test.mjs": {
+    "mtime": 1790502090.724792,
+    "seen": 1790503463.6413426,
+    "ast_hash": "1ed2a0be02ccd985a68988f72d1eea3e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/semantic-flow.test.mjs": {
+    "mtime": 1790502090.724792,
+    "seen": 1790503463.6413426,
+    "ast_hash": "4d9e24c021c3dc4ec3ac0f273edf2cfc",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/semantic-legend-gateway.test.mjs": {
+    "mtime": 1790502090.724792,
+    "seen": 1790503463.6413426,
+    "ast_hash": "eb5c9d560d678e78f4bf3989dfad741c",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/semantic-lens-browser.test.mjs": {
+    "mtime": 1790502090.724792,
+    "seen": 1790503463.6413426,
+    "ast_hash": "8ae5d03620b37ffec23234100cb91b6e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/semantic-lens.test.mjs": {
+    "mtime": 1790502090.7299092,
+    "seen": 1790503463.6413426,
+    "ast_hash": "97787245f1fc189c774ae211c2d60cc9",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/semantic-passport.test.mjs": {
+    "mtime": 1790502090.7319295,
+    "seen": 1790503463.6413426,
+    "ast_hash": "7351f985bfc60f885ef8190e8523191a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/semantic-radar.test.mjs": {
+    "mtime": 1790502090.7365232,
+    "seen": 1790503463.6413426,
+    "ast_hash": "3b203787353a9374a689a49e33a05372",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/semantic-zoom.test.mjs": {
+    "mtime": 1790502090.7390683,
+    "seen": 1790503463.6413426,
+    "ast_hash": "7575b4c2ebfd9488a040b3c243d42a09",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/sequence-column-fit.test.mjs": {
+    "mtime": 1790502090.740689,
+    "seen": 1790503463.6413426,
+    "ast_hash": "147302a1b1291758352bbc9db7b7d366",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/settled-flow.test.mjs": {
+    "mtime": 1790502090.7422488,
+    "seen": 1790503463.6413426,
+    "ast_hash": "8b4959db0543cc2f4dc1ac29cade4dac",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/share-card-export.test.mjs": {
+    "mtime": 1790502090.7438045,
+    "seen": 1790503463.6413426,
+    "ast_hash": "cc39ec96bbf510dda2497ef5b4e9c081",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/site-language-continuity.test.mjs": {
+    "mtime": 1790502090.7449758,
+    "seen": 1790503463.6413426,
+    "ast_hash": "4a66b67170cd341696a9423052e73040",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/site-language-integration.mjs": {
+    "mtime": 1790502090.746202,
+    "seen": 1790503463.6413426,
+    "ast_hash": "eac4aaa9c44a1daabbf64ee4d52414de",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/skill-metadata.test.mjs": {
+    "mtime": 1790502090.7468026,
+    "seen": 1790503463.6413426,
+    "ast_hash": "ed811e5afd24d0aa057739c40074fbb4",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/stable-update-manifest.test.mjs": {
+    "mtime": 1790502090.7468026,
+    "seen": 1790503463.6413426,
+    "ast_hash": "52b33f2e72e35ca0cb0a737c79352941",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/start-page.test.mjs": {
+    "mtime": 1790502090.7501273,
+    "seen": 1790503463.6413426,
+    "ast_hash": "1cf646cd965b8d7a52483b967377514c",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/story-beat-navigator.test.mjs": {
+    "mtime": 1790502090.7508862,
+    "seen": 1790503463.6413426,
+    "ast_hash": "064b63c26d9bb8720566a35d84ab6aac",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/story-carrier.test.mjs": {
+    "mtime": 1790502090.7508862,
+    "seen": 1790503463.6413426,
+    "ast_hash": "4dd711bbdc7994a07874a09538777bca",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/story-director-strip.test.mjs": {
+    "mtime": 1790502090.754959,
+    "seen": 1790503463.6413426,
+    "ast_hash": "7e1324e37cd53c3f8f1645809fcf37ff",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/story-follow-camera.test.mjs": {
+    "mtime": 1790502090.754959,
+    "seen": 1790503463.6413426,
+    "ast_hash": "b54fb6c7cd2fc82261025465469e96c1",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/story-horizon.test.mjs": {
+    "mtime": 1790502090.754959,
+    "seen": 1790503463.6413426,
+    "ast_hash": "c9b9d7187160722f01e7dca251049ce0",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/story-moment-link.test.mjs": {
+    "mtime": 1790502090.754959,
+    "seen": 1790503463.6413426,
+    "ast_hash": "80b22d925f39cfdbe03ca1acdf1be1e3",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/story-shelf.test.mjs": {
+    "mtime": 1790502090.754959,
+    "seen": 1790503463.6413426,
+    "ast_hash": "3cbe55cf48b30d90525f906240d4b383",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/story-trail.test.mjs": {
+    "mtime": 1790502090.759823,
+    "seen": 1790503463.6413426,
+    "ast_hash": "536458cc872263ece837815420793302",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/toolbar-polish.test.mjs": {
+    "mtime": 1790502090.759823,
+    "seen": 1790503463.6413426,
+    "ast_hash": "9a310fa5706e111e46c16fc6340d7b46",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/update-contract.test.mjs": {
+    "mtime": 1790502090.759823,
+    "seen": 1790503463.6413426,
+    "ast_hash": "fd521c3087798ee6927bfe14e280eeb5",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/update-notifier.test.mjs": {
+    "mtime": 1790502090.759823,
+    "seen": 1790503463.6413426,
+    "ast_hash": "08ae4640b7ba1ea11780996215ba0708",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/v1-compatibility.test.mjs": {
+    "mtime": 1790502090.7648375,
+    "seen": 1790503463.6413426,
+    "ast_hash": "2be9174e155a094e2cb80f7fd2ef7336",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/vertical-edge.test.mjs": {
+    "mtime": 1790502090.766111,
+    "seen": 1790503463.6413426,
+    "ast_hash": "a6b220fbcbdca27dfb16d7a28d3f2e78",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/viewer-camera-browser.test.mjs": {
+    "mtime": 1790502090.7685869,
+    "seen": 1790503463.6413426,
+    "ast_hash": "f18698fde4681d0c974962ece27df40d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/viewer-chrome-layout.test.mjs": {
+    "mtime": 1790502090.7685869,
+    "seen": 1790503463.6413426,
+    "ast_hash": "4dcf8f808dcfdf517c0a35162e37ccd5",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/viewer-identifiers-browser.test.mjs": {
+    "mtime": 1790502090.7685869,
+    "seen": 1790503463.6413426,
+    "ast_hash": "b87368d619daaa048eda1bb15a9b4bb7",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/visual-check.test.mjs": {
+    "mtime": 1790502090.7685869,
+    "seen": 1790503463.6413426,
+    "ast_hash": "ce2441af25f9d839345c7d6cae9ebae9",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/webm-artifact.smoke.mjs": {
+    "mtime": 1790502090.7748342,
+    "seen": 1790503463.6413426,
+    "ast_hash": "3f2249be99f1230e1af825d4d7201b35",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/workflow-compiler-hard-contract.test.mjs": {
+    "mtime": 1790502090.7748342,
+    "seen": 1790503463.6413426,
+    "ast_hash": "217cab7d62e9a63937be4c82099fd34d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/workflow-compiler.test.mjs": {
+    "mtime": 1790502090.7798715,
+    "seen": 1790503463.6413426,
+    "ast_hash": "ffdaedbf28d6f9d7b6a2d3829f807ddb",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/workflow-migration.test.mjs": {
+    "mtime": 1790502090.7809057,
+    "seen": 1790503463.6413426,
+    "ast_hash": "c3e5594a56b628620b139f5c02f91df1",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/test/workflow-semantic-contract.test.mjs": {
+    "mtime": 1790502090.7829666,
+    "seen": 1790503463.6413426,
+    "ast_hash": "b03454a5e38fe63cb9689f922148ae21",
+    "semantic_hash": ""
+  },
+  "docs/architecture/intercom-alpha.architecture.json": {
+    "mtime": 1790503348.3157625,
+    "seen": 1790503463.6423318,
+    "ast_hash": "6a7ffdae9417fc79608687644cb8fcc3",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/SKILL.md": {
+    "mtime": 1790502090.389244,
+    "seen": 1790503463.6423318,
+    "ast_hash": "872f24170099bcda512fb9ae79dc2d57",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/THIRD_PARTY_NOTICES.md": {
+    "mtime": 1790502090.3902738,
+    "seen": 1790503463.6423318,
+    "ast_hash": "9147c314e49943528815f81277e5df39",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/assets/JetBrainsMono-OFL.txt": {
+    "mtime": 1790502090.3922415,
+    "seen": 1790503463.6423318,
+    "ast_hash": "1c09e67ab89d3a2e874aac38159e300f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/assets/template.html": {
+    "mtime": 1790502090.4034114,
+    "seen": 1790503463.6423318,
+    "ast_hash": "0b482763d01819e41d7df85ee54c7d4b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/brand-marks/README.md": {
+    "mtime": 1790502090.4048374,
+    "seen": 1790503463.6423318,
+    "ast_hash": "699ee91498179c167bc3e19af79ca89c",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/examples/dataflow-product-analytics.html": {
+    "mtime": 1790502090.4334328,
+    "seen": 1790503463.6423318,
+    "ast_hash": "0c6ddbe306fb34622298cbece5812709",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/examples/lifecycle-agent-run.html": {
+    "mtime": 1790502090.439607,
+    "seen": 1790503463.6423318,
+    "ast_hash": "5db1f05dfe8c3767a8d0fa669101debb",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/examples/sequence-cache-miss-request.html": {
+    "mtime": 1790502090.449362,
+    "seen": 1790503463.6423318,
+    "ast_hash": "261cdba992b22192dea5879c1e21550f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/examples/web-app-rendered.html": {
+    "mtime": 1790502090.449362,
+    "seen": 1790503463.6423318,
+    "ast_hash": "2b7fc3c01247308f41d30ccaf13bd6fe",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/examples/workflow-agent-tool-call-rendered.html": {
+    "mtime": 1790502090.4575055,
+    "seen": 1790503463.6423318,
+    "ast_hash": "62deaa597827a7d43539d144df01e787",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/references/authoring-contract.md": {
+    "mtime": 1790502090.4707758,
+    "seen": 1790503463.6423318,
+    "ast_hash": "c3fd48c1727d46dce6a5476f4973fcfd",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/references/brand-marks.md": {
+    "mtime": 1790502090.4723146,
+    "seen": 1790503463.6423318,
+    "ast_hash": "aec8b05b6a965de90881e60dafeb545c",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/references/delivery-contract.md": {
+    "mtime": 1790502090.474042,
+    "seen": 1790503463.6423318,
+    "ast_hash": "c58cbce15085aabdb929403338007863",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/references/viewer-runtime.md": {
+    "mtime": 1790502090.4754333,
+    "seen": 1790503463.6423318,
+    "ast_hash": "2bc168d15534b7119b99c165871c99c0",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/renderers/dataflow/README.md": {
+    "mtime": 1790502090.4828856,
+    "seen": 1790503463.6423318,
+    "ast_hash": "bbb3d5b2a172bcf0b6e9bf744a9b4397",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/renderers/lifecycle/README.md": {
+    "mtime": 1790502090.485113,
+    "seen": 1790503463.6423318,
+    "ast_hash": "eda71d056463a4c62709b97aaae33cb8",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/renderers/sequence/README.md": {
+    "mtime": 1790502090.4896915,
+    "seen": 1790503463.6423318,
+    "ast_hash": "da6ee95bb62ddf347a82de6b1cbdffa5",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/renderers/workflow/README.md": {
+    "mtime": 1790502090.5347931,
+    "seen": 1790503463.6423318,
+    "ast_hash": "4a6ccfc21faf503a19fcbce32646a7bc",
+    "semantic_hash": ""
+  },
+  ".agents/skills/archify/schemas/README.md": {
+    "mtime": 1790502090.539914,
+    "seen": 1790503463.6423318,
+    "ast_hash": "85d9074ae8a558a5b19b19cfa70ca783",
+    "semantic_hash": ""
+  },
+  "docs/architecture/intercom-alpha-architecture.html": {
+    "mtime": 1790503364.3378005,
+    "seen": 1790503463.6423318,
+    "ast_hash": "6bfdf5c781b8282cb017864d2a315e77",
+    "semantic_hash": ""
+  },
+  "docs/ARCHITECTURE.md": {
+    "mtime": 1790504444.002175,
+    "seen": 1790504531.7090478,
+    "ast_hash": "8001b2a09002f10c0909a1dc5b5ea2e5",
+    "semantic_hash": ""
+  },
+  "docs/DESIGN.md": {
+    "mtime": 1790504470.5916564,
+    "seen": 1790504531.7090478,
+    "ast_hash": "083bb185de6347bca66706238949d6f6",
+    "semantic_hash": ""
+  },
+  "docs/MEMORY.md": {
+    "mtime": 1790504499.0411124,
+    "seen": 1790504531.7090478,
+    "ast_hash": "737bf25d3f65a9255e7364556fb86af4",
+    "semantic_hash": ""
+  },
+  "docs/PRD.md": {
+    "mtime": 1790504430.4395306,
+    "seen": 1790504531.7090478,
+    "ast_hash": "ce20f008dc97dff1f9ddbeb587526aaa",
+    "semantic_hash": ""
+  },
+  "docs/RULES.md": {
+    "mtime": 1790504455.1736777,
+    "seen": 1790504531.7090478,
+    "ast_hash": "507693a0dd73acf470617b3a3cf50e14",
+    "semantic_hash": ""
+  },
+  "docs/TASKS.md": {
+    "mtime": 1790504485.9096217,
+    "seen": 1790504531.7090478,
+    "ast_hash": "2b3c7f30ebc1be04a33d11e6559708ca",
+    "semantic_hash": ""
+  }
+}
