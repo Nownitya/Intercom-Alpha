@@ -36,6 +36,7 @@ import org.nowni.intercom_alpha.mesh.MeshConfig
 import org.nowni.intercom_alpha.mesh.MeshTransport
 import org.nowni.intercom_alpha.mesh.MeshTransportImpl
 import org.nowni.intercom_alpha.mesh.Peer
+import org.nowni.intercom_alpha.power.PowerManagerHelper
 
 class IntercomForegroundService : Service() {
 
@@ -46,6 +47,7 @@ class IntercomForegroundService : Service() {
     val meshTransport: MeshTransport by lazy { MeshTransportImpl(applicationContext, serviceScope) }
     val headsetManager: HeadsetManager by lazy { HeadsetManagerImpl(applicationContext, serviceScope) }
     val groupManager: GroupManager by lazy { GroupManagerImpl(meshTransport) }
+    val powerManagerHelper: PowerManagerHelper by lazy { PowerManagerHelper(applicationContext) }
 
     private var audioRxJob: Job? = null
     private var audioTxJob: Job? = null
@@ -173,6 +175,9 @@ class IntercomForegroundService : Service() {
 
     private fun startIntercomSession(groupId: String, peerName: String) {
         isSessionActive = true
+        // Acquire CPU partial wake lock to prevent Doze mode from sleeping audio & BLE
+        powerManagerHelper.acquireWakeLock()
+
         serviceScope.launch {
             try {
                 // 1. Start Bluetooth Headset Manager and establish SCO audio routing lock
@@ -251,40 +256,45 @@ class IntercomForegroundService : Service() {
 
     private fun handleExplicitDisconnect() {
         Log.d(TAG, "Executing explicit user disconnect: stopping audio, mesh, and notification")
-        isSessionActive = false
-        _isTransmitting.value = false
-        _connectedPeers.value = emptyList()
+        try {
+            isSessionActive = false
+            _isTransmitting.value = false
+            _connectedPeers.value = emptyList()
 
-        // Cancel streaming pipelines
-        audioRxJob?.cancel()
-        audioRxJob = null
-        audioTxJob?.cancel()
-        audioTxJob = null
-        peersJob?.cancel()
-        peersJob = null
-        headsetEventsJob?.cancel()
-        headsetEventsJob = null
+            // Cancel streaming pipelines
+            audioRxJob?.cancel()
+            audioRxJob = null
+            audioTxJob?.cancel()
+            audioTxJob = null
+            peersJob?.cancel()
+            peersJob = null
+            headsetEventsJob?.cancel()
+            headsetEventsJob = null
 
-        serviceScope.launch {
-            try {
-                headsetManager.setScoAudioRoute(false)
-                headsetManager.stop()
-            } catch (e: Exception) {
-                Log.w(TAG, "Error stopping HeadsetManager", e)
-            }
-            try {
-                audioEngine.stop()
-            } catch (e: Exception) {
-                Log.w(TAG, "Error stopping AudioEngine", e)
-            }
-            try {
-                meshTransport.stop()
-            } catch (e: Exception) {
-                Log.w(TAG, "Error stopping MeshTransport", e)
-            }
+            serviceScope.launch {
+                try {
+                    headsetManager.setScoAudioRoute(false)
+                    headsetManager.stop()
+                } catch (e: Exception) {
+                    Log.w(TAG, "Error stopping HeadsetManager", e)
+                }
+                try {
+                    audioEngine.stop()
+                } catch (e: Exception) {
+                    Log.w(TAG, "Error stopping AudioEngine", e)
+                }
+                try {
+                    meshTransport.stop()
+                } catch (e: Exception) {
+                    Log.w(TAG, "Error stopping MeshTransport", e)
+                }
 
-            stopForeground(STOP_FOREGROUND_REMOVE)
-            stopSelf()
+                stopForeground(STOP_FOREGROUND_REMOVE)
+                stopSelf()
+            }
+        } finally {
+            // Leak-prevention: Ensure partial wake lock is always released
+            powerManagerHelper.releaseWakeLock()
         }
     }
 

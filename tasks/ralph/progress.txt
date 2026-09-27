@@ -33,3 +33,17 @@
   - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
 ---
 
+## 2026-09-27 19:00:00 — Story Execution: ICA-602
+- **Story**: ICA-602: Android Partial WakeLock & Battery Optimization Helper
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`)
+- **Changes**:
+  - Implemented `PowerManagerHelper.kt` managing reference-counted `PARTIAL_WAKE_LOCK` (`IntercomAlpha:MeshAudioWakeLock`) with safe, try/finally leak-prevention acquire/release semantics.
+  - Added battery optimization status check (`isIgnoringBatteryOptimizations`) and system exemption intent creator (`ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`).
+  - Declared `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` in `AndroidManifest.xml`.
+  - Integrated `PowerManagerHelper` into `IntercomForegroundService` to acquire CPU wake lock during active sessions and release on disconnect/destroy.
+  - Added battery optimization exemption prompt in `MainActivity`.
+- **Verification**:
+  - `./gradlew :app:androidApp:assembleDebug test`: 117 actionable tasks passed cleanly in 18s.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 2s (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+---

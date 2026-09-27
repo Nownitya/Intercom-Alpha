@@ -35,7 +35,7 @@
         "WakeLock released in onDestroy with leak-prevention try/finally",
         "Battery optimization check and request intent cleanly handled"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-603",

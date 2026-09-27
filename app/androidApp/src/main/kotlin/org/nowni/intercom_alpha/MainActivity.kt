@@ -27,7 +27,8 @@ class MainActivity : ComponentActivity() {
             if (!isGranted) allGranted = false
         }
         if (allGranted) {
-            Log.d(TAG, "All required permissions granted, starting IntercomForegroundService")
+            Log.d(TAG, "All required permissions granted, checking battery optimization")
+            checkBatteryOptimization()
             IntercomForegroundService.startService(this)
         }
     }
@@ -69,8 +70,20 @@ class MainActivity : ComponentActivity() {
         if (missingPermissions.isNotEmpty()) {
             requestPermissionsLauncher.launch(missingPermissions.toTypedArray())
         } else {
-            Log.d(TAG, "Permissions already granted, starting service")
+            Log.d(TAG, "Permissions already granted, checking battery optimization")
+            checkBatteryOptimization()
             IntercomForegroundService.startService(this)
+        }
+    }
+
+    private fun checkBatteryOptimization() {
+        if (!org.nowni.intercom_alpha.power.PowerManagerHelper.isIgnoringBatteryOptimizations(this)) {
+            try {
+                val intent = org.nowni.intercom_alpha.power.PowerManagerHelper.createRequestIgnoreBatteryOptimizationsIntent(this)
+                startActivity(intent)
+            } catch (e: Exception) {
+                Log.w(TAG, "Unable to request ignore battery optimizations", e)
+            }
         }
     }
 }
