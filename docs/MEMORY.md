@@ -106,6 +106,14 @@
   - Priority sequence queuing with automatic stale packet drops ($Seq < nextPlayoutSeq$) and duplicate rejection.
   - Playout clock tick returns `PlayoutFrame.Concealment` when a packet gap is encountered at playout deadline, feeding downstream Packet Loss Concealment (PLC).
 
+### 2.12 Packet Loss Concealment & Waveform Extrapolation (`PacketLossConcealment.kt`)
+- **Challenge**: Missing BLE packets produce jarring audio dropouts, robotic distortion, or hard audio cutoffs during voice communication.
+- **Solution**:
+  - Autocorrelation pitch period detection over the rolling PCM history buffer to lock onto speaker fundamental frequency (50 Hz–500 Hz).
+  - Waveform extrapolation repeats pitch periods smoothly across dropped frames.
+  - Applies cumulative -3 dB exponential attenuation per consecutive frame loss, gracefully muting to silence if packet stream is completely interrupted (> 5 frames).
+  - Linear/cosine crossfade blending over frame boundaries upon stream resumption to prevent phase clicks and acoustic transients.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

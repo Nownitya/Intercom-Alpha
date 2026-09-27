@@ -122,7 +122,20 @@
   - Created `AdaptiveJitterBufferTest.kt` in `commonTest` testing in-order playout, out-of-order reordering, gap concealment signals, stale packet drops, and dynamic delay scaling.
 - **Verification**:
   - `./gradlew test :app:sharedLogic:compileKotlinIosSimulatorArm64` passed cleanly.
+## 2026-09-27 19:44:00 — Story ICA-702 Completed: Packet Loss Concealment (PLC) & Frame Interpolator
+- **Story**: `ICA-702` (Priority 2)
+- **Status**: PASSED (100% test pass, OCR approved with 0 findings)
+- **Implementation**:
+  - Created `PacketLossConcealment.kt` in `commonMain`:
+    - Autocorrelation-based pitch period detection across recent PCM sample history.
+    - Voiced pitch-period extrapolation looping synthesized waveform across dropped frames.
+    - Cumulative -3 dB (~0.707 linear gain) exponential attenuation per consecutive dropped frame, fading to complete silence after max threshold.
+    - Smooth linear crossfade blending over frame boundaries upon stream resumption to prevent acoustic clicking.
+  - Created `PacketLossConcealmentTest.kt` in `commonTest` testing good frame passthrough, voiced pitch extrapolation, monotonic energy decay, silence muting, crossfade recovery, and state resets.
+- **Verification**:
+  - `./gradlew test :app:sharedLogic:compileKotlinIosSimulatorArm64` passed cleanly.
   - `ocr delegate rule` passed with 0 findings.
 ---
+
 
 

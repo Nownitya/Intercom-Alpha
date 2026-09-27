@@ -37,7 +37,7 @@
         "Smooth cross-fade blending when normal packet stream resumes",
         "100% multiplatform test pass in commonTest"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-703",
