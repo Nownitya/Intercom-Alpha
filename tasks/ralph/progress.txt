@@ -47,3 +47,18 @@
   - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 2s (Rule 6).
   - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
 ---
+
+## 2026-09-27 19:05:00 — Story Execution: ICA-603
+- **Story**: ICA-603: iOS Background Audio & CoreBluetooth Background Modes
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`)
+- **Changes**:
+  - Configured `UIBackgroundModes` array in `app/iosApp/iosApp/Info.plist` with `audio`, `bluetooth-central`, and `bluetooth-peripheral`.
+  - Added required iOS privacy strings (`NSMicrophoneUsageDescription`, `NSBluetoothAlwaysUsageDescription`, `NSBluetoothPeripheralUsageDescription`, `NSCameraUsageDescription`).
+  - Implemented `AppDelegate` in `app/iosApp/iosApp/iOSApp.swift` configuring `AVAudioSession` category `.playAndRecord` with mode `.voiceChat` and options `[.allowBluetooth, .allowBluetoothA2DP, .defaultToSpeaker]`.
+  - Added `NotificationCenter` observer for `AVAudioSession.interruptionNotification` to auto-resume audio routing on interruption end.
+  - Attached `@UIApplicationDelegateAdaptor(AppDelegate.self)` and observed `scenePhase` in native SwiftUI `iOSApp`.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 2s (Rule 6).
+  - `./gradlew :app:androidApp:assembleDebug test`: 122 actionable tasks passed cleanly in 3s.
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+---

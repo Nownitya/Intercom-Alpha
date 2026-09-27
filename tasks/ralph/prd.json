@@ -44,14 +44,14 @@
       "description": "Configure UIBackgroundModes in Info.plist (audio, bluetooth-central, bluetooth-peripheral) and implement AppDelegate / AudioSession lifecycle.",
       "targetFiles": [
         "app/iosApp/iosApp/Info.plist",
-        "app/iosApp/iosApp/IntercomAlphaApp.swift"
+        "app/iosApp/iosApp/iOSApp.swift"
       ],
       "acceptanceCriteria": [
         "UIBackgroundModes includes audio, bluetooth-central, and bluetooth-peripheral",
         "AVAudioSession category PlayAndRecord with voiceChat mode survives background transitions",
         "Native SwiftUI app lifecycle properly initializes background bridge listener"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-604",

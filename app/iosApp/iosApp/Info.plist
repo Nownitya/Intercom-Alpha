@@ -4,5 +4,19 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+		<string>bluetooth-central</string>
+		<string>bluetooth-peripheral</string>
+	</array>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Intercom-Alpha requires microphone access for real-time peer-to-peer mesh intercom.</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Intercom-Alpha requires Bluetooth to discover and communicate with nearby riders offline.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>Intercom-Alpha advertises Bluetooth LE mesh packets so nearby riders can discover your intercom.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Intercom-Alpha requires camera access to scan QR group invite codes.</string>
 </dict>
 </plist>
