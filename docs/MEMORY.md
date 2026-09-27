@@ -98,7 +98,13 @@
   - Implemented `SimulatedBackgroundMeshTransport` simulating rapid bursts of incoming audio packets under simulated screen-off conditions.
   - Verified 0 dropped packets across consecutive audio frames under burst load.
   - Verified bounded memory behavior of `PacketDeduplicator` under high load (1,500 unique packets into max 1,000 capacity cache).
-  - Verified relay loop suppression under multi-hop relay forwarding.
+### 2.11 Adaptive Jitter Buffer & Playout Sequencer (`AdaptiveJitterBuffer.kt`)
+- **Challenge**: BLE mesh audio transmission experiences variable packet transit delays (jitter) and packet reordering. Direct synchronous playback causes stuttering, buffer under-runs, and audible gaps.
+- **Solution**:
+  - Implemented RFC 3550 statistical inter-arrival jitter estimation: $D(i, j) = (R_j - R_i) - (S_j - S_i)$, $J(i) = J(i-1) + \frac{|D(i,j)| - J(i-1)}{16}$.
+  - Dynamic target playout delay adapts between 40ms and 150ms ($D_{target} = baseDelay + 3 \times J$).
+  - Priority sequence queuing with automatic stale packet drops ($Seq < nextPlayoutSeq$) and duplicate rejection.
+  - Playout clock tick returns `PlayoutFrame.Concealment` when a packet gap is encountered at playout deadline, feeding downstream Packet Loss Concealment (PLC).
 
 ---
 

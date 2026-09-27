@@ -1,87 +1,94 @@
 {
   "project": "Intercom-Alpha",
-  "branchName": "phase-4/sprint-06-background-services",
-  "phase": "Phase 4: Background Operation & OS Power Management",
-  "sprint": "Sprint 06",
-  "updatedAt": "2026-09-27T17:30:00Z",
+  "branchName": "phase-5/sprint-07-audio-dsp-codec",
+  "phase": "Phase 5: Audio Codec Optimization, Jitter Buffering & Packet Loss Concealment (PLC)",
+  "sprint": "Sprint 07",
+  "updatedAt": "2026-09-27T19:30:00Z",
   "stories": [
     {
-      "id": "ICA-601",
+      "id": "ICA-701",
       "priority": 1,
-      "title": "Android Foreground Service & Sticky Notification",
-      "description": "Implement IntercomForegroundService with persistent FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE | MICROPHONE notification, audio routing survival, and Bluetooth SCO lifecycle lock.",
+      "title": "Adaptive Jitter Buffer & Playout Sequencer",
+      "description": "Implement AdaptiveJitterBuffer in commonMain to sequence incoming packets, estimate network jitter, handle out-of-order frames, and output frames at steady playout deadlines.",
       "targetFiles": [
-        "app/androidApp/src/main/kotlin/org/nowni/intercom_alpha/service/IntercomForegroundService.kt",
-        "app/androidApp/src/main/AndroidManifest.xml"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/AdaptiveJitterBuffer.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/AdaptiveJitterBufferTest.kt"
       ],
       "acceptanceCriteria": [
-        "Foreground service starts and binds to AudioEngine and MeshTransport",
-        "Persistent notification with active peer count and PTT status",
-        "Service declared with foregroundServiceType='connectedDevice|microphone' in AndroidManifest",
-        "Service stops cleanly on explicit user disconnect"
+        "Sequences incoming packets by sequence number and drops stale arrivals past playout deadline",
+        "Dynamically calculates inter-arrival jitter variance and adapts target delay (40ms-120ms)",
+        "Emits missing frame signal when a frame gap occurs at playout deadline",
+        "100% multiplatform test pass in commonTest"
       ],
       "passes": true
     },
     {
-      "id": "ICA-602",
+      "id": "ICA-702",
       "priority": 2,
-      "title": "Android Partial WakeLock & Battery Optimization Helper",
-      "description": "Implement PowerManagerHelper to acquire PARTIAL_WAKE_LOCK and provide user prompt intent for ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS.",
+      "title": "Packet Loss Concealment (PLC) & Frame Interpolator",
+      "description": "Implement PacketLossConcealment in commonMain using pitch-synchronous waveform extrapolation and exponential decay to conceal dropped mesh frames.",
       "targetFiles": [
-        "app/androidApp/src/main/kotlin/org/nowni/intercom_alpha/power/PowerManagerHelper.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/PacketLossConcealment.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/PacketLossConcealmentTest.kt"
       ],
       "acceptanceCriteria": [
-        "Partial WakeLock acquired on service start with reference counting",
-        "WakeLock released in onDestroy with leak-prevention try/finally",
-        "Battery optimization check and request intent cleanly handled"
+        "Synthesizes replacement audio frame from previous valid frame pitch period",
+        "Applies exponential energy attenuation (-3dB per consecutive lost frame)",
+        "Smooth cross-fade blending when normal packet stream resumes",
+        "100% multiplatform test pass in commonTest"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-603",
+      "id": "ICA-703",
       "priority": 3,
-      "title": "iOS Background Audio & CoreBluetooth Background Modes",
-      "description": "Configure UIBackgroundModes in Info.plist (audio, bluetooth-central, bluetooth-peripheral) and implement AppDelegate / AudioSession lifecycle.",
+      "title": "Adaptive Noise Gate & VOX Energy DSP",
+      "description": "Implement NoiseGate in commonMain with attack, hold, release envelope tracking and hysteresis to suppress ambient motorcycle wind noise.",
       "targetFiles": [
-        "app/iosApp/iosApp/Info.plist",
-        "app/iosApp/iosApp/iOSApp.swift"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/NoiseGate.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/NoiseGateTest.kt"
       ],
       "acceptanceCriteria": [
-        "UIBackgroundModes includes audio, bluetooth-central, and bluetooth-peripheral",
-        "AVAudioSession category PlayAndRecord with voiceChat mode survives background transitions",
-        "Native SwiftUI app lifecycle properly initializes background bridge listener"
+        "Configurable attack (e.g. 5ms), hold (e.g. 100ms), and release (e.g. 50ms) time constants",
+        "Hysteresis threshold prevents chattering near threshold boundary",
+        "Smooth gain ramping avoids acoustic clicking on gate transitions",
+        "100% multiplatform test pass in commonTest"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-604",
+      "id": "ICA-704",
       "priority": 4,
-      "title": "iOS Background Task Assertions & Keep-Alive",
-      "description": "Implement BackgroundKeepAlive in iosMain using UIApplication background task assertions to protect packet forwarding and audio buffer drains during screen lock.",
+      "title": "Multi-Rate Pure KMP Audio Codec Engine",
+      "description": "Implement AudioCodec in commonMain providing high-efficiency audio compression matching AudioProfile rates (LOW, MEDIUM, HIGH, ULTRA) with zero C/JNI dependencies.",
       "targetFiles": [
-        "app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/power/BackgroundKeepAlive.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/AudioCodec.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/AudioCodecTest.kt"
       ],
       "acceptanceCriteria": [
-        "Task assertion acquired before packet burst forwarding",
-        "Assertion expires cleanly with expirationHandler to avoid iOS watchdog termination",
-        "State exposed cleanly to Swift via IntercomBridge"
+        "Compresses 20ms 24kHz/16kHz PCM frames into compact byte packets (40 to 160 bytes) fitting single BLE GATT MTU",
+        "Decodes compressed packets back to 16-bit PCM ShortArray with high SNR",
+        "100% pure Kotlin Multiplatform running across Android, iOS, JVM, and Wasm/JS",
+        "100% multiplatform test pass in commonTest"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-605",
+      "id": "ICA-705",
       "priority": 5,
-      "title": "Screen-Off Continuity Verification Test",
-      "description": "Automated unit test verifying that MeshTransport, PacketDeduplicator, and AudioEngine state machines survive simulated backgrounding and sleep assertions.",
+      "title": "Audio Pipeline End-to-End Integration & Benchmark Test",
+      "description": "Integrate AdaptiveJitterBuffer, PLC, NoiseGate, and AudioCodec into AudioEngine and run end-to-end multiplatform audio pipeline tests.",
       "targetFiles": [
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/BackgroundContinuityTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/AudioEngine.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/AudioPipelineIntegrationTest.kt"
       ],
       "acceptanceCriteria": [
-        "Simulates incoming mesh packets under simulated screen-off conditions",
-        "Verifies zero dropped packets and zero sliding-window memory leak",
-        "100% passing across ./gradlew test suite"
+        "AudioEngine uses AudioCodec, JitterBuffer, and PLC in default processing loop",
+        "Integration test verifies continuous audio playout under 20% simulated packet loss and 50ms jitter",
+        "Zero regressions across entire test suite and platform builds",
+        "All Gradle verification gates pass cleanly"
       ],
-      "passes": true
+      "passes": false
     }
   ]
 }

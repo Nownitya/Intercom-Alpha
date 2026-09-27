@@ -97,5 +97,32 @@
   - `ICA-602: Android Partial WakeLock & Battery Optimization Helper` [PASSED]
   - `ICA-603: iOS Background Audio & CoreBluetooth Background Modes` [PASSED]
   - `ICA-604: iOS Background Task Assertions & Keep-Alive` [PASSED]
-  - `ICA-605: Screen-Off Continuity Verification Test` [PASSED]
 ---
+
+## 2026-09-27 19:30:00 — Sprint 07 Launch: Audio Codec Optimization, Jitter Buffering & PLC
+- **Milestone**: Phase 5 / Sprint 07
+- **Goal**: Upgrade mesh audio streaming from uncompressed 16-bit PCM to multi-rate compressed frames with adaptive jitter buffering, packet loss concealment (PLC), and noise gating.
+- **Stories Formulated in `tasks/ralph/prd.json`**:
+  - `ICA-701`: Adaptive Jitter Buffer & Playout Sequencer (Priority 1)
+  - `ICA-702`: Packet Loss Concealment (PLC) & Frame Interpolator (Priority 2)
+  - `ICA-703`: Adaptive Noise Gate & VOX Energy DSP (Priority 3)
+  - `ICA-704`: Multi-Rate Pure KMP Audio Codec Engine (Priority 4)
+  - `ICA-705`: Audio Pipeline End-to-End Integration & Benchmark Test (Priority 5)
+- **Ready for Story 1 execution (`ICA-701: Adaptive Jitter Buffer & Playout Sequencer`)**.
+---
+
+## 2026-09-27 19:38:00 — Story ICA-701 Completed: Adaptive Jitter Buffer & Playout Sequencer
+- **Story**: `ICA-701` (Priority 1)
+- **Status**: PASSED (100% test pass, OCR approved with 0 findings)
+- **Implementation**:
+  - Created `AdaptiveJitterBuffer.kt` in `commonMain`:
+    - RFC 3550 inter-arrival jitter estimation ($J = J + (|D| - J) / 16$) with 40ms to 150ms dynamic playout delay.
+    - Sorted sequence queuing with stale packet drops ($Seq < nextPlayoutSeq$) and duplicate rejection.
+    - Continuous playout clock ticking with missing sequence detection emitting `PlayoutFrame.Concealment` for seamless downstream PLC interpolation.
+  - Created `AdaptiveJitterBufferTest.kt` in `commonTest` testing in-order playout, out-of-order reordering, gap concealment signals, stale packet drops, and dynamic delay scaling.
+- **Verification**:
+  - `./gradlew test :app:sharedLogic:compileKotlinIosSimulatorArm64` passed cleanly.
+  - `ocr delegate rule` passed with 0 findings.
+---
+
+

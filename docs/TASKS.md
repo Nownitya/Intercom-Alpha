@@ -56,26 +56,29 @@
 
 ## 🚀 Active & Upcoming Sprints
 
-### 🟡 Sprint 06: Background Services & OS Power Management (Phase 4)
-- **Sprint Goal**: Ensure continuous screen-off voice communication and relay for 4+ hours on Android and iOS.
+### ✅ Sprint 06: Background Services & OS Power Management (Phase 4)
+- **Goal**: Ensure continuous screen-off voice communication and relay for 4+ hours on Android and iOS.
+- **Completed**:
+  - `ICA-601`: Android Foreground Service with `connectedDevice|microphone` types and Bluetooth SCO audio routing lock (`IntercomForegroundService.kt`).
+  - `ICA-602`: Android Partial WakeLock and Battery Optimization exemption request helper (`PowerManagerHelper.kt`).
+  - `ICA-603`: iOS Background Audio and CoreBluetooth modes in `Info.plist` & `AVAudioSession` lifecycle in `iOSApp.swift`.
+  - `ICA-604`: iOS background task assertions and keep-alive (`BackgroundKeepAlive.kt` & `IntercomBridge.kt`).
+  - `ICA-605`: Screen-off continuity verification test suite with simulated burst traffic (`BackgroundContinuityTest.kt`).
+
+---
+
+## 🚀 Active & Upcoming Sprints
+
+### 🟡 Sprint 07: Audio Codec Optimization, Jitter Buffering & Packet Loss Concealment (PLC) (Phase 5)
+- **Sprint Goal**: Upgrade audio streaming from raw PCM to multi-rate compressed frames with adaptive jitter buffering, PLC, and noise gating.
 
 | Task ID | Item | Owner | Target Files | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **ICA-601** | Android Foreground Service & Sticky Notification | Agent | `app/androidApp/.../IntercomForegroundService.kt` | ⚪ Backlog |
-| **ICA-602** | Android Partial WakeLock & Battery Optimization | Agent | `app/androidApp/.../PowerManagerHelper.kt` | ⚪ Backlog |
-| **ICA-603** | iOS Background Audio & Bluetooth Peripheral Modes | Agent | `app/iosApp/iosApp/Info.plist` & `AppDelegate.swift` | ⚪ Backlog |
-| **ICA-604** | iOS Background Task Assertions & Keep-Alive | Agent | `app/sharedLogic/src/iosMain/.../BackgroundKeepAlive.kt` | ⚪ Backlog |
-| **ICA-605** | Screen-Off 30-Minute Continuity Unit & Smoke Test | Agent | Automated verification script | ⚪ Backlog |
-
-### ⚪ Sprint 07: Audio DSP Hardening, Opus Codec & Jitter Buffering (Phase 5)
-- **Sprint Goal**: Upgrade from raw 16-bit PCM to compressed Opus frames with adaptive jitter buffering and packet loss concealment (PLC).
-
-| Task ID | Item | Target Files | Status |
-| :--- | :--- | :--- | :--- |
-| **ICA-701** | Opus Multiplatform Native Bindings (concentus / opus-kmp) | `app/sharedLogic/.../OpusCodec.kt` | ⚪ Backlog |
-| **ICA-702** | Adaptive Jitter Buffer (50–200ms dynamic adjustment) | `app/sharedLogic/.../JitterBuffer.kt` | ⚪ Backlog |
-| **ICA-703** | Packet Loss Concealment (PLC) & Noise Gate | `app/sharedLogic/.../AudioDsp.kt` | ⚪ Backlog |
-| **ICA-704** | Audio Profile Quality Switcher (Ultra-Low 16k to Hi-Fi 64k) | `app/sharedLogic/.../AudioProfile.kt` | ⚪ Backlog |
+| **ICA-701** | Adaptive Jitter Buffer & Playout Sequencer | Agent | `app/sharedLogic/.../AdaptiveJitterBuffer.kt` | 🟡 In Progress |
+| **ICA-702** | Packet Loss Concealment (PLC) & Frame Interpolator | Agent | `app/sharedLogic/.../PacketLossConcealment.kt` | ⚪ Backlog |
+| **ICA-703** | Adaptive Noise Gate & VOX Energy DSP | Agent | `app/sharedLogic/.../NoiseGate.kt` | ⚪ Backlog |
+| **ICA-704** | Multi-Rate Pure KMP Audio Codec Engine | Agent | `app/sharedLogic/.../AudioCodec.kt` | ⚪ Backlog |
+| **ICA-705** | Audio Pipeline End-to-End Integration & Benchmark Test | Agent | `app/sharedLogic/.../AudioPipelineIntegrationTest.kt` | ⚪ Backlog |
 
 ### ⚪ Sprint 08: Real-World Field Testing & Hardening (Phase 6)
 - **Sprint Goal**: Verify multi-hop mesh range, highway wind noise intelligibility, and 4-hour battery consumption.
