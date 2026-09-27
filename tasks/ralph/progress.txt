@@ -1,0 +1,20 @@
+# Ralph Short-Term Execution Progress — Intercom-Alpha
+
+## Codebase Patterns
+- **No Shared UI on iOS (Rule 1)**: `app/iosApp` is 100% native SwiftUI. Never add Compose dependencies to iOS. Communication with KMP shared logic routes exclusively through `IntercomBridge.kt` via typed closures returning `CancellationHandle`.
+- **Pure Multiplatform Cryptography (Rule 3)**: All cryptographic primitives in `app/sharedLogic/src/commonMain` are 100% pure Kotlin. Poly1305 uses Dan Bernstein's 26-bit limb representation over 64-bit Longs to avoid BigInteger allocations and Java dependencies.
+- **Mesh Deduplication**: All packet ingress and flooding relay hops must be validated through `PacketDeduplicator.shouldProcess(packet)` to prevent cyclic broadcast storms and infinite routing loops.
+- **Polymorphic Serialization**: When serializing `MeshPacket`, always set `classDiscriminator = "#type"` on `Json` serializers to avoid collision with `MeshPacket.Control.type`.
+- **Navigation 3 Backstack**: `rememberNavBackStack` requires `SavedStateConfiguration` registering polymorphic `NavKey` route serializers.
+- **OpenCodeReview Gate**: Prior to every commit, run `ocr delegate preview --format json` and resolve all critical, high, and medium findings.
+
+---
+
+## 2026-09-27 17:30:00 — Baseline Initialization
+- Initialized local Git repository and committed baseline state after Sprint 05.
+- Installed Alibaba OpenCodeReview (`@alibaba-group/open-code-review` v1.12.9) on Windows.
+- Created OpenCodeReview delegation skill (`.agents/skills/open-code-review/SKILL.md`) and project rules (`.ocr/rules.json`).
+- Created unified `AGENTS.md` engineering contract and updated `docs/RULES.md`.
+- Formulated Sprint 06 user stories in `tasks/ralph/prd.json` (`ICA-601` through `ICA-605`).
+- **Ready for Story 1 execution (`ICA-601: Android Foreground Service`)**.
+---

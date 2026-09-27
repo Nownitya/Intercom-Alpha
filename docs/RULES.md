@@ -68,6 +68,16 @@
   - `07_Meta`: Project charter, sprint rules, templates
   - `08_Archive`: Deprecated artifacts
 
+### 🔍 Rule 9: OpenCodeReview Pre-Commit Gate
+- Before committing any atomic implementation story in the Ralph loop, run:
+  ```bash
+  ocr delegate preview --format json
+  ocr delegate rule --rule .ocr/rules.json --format json <files...>
+  ```
+- All findings of severity `critical`, `high`, and `medium` MUST be resolved by Ralph before the git commit is created.
+- Review happens strictly against uncommitted working copy changes (`git diff HEAD`).
+- OpenCodeReview is strictly read-only and never modifies code automatically.
+
 ---
 
 ## ⚠️ 4. Technical Gotchas & Critical Patterns

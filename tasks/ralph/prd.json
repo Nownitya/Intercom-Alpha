@@ -1,0 +1,87 @@
+{
+  "project": "Intercom-Alpha",
+  "branchName": "phase-4/sprint-06-background-services",
+  "phase": "Phase 4: Background Operation & OS Power Management",
+  "sprint": "Sprint 06",
+  "updatedAt": "2026-09-27T17:30:00Z",
+  "stories": [
+    {
+      "id": "ICA-601",
+      "priority": 1,
+      "title": "Android Foreground Service & Sticky Notification",
+      "description": "Implement IntercomForegroundService with persistent FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE | MICROPHONE notification, audio routing survival, and Bluetooth SCO lifecycle lock.",
+      "targetFiles": [
+        "app/androidApp/src/main/kotlin/org/nowni/intercom_alpha/service/IntercomForegroundService.kt",
+        "app/androidApp/src/main/AndroidManifest.xml"
+      ],
+      "acceptanceCriteria": [
+        "Foreground service starts and binds to AudioEngine and MeshTransport",
+        "Persistent notification with active peer count and PTT status",
+        "Service declared with foregroundServiceType='connectedDevice|microphone' in AndroidManifest",
+        "Service stops cleanly on explicit user disconnect"
+      ],
+      "passes": false
+    },
+    {
+      "id": "ICA-602",
+      "priority": 2,
+      "title": "Android Partial WakeLock & Battery Optimization Helper",
+      "description": "Implement PowerManagerHelper to acquire PARTIAL_WAKE_LOCK and provide user prompt intent for ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS.",
+      "targetFiles": [
+        "app/androidApp/src/main/kotlin/org/nowni/intercom_alpha/power/PowerManagerHelper.kt"
+      ],
+      "acceptanceCriteria": [
+        "Partial WakeLock acquired on service start with reference counting",
+        "WakeLock released in onDestroy with leak-prevention try/finally",
+        "Battery optimization check and request intent cleanly handled"
+      ],
+      "passes": false
+    },
+    {
+      "id": "ICA-603",
+      "priority": 3,
+      "title": "iOS Background Audio & CoreBluetooth Background Modes",
+      "description": "Configure UIBackgroundModes in Info.plist (audio, bluetooth-central, bluetooth-peripheral) and implement AppDelegate / AudioSession lifecycle.",
+      "targetFiles": [
+        "app/iosApp/iosApp/Info.plist",
+        "app/iosApp/iosApp/IntercomAlphaApp.swift"
+      ],
+      "acceptanceCriteria": [
+        "UIBackgroundModes includes audio, bluetooth-central, and bluetooth-peripheral",
+        "AVAudioSession category PlayAndRecord with voiceChat mode survives background transitions",
+        "Native SwiftUI app lifecycle properly initializes background bridge listener"
+      ],
+      "passes": false
+    },
+    {
+      "id": "ICA-604",
+      "priority": 4,
+      "title": "iOS Background Task Assertions & Keep-Alive",
+      "description": "Implement BackgroundKeepAlive in iosMain using UIApplication background task assertions to protect packet forwarding and audio buffer drains during screen lock.",
+      "targetFiles": [
+        "app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/power/BackgroundKeepAlive.kt"
+      ],
+      "acceptanceCriteria": [
+        "Task assertion acquired before packet burst forwarding",
+        "Assertion expires cleanly with expirationHandler to avoid iOS watchdog termination",
+        "State exposed cleanly to Swift via IntercomBridge"
+      ],
+      "passes": false
+    },
+    {
+      "id": "ICA-605",
+      "priority": 5,
+      "title": "Screen-Off Continuity Verification Test",
+      "description": "Automated unit test verifying that MeshTransport, PacketDeduplicator, and AudioEngine state machines survive simulated backgrounding and sleep assertions.",
+      "targetFiles": [
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/BackgroundContinuityTest.kt"
+      ],
+      "acceptanceCriteria": [
+        "Simulates incoming mesh packets under simulated screen-off conditions",
+        "Verifies zero dropped packets and zero sliding-window memory leak",
+        "100% passing across ./gradlew test suite"
+      ],
+      "passes": false
+    }
+  ]
+}
