@@ -22,14 +22,24 @@ kotlin-js-store/
 
 # AI Agent, Knowledge Graph & Review Tooling
 graphify-out/
+**/graphify-out/
 .agents/
+**/.agents/
 .ocr/
+**/.ocr/
 .planning/
+**/.planning/
 .mempalace/
+**/.mempalace/
 .gemini/
+**/.gemini/
 .claude/
+**/.claude/
 .cursor/
+**/.cursor/
 .windsurf/
+**/.windsurf/
 tasks/ralph/review-findings.json
 *.log
 scratch/
+Intercom-Alpha/
