@@ -19,6 +19,7 @@ import org.nowni.intercom_alpha.mesh.MeshConfig
 import org.nowni.intercom_alpha.mesh.MeshTransport
 import org.nowni.intercom_alpha.mesh.MeshTransportImpl
 import org.nowni.intercom_alpha.mesh.Peer
+import org.nowni.intercom_alpha.power.BackgroundKeepAlive
 
 fun interface CancellationHandle {
     fun cancel()
@@ -33,6 +34,7 @@ class IntercomBridge {
     val meshTransport: MeshTransport = MeshTransportImpl(scope)
     val headsetManager: HeadsetManager = HeadsetManagerImpl(scope)
     val groupManager: GroupManager = GroupManagerImpl(meshTransport)
+    val keepAlive: BackgroundKeepAlive = BackgroundKeepAlive()
 
     private var audioRxJob: Job? = null
     private var audioTxJob: Job? = null
@@ -65,8 +67,10 @@ class IntercomBridge {
             audioRxJob?.cancel()
             audioRxJob = scope.launch(Dispatchers.Default) {
                 for (packet in meshTransport.incomingAudio) {
-                    val pcmShorts = audioEngine.decode(packet.data, packet.profile)
-                    audioEngine.playAudio(pcmShorts)
+                    keepAlive.withKeepAlive("IntercomAudioRxBurst") {
+                        val pcmShorts = audioEngine.decode(packet.data, packet.profile)
+                        audioEngine.playAudio(pcmShorts)
+                    }
                 }
             }
 
@@ -75,8 +79,10 @@ class IntercomBridge {
             audioTxJob = scope.launch(Dispatchers.Default) {
                 for (pcmShorts in audioEngine.recordedAudio) {
                     if (isPttActive) {
-                        val encoded = audioEngine.encode(pcmShorts, currentAudioProfile)
-                        meshTransport.sendAudio(encoded, currentAudioProfile)
+                        keepAlive.withKeepAlive("IntercomAudioTxBurst") {
+                            val encoded = audioEngine.encode(pcmShorts, currentAudioProfile)
+                            meshTransport.sendAudio(encoded, currentAudioProfile)
+                        }
                     }
                 }
             }
@@ -99,6 +105,7 @@ class IntercomBridge {
         audioRxJob?.cancel()
         audioTxJob?.cancel()
         headsetEventsJob?.cancel()
+        keepAlive.endAssertion()
 
         scope.launch {
             audioEngine.stop()
@@ -225,5 +232,23 @@ class IntercomBridge {
         scope.launch(Dispatchers.Main) {
             groupManager.leaveGroup()
         }
+    }
+
+    // --- Background Keep-Alive Assertions ---
+
+    fun isKeepAliveActive(): Boolean = keepAlive.isActive
+
+    fun beginKeepAlive(taskName: String = "IntercomAlpha.ManualKeepAlive"): Boolean =
+        keepAlive.beginAssertion(taskName)
+
+    fun endKeepAlive() = keepAlive.endAssertion()
+
+    fun observeKeepAliveState(onStateChange: (Boolean) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            keepAlive.isActiveFlow.collect { active ->
+                onStateChange(active)
+            }
+        }
+        return CancellationHandle { job.cancel() }
     }
 }

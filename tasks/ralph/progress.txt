@@ -62,3 +62,17 @@
   - `./gradlew :app:androidApp:assembleDebug test`: 122 actionable tasks passed cleanly in 3s.
   - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
 ---
+
+## 2026-09-27 19:10:00 — Story Execution: ICA-604
+- **Story**: ICA-604: iOS Background Task Assertions & Keep-Alive
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`)
+- **Changes**:
+  - Implemented `BackgroundKeepAlive.kt` in `sharedLogic/src/iosMain` managing reference-counted `UIApplication.beginBackgroundTaskWithName` assertions with clean expiration handler preventing iOS watchdog termination.
+  - Guarded incoming mesh audio playback packets and outgoing microphone audio bursts in `IntercomBridge.kt` using `keepAlive.withKeepAlive(...)`.
+  - Exposed keep-alive state, manual assertions, and reactive `observeKeepAliveState` callback returning `CancellationHandle` in `IntercomBridge.kt`.
+  - Added `@Published var isKeepAliveActive: Bool` in `IntercomViewModel.swift` wired to the bridge listener.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 1m 2s (Rule 6).
+  - `./gradlew :app:androidApp:assembleDebug test`: 122 actionable tasks passed cleanly in 22s.
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+---

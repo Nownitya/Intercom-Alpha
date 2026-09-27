@@ -86,6 +86,14 @@
   - Added notification observers for `AVAudioSession.interruptionNotification` to auto-resume audio routing after phone calls and Siri interruptions.
   - Bound lifecycle transitions to `scenePhase` in native SwiftUI.
 
+### 2.9 iOS Background Task Assertions & Watchdog Protection (`BackgroundKeepAlive.kt`)
+- **Challenge**: iOS watchdog terminates background applications if CPU processing bursts (e.g. packet relay flooding or audio buffer decompression) run when the app enters background without an active task assertion.
+- **Solution**:
+  - Implemented `BackgroundKeepAlive` wrapping `UIApplication.beginBackgroundTaskWithName`.
+  - Configured an atomic expiration handler that releases assertions cleanly before the OS watchdog threshold is breached.
+  - Guarded incoming mesh audio playback and outgoing microphone transmissions with `keepAlive.withKeepAlive(...)`.
+  - Exposed reactive `observeKeepAliveState` callback returning `CancellationHandle` to Swift.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

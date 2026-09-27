@@ -14,6 +14,7 @@ final class IntercomViewModel: ObservableObject {
     @Published var peers: [Peer] = []
     @Published var audioRoute: String = "Internal Audio"
     @Published var voxEnabled: Bool = false
+    @Published var isKeepAliveActive: Bool = false
     @Published var showQrScanner: Bool = false
     @Published var showQrShare: Bool = false
     @Published var errorMessage: String? = nil
@@ -133,5 +134,12 @@ final class IntercomViewModel: ObservableObject {
             }
         }
         cancellables.append(groupSub)
+
+        let keepAliveSub = bridge.observeKeepAliveState { [weak self] active in
+            Task { @MainActor in
+                self?.isKeepAliveActive = active.boolValue
+            }
+        }
+        cancellables.append(keepAliveSub)
     }
 }
