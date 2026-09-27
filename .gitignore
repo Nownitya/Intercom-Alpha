@@ -19,3 +19,17 @@ captures
 node_modules/
 kotlin-js-store/
 .vscode/
+
+# AI Agent, Knowledge Graph & Review Tooling
+graphify-out/
+.agents/
+.ocr/
+.planning/
+.mempalace/
+.gemini/
+.claude/
+.cursor/
+.windsurf/
+tasks/ralph/review-findings.json
+*.log
+scratch/
