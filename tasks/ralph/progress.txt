@@ -187,6 +187,26 @@
 - **Next Milestone**: Sprint 08 / Phase 6 (Real-World Field Testing & Hardening).
 ---
 
+### [2026-09-29] - ICA-801: Field Range Benchmark Matrix & Diagnostic Mesh Logger
+- **Branch**: `feature/ICA-801-range-benchmark`
+- **Objective**: Implement RF telemetry, link quality evaluation, distance estimation, and field range benchmark protocol.
+- **Implementation**:
+  - Created `MeshDiagnostics.kt` in `commonMain`:
+    - Real-time sliding window telemetry: RSSI (EWMA smoothed), sequence gap detection (PDR calculation), multi-hop relay distribution (1-hop, 2-hop, 3-hop).
+    - Log-Distance Path Loss model distance estimation: $d = 10^{\frac{A - \text{RSSI}}{10 \cdot n}}$.
+    - Link budget margin calculation: $M = \text{RSSI} - S_{rx}$ relative to $-93\text{ dBm}$ receiver sensitivity.
+    - Automatic `LinkQuality` classification (`EXCELLENT`, `GOOD`, `MARGINAL`, `CRITICAL`, `LOST`).
+    - Markdown diagnostic table export via `MeshDiagnosticsReport.toMarkdownSummary()`.
+  - Created `MeshDiagnosticsTest.kt` in `commonTest`:
+    - 7 comprehensive unit test suites covering in-order packet reception, loss gap detection, multi-hop relay distribution, distance estimation, timeout transitions to LOST, and report generation.
+  - Created `docs/testing/field-reports/RangeBenchmark.md`:
+    - Complete field range protocol covering 100m to 500m Line-of-Sight (LOS) and 30m to 100m Non-Line-of-Sight (NLOS) test procedures, device placement profiles, and tester field logging templates.
+- **Verification**:
+  - `./gradlew test :app:sharedLogic:compileKotlinIosSimulatorArm64` passed in 19s (93 actionable tasks passing).
+  - OpenCodeReview (`ocr delegate rule`) passed with 0 findings.
+- **Status**: PASSED (Ready to commit and merge).
+---
+
 
 
 

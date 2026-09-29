@@ -1,94 +1,76 @@
 {
   "project": "Intercom-Alpha",
-  "branchName": "phase-5/sprint-07-audio-dsp-codec",
-  "phase": "Phase 5: Audio Codec Optimization, Jitter Buffering & Packet Loss Concealment (PLC)",
-  "sprint": "Sprint 07",
-  "updatedAt": "2026-09-27T19:30:00Z",
+  "branchName": "sprint/sprint-08-field-testing",
+  "phase": "Phase 6: Real-World Field Testing & Hardening",
+  "sprint": "Sprint 08",
+  "updatedAt": "2026-09-29T02:25:00Z",
   "stories": [
     {
-      "id": "ICA-701",
+      "id": "ICA-801",
       "priority": 1,
-      "title": "Adaptive Jitter Buffer & Playout Sequencer",
-      "description": "Implement AdaptiveJitterBuffer in commonMain to sequence incoming packets, estimate network jitter, handle out-of-order frames, and output frames at steady playout deadlines.",
+      "title": "Field Range Benchmark Matrix & Diagnostic Mesh Logger",
+      "description": "Implement mesh diagnostic telemetry and field range benchmark harness in commonMain to measure RSSI, hop count, packet delivery ratio (PDR), and round-trip latency across 100m-500m outdoor environments.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/AdaptiveJitterBuffer.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/AdaptiveJitterBufferTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/MeshDiagnostics.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/MeshDiagnosticsTest.kt",
+        "docs/testing/field-reports/RangeBenchmark.md"
       ],
       "acceptanceCriteria": [
-        "Sequences incoming packets by sequence number and drops stale arrivals past playout deadline",
-        "Dynamically calculates inter-arrival jitter variance and adapts target delay (40ms-120ms)",
-        "Emits missing frame signal when a frame gap occurs at playout deadline",
+        "MeshDiagnostics records real-time RSSI, hop count, duplicate drop counts, and PDR (Packet Delivery Ratio)",
+        "Diagnostics report generation computes link budget margin and latency distribution",
+        "Comprehensive unit tests verify statistics aggregation and sliding window metrics",
         "100% multiplatform test pass in commonTest"
       ],
       "passes": true
     },
     {
-      "id": "ICA-702",
+      "id": "ICA-802",
       "priority": 2,
-      "title": "Packet Loss Concealment (PLC) & Frame Interpolator",
-      "description": "Implement PacketLossConcealment in commonMain using pitch-synchronous waveform extrapolation and exponential decay to conceal dropped mesh frames.",
+      "title": "Highway Wind Noise & Helmet Intelligibility Tuning",
+      "description": "Implement specialized audio DSP tuning profiles in commonMain for motorcycle helmets at 80-120 km/h with adaptive high-pass wind rumble filter and voice-emphasis bandpass.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/PacketLossConcealment.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/PacketLossConcealmentTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/WindNoiseFilter.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/WindNoiseFilterTest.kt"
       ],
       "acceptanceCriteria": [
-        "Synthesizes replacement audio frame from previous valid frame pitch period",
-        "Applies exponential energy attenuation (-3dB per consecutive lost frame)",
-        "Smooth cross-fade blending when normal packet stream resumes",
+        "High-pass filter suppresses low-frequency wind buffeting (<300 Hz) by >18 dB",
+        "Voice formant emphasis boosts speech intelligibility band (1 kHz - 3.4 kHz)",
+        "Zero C/JNI or Java-only dependencies (pure Kotlin Multiplatform)",
         "100% multiplatform test pass in commonTest"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-703",
+      "id": "ICA-803",
       "priority": 3,
-      "title": "Adaptive Noise Gate & VOX Energy DSP",
-      "description": "Implement NoiseGate in commonMain with attack, hold, release envelope tracking and hysteresis to suppress ambient motorcycle wind noise.",
+      "title": "Battery Drain Profiling & Screen-Off Power Optimization",
+      "description": "Implement battery and duty cycle telemetry manager in commonMain to monitor wake lock durations, BLE radio duty cycle, and ensure <30% drain over 4 continuous hours.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/NoiseGate.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/NoiseGateTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/power/PowerProfiler.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/power/PowerProfilerTest.kt"
       ],
       "acceptanceCriteria": [
-        "Configurable attack (e.g. 5ms), hold (e.g. 100ms), and release (e.g. 50ms) time constants",
-        "Hysteresis threshold prevents chattering near threshold boundary",
-        "Smooth gain ramping avoids acoustic clicking on gate transitions",
+        "PowerProfiler tracks active vs idle radio duty cycles and estimated mAh burn rate",
+        "Detects runaway wake lock conditions and flags excessive battery drain (>7.5% per hour)",
         "100% multiplatform test pass in commonTest"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-704",
+      "id": "ICA-804",
       "priority": 4,
-      "title": "Multi-Rate Pure KMP Audio Codec Engine",
-      "description": "Implement AudioCodec in commonMain providing high-efficiency audio compression matching AudioProfile rates (LOW, MEDIUM, HIGH, ULTRA) with zero C/JNI dependencies.",
+      "title": "v1.0 Production Release Readiness Sign-Off",
+      "description": "Configure release optimizations, ProGuard/R8 rules, verify release build variants for Android and iOS, and generate v1.0.0 release candidate manifest.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/AudioCodec.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/AudioCodecTest.kt"
+        "app/androidApp/proguard-rules.pro",
+        "docs/reports/v1.0-Release-Readiness.md"
       ],
       "acceptanceCriteria": [
-        "Compresses 20ms 24kHz/16kHz PCM frames into compact byte packets (40 to 160 bytes) fitting single BLE GATT MTU",
-        "Decodes compressed packets back to 16-bit PCM ShortArray with high SNR",
-        "100% pure Kotlin Multiplatform running across Android, iOS, JVM, and Wasm/JS",
-        "100% multiplatform test pass in commonTest"
+        "Android release build with ProGuard/R8 minification compiles cleanly",
+        "iOS framework compiles in Release configuration without dead-code stripping errors",
+        "v1.0.0 release candidate checklist signed off in docs/reports"
       ],
-      "passes": true
-    },
-    {
-      "id": "ICA-705",
-      "priority": 5,
-      "title": "Audio Pipeline End-to-End Integration & Benchmark Test",
-      "description": "Integrate AdaptiveJitterBuffer, PLC, NoiseGate, and AudioCodec into AudioEngine and run end-to-end multiplatform audio pipeline tests.",
-      "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/AudioEngine.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/AudioPipelineIntegrationTest.kt"
-      ],
-      "acceptanceCriteria": [
-        "AudioEngine uses AudioCodec, JitterBuffer, and PLC in default processing loop",
-        "Integration test verifies continuous audio playout under 20% simulated packet loss and 50ms jitter",
-        "Zero regressions across entire test suite and platform builds",
-        "All Gradle verification gates pass cleanly"
-      ],
-      "passes": true
+      "passes": false
     }
   ]
 }
