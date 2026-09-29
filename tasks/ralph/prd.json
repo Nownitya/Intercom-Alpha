@@ -71,7 +71,7 @@
         "100% pure Kotlin Multiplatform running across Android, iOS, JVM, and Wasm/JS",
         "100% multiplatform test pass in commonTest"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-705",

@@ -149,7 +149,20 @@
 - **Verification**:
   - `./gradlew test :app:sharedLogic:compileKotlinIosSimulatorArm64` passed cleanly.
   - `ocr delegate rule` passed with 0 findings.
+## 2026-09-29 07:22:00 — Story ICA-704 Completed: Multi-Rate Pure KMP Audio Codec Engine
+- **Story**: `ICA-704` (Priority 4)
+- **Status**: PASSED (100% test pass, OCR approved with 0 findings)
+- **Implementation**:
+  - Created `AudioCodec.kt` in `commonMain`:
+    - Pure Kotlin Multiplatform 4-bit IMA ADPCM logarithmic compression engine with an 89-step quantization table and zero C/JNI or Java dependencies.
+    - Anti-aliasing decimation and linear/Hermite interpolation upsampling tailored to each `AudioProfile` (`ULTRA_LOW`, `LOW`, `MEDIUM`, `HIGH`, `MUSIC`).
+    - Single BLE GATT MTU compliance (compressed payload is 84 to 127 bytes for standard 20ms frames, completely preventing packet fragmentation over the mesh).
+  - Created `AudioCodecTest.kt` in `commonTest` testing multi-rate compression, SNR quality thresholds (>12 dB for medium, >20 dB for high), single MTU bounds, empty frame handling, and corrupted header resilience.
+- **Verification**:
+  - `./gradlew test :app:sharedLogic:compileKotlinIosSimulatorArm64` passed cleanly.
+  - `ocr delegate rule` passed with 0 findings.
 ---
+
 
 
 

@@ -122,6 +122,13 @@
   - Hold window (100ms) preserves gate openness across inter-syllable pauses without premature cutoffs.
   - Release phase (50ms) applies smooth sample-by-sample linear gain slew down to floor attenuation (-60 dB), eliminating zipper distortion and audible clicks.
 
+### 2.14 Multi-Rate Pure KMP Audio Codec Engine (`AudioCodec.kt`)
+- **Challenge**: 16-bit PCM streaming consumes 48 kB/s (384 kbps) requiring packet fragmentation across BLE GATT MTUs, which drastically increases packet loss in multi-hop mesh environments. C/JNI codecs (e.g. libopus) break iOS multiplatform builds and fail on Wasm/JS targets.
+- **Solution**:
+  - Pure Kotlin Multiplatform 4-bit IMA ADPCM logarithmic compression engine with an 89-step quantization table and zero external C/JNI or Java dependencies.
+  - Profile-matched decimation and anti-aliasing filtering compress 20ms frames into 84–127 bytes, fitting effortlessly inside a single standard BLE GATT MTU (default negotiated $\ge 185$ bytes).
+  - Smooth linear/Hermite interpolation upsampling reconstructs target sample counts on decode with high SNR (>12 dB for medium, >20 dB for high).
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index
