@@ -145,6 +145,15 @@
   - Monitored link budget margin ($M = \text{RSSI} - S_{rx}$) relative to $-93\text{ dBm}$ BLE sensitivity.
   - Established markdown diagnostic report generator (`toMarkdownSummary()`) and testing protocol in `docs/testing/field-reports/RangeBenchmark.md`.
 
+### 2.17 Helmet Wind Noise & Formant Emphasis DSP (`WindNoiseFilter.kt`)
+- **Challenge**: Acoustic wind turbulence at 80–120 km/h generates extreme low-frequency buffeting noise (<250 Hz) that swamps microphone inputs and masks speech formants.
+- **Solution**:
+  - Implemented 4th-order Butterworth High-Pass Filter using cascaded Direct Form II Transposed biquad sections ($Q_1 = 0.5412, Q_2 = 1.3066$).
+  - Attenuates 100 Hz buffeting rumble by $>35\text{ dB}$ while preserving passband flatness down to 300 Hz.
+  - Implemented parametric peaking EQ centered at 2.2 kHz boosting speech formant band by $+4\text{ dB}$ to $+6\text{ dB}$ to ensure crisp consonant articulation through visor wind noise.
+  - Implemented soft-limiting ceiling to protect against digital overflow/clipping on loud shouting.
+  - Zero C/JNI or Java-only dependencies; 100% pure Kotlin Multiplatform.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

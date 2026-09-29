@@ -38,7 +38,7 @@
         "Zero C/JNI or Java-only dependencies (pure Kotlin Multiplatform)",
         "100% multiplatform test pass in commonTest"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-803",
