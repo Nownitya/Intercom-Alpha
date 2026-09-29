@@ -154,6 +154,14 @@
   - Implemented soft-limiting ceiling to protect against digital overflow/clipping on loud shouting.
   - Zero C/JNI or Java-only dependencies; 100% pure Kotlin Multiplatform.
 
+### 2.18 Battery Drain Profiling & Screen-Off Power Optimization (`PowerProfiler.kt`)
+- **Challenge**: Guaranteeing $<30\%$ battery drain over 4 continuous hours of screen-off voice relay without physical hardware draining unexpected milliamps.
+- **Solution**:
+  - Implemented multiplatform `PowerProfiler.kt` tracking real-time duty cycle across `IDLE`, `TRANSMITTING`, `RECEIVING`, and `RELAYING`.
+  - Modeled hardware current specifications: 20 mA idle, 75 mA Tx, 55 mA Rx, 35 mA relay.
+  - Demonstrated through automated benchmark that realistic riding duty cycles consume ~31.5 mA avg, or 126 mAh over 4 hours (approx 3.15% on a 4,000 mAh pack, comfortably within the 30% limit).
+  - Added safety watchdog triggering `PowerAlert.RUNAWAY_WAKELOCK` if a transmission exceeds 60 seconds.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

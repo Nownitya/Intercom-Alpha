@@ -54,7 +54,7 @@
         "Detects runaway wake lock conditions and flags excessive battery drain (>7.5% per hour)",
         "100% multiplatform test pass in commonTest"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-804",

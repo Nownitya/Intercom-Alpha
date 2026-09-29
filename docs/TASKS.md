@@ -88,5 +88,5 @@
 | :--- | :--- | :--- | :--- |
 | **ICA-801** | Field Range Benchmark Matrix & Diagnostic Mesh Logger | `MeshDiagnostics.kt`, `RangeBenchmark.md` | ✅ Completed |
 | **ICA-802** | Highway Wind Noise & Helmet Intelligibility Tuning | `WindNoiseFilter.kt` | ✅ Completed |
-| **ICA-803** | Battery Drain Profiling (<30% over 4 hours) | `PowerProfiler.kt` | ⚪ Backlog |
+| **ICA-803** | Battery Drain Profiling (<30% over 4 hours) | `PowerProfiler.kt` | ✅ Completed |
 | **ICA-804** | v1.0 Production Release Readiness Sign-Off | `proguard-rules.pro`, `v1.0-Release-Readiness.md` | ⚪ Backlog |
