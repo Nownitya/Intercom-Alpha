@@ -54,7 +54,7 @@
         "Smooth gain ramping avoids acoustic clicking on gate transitions",
         "100% multiplatform test pass in commonTest"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-704",

@@ -134,8 +134,23 @@
   - Created `PacketLossConcealmentTest.kt` in `commonTest` testing good frame passthrough, voiced pitch extrapolation, monotonic energy decay, silence muting, crossfade recovery, and state resets.
 - **Verification**:
   - `./gradlew test :app:sharedLogic:compileKotlinIosSimulatorArm64` passed cleanly.
+---
+
+## 2026-09-27 19:49:00 — Story ICA-703 Completed: Adaptive Noise Gate & VOX Energy DSP
+- **Story**: `ICA-703` (Priority 3)
+- **Status**: PASSED (100% test pass, OCR approved with 0 findings)
+- **Implementation**:
+  - Created `NoiseGate.kt` in `commonMain`:
+    - RMS energy envelope tracking with logarithmic dBFS calculation.
+    - Dual-threshold hysteresis (`openThresholdDb` = -35 dBFS, `closeThresholdDb` = -42 dBFS) suppressing boundary chatter in windy outdoor helmet conditions.
+    - Attack (5ms), hold (100ms), and release (50ms) time constants with sample-by-sample linear gain slew to eliminate clicking or zipper distortion.
+    - Diagnostics exposure via `isOpen`, `currentGain`, and `currentEnvelopeDb`.
+  - Created `NoiseGateTest.kt` in `commonTest` testing sub-threshold noise attenuation, voice activation, hysteresis boundaries, hold window preservation, and clean release fading.
+- **Verification**:
+  - `./gradlew test :app:sharedLogic:compileKotlinIosSimulatorArm64` passed cleanly.
   - `ocr delegate rule` passed with 0 findings.
 ---
+
 
 
 

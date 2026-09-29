@@ -114,6 +114,14 @@
   - Applies cumulative -3 dB exponential attenuation per consecutive frame loss, gracefully muting to silence if packet stream is completely interrupted (> 5 frames).
   - Linear/cosine crossfade blending over frame boundaries upon stream resumption to prevent phase clicks and acoustic transients.
 
+### 2.13 Adaptive Noise Gate & VOX Energy DSP (`NoiseGate.kt`)
+- **Challenge**: Wind, road noise, and engine exhaust in helmet intercom environments trigger VOX false positives and degrade intelligibility.
+- **Solution**:
+  - Dual-threshold hysteresis (`openThresholdDb` = -35 dBFS, `closeThresholdDb` = -42 dBFS) avoids gate chattering near the transition threshold.
+  - Fast attack time (5ms) retains transient plosives and speech consonants.
+  - Hold window (100ms) preserves gate openness across inter-syllable pauses without premature cutoffs.
+  - Release phase (50ms) applies smooth sample-by-sample linear gain slew down to floor attenuation (-60 dB), eliminating zipper distortion and audible clicks.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index
