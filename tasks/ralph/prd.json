@@ -70,7 +70,7 @@
         "iOS framework compiles in Release configuration without dead-code stripping errors",
         "v1.0.0 release candidate checklist signed off in docs/reports"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }
