@@ -82,7 +82,7 @@
 
 ### ✅ Sprint 08: Real-World Field Testing & Hardening (Phase 6 - Complete)
 - **Sprint Goal**: Verify multi-hop mesh range, highway wind noise intelligibility, and 4-hour battery consumption.
-- **Active Branch**: `sprint/sprint-08-field-testing`
+- **Milestone Release**: `v1.0.0` Production Release Tagged
 
 | Task ID | Item | Target Files | Status |
 | :--- | :--- | :--- | :--- |
@@ -90,3 +90,15 @@
 | **ICA-802** | Highway Wind Noise & Helmet Intelligibility Tuning | `WindNoiseFilter.kt` | ✅ Completed |
 | **ICA-803** | Battery Drain Profiling (<30% over 4 hours) | `PowerProfiler.kt` | ✅ Completed |
 | **ICA-804** | v1.0 Production Release Readiness Sign-Off | `proguard-rules.pro`, `v1.0-Release-Readiness.md` | ✅ Completed |
+
+---
+
+### ⚪ Sprint 09: Cellular Fallback & Cloud Relay Bridge (Phase 7 - v2.0 Roadmap)
+- **Sprint Goal**: Bridge separated mesh clusters across long distances via Ktor WebSocket signaling server and cloud relay.
+
+| Task ID | Item | Target Files | Status |
+| :--- | :--- | :--- | :--- |
+| **ICA-901** | Ktor WebSocket Cloud Mesh Relay Gateway | `:server`, `:core`, `CloudRelayBridge.kt` | ⚪ Backlog |
+| **ICA-902** | Low-Power BLE Proximity Radar & Distance Alert UI | `sharedUI`, `ContentView.swift` | ⚪ Backlog |
+| **ICA-903** | Dynamic Mesh Topology Auto-Healing & Leader Re-Election | `GroupManager.kt`, `MeshTransport.kt` | ⚪ Backlog |
+| **ICA-904** | GitHub Actions Multiplatform CI/CD Pipeline | `.github/workflows/ci.yml` | ⚪ Backlog |
