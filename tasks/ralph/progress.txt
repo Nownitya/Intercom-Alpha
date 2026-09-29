@@ -207,6 +207,28 @@
 - **Status**: PASSED (Ready to commit and merge).
 ---
 
+### [2026-09-29] - ICA-802: Highway Wind Noise & Helmet Intelligibility Tuning
+- **Branch**: `feature/ICA-802-wind-noise-tuning`
+- **Objective**: Implement specialized audio DSP tuning profiles in commonMain for motorcycle helmets at 80-120 km/h with adaptive high-pass wind rumble filter and voice-emphasis bandpass.
+- **Implementation**:
+  - Created `WindNoiseFilter.kt` in `commonMain`:
+    - 4th-order Butterworth High-Pass Filter (cascaded dual-biquads: $Q_1 = 0.5412, Q_2 = 1.3066$) eliminating low-frequency wind buffeting ($<300\text{ Hz}$ suppressed by $>18\text{ dB}$, $\sim 38\text{ dB}$ at 100 Hz).
+    - Parametric peaking EQ centered at 2.2 kHz boosting speech formant band by $+4\text{ dB}$ to $+6\text{ dB}$ to cut through ambient turbulence.
+    - Soft-limiter preventing digital overflow/clipping on loud vocal bursts.
+    - Speed presets: `BYPASS`, `CITY_COMMUTE` (150 Hz), `HIGHWAY_80KMH` (300 Hz), `HIGHWAY_120KMH` (380 Hz).
+    - Direct Form II Transposed biquads for zero runtime allocations and numerical stability across Android, iOS, JVM, and Wasm/JS.
+  - Created `WindNoiseFilterTest.kt` in `commonTest`:
+    - Tested bypass bit-exact transparency.
+    - Validated low-frequency wind buffeting suppression exceeds acceptance criteria (>18 dB at 100 Hz).
+    - Validated speech formant emphasis (+4 dB peak at 2.2 kHz).
+    - Validated highway 120 km/h aggressive attenuation (>20 dB at 150 Hz).
+    - Tested float processing and dynamic sample rate switching (16 kHz, 24 kHz, 48 kHz).
+- **Verification**:
+  - `./gradlew test :app:sharedLogic:compileKotlinIosSimulatorArm64` passed in 20s (93 actionable tasks passing).
+  - OpenCodeReview (`ocr delegate rule`) passed with 0 findings.
+- **Status**: PASSED (Ready to commit and merge).
+---
+
 
 
 
