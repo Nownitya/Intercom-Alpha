@@ -136,6 +136,39 @@
   - Incoming pipeline: Mesh audio packet $\to$ `AdaptiveJitterBuffer` (RFC 3550 playout deadline sequencing) $\to$ `AudioCodec` (ADPCM decode) $\to$ `PacketLossConcealment` (waveform extrapolation + boundary crossfading) $\to$ hardware speaker.
   - End-to-end integration benchmark verified continuous playout under 20% random packet drops and 50ms transit jitter.
 
+### 2.16 RF Diagnostics & Distance Estimation Engine (`MeshDiagnostics.kt`)
+- **Challenge**: Measuring real-world outdoor mesh performance (PDR, RF link budget, multi-hop relay distribution, transit jitter) without introducing platform-specific networking profilers.
+- **Solution**:
+  - Implemented `MeshDiagnostics.kt` in pure KMP using `kotlinx.coroutines.sync.Mutex` and monotonic arrival timestamps.
+  - Calculated Packet Delivery Ratio (PDR) from sequence gap tracking: $\text{PDR} = \frac{\text{received}}{\text{received} + \text{lost}}$.
+  - Applied Log-Distance Path Loss model for real-time physical distance estimation: $d = 10^{\frac{A - \text{RSSI}}{10 \cdot n}}$ ($A = -59\text{ dBm}, n = 2.5$).
+  - Monitored link budget margin ($M = \text{RSSI} - S_{rx}$) relative to $-93\text{ dBm}$ BLE sensitivity.
+  - Established markdown diagnostic report generator (`toMarkdownSummary()`) and testing protocol in `docs/testing/field-reports/RangeBenchmark.md`.
+
+### 2.17 Helmet Wind Noise & Formant Emphasis DSP (`WindNoiseFilter.kt`)
+- **Challenge**: Acoustic wind turbulence at 80–120 km/h generates extreme low-frequency buffeting noise (<250 Hz) that swamps microphone inputs and masks speech formants.
+- **Solution**:
+  - Implemented 4th-order Butterworth High-Pass Filter using cascaded Direct Form II Transposed biquad sections ($Q_1 = 0.5412, Q_2 = 1.3066$).
+  - Attenuates 100 Hz buffeting rumble by $>35\text{ dB}$ while preserving passband flatness down to 300 Hz.
+  - Implemented parametric peaking EQ centered at 2.2 kHz boosting speech formant band by $+4\text{ dB}$ to $+6\text{ dB}$ to ensure crisp consonant articulation through visor wind noise.
+  - Implemented soft-limiting ceiling to protect against digital overflow/clipping on loud shouting.
+  - Zero C/JNI or Java-only dependencies; 100% pure Kotlin Multiplatform.
+
+### 2.18 Battery Drain Profiling & Screen-Off Power Optimization (`PowerProfiler.kt`)
+- **Challenge**: Guaranteeing $<30\%$ battery drain over 4 continuous hours of screen-off voice relay without physical hardware draining unexpected milliamps.
+- **Solution**:
+  - Implemented multiplatform `PowerProfiler.kt` tracking real-time duty cycle across `IDLE`, `TRANSMITTING`, `RECEIVING`, and `RELAYING`.
+  - Modeled hardware current specifications: 20 mA idle, 75 mA Tx, 55 mA Rx, 35 mA relay.
+  - Demonstrated through automated benchmark that realistic riding duty cycles consume ~31.5 mA avg, or 126 mAh over 4 hours (approx 3.15% on a 4,000 mAh pack, comfortably within the 30% limit).
+  - Added safety watchdog triggering `PowerAlert.RUNAWAY_WAKELOCK` if a transmission exceeds 60 seconds.
+
+### 2.19 Production Release Optimization & R8 Rules (`proguard-rules.pro`)
+- **Challenge**: Preventing Android R8 / ProGuard from stripping kotlinx.serialization polymorphic serializers (like `MeshPacket.Control` and `NavKey`) or Koin modules during minified release builds.
+- **Solution**:
+  - Configured explicit `-keep` rules preserving Companion objects, `$serializer` instances, and `@Serializable` class metadata.
+  - Preserved Koin Multiplatform modules, Android ViewModels, and foreground service lifecycle components.
+  - Verified `./gradlew assembleRelease` compiles cleanly into signed/unsigned APK packages without runtime reflection missing errors.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index
