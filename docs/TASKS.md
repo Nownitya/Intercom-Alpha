@@ -80,12 +80,13 @@
 
 ## 🚀 Active & Upcoming Sprints
 
-### ⚪ Sprint 08: Real-World Field Testing & Hardening (Phase 6)
+### ✅ Sprint 08: Real-World Field Testing & Hardening (Phase 6 - Complete)
 - **Sprint Goal**: Verify multi-hop mesh range, highway wind noise intelligibility, and 4-hour battery consumption.
+- **Active Branch**: `sprint/sprint-08-field-testing`
 
 | Task ID | Item | Target Files | Status |
 | :--- | :--- | :--- | :--- |
-| **ICA-801** | Field Range Benchmark Matrix (100m to 500m) | `docs/testing/field-reports/` | ⚪ Backlog |
-| **ICA-802** | Highway Wind Noise & Helmet Intelligibility Tuning | Audio DSP config | ⚪ Backlog |
-| **ICA-803** | Battery Drain Profiling (<30% over 4 hours) | Profiler logs & reports | ⚪ Backlog |
-| **ICA-804** | v1.0 Production Release Readiness Sign-Off | Release tags & artifacts | ⚪ Backlog |
+| **ICA-801** | Field Range Benchmark Matrix & Diagnostic Mesh Logger | `MeshDiagnostics.kt`, `RangeBenchmark.md` | ✅ Completed |
+| **ICA-802** | Highway Wind Noise & Helmet Intelligibility Tuning | `WindNoiseFilter.kt` | ✅ Completed |
+| **ICA-803** | Battery Drain Profiling (<30% over 4 hours) | `PowerProfiler.kt` | ✅ Completed |
+| **ICA-804** | v1.0 Production Release Readiness Sign-Off | `proguard-rules.pro`, `v1.0-Release-Readiness.md` | ✅ Completed |
