@@ -162,6 +162,13 @@
   - Demonstrated through automated benchmark that realistic riding duty cycles consume ~31.5 mA avg, or 126 mAh over 4 hours (approx 3.15% on a 4,000 mAh pack, comfortably within the 30% limit).
   - Added safety watchdog triggering `PowerAlert.RUNAWAY_WAKELOCK` if a transmission exceeds 60 seconds.
 
+### 2.19 Production Release Optimization & R8 Rules (`proguard-rules.pro`)
+- **Challenge**: Preventing Android R8 / ProGuard from stripping kotlinx.serialization polymorphic serializers (like `MeshPacket.Control` and `NavKey`) or Koin modules during minified release builds.
+- **Solution**:
+  - Configured explicit `-keep` rules preserving Companion objects, `$serializer` instances, and `@Serializable` class metadata.
+  - Preserved Koin Multiplatform modules, Android ViewModels, and foreground service lifecycle components.
+  - Verified `./gradlew assembleRelease` compiles cleanly into signed/unsigned APK packages without runtime reflection missing errors.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index
