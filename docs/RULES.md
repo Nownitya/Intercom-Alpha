@@ -78,6 +78,12 @@
 - Review happens strictly against uncommitted working copy changes (`git diff HEAD`).
 - OpenCodeReview is strictly read-only and never modifies code automatically.
 
+### 🌿 Rule 10: Multi-Tier Branching Strategy (docs/BRANCHING.md)
+- `main` is protected and strictly reserved for production release tags (`vX.Y.Z`). Direct commits are forbidden.
+- `develop` is the permanent integration trunk for nightly builds and CI.
+- Sprints live on dedicated `sprint/sprint-NN-<name>` branches off `develop`.
+- Individual stories execute on atomic `feature/<STORY-ID>-<slug>` branches off the sprint branch, verified through test gates and OCR, then merged back to the sprint branch.
+
 ---
 
 ## ⚠️ 4. Technical Gotchas & Critical Patterns

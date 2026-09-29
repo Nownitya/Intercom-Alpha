@@ -55,6 +55,11 @@ Obsidian + MemPalace + Graphify
 8. **Rule 8: OpenCodeReview Pre-Commit Gate**
    - Before committing any story, run OpenCodeReview delegation mode (`ocr delegate preview --format json`).
    - Fix all `critical`, `high`, and `medium` findings before creating the git commit.
+9. **Rule 9: Multi-Tier Branching Strategy (docs/BRANCHING.md)**
+   - `main` is protected and strictly reserved for production release tags (`vX.Y.Z`).
+   - `develop` is the primary integration highway.
+   - Sprints live on dedicated `sprint/sprint-NN-<name>` branches.
+   - Individual Ralph stories execute on atomic `feature/<STORY-ID>-<slug>` branches off the active sprint branch, and merge back to the sprint branch upon completion.
 
 ---
 
@@ -62,7 +67,9 @@ Obsidian + MemPalace + Graphify
 
 For each story in `tasks/ralph/prd.json`:
 
-1. **Select**: Pick the highest-priority story where `passes: false`.
+1. **Select & Branch**:
+   - Pick the highest-priority story where `passes: false`.
+   - Branch off the active sprint branch: `git checkout -b feature/<STORY-ID>-<slug> <sprint-branch>`.
 2. **Orient**: Read the active GSD Phase Plan, `AGENTS.md`, `docs/RULES.md`, and `docs/MEMORY.md`.
 3. **Implement**: Implement strictly the files required for that single story.
 4. **Test & Build**: Run `./gradlew test` and platform builds. Do NOT call review on broken code.
@@ -71,9 +78,12 @@ For each story in `tasks/ralph/prd.json`:
    - Run `ocr delegate rule --rule .ocr/rules.json --format json <files>`.
    - Inspect diff against project rules and emit `tasks/ralph/review-findings.json`.
 6. **Remediate**: If actionable findings exist, fix them, re-test, and re-review until clean.
-7. **Commit**:
+7. **Commit & Merge**:
    - `git add <files>`
    - `git commit -m "feat: [Story ID] - [Story Title]"`
+   - `git checkout <sprint-branch>`
+   - `git merge --no-ff feature/<STORY-ID>-<slug>`
+   - `git branch -d feature/<STORY-ID>-<slug>`
 8. **Track**:
    - Set `passes: true` in `tasks/ralph/prd.json`.
    - Append execution summary, patterns, and gotchas to `tasks/ralph/progress.txt` and `docs/MEMORY.md`.
