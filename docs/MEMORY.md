@@ -129,6 +129,13 @@
   - Profile-matched decimation and anti-aliasing filtering compress 20ms frames into 84–127 bytes, fitting effortlessly inside a single standard BLE GATT MTU (default negotiated $\ge 185$ bytes).
   - Smooth linear/Hermite interpolation upsampling reconstructs target sample counts on decode with high SNR (>12 dB for medium, >20 dB for high).
 
+### 2.15 Full Duplex Mesh Audio Pipeline Session (`AudioEngine.kt` & `AudioPipelineSession`)
+- **Challenge**: Seamlessly coordinating the full duplex audio lifecycle between raw hardware microphone/speaker buffers and the variable-delay BLE mesh transport without latency spikes or glitching.
+- **Solution**:
+  - Outgoing pipeline: Raw PCM input $\to$ `NoiseGate` (attack/hold/release hysteresis + DTX silence suppression) $\to$ `AudioCodec` (4-bit ADPCM single MTU frame).
+  - Incoming pipeline: Mesh audio packet $\to$ `AdaptiveJitterBuffer` (RFC 3550 playout deadline sequencing) $\to$ `AudioCodec` (ADPCM decode) $\to$ `PacketLossConcealment` (waveform extrapolation + boundary crossfading) $\to$ hardware speaker.
+  - End-to-end integration benchmark verified continuous playout under 20% random packet drops and 50ms transit jitter.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

@@ -98,17 +98,16 @@ class AudioEngineImpl(
         outputLevelChannel.trySend(0.0f)
     }
 
+    private val audioCodec = AudioCodec()
+
     override suspend fun encode(input: ShortArray, profile: AudioProfile): ByteArray {
-        val bytes = ByteArray(input.size * 2)
-        for (i in input.indices) {
-            val sample = input[i].toInt()
-            bytes[i * 2] = (sample and 0xFF).toByte()
-            bytes[i * 2 + 1] = ((sample shr 8) and 0xFF).toByte()
-        }
-        return bytes
+        return audioCodec.encode(input, profile)
     }
 
     override suspend fun decode(input: ByteArray, profile: AudioProfile): ShortArray {
+        if (input.isNotEmpty() && input[0] == AudioCodec.MAGIC_BYTE) {
+            return audioCodec.decode(input)
+        }
         val shortCount = input.size / 2
         val shorts = ShortArray(shortCount)
         for (i in 0 until shortCount) {

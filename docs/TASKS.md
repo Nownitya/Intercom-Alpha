@@ -2,7 +2,7 @@
 
 > **Document Version:** 1.0  
 > **Status:** Active / Tracked  
-> **Current Sprint:** Sprint 05 Completed ➔ Sprint 06 Backlog  
+> **Current Sprint:** Sprint 07 Completed ➔ Sprint 08 Backlog  
 > **Obsidian Reference:** `01_Management/Roadmap.md` & `01_Management/Kanban.md`
 
 ---
@@ -67,18 +67,18 @@
 
 ---
 
+### ✅ Sprint 07: Audio Codec Optimization, Jitter Buffering & Packet Loss Concealment (PLC) (Phase 5)
+- **Goal**: Upgrade audio streaming from raw PCM to multi-rate compressed frames with adaptive jitter buffering, PLC, and noise gating.
+- **Completed**:
+  - `ICA-701`: Adaptive Jitter Buffer & Playout Sequencer with RFC 3550 variance estimation (`AdaptiveJitterBuffer.kt`).
+  - `ICA-702`: Packet Loss Concealment (PLC) with pitch period extrapolation, exponential decay, and crossfade (`PacketLossConcealment.kt`).
+  - `ICA-703`: Adaptive Noise Gate & VOX Energy DSP with attack, hold, release, and dual-threshold hysteresis (`NoiseGate.kt`).
+  - `ICA-704`: Multi-Rate Pure KMP Audio Codec Engine with 4-bit IMA ADPCM and single BLE GATT MTU compliance (`AudioCodec.kt`).
+  - `ICA-705`: Audio Pipeline End-to-End Integration & Benchmark Test verifying continuous playout under 20% loss and 50ms jitter (`AudioPipelineIntegrationTest.kt`).
+
+---
+
 ## 🚀 Active & Upcoming Sprints
-
-### 🟡 Sprint 07: Audio Codec Optimization, Jitter Buffering & Packet Loss Concealment (PLC) (Phase 5)
-- **Sprint Goal**: Upgrade audio streaming from raw PCM to multi-rate compressed frames with adaptive jitter buffering, PLC, and noise gating.
-
-| Task ID | Item | Owner | Target Files | Status |
-| :--- | :--- | :--- | :--- | :--- |
-| **ICA-701** | Adaptive Jitter Buffer & Playout Sequencer | Agent | `app/sharedLogic/.../AdaptiveJitterBuffer.kt` | 🟡 In Progress |
-| **ICA-702** | Packet Loss Concealment (PLC) & Frame Interpolator | Agent | `app/sharedLogic/.../PacketLossConcealment.kt` | ⚪ Backlog |
-| **ICA-703** | Adaptive Noise Gate & VOX Energy DSP | Agent | `app/sharedLogic/.../NoiseGate.kt` | ⚪ Backlog |
-| **ICA-704** | Multi-Rate Pure KMP Audio Codec Engine | Agent | `app/sharedLogic/.../AudioCodec.kt` | ⚪ Backlog |
-| **ICA-705** | Audio Pipeline End-to-End Integration & Benchmark Test | Agent | `app/sharedLogic/.../AudioPipelineIntegrationTest.kt` | ⚪ Backlog |
 
 ### ⚪ Sprint 08: Real-World Field Testing & Hardening (Phase 6)
 - **Sprint Goal**: Verify multi-hop mesh range, highway wind noise intelligibility, and 4-hour battery consumption.
