@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.0] - 2026-10-01 — Sprint 11: Convoy Situational Awareness, GPS Mesh Telemetry & Blackbox Voice Cache
+
+### Added
+- **Offline Mesh Canned Hazard & Quick Text Messaging (`MeshTextManager.kt`)**: Standardized canned convoy hazard alerts (`FUEL_LOW`, `HAZARD_ROAD`, `STOP_IMMEDIATE`), custom text messages (<280 chars), peer-to-peer delivery ACK tracking, and reactive unread badge state.
+- **Decentralized GPS Mesh Telemetry & Convoy Tracking (`ConvoyGpsTracker.kt`)**: Great-Circle Haversine distance, forward azimuth, and relative bearing ($-180^\circ \dots +180^\circ$) in pure KMP. Motion-aware adaptive beaconing (3s to 15s) and sudden crash deceleration watchdog (>35 km/h drop in <1.5s).
+- **Dynamic Adaptive Bitrate Controller (`AdaptiveBitrateController.kt`)**: Closed-loop RF metric mapping dynamically shifting `AudioProfile` (`ULTRA_LOW`, `LOW`, `MEDIUM`, `HIGH`) with asymmetric hysteresis (instant step-down, 3-cycle conservative step-up) and manual override.
+- **Rolling Emergency Voice Blackbox & Encrypted Incident Cache (`EmergencyBlackboxRecorder.kt`)**: Circular 60-second in-memory audio ring buffer, automatic incident snapshot freeze on crash or emergency voice preemption, pure KMP ChaCha20-Poly1305 AEAD encryption, bounded < 3 MB RAM footprint, and Markdown forensic logs.
+
+---
+
 ## [1.2.0] - 2026-09-30 — Sprint 10: Multi-Channel Intercom, Priority Emergency & Audio Spatialization
 
 ### Added
