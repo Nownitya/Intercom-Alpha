@@ -305,3 +305,22 @@
   - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
 ---
+
+### [2026-09-30] - ICA-902: Low-Power BLE Proximity Radar & Distance UI
+- **Branch**: `feature/ICA-902-proximity-radar`
+- **Objective**: Create a proximity radar model and cockpit visualization displaying relative distances and RF link margins to all riders in the mesh group.
+- **Implementation**:
+  - Implemented `ProximityRadar.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/`:
+    - Defined discrete proximity zones: `NEAR` (<15m), `MEDIUM` (15m .. <60m), `FAR` (60m .. <150m), and `OUT_OF_RANGE` (>=150m or stale timeout).
+    - Modeled `RadarTarget` and `RadarSnapshot` with distance estimation via Log-Distance Path Loss model.
+    - Directional trend detection: positive delta in smoothed RSSI indicates approaching rider; negative indicates receding rider.
+    - Signal strength percentage normalization (0% to 100%) and link margin calculation against receiver sensitivity floor (-93 dBm).
+    - Reactive state telemetry `radarFlow: StateFlow<RadarSnapshot>` consumed seamlessly by Compose and SwiftUI views.
+    - Integration hook for `MeshDiagnosticsReport` to ingest cluster-wide telemetry.
+  - Implemented `ProximityRadarTest.kt` in `commonTest`:
+    - 6 test suites validating initial state, zone boundaries, timeout pruning, directional approaching/receding trends, diagnostics integration, and target removal/clearing.
+- **Verification**:
+  - `./gradlew test :app:sharedLogic:compileKotlinIosSimulatorArm64` passed in 35s (93 actionable tasks).
+  - OpenCodeReview (`ocr delegate rule`) passed with 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---

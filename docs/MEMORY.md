@@ -177,6 +177,14 @@
   - Multi-transport coordination modes: `BLE_ONLY` (default off-grid), `FALLBACK_ONLY` (cellular only), and `HYBRID_ALWAYS` (simultaneous dual-path).
   - Looping prevention: remote incoming cloud packets are passed through `PacketDeduplicator.shouldProcess(packet)` before delivery into local mesh channels, preventing bounce-back storms between BLE and cloud relays.
 
+### 2.21 Low-Power BLE Proximity Radar & Distance UI (`ProximityRadar.kt`)
+- **Challenge**: Riders in a motorcycle pack need glanceable cockpit situational awareness of rider separation without manual distance calculations or distraction.
+- **Solution**:
+  - Implemented `ProximityRadar.kt` translating raw RSSI and path loss into discrete proximity zones: `NEAR` (<15m), `MEDIUM` (15m .. <60m), `FAR` (60m .. <150m), and `OUT_OF_RANGE` (>=150m or timeout).
+  - Directional trend detection: positive delta in smoothed RSSI indicates approaching rider; negative indicates receding rider.
+  - Generates reactive `radarFlow: StateFlow<RadarSnapshot>` consumed seamlessly by Compose and SwiftUI views.
+  - Integrated with `MeshDiagnosticsReport` for cluster-wide link health and hop counts.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index
