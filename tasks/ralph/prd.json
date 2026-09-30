@@ -37,7 +37,7 @@
         "Generates audible pre-roll alert chime tone synthesis in pure KMP",
         "100% multiplatform test pass in commonTest"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-1003",

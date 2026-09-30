@@ -210,6 +210,14 @@
   - Scan mode allows monitoring all unmuted channels concurrently.
   - Emits reactive `channelState: StateFlow<ChannelState>` for instant cockpit channel switching.
 
+### 2.25 Emergency Priority Audio Preemption & Chime Synthesis (`PriorityBroadcastManager.kt`)
+- **Challenge**: Critical safety warnings (e.g. "Gravel in turn", "Deer ahead", or crash detection) must never be drowned out by normal chatter, blocked by sub-channel mutes, or delayed by buffering.
+- **Solution**:
+  - Implemented `PriorityBroadcastManager.kt` managing three traffic tiers: `NORMAL`, `PRIORITY`, and `EMERGENCY_OVERRIDE`.
+  - Immediate preemption: incoming emergency frames immediately override and suppress ongoing conversational streams with zero delay.
+  - Hangover window: 600ms hangover guard prevents normal chatter from cutting in during micro-pauses in emergency voice messages.
+  - Mathematical acoustic synthesis: `AlertChimeSynthesizer` generates pure 48kHz 16-bit PCM alert tones (880Hz single-tone hazard and 880Hz -> 1760Hz two-tone emergency) in pure Kotlin with 8% fade envelope to prevent speaker popping, requiring zero external audio assets.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index
