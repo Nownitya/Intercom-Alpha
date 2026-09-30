@@ -1,77 +1,81 @@
 {
   "project": "Intercom-Alpha",
-  "branchName": "sprint/sprint-10-multi-channel-spatial-audio",
-  "phase": "Phase 8: Multi-Channel Intercom, Priority Emergency & Audio Spatialization",
-  "sprint": "Sprint 10",
-  "updatedAt": "2026-09-30T22:45:00Z",
+  "branchName": "sprint/sprint-11-convoy-gps-blackbox",
+  "phase": "Phase 9: Convoy Situational Awareness, GPS Mesh Telemetry & Blackbox Voice Cache",
+  "sprint": "Sprint 11",
+  "updatedAt": "2026-09-30T23:14:00Z",
   "stories": [
     {
-      "id": "ICA-1001",
+      "id": "ICA-1101",
       "priority": 1,
-      "title": "Multi-Channel Group Partitioning & Channel Manager",
-      "description": "Implement ChannelManager in commonMain supporting sub-channel creation, channel switching, and channel-tagged packet segregation across the mesh.",
+      "title": "Offline Mesh Canned Hazard & Quick Text Messaging",
+      "description": "Implement MeshTextManager in commonMain supporting canned convoy messages (Fuel Needed, Road Hazard, Stop), custom text payloads, ACK receipts, and unread badge state.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/channel/ChannelManager.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/channel/ChannelManagerTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/text/MeshTextManager.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/text/MeshTextManagerTest.kt"
       ],
       "acceptanceCriteria": [
-        "ChannelManager provides active channel switching across 16 configurable sub-channels",
-        "Filters audio packets based on matching active channel or global broadcast flags",
-        "Emits reactive channel state flow for UI selection",
+        "Models MeshTextMessage with canned codes, custom text, timestamps, and delivery status",
+        "Supports direct peer-to-peer and group broadcast text frames",
+        "Automatic ACK receipt generation when target peer receives direct message",
+        "Thread-safe bounded in-memory message history with deduplication and unread counter",
         "100% multiplatform test pass in commonTest"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-1002",
+      "id": "ICA-1102",
       "priority": 2,
-      "title": "Emergency Priority Voice & Hazard Alert Broadcast",
-      "description": "Implement PriorityBroadcastManager allowing emergency override frames (hazard warnings, crash alerts) to preempt ongoing audio and bypass sub-channel mutes.",
+      "title": "Decentralized GPS Mesh Telemetry & Convoy Tracking",
+      "description": "Implement ConvoyGpsTracker in commonMain to beacon compact GPS coordinates over mesh control channels, calculate relative bearing and Great-Circle distance, and feed ProximityRadar.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/PriorityBroadcastManager.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/PriorityBroadcastManagerTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/telemetry/ConvoyGpsTracker.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/telemetry/ConvoyGpsTrackerTest.kt"
       ],
       "acceptanceCriteria": [
-        "Classifies frames with PriorityLevel (NORMAL, PRIORITY, EMERGENCY_OVERRIDE)",
-        "EMERGENCY_OVERRIDE preempts lower priority audio playout immediately",
-        "Generates audible pre-roll alert chime tone synthesis in pure KMP",
+        "Models GpsCoordinate with latitude, longitude, altitude, speed, bearing, and timestamp",
+        "Pure KMP Haversine distance and forward azimuth calculation with zero platform dependencies",
+        "Adaptive beaconing interval based on motion state (speed > 30 km/h vs stationary)",
+        "Feeds relative bearing and ground range directly into ProximityRadar targets",
         "100% multiplatform test pass in commonTest"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-1003",
+      "id": "ICA-1103",
       "priority": 3,
-      "title": "Binaural Stereo Audio Spatializer & Convoy Panning",
-      "description": "Implement SpatialAudioProcessor in commonMain to render incoming mono voice streams into 3D stereo audio panned by rider radar azimuth and distance.",
+      "title": "Dynamic Adaptive Bitrate & Codec Profile Switching",
+      "description": "Implement AdaptiveBitrateController in commonMain to dynamically shift AudioProfile between ULTRA_LOW, LOW, MEDIUM, and HIGH based on RfInterferenceDetector and MeshDiagnostics telemetry.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/SpatialAudioProcessor.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/SpatialAudioProcessorTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/AdaptiveBitrateController.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/AdaptiveBitrateControllerTest.kt"
       ],
       "acceptanceCriteria": [
-        "Pans mono 16-bit PCM into interleaved stereo (-90 left to +90 right degrees)",
-        "Applies distance attenuation curve and interaural time delay (ITD) emulation",
-        "Zero external dependencies (pure multiplatform DSP)",
+        "Monitors real-time link margin and RF interference severity",
+        "Selects optimal AudioProfile balancing voice intelligibility against BLE collision risk",
+        "Hysteresis filter requiring 3 consecutive cycles before stepping down/up to avoid flapping",
+        "Emits reactive currentProfile StateFlow consumed by AudioEngine",
         "100% multiplatform test pass in commonTest"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-1004",
+      "id": "ICA-1104",
       "priority": 4,
-      "title": "Adaptive RF Interference & Frequency Map Diagnostic Engine",
-      "description": "Implement RfInterferenceDetector in commonMain to monitor 2.4 GHz channel congestion, calculate noise variance, and advise BLE transport backoff.",
+      "title": "Rolling Emergency Voice Blackbox & Encrypted Incident Cache",
+      "description": "Implement EmergencyBlackboxRecorder in commonMain to capture a rolling 60-second in-memory circular audio buffer of emergency transmissions, generating encrypted incident forensic reports.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/RfInterferenceDetector.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/RfInterferenceDetectorTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/EmergencyBlackboxRecorder.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/EmergencyBlackboxRecorderTest.kt"
       ],
       "acceptanceCriteria": [
-        "Tracks packet delivery ratio dips and RSSI standard deviation over sliding window",
-        "Classifies RF interference levels (LOW, MODERATE, SEVERE)",
-        "Recommends transmission backoff and packet redundancy boost under high noise",
+        "Rolling circular buffer preserving 60 seconds of compressed ADPCM audio frames",
+        "Automatic snapshot freeze upon EMERGENCY_OVERRIDE preemption or crash detection",
+        "Pure KMP ChaCha20-Poly1305 encryption of incident report snapshots",
+        "Memory footprint strictly bounded (< 3 MB resident RAM)",
         "100% multiplatform test pass in commonTest"
       ],
-      "passes": true
+      "passes": false
     }
   ]
 }

@@ -118,3 +118,17 @@
 | **ICA-1003** | Binaural Stereo Audio Spatializer & Convoy Panning | `SpatialAudioProcessor.kt`, `SpatialAudioProcessorTest.kt` | ✅ Completed |
 | **ICA-1004** | Adaptive RF Interference & Frequency Map Diagnostic Engine | `RfInterferenceDetector.kt`, `RfInterferenceDetectorTest.kt` | ✅ Completed |
 
+---
+
+### 🚀 Sprint 11: Convoy Situational Awareness, GPS Mesh Telemetry & Blackbox Voice Cache (Phase 9 - v2.0 Roadmap)
+- **Sprint Goal**: Implement offline canned hazard text messaging, decentralized GPS mesh coordinate beaconing, LinkQuality-driven adaptive bitrate controller, and rolling emergency voice blackbox recorder.
+- **Sprint Branch**: `sprint/sprint-11-convoy-gps-blackbox`
+- **Status**: 🟡 In Progress (Story 1 Selected)
+
+| Task ID | Item | Target Files | Status |
+| :--- | :--- | :--- | :--- |
+| **ICA-1101** | Offline Mesh Canned Hazard & Quick Text Messaging | `MeshTextManager.kt`, `MeshTextManagerTest.kt` | 🟡 Active |
+| **ICA-1102** | Decentralized GPS Mesh Telemetry & Convoy Tracking | `ConvoyGpsTracker.kt`, `ConvoyGpsTrackerTest.kt` | ⏳ Pending |
+| **ICA-1103** | Dynamic Adaptive Bitrate & Codec Profile Switching | `AdaptiveBitrateController.kt`, `AdaptiveBitrateControllerTest.kt` | ⏳ Pending |
+| **ICA-1104** | Rolling Emergency Voice Blackbox & Encrypted Incident Cache | `EmergencyBlackboxRecorder.kt`, `EmergencyBlackboxRecorderTest.kt` | ⏳ Pending |
+
