@@ -242,6 +242,15 @@
   - Thread-safe mutex with bounded in-memory sliding history (max 100 messages) preventing RAM accumulation.
   - Exposes reactive `messages: StateFlow<List<MeshTextMessage>>` and unread badge counter.
 
+### 2.29 Decentralized GPS Mesh Telemetry & Convoy Tracking (`ConvoyGpsTracker.kt`)
+- **Challenge**: BLE RSSI distance estimates are sensitive to human body absorption, motorcycle orientation, and terrain multipath, failing to provide precise rider bearing and formation status.
+- **Solution**:
+  - Implemented `ConvoyGpsTracker.kt` computing exact Great-Circle Haversine distance and forward azimuth in pure KMP with zero platform dependencies.
+  - Normalizes relative rider bearing ($-180^\circ \dots +180^\circ$) relative to local rider heading, directly driving 3D `SpatialAudioProcessor` panning and cockpit radar vectors.
+  - Motion-aware adaptive beaconing: stationary (15s), city (6s), and highway cruise (3s) to conserve BLE airtime and battery.
+  - Automatic emergency crash/hard-braking detection ($>35\text{ km/h}$ drop in $<1.5\text{s}$) triggering instant priority telemetry broadcast.
+  - Dynamic formation role detection (Lead Scout, Sweep/Tail, Closest Rider) with automatic 30s stale rider pruning.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

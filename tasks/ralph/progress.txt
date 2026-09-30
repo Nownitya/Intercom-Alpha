@@ -481,3 +481,27 @@
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
 ---
 
+### [2026-09-30] - ICA-1102: Decentralized GPS Mesh Telemetry & Convoy Tracking
+- **Branch**: `feature/ICA-1102-convoy-gps-tracking`
+- **Objective**: Implement `ConvoyGpsTracker` in `commonMain` to beacon compact GPS coordinates over mesh control channels, calculate relative bearing and Great-Circle distance, and feed `ProximityRadar`.
+- **Implementation**:
+  - Implemented `ConvoyGpsTracker.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/telemetry/`:
+    - Defined `GpsCoordinate`, `MotionState`, `ConvoyTelemetryFrame`, `ConvoyRiderPosition`, and `ConvoyTelemetrySnapshot`.
+    - Pure KMP Great-Circle Haversine distance formula ($d = R \cdot c$) with zero third-party/Java dependencies.
+    - Initial forward azimuth compass bearing calculation ($0^\circ \dots 360^\circ$ True North).
+    - Relative rider bearing normalization ($-180^\circ$ left to $+180^\circ$ right) relative to local rider heading, directly mapping to `SpatialAudioProcessor` and radar vector maps.
+    - Motion-aware adaptive beaconing: stationary (15s), city (6s), highway cruise >30 km/h (3s).
+    - Sudden emergency deceleration watchdog: speed drops $>35\text{ km/h}$ within 1.5s immediately fires emergency alert beacon.
+    - Automatic lead rider, sweep rider, and closest rider detection.
+    - Stale rider timeout pruning (30s default) ensuring disconnected riders do not linger on cockpit displays.
+    - Reactive state telemetry `convoyState: StateFlow<ConvoyTelemetrySnapshot>` and buffered `outgoingFrames: ReceiveChannel<ConvoyTelemetryFrame>`.
+  - Implemented `ConvoyGpsTrackerTest.kt` in `commonTest`:
+    - 7 comprehensive unit test suites validating Haversine distance across known geographic landmarks (Paris-London and equator), forward azimuth and relative bearing quadrants (ahead, behind, hard left, hard right), motion state interval transitions, emergency hard braking detection, remote telemetry ingestion, lead/sweep rider assignment, stale rider timeout pruning, and JSON serialization symmetry.
+- **Verification**:
+  - `./gradlew test`: 100% passing across all modules in 8s.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 9s (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
+
+

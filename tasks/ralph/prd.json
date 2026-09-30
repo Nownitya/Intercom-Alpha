@@ -39,7 +39,7 @@
         "Feeds relative bearing and ground range directly into ProximityRadar targets",
         "100% multiplatform test pass in commonTest"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-1103",
