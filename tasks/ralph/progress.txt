@@ -370,3 +370,25 @@
   - `ICA-904: GitHub Actions Multiplatform CI/CD Pipeline` [PASSED]
 - **Integration Highway**: Ready for clean merge into `develop`.
 ---
+
+## 🚀 Sprint 10: Multi-Channel Intercom, Priority Emergency & Audio Spatialization (Phase 8 - v2.0 Roadmap)
+
+### [2026-09-30] - ICA-1001: Multi-Channel Group Partitioning & Channel Manager
+- **Branch**: `feature/ICA-1001-channel-manager`
+- **Objective**: Implement `ChannelManager` in `commonMain` supporting sub-channel creation, channel switching, and channel-tagged packet segregation across the mesh.
+- **Implementation**:
+  - Implemented `ChannelManager.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/channel/`:
+    - Defined `IntercomChannel`, `ChannelState`, and `ChannelAudioFrame`.
+    - Implemented 16 sub-channels with default convoy presets (Convoy Main, Scouts & Lead, Sweep & Tail, Support Vehicle, and Emergency SOS).
+    - Sub-channel filtering engine: accepts matching active channel frames, passes Dual-Watch monitored sub-channels, and passes scan mode across all unmuted channels.
+    - Global broadcast override: emergency broadcast frames unconditionally bypass channel mutes and channel mismatches.
+    - Outgoing frame tagging: `tagOutgoingFrame(...)` attaches active channel ID and timestamp to outbound audio payloads.
+    - Reactive telemetry `channelState: StateFlow<ChannelState>` consumed directly by Compose/SwiftUI selectors.
+  - Implemented `ChannelManagerTest.kt` in `commonTest`:
+    - 7 test suites validating default 16 channels, channel selection and clamping, channel filtering, Dual-Watch secondary monitoring, mute toggling, global emergency broadcast bypass, scan mode, and outgoing frame tagging.
+- **Verification**:
+  - `./gradlew test :app:sharedLogic:compileKotlinIosSimulatorArm64` passed in 20s (93 actionable tasks).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
+
