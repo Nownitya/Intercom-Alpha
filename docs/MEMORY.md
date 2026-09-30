@@ -275,6 +275,15 @@
   - Exposes thread-safe dispatch commands (`selectActiveChannel`, `sendCannedMessage`, `updateGpsLocation`, `triggerManualSos`, `setManualOverride`) executing asynchronously within the bridge's SupervisorJob scope on `Dispatchers.Main`.
   - Integrates the audio pipeline so incoming mesh frames are continuously buffered into `EmergencyBlackboxRecorder`, and outgoing compression respects `AdaptiveBitrateController` profile shifts.
 
+### 2.33 Native iOS SwiftUI Cockpit v2.0 UI Upgrade (`ContentView.swift` & `IntercomViewModel.swift`)
+- **Challenge**: Constructing an ergonomic motorcycle cockpit in 100% native SwiftUI (Rule 1) that accommodates high-vibration glove touches, instant hazard signaling, multi-channel selection, and radar bearing compass without cluttering the screen or blocking audio transmission.
+- **Solution**:
+  - Implemented `ChannelDialView`: Horizontal scrolling channel picker for channels 1 to 16 with preset labels, neon active selection indicator, and Dual-Watch monitoring tags.
+  - Implemented `ConvoyRadarStripView`: Displays live relative bearings ($-180^\circ \dots +180^\circ$) translated into intuitive directional arrows (`arrow.up`, `arrow.up.right`, etc.) alongside ground distance.
+  - Implemented `QuickHazardBar`: 1-tap canned message buttons (`Fuel Low`, `Road Hazard`, `Stop`, `Bike Issue`) triggering haptic feedback and immediate mesh broadcast.
+  - Implemented `EmergencySosBanner`: Flashing preemption card showing blackbox buffer frame counts and instant SOS trigger.
+  - Implemented `MessageDrawerSheet`: Slide-over drawer displaying chronological mesh text history with delivery status and quick-send composer.
+
 ---
 
 

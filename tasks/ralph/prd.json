@@ -38,7 +38,7 @@
         "Builds EmergencySosBanner with audio preemption cue and blackbox capture status",
         "Strictly complies with Rule 1: 100% Native SwiftUI (no shared Compose on iOS)"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-1203",

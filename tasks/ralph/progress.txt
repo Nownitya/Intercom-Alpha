@@ -572,8 +572,27 @@
   - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 5m 33s with 0 errors (Rule 6).
   - `./gradlew test`: 100% passing across all modules in 27s.
   - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+### [2026-10-01] - ICA-1202: Native iOS SwiftUI Cockpit v2.0 UI Upgrade
+- **Branch**: `feature/ICA-1202-ios-swiftui-cockpit`
+- **Objective**: Upgrade 100% native SwiftUI UI in `app/iosApp` with multi-channel selector dial, radar bearing compass, canned hazard quick-bar, text message drawer, and emergency SOS banner.
+- **Implementation**:
+  - Upgraded `IntercomViewModel.swift`:
+    - Bound all v2.0 reactive listeners (`channelState`, `radarSnapshot`, `convoySnapshot`, `messages`, `unreadCount`, `priorityLevel`, `emergencyActive`, `blackboxReports`, `bitrateProfile`) with automatic `CancellationHandle` disposal on deinit.
+    - Added UI action handlers for channel switching, Dual-Watch toggling, scan mode, canned/custom text messaging, and emergency SOS triggering.
+  - Upgraded `ContentView.swift`:
+    - `EmergencySosBanner`: Flashing high-visibility preemption alert with instant blackbox buffer counter and clear action.
+    - `ChannelDialView`: Horizontal scroll selector for channels 1 to 16 with preset labels, neon active selection, and Dual-Watch badges.
+    - `ConvoyRadarStripView`: Radar strip displaying distance and directional bearing arrows ($-180^\circ \dots +180^\circ$) to connected riders.
+    - `QuickHazardBar`: 1-tap canned hazard alert buttons (`Fuel Low`, `Road Hazard`, `Stop`, `Bike Issue`, `Turn Around`, `Regroup`) with haptic feedback.
+    - `MessageDrawerSheet`: Slide-over sheet for reading mesh text history and sending custom text messages.
+    - Strictly compliant with Rule 1: 100% Native SwiftUI (no shared Compose on iOS).
+- **Verification**:
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 10s with 0 errors (Rule 6).
+  - `./gradlew test`: 100% passing across all modules in 16s.
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
 ---
+
 
 
 
