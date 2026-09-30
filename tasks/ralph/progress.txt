@@ -458,3 +458,26 @@
   - `ICA-1004: Adaptive RF Interference & Frequency Map Diagnostic Engine` [PASSED]
 - **Integration Highway**: Ready for clean merge into `develop`.
 ---
+
+## 🚀 Sprint 11: Convoy Situational Awareness, GPS Mesh Telemetry & Blackbox Voice Cache (Phase 9 - v2.0 Roadmap)
+
+### [2026-09-30] - ICA-1101: Offline Mesh Canned Hazard & Quick Text Messaging
+- **Branch**: `feature/ICA-1101-mesh-text-messaging`
+- **Objective**: Implement `MeshTextManager` in `commonMain` supporting canned convoy messages (Fuel Needed, Road Hazard, Stop), custom text payloads, ACK receipts, and unread badge state.
+- **Implementation**:
+  - Implemented `MeshTextManager.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/text/`:
+    - Defined `CannedMessageCode` (`FUEL_LOW`, `HAZARD_ROAD`, `STOP_IMMEDIATE`, `MECHANICAL_ISSUE`, `TURN_AROUND`, `REGROUP`, `ALL_CLEAR`, etc.) and `MessageCategory` (`CANNED_HAZARD`, `STATUS_UPDATE`, `DIRECT_PING`, `CUSTOM_TEXT`).
+    - Standardized canned text templates and compact JSON wire frame encoder/decoder (`MeshTextWireFrame`).
+    - Bounded in-memory message history (max 100 entries) preventing memory leaks during all-day rides.
+    - Automatic receipt acknowledgment: target peer automatically generates `DELIVERY_ACK` wire frame upon receiving direct text payload.
+    - Sender state tracking transitions from `SENT` to `ACKNOWLEDGED` with exact `acknowledgedAt` timestamp upon receipt.
+    - Reactive state telemetry `messages: StateFlow<List<MeshTextMessage>>` and unread badge counter `unreadCount: StateFlow<Int>` with `markAsRead`, `markAllAsRead`, and `clearHistory`.
+  - Implemented `MeshTextManagerTest.kt` in `commonTest`:
+    - 10 unit test suites validating canned message emission, hazard categories, custom text trimming, broadcast delivery, direct peer delivery, automatic ACK generation, ACK receipt state updating, foreign recipient dropping, duplicate suppression, mark-as-read badge decrements, bounded history eviction, and wire frame serialization symmetry.
+- **Verification**:
+  - `./gradlew test`: 100% passing across all modules in 8s.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 24s (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
+

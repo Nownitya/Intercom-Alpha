@@ -233,6 +233,15 @@
   - Classifies RF environments into `LOW`, `MODERATE`, and `SEVERE`.
   - Emits real-time policy advice recommending redundant packet copies (1x -> 2x -> 3x), dynamic scan rate throttling, and randomized backoff windows to prevent collision storms.
 
+### 2.28 Offline Mesh Quick Text & Canned Hazard Protocol (`MeshTextManager.kt`)
+- **Challenge**: In high-speed highway wind noise or emergency situations, riders may be unable to hear voice clearly or speak without excessive turbulence.
+- **Solution**:
+  - Implemented `MeshTextManager.kt` managing standardized canned convoy alerts (`FUEL_LOW`, `HAZARD_ROAD`, `STOP_IMMEDIATE`, `MECHANICAL_ISSUE`) and custom text payloads (< 280 chars).
+  - Compact serialized JSON wire frames (`MeshTextWireFrame`) routed over BLE mesh.
+  - Automatic peer-to-peer receipt acknowledgment (`DELIVERY_ACK`) confirms message arrival at destination.
+  - Thread-safe mutex with bounded in-memory sliding history (max 100 messages) preventing RAM accumulation.
+  - Exposes reactive `messages: StateFlow<List<MeshTextMessage>>` and unread badge counter.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

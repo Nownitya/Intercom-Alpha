@@ -21,7 +21,7 @@
         "Thread-safe bounded in-memory message history with deduplication and unread counter",
         "100% multiplatform test pass in commonTest"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-1102",
