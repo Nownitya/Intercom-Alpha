@@ -169,6 +169,14 @@
   - Preserved Koin Multiplatform modules, Android ViewModels, and foreground service lifecycle components.
   - Verified `./gradlew assembleRelease` compiles cleanly into signed/unsigned APK packages without runtime reflection missing errors.
 
+### 2.20 Cloud Mesh Relay Gateway & Dual-Transport Bridging (`CloudRelayBridge.kt`)
+- **Challenge**: BLE mesh range is limited to line-of-sight RF hops. If riders become separated across cellular distances or a mountain ridge, direct BLE relay drops completely.
+- **Solution**:
+  - Implemented `CloudRelayBridge.kt` bridging local BLE mesh packets to the Ktor WebSocket server (`:server`) via polymorphic `SignalingMessage.MeshRelay`.
+  - Encapsulated packets in pure KMP Base64 (`kotlin.io.encoding.Base64`) with `#type` JSON discriminator.
+  - Multi-transport coordination modes: `BLE_ONLY` (default off-grid), `FALLBACK_ONLY` (cellular only), and `HYBRID_ALWAYS` (simultaneous dual-path).
+  - Looping prevention: remote incoming cloud packets are passed through `PacketDeduplicator.shouldProcess(packet)` before delivery into local mesh channels, preventing bounce-back storms between BLE and cloud relays.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index
