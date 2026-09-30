@@ -54,7 +54,7 @@
         "Zero external dependencies (pure multiplatform DSP)",
         "100% multiplatform test pass in commonTest"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-1004",
