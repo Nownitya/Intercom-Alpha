@@ -68,7 +68,7 @@
         "Builds Android assembleRelease and verifies ProGuard/R8 rules",
         "Compiles iOS framework via compileKotlinIosSimulatorArm64"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }
