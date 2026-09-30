@@ -279,8 +279,29 @@
 - **Release Status**: v1.0.0 Ready for Production Tagging on `main`.
 ---
 
+## 🚀 Sprint 09: Cellular Fallback & Cloud Relay Bridge (Phase 7 - v2.0 Roadmap)
 
-
-
-
-
+### [2026-09-30] - ICA-901: Ktor WebSocket Cloud Mesh Relay Gateway
+- **Branch**: `feature/ICA-901-cloud-relay`
+- **Objective**: Implement `CloudRelayBridge` in `commonMain` to connect local BLE mesh to Ktor WebSocket server (`:server`), routing packets over cellular data when riders are separated by large distances.
+- **Implementation**:
+  - Extended `:core` `SignalingProtocol.kt`:
+    - Added `SignalingMessage.MeshRelay(roomId, senderPeerId, packetBase64, timestampMs)` polymorphic message.
+    - Verified serialization and round-trip parsing in `SignalingProtocolTest.kt`.
+  - Extended `:server` `SignalingServerManager.kt`:
+    - Added handler for `MeshRelay` to broadcast incoming cloud mesh frames to other room peers (`broadcastToRoom(..., excludePeerId = fromPeerId)`).
+  - Implemented `CloudRelayBridge.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/`:
+    - Configured multi-transport modes: `BLE_ONLY`, `FALLBACK_ONLY`, `HYBRID_ALWAYS`.
+    - Pure KMP Base64 wrapping of encrypted `MeshPacket` instances using `kotlin.io.encoding.Base64`.
+    - Configured `Json { classDiscriminator = "#type" }` to prevent collision with `MeshPacket.Control.type`.
+    - Integrated with `PacketDeduplicator.shouldProcess(packet)` to prevent infinite bounce storms between BLE and cloud relays.
+    - Provided channel ingestion `incomingCloudPackets: ReceiveChannel<MeshPacket>` and state telemetry `stats: StateFlow<CloudRelayStats>`.
+  - Created `CloudRelayBridgeTest.kt` in `commonTest`:
+    - Tested initial stats, connection state changes, packet serialization/deserialization symmetry, and loop suppression deduplication.
+  - Documented blueprint in Obsidian: `02_Architecture/Blueprints/Cloud-Mesh-Relay-Gateway.md`.
+- **Verification**:
+  - Multiplatform tests passed: `./gradlew test` (including `:core`, `:server`, `:app:sharedLogic`).
+  - Platform compilation passed: `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`.
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
