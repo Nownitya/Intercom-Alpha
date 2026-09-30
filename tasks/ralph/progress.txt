@@ -593,6 +593,26 @@
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
 ---
 
+### [2026-10-01] - ICA-1203: Android & Desktop Compose Multiplatform Cockpit Components
+- **Branch**: `feature/ICA-1203-compose-cockpit`
+- **Objective**: Extend `HomeUiState`, `HomeViewModel`, and `HomeScreen` in `sharedUI` with multi-channel selector, radar targets, convoy telemetry, quick hazard alerts, and emergency preemption banner.
+- **Implementation**:
+  - `HomeUiState.kt`: Added v2.0 domain states (`channelState: ChannelState`, `radarSnapshot: RadarSnapshot`, `convoySnapshot: ConvoyTelemetrySnapshot`, `messages: List<MeshTextMessage>`, `unreadTextCount: Int`, `isEmergencyActive: Boolean`, `activePriorityLevel: PriorityLevel`, `blackboxBufferedCount: Int`, `showMessagesDialog: Boolean`). Added corresponding `HomeUiAction` variants.
+  - `HomeViewModel.kt`: Wired shared KMP subsystem managers (`ChannelManager`, `ProximityRadar`, `ConvoyGpsTracker`, `MeshTextManager`, `PriorityBroadcastManager`, `EmergencyBlackboxRecorder`, `AdaptiveBitrateController`) into reactive StateFlow updates and dispatched actions asynchronously.
+  - `ChannelSelectorBar.kt`: Horizontal selector for channels 1-16, active channel indicator, Dual-Watch `[DW]` monitoring toggles, and Scan mode toggle.
+  - `EmergencyPreemptionBanner.kt`: High-visibility emergency override banner with live blackbox cached frame counter and alarm reset action.
+  - `ProximityRadarView.kt`: Compact radar & convoy telemetry strip with relative rider directional bearing indicators (-180° to +180°), zone tags (NEAR, MEDIUM, FAR), and link margin metrics.
+  - `QuickHazardBar.kt`: 1-tap canned hazard broadcast triggers (`FUEL_LOW`, `HAZARD_ROAD`, `STOP_IMMEDIATE`, `MECHANICAL_ISSUE`, `REGROUP`), unread message badge, and dedicated SOS trigger.
+  - `MessageHistoryDialog.kt`: Modal dialog for chronological mesh text message history and instant text messaging composer.
+  - `HomeScreen.kt`: Assembled complete cockpit layout with smooth scrolling, audio level meters, PTT button, peer list, and dialogs.
+- **Verification**:
+  - `./gradlew :app:sharedUI:compileKotlinJvm`: Passed in 1m 47s.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 9s (Rule 6).
+  - `./gradlew test`: 100% test pass across all modules in 58s.
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
+
 
 
 

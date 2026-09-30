@@ -56,7 +56,7 @@
         "HomeScreen renders ChannelSelectorBar, ProximityRadarView, QuickHazardBar, and EmergencyPreemptionBanner",
         "100% multiplatform test pass in commonTest"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-1204",

@@ -282,7 +282,18 @@
   - Implemented `ConvoyRadarStripView`: Displays live relative bearings ($-180^\circ \dots +180^\circ$) translated into intuitive directional arrows (`arrow.up`, `arrow.up.right`, etc.) alongside ground distance.
   - Implemented `QuickHazardBar`: 1-tap canned message buttons (`Fuel Low`, `Road Hazard`, `Stop`, `Bike Issue`) triggering haptic feedback and immediate mesh broadcast.
   - Implemented `EmergencySosBanner`: Flashing preemption card showing blackbox buffer frame counts and instant SOS trigger.
-  - Implemented `MessageDrawerSheet`: Slide-over drawer displaying chronological mesh text history with delivery status and quick-send composer.
+### 2.34 Compose Multiplatform Cockpit Components (`HomeScreen.kt`, `HomeViewModel.kt`, `sharedUI`)
+- **Challenge**: Surfacing v2.0 subsystems (16-channel dial, radar targets, convoy telemetry, quick hazard alerts, and emergency preemption) in Compose Multiplatform across Android and Desktop while maintaining strict separation from iOS (Rule 1).
+- **Solution**:
+  - `HomeUiState.kt`: Enriched domain model with non-null default snapshots (`ChannelState`, `RadarSnapshot`, `ConvoyTelemetrySnapshot`, `messages`, `unreadTextCount`, `isEmergencyActive`, `blackboxBufferedCount`).
+  - `HomeViewModel.kt`: Connected manager StateFlows (`ChannelManager.channelState`, `ProximityRadar.radarFlow`, `ConvoyGpsTracker.convoyState`, `MeshTextManager.messages`, `PriorityBroadcastManager.isEmergencyActive`, `EmergencyBlackboxRecorder.bufferedFrameCount`, `AdaptiveBitrateController.currentProfile`) into a single reactive `_uiState` stream.
+  - Modular UI components in `org.nowni.intercom_alpha.ui.components`:
+    - `EmergencyPreemptionBanner`: High-contrast emergency alert with real-time blackbox frame counter and reset action.
+    - `ChannelSelectorBar`: Horizontal pill selector (CH 1–16) with active channel indicator, Dual-Watch `[DW]` monitoring indicators, and Scan mode toggle.
+    - `ProximityRadarView`: Directional vector indicators (-180° to +180°) rendering rider heading arrows ($\uparrow, \nearrow, \rightarrow, \searrow, \downarrow, \dots$), distance, and RF link margin.
+    - `QuickHazardBar`: 1-tap canned hazard broadcast triggers (`FUEL_LOW`, `HAZARD_ROAD`, `STOP_IMMEDIATE`, `MECHANICAL_ISSUE`), unread message badge, and dedicated SOS trigger.
+    - `MessageHistoryDialog`: Modal dialog displaying complete message history and custom text composer.
+  - `HomeScreen.kt`: Integrated cockpit layout with safe-content padding, audio meters, PTT button, and peer list.
 
 ---
 
