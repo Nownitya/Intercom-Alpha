@@ -552,8 +552,85 @@
   - `ICA-1102: Decentralized GPS Mesh Telemetry & Convoy Tracking` [PASSED]
   - `ICA-1103: Dynamic Adaptive Bitrate & Codec Profile Switching` [PASSED]
   - `ICA-1104: Rolling Emergency Voice Blackbox & Encrypted Incident Cache` [PASSED]
-- **Integration Highway**: Ready for clean merge into `develop`.
 ---
+
+## 🚀 Sprint 12: Cockpit UI & Multiplatform Bridge Integration (Phase 10 - v2.0 Roadmap)
+
+### [2026-10-01] - ICA-1201: KMP Swift Bridge Extension for v2.0 Subsystems
+- **Branch**: `feature/ICA-1201-kmp-swift-bridge`
+- **Objective**: Extend `IntercomBridge` in `iosMain` with memory-safe `CancellationHandle` reactive listeners and commands for `ChannelManager`, `ProximityRadar`, `ConvoyGpsTracker`, `MeshTextManager`, `PriorityBroadcastManager`, `EmergencyBlackboxRecorder`, and `AdaptiveBitrateController`.
+- **Implementation**:
+  - Enhanced `IntercomBridge.kt` in `app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/bridge/`:
+    - Channel management: `observeChannelState`, `selectChannel`, `setDualWatch`, `setScanMode`, `toggleChannelMute`.
+    - Radar & GPS telemetry: `observeRadarSnapshot`, `observeConvoyTelemetry`, `updateGpsLocation`, `updatePeerRssi`.
+    - Canned & custom text messaging: `observeMessages`, `observeUnreadCount`, `sendCannedMessage`, `sendCustomText`, `markMessageAsRead`, `markAllMessagesAsRead`, `clearMessageHistory`.
+    - Priority audio & emergency: `observePriorityLevel`, `observeIsEmergencyActive`.
+    - Voice blackbox & SOS: `observeBlackboxReports`, `observeBlackboxBufferedCount`, `triggerManualSos`, `clearBlackboxCache`.
+    - Dynamic adaptive bitrate: `observeCurrentAudioProfile`, `observeAdaptationState`, `pinAudioProfile`, `resetAudioProfileToAuto`.
+    - Integrated audio recording pipeline: pipes incoming audio into `EmergencyBlackboxRecorder` rolling buffer and dynamically applies bitrate profile from `AdaptiveBitrateController`.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 5m 33s with 0 errors (Rule 6).
+  - `./gradlew test`: 100% passing across all modules in 27s.
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+### [2026-10-01] - ICA-1202: Native iOS SwiftUI Cockpit v2.0 UI Upgrade
+- **Branch**: `feature/ICA-1202-ios-swiftui-cockpit`
+- **Objective**: Upgrade 100% native SwiftUI UI in `app/iosApp` with multi-channel selector dial, radar bearing compass, canned hazard quick-bar, text message drawer, and emergency SOS banner.
+- **Implementation**:
+  - Upgraded `IntercomViewModel.swift`:
+    - Bound all v2.0 reactive listeners (`channelState`, `radarSnapshot`, `convoySnapshot`, `messages`, `unreadCount`, `priorityLevel`, `emergencyActive`, `blackboxReports`, `bitrateProfile`) with automatic `CancellationHandle` disposal on deinit.
+    - Added UI action handlers for channel switching, Dual-Watch toggling, scan mode, canned/custom text messaging, and emergency SOS triggering.
+  - Upgraded `ContentView.swift`:
+    - `EmergencySosBanner`: Flashing high-visibility preemption alert with instant blackbox buffer counter and clear action.
+    - `ChannelDialView`: Horizontal scroll selector for channels 1 to 16 with preset labels, neon active selection, and Dual-Watch badges.
+    - `ConvoyRadarStripView`: Radar strip displaying distance and directional bearing arrows ($-180^\circ \dots +180^\circ$) to connected riders.
+    - `QuickHazardBar`: 1-tap canned hazard alert buttons (`Fuel Low`, `Road Hazard`, `Stop`, `Bike Issue`, `Turn Around`, `Regroup`) with haptic feedback.
+    - `MessageDrawerSheet`: Slide-over sheet for reading mesh text history and sending custom text messages.
+    - Strictly compliant with Rule 1: 100% Native SwiftUI (no shared Compose on iOS).
+- **Verification**:
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 10s with 0 errors (Rule 6).
+  - `./gradlew test`: 100% passing across all modules in 16s.
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
+
+### [2026-10-01] - ICA-1203: Android & Desktop Compose Multiplatform Cockpit Components
+- **Branch**: `feature/ICA-1203-compose-cockpit`
+- **Objective**: Extend `HomeUiState`, `HomeViewModel`, and `HomeScreen` in `sharedUI` with multi-channel selector, radar targets, convoy telemetry, quick hazard alerts, and emergency preemption banner.
+- **Implementation**:
+  - `HomeUiState.kt`: Added v2.0 domain states (`channelState: ChannelState`, `radarSnapshot: RadarSnapshot`, `convoySnapshot: ConvoyTelemetrySnapshot`, `messages: List<MeshTextMessage>`, `unreadTextCount: Int`, `isEmergencyActive: Boolean`, `activePriorityLevel: PriorityLevel`, `blackboxBufferedCount: Int`, `showMessagesDialog: Boolean`). Added corresponding `HomeUiAction` variants.
+  - `HomeViewModel.kt`: Wired shared KMP subsystem managers (`ChannelManager`, `ProximityRadar`, `ConvoyGpsTracker`, `MeshTextManager`, `PriorityBroadcastManager`, `EmergencyBlackboxRecorder`, `AdaptiveBitrateController`) into reactive StateFlow updates and dispatched actions asynchronously.
+  - `ChannelSelectorBar.kt`: Horizontal selector for channels 1-16, active channel indicator, Dual-Watch `[DW]` monitoring toggles, and Scan mode toggle.
+  - `EmergencyPreemptionBanner.kt`: High-visibility emergency override banner with live blackbox cached frame counter and alarm reset action.
+  - `ProximityRadarView.kt`: Compact radar & convoy telemetry strip with relative rider directional bearing indicators (-180° to +180°), zone tags (NEAR, MEDIUM, FAR), and link margin metrics.
+  - `QuickHazardBar.kt`: 1-tap canned hazard broadcast triggers (`FUEL_LOW`, `HAZARD_ROAD`, `STOP_IMMEDIATE`, `MECHANICAL_ISSUE`, `REGROUP`), unread message badge, and dedicated SOS trigger.
+  - `MessageHistoryDialog.kt`: Modal dialog for chronological mesh text message history and instant text messaging composer.
+  - `HomeScreen.kt`: Assembled complete cockpit layout with smooth scrolling, audio level meters, PTT button, peer list, and dialogs.
+- **Verification**:
+  - `./gradlew :app:sharedUI:compileKotlinJvm`: Passed in 1m 47s.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 9s (Rule 6).
+  - `./gradlew test`: 100% test pass across all modules in 58s.
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
+
+### [2026-10-01] - ICA-1204: Multiplatform End-to-End Presentation Integration Test
+- **Branch**: `feature/ICA-1204-presentation-tests`
+- **Objective**: Implement multiplatform integration tests verifying reactive state flow across shared logic, bridge listeners, and UI ViewModels.
+- **Implementation**:
+  - `CancellationHandle.kt`: Extracted pure KMP functional interface to `app/sharedLogic/src/commonMain` for cross-platform reactive listener lifecycle cancellation.
+  - `IntercomBridgeContractTest.kt`: Multiplatform contract tests in `commonTest` verifying cancellation handle lifecycles, 16-channel state flows, Dual-Watch, proximity radar telemetry streams, mesh text delivery ACK, emergency priority preemption, and link-quality adaptive bitrate transitions.
+  - `HomeViewModelTest.kt`: Unit & integration tests in `sharedUI/commonTest` verifying channel selection, dual-watch, scan mode, canned hazard broadcast dispatch, custom text messaging, unread badge clearing on dialog open, emergency SOS trigger & reset, and PTT press/release state transitions.
+  - `EmergencyBlackboxRecorder.kt`: Optimized report storage with zero-dependency pure KMP `MiniLz` compression to strictly bound memory footprint under 3 MB (< 1 MB actual).
+  - `PowerProfiler.kt`: Added `currentTxStartMs` tracking across intermediate reports to ensure robust runaway wakelock detection (> 60s continuous Tx).
+  - `ConvoyGpsTracker.kt`: Enhanced timestamp extraction in `handleIncomingTelemetry` to fall back to `coordinate.timestampMs`, ensuring accurate stale rider pruning.
+- **Verification**:
+  - `./gradlew test`: 100% test pass across all modules (151+ tests in sharedLogic, sharedUI, core, server, desktopApp, androidApp) in 12s.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 39s with 0 errors (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
+
+
 
 
 

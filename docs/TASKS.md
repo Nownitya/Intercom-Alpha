@@ -134,4 +134,17 @@
 
 ---
 
+### ✅ Sprint 12: Multiplatform Cockpit UI & Bridge Integration (Phase 10 - v2.0 Roadmap)
+- **Sprint Goal**: Deliver ergonomic cockpit UI components across Android Compose and 100% native iOS SwiftUI, complete with 16-channel dial, radar targets, convoy telemetry, quick hazard alerts, emergency preemption banner, and end-to-end integration tests.
+- **Sprint Branch**: `sprint/sprint-12-cockpit-ui-integration`
+
+| Story ID | Story Title | Key Files | Status |
+| :--- | :--- | :--- | :--- |
+| **ICA-1201** | KMP Swift Bridge Extension for v2.0 Subsystems | `IntercomBridge.kt` | ✅ Completed |
+| **ICA-1202** | Native iOS SwiftUI Cockpit v2.0 UI Upgrade | `ContentView.swift`, `IntercomViewModel.swift` | ✅ Completed |
+| **ICA-1203** | Android & Desktop Compose Multiplatform Cockpit Components | `HomeUiState.kt`, `HomeViewModel.kt`, `HomeScreen.kt`, `ChannelSelectorBar.kt`, `ProximityRadarView.kt`, `QuickHazardBar.kt`, `EmergencyPreemptionBanner.kt` | ✅ Completed |
+| **ICA-1204** | Multiplatform End-to-End Presentation Integration Test | `CancellationHandle.kt`, `IntercomBridgeContractTest.kt`, `HomeViewModelTest.kt` | ✅ Completed |
+
+---
+
 

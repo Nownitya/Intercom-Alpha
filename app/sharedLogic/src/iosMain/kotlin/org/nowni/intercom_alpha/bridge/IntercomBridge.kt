@@ -2,10 +2,11 @@ package org.nowni.intercom_alpha.bridge
 
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.*
-import org.nowni.intercom_alpha.audio.AudioEngine
-import org.nowni.intercom_alpha.audio.AudioEngineConfig
-import org.nowni.intercom_alpha.audio.AudioEngineImpl
+import org.nowni.intercom_alpha.audio.*
+import org.nowni.intercom_alpha.channel.ChannelManager
+import org.nowni.intercom_alpha.channel.ChannelState
 import org.nowni.intercom_alpha.common.AudioProfile
+import org.nowni.intercom_alpha.currentTimeMillis
 import org.nowni.intercom_alpha.group.Group
 import org.nowni.intercom_alpha.group.GroupConfig
 import org.nowni.intercom_alpha.group.GroupManager
@@ -19,14 +20,22 @@ import org.nowni.intercom_alpha.mesh.MeshConfig
 import org.nowni.intercom_alpha.mesh.MeshTransport
 import org.nowni.intercom_alpha.mesh.MeshTransportImpl
 import org.nowni.intercom_alpha.mesh.Peer
+import org.nowni.intercom_alpha.mesh.ProximityRadar
+import org.nowni.intercom_alpha.mesh.RadarSnapshot
 import org.nowni.intercom_alpha.power.BackgroundKeepAlive
+import org.nowni.intercom_alpha.telemetry.ConvoyGpsTracker
+import org.nowni.intercom_alpha.telemetry.ConvoyTelemetrySnapshot
+import org.nowni.intercom_alpha.telemetry.GpsCoordinate
+import org.nowni.intercom_alpha.text.CannedMessageCode
+import org.nowni.intercom_alpha.text.MeshTextManager
+import org.nowni.intercom_alpha.text.MeshTextMessage
 
-fun interface CancellationHandle {
-    fun cancel()
-}
 
 @OptIn(ExperimentalForeignApi::class)
-class IntercomBridge {
+class IntercomBridge(
+    val localPeerId: String = "ios-local",
+    val localPeerName: String = "iOS Rider"
+) {
 
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
@@ -36,9 +45,19 @@ class IntercomBridge {
     val groupManager: GroupManager = GroupManagerImpl(meshTransport)
     val keepAlive: BackgroundKeepAlive = BackgroundKeepAlive()
 
+    // v2.0 Subsystems
+    val channelManager: ChannelManager = ChannelManager()
+    val proximityRadar: ProximityRadar = ProximityRadar()
+    val convoyGpsTracker: ConvoyGpsTracker = ConvoyGpsTracker(localPeerId, localPeerName)
+    val meshTextManager: MeshTextManager = MeshTextManager(localPeerId, localPeerName)
+    val priorityManager: PriorityBroadcastManager = PriorityBroadcastManager()
+    val blackboxRecorder: EmergencyBlackboxRecorder = EmergencyBlackboxRecorder()
+    val bitrateController: AdaptiveBitrateController = AdaptiveBitrateController()
+
     private var audioRxJob: Job? = null
     private var audioTxJob: Job? = null
     private var headsetEventsJob: Job? = null
+    private var bitrateSyncJob: Job? = null
 
     private var isPttActive: Boolean = false
     private var currentAudioProfile: AudioProfile = AudioProfile.default
@@ -51,14 +70,14 @@ class IntercomBridge {
 
             // 2. Initialize or restore Group
             val group = groupManager.createGroup(groupName, GroupConfig(audioProfile = currentAudioProfile))
-            
+
             // 3. Start BLE Mesh transport
             meshTransport.start(
                 groupId = group.id,
-                peerName = "iOS Rider",
+                peerName = localPeerName,
                 config = MeshConfig(
                     groupId = group.id,
-                    peerName = "iOS Rider",
+                    peerName = localPeerName,
                     audioProfile = currentAudioProfile
                 )
             )
@@ -70,6 +89,18 @@ class IntercomBridge {
                     keepAlive.withKeepAlive("IntercomAudioRxBurst") {
                         val pcmShorts = audioEngine.decode(packet.data, packet.profile)
                         audioEngine.playAudio(pcmShorts)
+
+                        // Record to rolling blackbox buffer
+                        blackboxRecorder.recordFrame(
+                            BlackboxAudioFrame(
+                                timestampMs = currentTimeMillis(),
+                                sequence = packet.sequence,
+                                speakerId = packet.senderId,
+                                speakerName = "",
+                                priority = PriorityLevel.NORMAL,
+                                adpcmData = packet.data
+                            )
+                        )
                     }
                 }
             }
@@ -98,6 +129,14 @@ class IntercomBridge {
                     }
                 }
             }
+
+            // 7. Synchronize dynamic bitrate profile
+            bitrateSyncJob?.cancel()
+            bitrateSyncJob = scope.launch(Dispatchers.Main) {
+                bitrateController.currentProfile.collect { profile ->
+                    currentAudioProfile = profile
+                }
+            }
         }
     }
 
@@ -105,12 +144,14 @@ class IntercomBridge {
         audioRxJob?.cancel()
         audioTxJob?.cancel()
         headsetEventsJob?.cancel()
+        bitrateSyncJob?.cancel()
         keepAlive.endAssertion()
 
         scope.launch {
             audioEngine.stop()
             meshTransport.stop()
             headsetManager.stop()
+            proximityRadar.clear()
         }
     }
 
@@ -127,7 +168,7 @@ class IntercomBridge {
         audioEngine.setOutputVolume(volume)
     }
 
-    // --- Swift-Friendly Observers ---
+    // --- Swift-Friendly Core Observers ---
 
     fun observeInputLevel(onLevel: (Float) -> Unit): CancellationHandle {
         val job = scope.launch(Dispatchers.Main) {
@@ -192,6 +233,231 @@ class IntercomBridge {
         return CancellationHandle { job.cancel() }
     }
 
+    // --- Channel Sub-Group Observers & Commands ---
+
+    fun observeChannelState(onState: (ChannelState) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            channelManager.channelState.collect { state ->
+                onState(state)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun selectChannel(channelId: Int) {
+        scope.launch(Dispatchers.Main) {
+            channelManager.selectActiveChannel(channelId)
+        }
+    }
+
+    fun setDualWatch(enabled: Boolean, secondaryChannelId: Int = 1) {
+        scope.launch(Dispatchers.Main) {
+            channelManager.setMonitoredChannels(if (enabled) setOf(secondaryChannelId) else emptySet())
+        }
+    }
+
+    fun setScanMode(enabled: Boolean) {
+        scope.launch(Dispatchers.Main) {
+            channelManager.setScanMode(enabled)
+        }
+    }
+
+    fun toggleChannelMute(channelId: Int) {
+        scope.launch(Dispatchers.Main) {
+            channelManager.toggleChannelMute(channelId)
+        }
+    }
+
+    // --- Proximity Radar & Telemetry Observers & Commands ---
+
+    fun observeRadarSnapshot(onSnapshot: (RadarSnapshot) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            proximityRadar.radarFlow.collect { snapshot ->
+                onSnapshot(snapshot)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun observeConvoyTelemetry(onSnapshot: (ConvoyTelemetrySnapshot) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            convoyGpsTracker.convoyState.collect { snapshot ->
+                onSnapshot(snapshot)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun updateGpsLocation(
+        latitude: Double,
+        longitude: Double,
+        altitudeMeters: Double = 0.0,
+        speedKmh: Float = 0f,
+        headingDegrees: Float = 0f
+    ) {
+        scope.launch(Dispatchers.Main) {
+            convoyGpsTracker.updateLocalLocation(
+                GpsCoordinate(
+                    latitude = latitude,
+                    longitude = longitude,
+                    altitudeMeters = altitudeMeters,
+                    speedKmh = speedKmh,
+                    headingDegrees = headingDegrees,
+                    accuracyMeters = 5f,
+                    timestampMs = currentTimeMillis()
+                )
+            )
+        }
+    }
+
+    fun updatePeerRssi(peerId: String, peerName: String, rssi: Int) {
+        scope.launch(Dispatchers.Main) {
+            proximityRadar.updatePeerRssi(
+                peerId = peerId,
+                rssi = rssi,
+                displayName = peerName
+            )
+        }
+    }
+
+    // --- Mesh Text & Canned Hazard Observers & Commands ---
+
+    fun observeMessages(onMessages: (List<MeshTextMessage>) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            meshTextManager.messages.collect { msgs ->
+                onMessages(msgs)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun observeUnreadCount(onCount: (Int) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            meshTextManager.unreadCount.collect { count ->
+                onCount(count)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun sendCannedMessage(cannedCode: CannedMessageCode, recipientId: String? = null) {
+        scope.launch(Dispatchers.Main) {
+            meshTextManager.sendCannedMessage(cannedCode, recipientId)
+        }
+    }
+
+    fun sendCustomText(content: String, recipientId: String? = null) {
+        scope.launch(Dispatchers.Main) {
+            meshTextManager.sendCustomText(content, recipientId)
+        }
+    }
+
+    fun markMessageAsRead(messageId: String) {
+        scope.launch(Dispatchers.Main) {
+            meshTextManager.markAsRead(messageId)
+        }
+    }
+
+    fun markAllMessagesAsRead() {
+        scope.launch(Dispatchers.Main) {
+            meshTextManager.markAllAsRead()
+        }
+    }
+
+    fun clearMessageHistory() {
+        scope.launch(Dispatchers.Main) {
+            meshTextManager.clearHistory()
+        }
+    }
+
+    // --- Priority & Emergency Audio Observers & Commands ---
+
+    fun observePriorityLevel(onPriority: (PriorityLevel) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            priorityManager.activePriority.collect { priority ->
+                onPriority(priority)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun observeIsEmergencyActive(onEmergency: (Boolean) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            priorityManager.isEmergencyActive.collect { active ->
+                onEmergency(active)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    // --- Emergency Blackbox Observers & Commands ---
+
+    fun observeBlackboxReports(onReports: (List<EncryptedIncidentReport>) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            blackboxRecorder.encryptedReports.collect { reports ->
+                onReports(reports)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun observeBlackboxBufferedCount(onCount: (Int) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            blackboxRecorder.bufferedFrameCount.collect { count ->
+                onCount(count)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun triggerManualSos(note: String = "Manual SOS initiated") {
+        scope.launch(Dispatchers.Main) {
+            blackboxRecorder.triggerManualSos(
+                peerId = localPeerId,
+                peerName = localPeerName,
+                note = note
+            )
+        }
+    }
+
+    fun clearBlackboxCache() {
+        scope.launch(Dispatchers.Main) {
+            blackboxRecorder.clearIncidentCache()
+        }
+    }
+
+    // --- Dynamic Adaptive Bitrate Observers & Commands ---
+
+    fun observeCurrentAudioProfile(onProfile: (AudioProfile) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            bitrateController.currentProfile.collect { profile ->
+                onProfile(profile)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun observeAdaptationState(onState: (BitrateAdaptationState) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            bitrateController.adaptationState.collect { state ->
+                onState(state)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun pinAudioProfile(profile: AudioProfile) {
+        scope.launch(Dispatchers.Main) {
+            bitrateController.setManualOverride(profile)
+        }
+    }
+
+    fun resetAudioProfileToAuto() {
+        scope.launch(Dispatchers.Main) {
+            bitrateController.setAutoMode()
+        }
+    }
+
     // --- Group & QR Management ---
 
     fun createGroup(name: String, onComplete: (Group) -> Unit) {
@@ -200,7 +466,7 @@ class IntercomBridge {
             meshTransport.updateConfig(
                 MeshConfig(
                     groupId = grp.id,
-                    peerName = "iOS Rider",
+                    peerName = localPeerName,
                     audioProfile = currentAudioProfile
                 )
             )
@@ -215,7 +481,7 @@ class IntercomBridge {
                 meshTransport.updateConfig(
                     MeshConfig(
                         groupId = grp.id,
-                        peerName = "iOS Rider",
+                        peerName = localPeerName,
                         audioProfile = currentAudioProfile
                     )
                 )

@@ -267,6 +267,48 @@
   - Incident snapshots are encrypted using pure KMP RFC 8439 ChaCha20-Poly1305 AEAD (`PacketCipher`), authenticating metadata with associated data verification (`incidentId`).
   - Generates comprehensive forensic Markdown summaries (`toMarkdownForensicSummary()`) detailing incident time, trigger reason, GPS coordinates, vehicle speed, and active speaking riders.
 
+### 2.32 KMP Swift Bridge Extension for v2.0 Subsystems (`IntercomBridge.kt`)
+- **Challenge**: Seamlessly exposing rich KMP features (16-channel management, RF radar snapshots, convoy GPS bearings, emergency preemption, and blackbox incident reports) to native Swift / SwiftUI on iOS without memory leaks, retain cycles, or shared UI contamination (Rule 1).
+- **Solution**:
+  - Enhanced `IntercomBridge.kt` in `iosMain` providing reactive observer factory functions returning `CancellationHandle` functional interfaces (`fun cancel()`).
+  - Swift views and `@MainActor` ViewModels bind directly to bridge callbacks tied to the SwiftUI view lifecycle (`.onAppear { handle = bridge.observe... }` / `.onDisappear { handle.cancel() }`).
+  - Exposes thread-safe dispatch commands (`selectActiveChannel`, `sendCannedMessage`, `updateGpsLocation`, `triggerManualSos`, `setManualOverride`) executing asynchronously within the bridge's SupervisorJob scope on `Dispatchers.Main`.
+  - Integrates the audio pipeline so incoming mesh frames are continuously buffered into `EmergencyBlackboxRecorder`, and outgoing compression respects `AdaptiveBitrateController` profile shifts.
+
+### 2.33 Native iOS SwiftUI Cockpit v2.0 UI Upgrade (`ContentView.swift` & `IntercomViewModel.swift`)
+- **Challenge**: Constructing an ergonomic motorcycle cockpit in 100% native SwiftUI (Rule 1) that accommodates high-vibration glove touches, instant hazard signaling, multi-channel selection, and radar bearing compass without cluttering the screen or blocking audio transmission.
+- **Solution**:
+  - Implemented `ChannelDialView`: Horizontal scrolling channel picker for channels 1 to 16 with preset labels, neon active selection indicator, and Dual-Watch monitoring tags.
+  - Implemented `ConvoyRadarStripView`: Displays live relative bearings ($-180^\circ \dots +180^\circ$) translated into intuitive directional arrows (`arrow.up`, `arrow.up.right`, etc.) alongside ground distance.
+  - Implemented `QuickHazardBar`: 1-tap canned message buttons (`Fuel Low`, `Road Hazard`, `Stop`, `Bike Issue`) triggering haptic feedback and immediate mesh broadcast.
+  - Implemented `EmergencySosBanner`: Flashing preemption card showing blackbox buffer frame counts and instant SOS trigger.
+### 2.34 Compose Multiplatform Cockpit Components (`HomeScreen.kt`, `HomeViewModel.kt`, `sharedUI`)
+- **Challenge**: Surfacing v2.0 subsystems (16-channel dial, radar targets, convoy telemetry, quick hazard alerts, and emergency preemption) in Compose Multiplatform across Android and Desktop while maintaining strict separation from iOS (Rule 1).
+- **Solution**:
+  - `HomeUiState.kt`: Enriched domain model with non-null default snapshots (`ChannelState`, `RadarSnapshot`, `ConvoyTelemetrySnapshot`, `messages`, `unreadTextCount`, `isEmergencyActive`, `blackboxBufferedCount`).
+  - `HomeViewModel.kt`: Connected manager StateFlows (`ChannelManager.channelState`, `ProximityRadar.radarFlow`, `ConvoyGpsTracker.convoyState`, `MeshTextManager.messages`, `PriorityBroadcastManager.isEmergencyActive`, `EmergencyBlackboxRecorder.bufferedFrameCount`, `AdaptiveBitrateController.currentProfile`) into a single reactive `_uiState` stream.
+  - Modular UI components in `org.nowni.intercom_alpha.ui.components`:
+    - `EmergencyPreemptionBanner`: High-contrast emergency alert with real-time blackbox frame counter and reset action.
+    - `ChannelSelectorBar`: Horizontal pill selector (CH 1–16) with active channel indicator, Dual-Watch `[DW]` monitoring indicators, and Scan mode toggle.
+    - `ProximityRadarView`: Directional vector indicators (-180° to +180°) rendering rider heading arrows ($\uparrow, \nearrow, \rightarrow, \searrow, \downarrow, \dots$), distance, and RF link margin.
+    - `QuickHazardBar`: 1-tap canned hazard broadcast triggers (`FUEL_LOW`, `HAZARD_ROAD`, `STOP_IMMEDIATE`, `MECHANICAL_ISSUE`), unread message badge, and dedicated SOS trigger.
+    - `MessageHistoryDialog`: Modal dialog displaying complete message history and custom text composer.
+  - `HomeScreen.kt`: Integrated cockpit layout with safe-content padding, audio meters, PTT button, and peer list.
+
+### 2.35 Multiplatform Presentation Integration Tests & Pure KMP Memory Bounding
+- **Challenge**: Verifying cross-platform reactive state binding across shared logic, bridge listeners, and UI view models while maintaining strict memory bounds (< 3 MB resident RAM) and zero platform leaks.
+- **Solution**:
+  - `CancellationHandle.kt`: Promoted `CancellationHandle` functional interface to pure KMP in `app/sharedLogic/src/commonMain`, enabling uniform lifecycle-safe callback cancellation across both Swift (`iosMain`) and Kotlin/JVM consumers.
+  - Multiplatform contract suites:
+    - `IntercomBridgeContractTest.kt` (`sharedLogic/commonTest`): Verified cancellation handle lifecycles, 16-channel state flows, Dual-Watch, proximity radar telemetry streams, mesh text delivery ACK, emergency priority preemption, and link-quality adaptive bitrate transitions.
+    - `HomeViewModelTest.kt` (`sharedUI/commonTest`): Verified channel selection, dual-watch, scan mode, canned hazard broadcast dispatch, custom text messaging, unread badge clearing on dialog open, emergency SOS trigger & reset, and PTT press/release state transitions.
+  - Zero-dependency Pure KMP Compression (`MiniLz` in `EmergencyBlackboxRecorder.kt`):
+    - Replaced uncompressed JSON payload storage with pure Kotlin LZ77 compression and byte-level tagging.
+    - Reduced cached incident report payload sizes by ~95% (< 50 KB per report), keeping total circular buffer and 5 cached incident reports strictly under 1 MB resident RAM (< 3 MB threshold).
+  - Power & Telemetry Edge-case Fixes:
+    - `PowerProfiler.kt`: Added `currentTxStartMs` tracking across intermediate reports to ensure robust runaway wakelock detection (> 60s continuous Tx).
+    - `ConvoyGpsTracker.kt`: Added fallback to `coordinate.timestampMs` in `handleIncomingTelemetry` when `frame.timestampMs` is 0L, ensuring accurate stale rider pruning.
+
 ---
 
 

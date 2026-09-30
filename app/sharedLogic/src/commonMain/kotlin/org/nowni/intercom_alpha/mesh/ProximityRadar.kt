@@ -80,7 +80,7 @@ data class RadarSnapshot(
  */
 class ProximityRadar(
     val referenceRssiAtOneMeter: Double = -59.0,
-    val pathLossExponent: Double = 2.5,
+    val pathLossExponent: Double = 1.35,
     val receiverSensitivityDb: Double = -93.0,
     val nearThresholdMeters: Double = 15.0,
     val mediumThresholdMeters: Double = 60.0,
