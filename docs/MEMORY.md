@@ -201,6 +201,15 @@
   - Stage 2 runs Android release build (`./gradlew :app:androidApp:assembleRelease`) to verify ProGuard / R8 rules and uploads the APK artifact for release distribution.
   - Configured branch filters for Multi-Tier GitFlow (`main`, `develop`, `sprint/**`, `release/**`, tags `v*`).
 
+### 2.24 Multi-Channel Sub-Group Partitioning & Dual-Watch (`ChannelManager.kt`)
+- **Challenge**: Large motorcycle riding groups often have subgroups (e.g. Lead Scouts vs Sweep/Trailer vs Support Vehicle) who need private channels while retaining the ability to hear emergency broadcasts and monitor a secondary channel.
+- **Solution**:
+  - Implemented `ChannelManager.kt` providing 16 distinct sub-channels.
+  - Sub-channel filtering accepts audio frames matching the active channel or configured `monitoredChannelIds` (Dual-Watch).
+  - Emergency SOS frames (`isGlobalBroadcast = true`) unconditionally bypass channel mutes and channel mismatches across all riders.
+  - Scan mode allows monitoring all unmuted channels concurrently.
+  - Emits reactive `channelState: StateFlow<ChannelState>` for instant cockpit channel switching.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

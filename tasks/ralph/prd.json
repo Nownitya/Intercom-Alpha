@@ -20,7 +20,7 @@
         "Emits reactive channel state flow for UI selection",
         "100% multiplatform test pass in commonTest"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-1002",
