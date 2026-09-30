@@ -295,6 +295,20 @@
     - `MessageHistoryDialog`: Modal dialog displaying complete message history and custom text composer.
   - `HomeScreen.kt`: Integrated cockpit layout with safe-content padding, audio meters, PTT button, and peer list.
 
+### 2.35 Multiplatform Presentation Integration Tests & Pure KMP Memory Bounding
+- **Challenge**: Verifying cross-platform reactive state binding across shared logic, bridge listeners, and UI view models while maintaining strict memory bounds (< 3 MB resident RAM) and zero platform leaks.
+- **Solution**:
+  - `CancellationHandle.kt`: Promoted `CancellationHandle` functional interface to pure KMP in `app/sharedLogic/src/commonMain`, enabling uniform lifecycle-safe callback cancellation across both Swift (`iosMain`) and Kotlin/JVM consumers.
+  - Multiplatform contract suites:
+    - `IntercomBridgeContractTest.kt` (`sharedLogic/commonTest`): Verified cancellation handle lifecycles, 16-channel state flows, Dual-Watch, proximity radar telemetry streams, mesh text delivery ACK, emergency priority preemption, and link-quality adaptive bitrate transitions.
+    - `HomeViewModelTest.kt` (`sharedUI/commonTest`): Verified channel selection, dual-watch, scan mode, canned hazard broadcast dispatch, custom text messaging, unread badge clearing on dialog open, emergency SOS trigger & reset, and PTT press/release state transitions.
+  - Zero-dependency Pure KMP Compression (`MiniLz` in `EmergencyBlackboxRecorder.kt`):
+    - Replaced uncompressed JSON payload storage with pure Kotlin LZ77 compression and byte-level tagging.
+    - Reduced cached incident report payload sizes by ~95% (< 50 KB per report), keeping total circular buffer and 5 cached incident reports strictly under 1 MB resident RAM (< 3 MB threshold).
+  - Power & Telemetry Edge-case Fixes:
+    - `PowerProfiler.kt`: Added `currentTxStartMs` tracking across intermediate reports to ensure robust runaway wakelock detection (> 60s continuous Tx).
+    - `ConvoyGpsTracker.kt`: Added fallback to `coordinate.timestampMs` in `handleIncomingTelemetry` when `frame.timestampMs` is 0L, ensuring accurate stale rider pruning.
+
 ---
 
 

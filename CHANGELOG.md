@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.0] - 2026-10-01 — Sprint 12: Multiplatform Cockpit UI & Bridge Integration
+
+### Added
+- **KMP Swift Bridge Extension for v2.0 Subsystems (`IntercomBridge.kt`)**: Exposed reactive observer factory functions with memory-safe `CancellationHandle` callbacks for 16-channel dial, proximity radar, convoy GPS telemetry, mesh text, emergency broadcast, encrypted blackbox recorder, and adaptive bitrate.
+- **Native iOS SwiftUI Cockpit v2.0 (`ContentView.swift` & `IntercomViewModel.swift`)**: 100% native SwiftUI motorcycle cockpit (Rule 1) featuring `ChannelDialView`, `ConvoyRadarStripView` with relative bearing indicators (-180° to +180°), `QuickHazardBar` with haptic feedback, and `EmergencySosBanner`.
+- **Compose Multiplatform Cockpit Components (`sharedUI`)**: Enriched `HomeUiState` and `HomeViewModel` orchestrating all shared logic managers. Implemented `ChannelSelectorBar` (CH 1–16, Dual-Watch, Scan), `ProximityRadarView` (bearing compass vector, proximity zone tags), `QuickHazardBar` (canned alert buttons, unread badge), and `EmergencyPreemptionBanner`.
+- **Multiplatform End-to-End Presentation Integration Tests**: Comprehensive multiplatform contract test suites (`IntercomBridgeContractTest.kt` in `sharedLogic/commonTest` and `HomeViewModelTest.kt` in `sharedUI/commonTest`) verifying channel switching, dual-watch, scan mode, canned hazard dispatch, custom messaging, emergency preemption, and PTT state transitions.
+- **Pure KMP Bounded Memory Blackbox (`MiniLz` in `EmergencyBlackboxRecorder.kt`)**: Integrated lightweight pure Kotlin LZ77 compression for incident snapshots, bounding total resident RAM strictly under 1 MB (< 3 MB threshold).
+
+---
+
 ## [1.3.0] - 2026-10-01 — Sprint 11: Convoy Situational Awareness, GPS Mesh Telemetry & Blackbox Voice Cache
 
 ### Added

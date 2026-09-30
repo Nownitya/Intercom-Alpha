@@ -73,7 +73,7 @@
         "Tests emergency preemption override triggering UI banner and blackbox snapshot capture",
         "100% multiplatform test pass across all modules"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }

@@ -613,6 +613,23 @@
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
 ---
 
+### [2026-10-01] - ICA-1204: Multiplatform End-to-End Presentation Integration Test
+- **Branch**: `feature/ICA-1204-presentation-tests`
+- **Objective**: Implement multiplatform integration tests verifying reactive state flow across shared logic, bridge listeners, and UI ViewModels.
+- **Implementation**:
+  - `CancellationHandle.kt`: Extracted pure KMP functional interface to `app/sharedLogic/src/commonMain` for cross-platform reactive listener lifecycle cancellation.
+  - `IntercomBridgeContractTest.kt`: Multiplatform contract tests in `commonTest` verifying cancellation handle lifecycles, 16-channel state flows, Dual-Watch, proximity radar telemetry streams, mesh text delivery ACK, emergency priority preemption, and link-quality adaptive bitrate transitions.
+  - `HomeViewModelTest.kt`: Unit & integration tests in `sharedUI/commonTest` verifying channel selection, dual-watch, scan mode, canned hazard broadcast dispatch, custom text messaging, unread badge clearing on dialog open, emergency SOS trigger & reset, and PTT press/release state transitions.
+  - `EmergencyBlackboxRecorder.kt`: Optimized report storage with zero-dependency pure KMP `MiniLz` compression to strictly bound memory footprint under 3 MB (< 1 MB actual).
+  - `PowerProfiler.kt`: Added `currentTxStartMs` tracking across intermediate reports to ensure robust runaway wakelock detection (> 60s continuous Tx).
+  - `ConvoyGpsTracker.kt`: Enhanced timestamp extraction in `handleIncomingTelemetry` to fall back to `coordinate.timestampMs`, ensuring accurate stale rider pruning.
+- **Verification**:
+  - `./gradlew test`: 100% test pass across all modules (151+ tests in sharedLogic, sharedUI, core, server, desktopApp, androidApp) in 12s.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 39s with 0 errors (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
+
 
 
 
