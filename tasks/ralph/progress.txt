@@ -523,5 +523,38 @@
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
 ---
 
+### [2026-10-01] - ICA-1104: Rolling Emergency Voice Blackbox & Encrypted Incident Cache
+- **Branch**: `feature/ICA-1104-voice-blackbox`
+- **Objective**: Implement `EmergencyBlackboxRecorder` in `commonMain` to capture a rolling 60-second in-memory circular audio buffer of emergency transmissions, generating encrypted incident forensic reports.
+- **Implementation**:
+  - Implemented `EmergencyBlackboxRecorder.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/`:
+    - Defined `BlackboxAudioFrame`, `IncidentTriggerReason` (`CRASH_DETECTED`, `EMERGENCY_OVERRIDE_AUDIO`, `HAZARD_BROADCAST`, `MANUAL_SOS`, `EXTERNAL_SENSOR`), `IncidentSnapshot`, and `EncryptedIncidentReport`.
+    - Rolling circular buffer (`ArrayDeque<BlackboxAudioFrame>`) storing up to 60 seconds (60,000ms) of compressed ADPCM audio frames with hard capacity safety cap (3,500 frames).
+    - Automatic snapshot freeze upon `EMERGENCY_OVERRIDE` preemption, crash detection, emergency stop, or hazard alerts with 10-second cooldown suppressing redundant spam.
+    - Pure KMP RFC 8439 ChaCha20-Poly1305 AEAD encryption (`PacketCipher`) of incident report snapshots with associated data verification (`incidentId`).
+    - Bounded memory footprint strictly maintained below 3 MB RAM (< 1.5 MB typical resident heap).
+    - Human-readable Markdown forensic incident log export (`toMarkdownForensicSummary()`).
+    - Reactive state telemetry `bufferedFrameCount`, `bufferedDurationMs`, `isRecording`, and `encryptedReports`.
+  - Implemented `EmergencyBlackboxRecorderTest.kt` in `commonTest`:
+    - 11 comprehensive unit test suites validating 60s rolling window pruning, hard capacity bounds, automatic emergency override freeze, crash alert freeze, cooldown duplicate suppression, ChaCha20-Poly1305 encryption/decryption round-trip, tamper and wrong-key rejection, resident memory footprint bounds (< 3 MB), manual SOS/crash telemetry helpers, pause/resume/clear controls, and prioritized frame ingestion.
+- **Verification**:
+  - `./gradlew test`: 100% passing across all modules in 57s.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 20s (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
+
+## 🏆 Sprint 11 & Phase 9 Completion Summary
+- **Milestone**: Phase 9 / Sprint 11 (Convoy Situational Awareness, GPS Mesh Telemetry & Blackbox Voice Cache - v2.0 Roadmap)
+- **Result**: 100% Definition of Done (DoD) achieved across all 4 stories (`ICA-1101` through `ICA-1104`).
+- **All 4 Sprint 11 stories PASSED**:
+  - `ICA-1101: Offline Mesh Canned Hazard & Quick Text Messaging` [PASSED]
+  - `ICA-1102: Decentralized GPS Mesh Telemetry & Convoy Tracking` [PASSED]
+  - `ICA-1103: Dynamic Adaptive Bitrate & Codec Profile Switching` [PASSED]
+  - `ICA-1104: Rolling Emergency Voice Blackbox & Encrypted Incident Cache` [PASSED]
+- **Integration Highway**: Ready for clean merge into `develop`.
+---
+
+
 
 

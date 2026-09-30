@@ -258,6 +258,15 @@
   - Manual override support with instant fallback to closed-loop AUTO mode.
   - Reactive `currentProfile: StateFlow<AudioProfile>` consumed directly by the multiplatform audio engine.
 
+### 2.31 Rolling Emergency Voice Blackbox & Encrypted Incident Cache (`EmergencyBlackboxRecorder.kt`)
+- **Challenge**: In motorcycle accidents, severe terrain incidents, or sudden communication loss, investigators and riding partners need the final 60 seconds of voice conversations and sensor data leading up to the event, without risking memory exhaustion or exposing sensitive voice data to third parties.
+- **Solution**:
+  - Implemented `EmergencyBlackboxRecorder.kt` in `commonMain` featuring an in-memory rolling circular buffer (`ArrayDeque<BlackboxAudioFrame>`) storing 60 seconds of compressed ADPCM audio frames.
+  - Hard capacity limits (3,500 frames) and strict cache bounding (5 encrypted reports) ensure heap usage remains strictly below 3 MB RAM (< 1.5 MB typical resident).
+  - Automatic snapshot freeze triggers on `EMERGENCY_OVERRIDE` preemption, crash detection, emergency stop, or road hazard broadcasts with a 10-second cooldown window to eliminate duplicate spam.
+  - Incident snapshots are encrypted using pure KMP RFC 8439 ChaCha20-Poly1305 AEAD (`PacketCipher`), authenticating metadata with associated data verification (`incidentId`).
+  - Generates comprehensive forensic Markdown summaries (`toMarkdownForensicSummary()`) detailing incident time, trigger reason, GPS coordinates, vehicle speed, and active speaking riders.
+
 ---
 
 

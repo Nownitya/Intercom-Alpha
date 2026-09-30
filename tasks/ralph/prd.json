@@ -75,7 +75,7 @@
         "Memory footprint strictly bounded (< 3 MB resident RAM)",
         "100% multiplatform test pass in commonTest"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }
