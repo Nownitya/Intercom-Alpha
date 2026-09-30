@@ -1,74 +1,72 @@
 {
   "project": "Intercom-Alpha",
-  "branchName": "sprint/sprint-08-field-testing",
-  "phase": "Phase 6: Real-World Field Testing & Hardening",
-  "sprint": "Sprint 08",
-  "updatedAt": "2026-09-29T02:25:00Z",
+  "branchName": "sprint/sprint-09-cellular-cloud-relay",
+  "phase": "Phase 7: Cellular Fallback & Cloud Relay Bridge",
+  "sprint": "Sprint 09",
+  "updatedAt": "2026-09-30T16:20:00Z",
   "stories": [
     {
-      "id": "ICA-801",
+      "id": "ICA-901",
       "priority": 1,
-      "title": "Field Range Benchmark Matrix & Diagnostic Mesh Logger",
-      "description": "Implement mesh diagnostic telemetry and field range benchmark harness in commonMain to measure RSSI, hop count, packet delivery ratio (PDR), and round-trip latency across 100m-500m outdoor environments.",
+      "title": "Ktor WebSocket Cloud Mesh Relay Gateway",
+      "description": "Implement CloudRelayBridge in commonMain to seamlessly connect the local BLE mesh to the Ktor server (:server) via WebSockets, allowing audio and control frames to bridge across cellular data when riders are out of direct BLE range.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/MeshDiagnostics.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/MeshDiagnosticsTest.kt",
-        "docs/testing/field-reports/RangeBenchmark.md"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/CloudRelayBridge.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/CloudRelayBridgeTest.kt"
       ],
       "acceptanceCriteria": [
-        "MeshDiagnostics records real-time RSSI, hop count, duplicate drop counts, and PDR (Packet Delivery Ratio)",
-        "Diagnostics report generation computes link budget margin and latency distribution",
-        "Comprehensive unit tests verify statistics aggregation and sliding window metrics",
+        "CloudRelayBridge serializes and transmits encrypted MeshPacket instances over WebSocket",
+        "Receives remote mesh packets from server and injects them into local mesh deduplication pipeline",
+        "Handles connection drops, reconnect backoff, and dual-transport state transitions",
         "100% multiplatform test pass in commonTest"
       ],
       "passes": true
     },
     {
-      "id": "ICA-802",
+      "id": "ICA-902",
       "priority": 2,
-      "title": "Highway Wind Noise & Helmet Intelligibility Tuning",
-      "description": "Implement specialized audio DSP tuning profiles in commonMain for motorcycle helmets at 80-120 km/h with adaptive high-pass wind rumble filter and voice-emphasis bandpass.",
+      "title": "Low-Power BLE Proximity Radar & Distance UI",
+      "description": "Create a proximity radar model and cockpit visualization displaying relative distances and RF link margins to all riders in the mesh group.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/WindNoiseFilter.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/WindNoiseFilterTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/ProximityRadar.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/ProximityRadarTest.kt"
       ],
       "acceptanceCriteria": [
-        "High-pass filter suppresses low-frequency wind buffeting (<300 Hz) by >18 dB",
-        "Voice formant emphasis boosts speech intelligibility band (1 kHz - 3.4 kHz)",
-        "Zero C/JNI or Java-only dependencies (pure Kotlin Multiplatform)",
+        "ProximityRadar maps RSSI and path loss into discrete proximity zones (NEAR, MEDIUM, FAR, OUT_OF_RANGE)",
+        "Generates reactive flow of proximity updates for Compose and SwiftUI views",
         "100% multiplatform test pass in commonTest"
       ],
       "passes": true
     },
     {
-      "id": "ICA-803",
+      "id": "ICA-903",
       "priority": 3,
-      "title": "Battery Drain Profiling & Screen-Off Power Optimization",
-      "description": "Implement battery and duty cycle telemetry manager in commonMain to monitor wake lock durations, BLE radio duty cycle, and ensure <30% drain over 4 continuous hours.",
+      "title": "Dynamic Mesh Topology Auto-Healing & Leader Re-Election",
+      "description": "Implement auto-healing leadership election in GroupManager when the active group leader disconnects or is out of range.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/power/PowerProfiler.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/power/PowerProfilerTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/group/MeshElectionManager.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/group/MeshElectionManagerTest.kt"
       ],
       "acceptanceCriteria": [
-        "PowerProfiler tracks active vs idle radio duty cycles and estimated mAh burn rate",
-        "Detects runaway wake lock conditions and flags excessive battery drain (>7.5% per hour)",
+        "Detects leader heartbeat timeout within 15 seconds",
+        "Executes deterministic Bully election or highest-link-margin consensus",
+        "Elects new coordinator without severing audio session",
         "100% multiplatform test pass in commonTest"
       ],
       "passes": true
     },
     {
-      "id": "ICA-804",
+      "id": "ICA-904",
       "priority": 4,
-      "title": "v1.0 Production Release Readiness Sign-Off",
-      "description": "Configure release optimizations, ProGuard/R8 rules, verify release build variants for Android and iOS, and generate v1.0.0 release candidate manifest.",
+      "title": "GitHub Actions Multiplatform CI/CD Pipeline",
+      "description": "Configure GitHub Actions CI/CD matrix to automate multiplatform test execution, release APK building, and iOS compilation checks on every PR and release tag.",
       "targetFiles": [
-        "app/androidApp/proguard-rules.pro",
-        "docs/reports/v1.0-Release-Readiness.md"
+        ".github/workflows/ci.yml"
       ],
       "acceptanceCriteria": [
-        "Android release build with ProGuard/R8 minification compiles cleanly",
-        "iOS framework compiles in Release configuration without dead-code stripping errors",
-        "v1.0.0 release candidate checklist signed off in docs/reports"
+        "Workflow runs ./gradlew test across all modules",
+        "Builds Android assembleRelease and verifies ProGuard/R8 rules",
+        "Compiles iOS framework via compileKotlinIosSimulatorArm64"
       ],
       "passes": true
     }

@@ -50,4 +50,19 @@ class SignalingProtocolTest {
         val decoded = json.decodeFromString<SignalingMessage>(encoded)
         assertEquals(state, decoded)
     }
+
+    @Test
+    fun testMeshRelayMessageSerialization() {
+        val relay: SignalingMessage = SignalingMessage.MeshRelay(
+            roomId = "Convoy-Delta",
+            fromPeerId = "rider-101",
+            packetType = "AUDIO",
+            payloadBase64 = "AQIDBAU=",
+            timestampMs = 1727734800000L
+        )
+        val encoded = json.encodeToString(relay)
+        assertTrue(encoded.contains("MeshRelay"))
+        val decoded = json.decodeFromString<SignalingMessage>(encoded)
+        assertEquals(relay, decoded)
+    }
 }

@@ -279,8 +279,94 @@
 - **Release Status**: v1.0.0 Ready for Production Tagging on `main`.
 ---
 
+## 🚀 Sprint 09: Cellular Fallback & Cloud Relay Bridge (Phase 7 - v2.0 Roadmap)
 
+### [2026-09-30] - ICA-901: Ktor WebSocket Cloud Mesh Relay Gateway
+- **Branch**: `feature/ICA-901-cloud-relay`
+- **Objective**: Implement `CloudRelayBridge` in `commonMain` to connect local BLE mesh to Ktor WebSocket server (`:server`), routing packets over cellular data when riders are separated by large distances.
+- **Implementation**:
+  - Extended `:core` `SignalingProtocol.kt`:
+    - Added `SignalingMessage.MeshRelay(roomId, senderPeerId, packetBase64, timestampMs)` polymorphic message.
+    - Verified serialization and round-trip parsing in `SignalingProtocolTest.kt`.
+  - Extended `:server` `SignalingServerManager.kt`:
+    - Added handler for `MeshRelay` to broadcast incoming cloud mesh frames to other room peers (`broadcastToRoom(..., excludePeerId = fromPeerId)`).
+  - Implemented `CloudRelayBridge.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/`:
+    - Configured multi-transport modes: `BLE_ONLY`, `FALLBACK_ONLY`, `HYBRID_ALWAYS`.
+    - Pure KMP Base64 wrapping of encrypted `MeshPacket` instances using `kotlin.io.encoding.Base64`.
+    - Configured `Json { classDiscriminator = "#type" }` to prevent collision with `MeshPacket.Control.type`.
+    - Integrated with `PacketDeduplicator.shouldProcess(packet)` to prevent infinite bounce storms between BLE and cloud relays.
+    - Provided channel ingestion `incomingCloudPackets: ReceiveChannel<MeshPacket>` and state telemetry `stats: StateFlow<CloudRelayStats>`.
+  - Created `CloudRelayBridgeTest.kt` in `commonTest`:
+    - Tested initial stats, connection state changes, packet serialization/deserialization symmetry, and loop suppression deduplication.
+  - Documented blueprint in Obsidian: `02_Architecture/Blueprints/Cloud-Mesh-Relay-Gateway.md`.
+- **Verification**:
+  - Multiplatform tests passed: `./gradlew test` (including `:core`, `:server`, `:app:sharedLogic`).
+  - Platform compilation passed: `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`.
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
 
+### [2026-09-30] - ICA-902: Low-Power BLE Proximity Radar & Distance UI
+- **Branch**: `feature/ICA-902-proximity-radar`
+- **Objective**: Create a proximity radar model and cockpit visualization displaying relative distances and RF link margins to all riders in the mesh group.
+- **Implementation**:
+  - Implemented `ProximityRadar.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/`:
+    - Defined discrete proximity zones: `NEAR` (<15m), `MEDIUM` (15m .. <60m), `FAR` (60m .. <150m), and `OUT_OF_RANGE` (>=150m or stale timeout).
+    - Modeled `RadarTarget` and `RadarSnapshot` with distance estimation via Log-Distance Path Loss model.
+    - Directional trend detection: positive delta in smoothed RSSI indicates approaching rider; negative indicates receding rider.
+    - Signal strength percentage normalization (0% to 100%) and link margin calculation against receiver sensitivity floor (-93 dBm).
+    - Reactive state telemetry `radarFlow: StateFlow<RadarSnapshot>` consumed seamlessly by Compose and SwiftUI views.
+    - Integration hook for `MeshDiagnosticsReport` to ingest cluster-wide telemetry.
+  - Implemented `ProximityRadarTest.kt` in `commonTest`:
+    - 6 test suites validating initial state, zone boundaries, timeout pruning, directional approaching/receding trends, diagnostics integration, and target removal/clearing.
+- **Verification**:
+  - `./gradlew test :app:sharedLogic:compileKotlinIosSimulatorArm64` passed in 35s (93 actionable tasks).
+  - OpenCodeReview (`ocr delegate rule`) passed with 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
 
+### [2026-09-30] - ICA-903: Dynamic Mesh Topology Auto-Healing & Leader Re-Election
+- **Branch**: `feature/ICA-903-topology-auto-healing`
+- **Objective**: Implement auto-healing leadership election in `GroupManager` when the active group leader disconnects or is out of range.
+- **Implementation**:
+  - Implemented `MeshElectionManager.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/group/`:
+    - Decentralized consensus state machine: `IDLE`, `LEADER_SUSPECTED`, `ELECTING`, `LEADER_ELECTED`.
+    - 15-second heartbeat silence watchdog detecting leader disconnection across the BLE mesh.
+    - Weighted Bully election protocol: candidates exchange `ELECTION_CLAIM` with local RF link margin (`linkMarginDb`); nodes with superior RF margins (> 3.0 dB) are preferred to ensure the best coordinator for relaying, deterministically falling back to lexicographical node ID.
+    - Zero disruption to active audio pipelines during re-election.
+    - Exposes reactive `state: StateFlow<ElectionState>` and `currentLeaderId: StateFlow<String?>` with buffered `outgoingMessages: ReceiveChannel<ElectionMessage>` channel.
+  - Implemented `MeshElectionManagerTest.kt` in `commonTest`:
+    - 5 comprehensive test suites verifying initial state, 15s timeout detection and victory declaration, yield to higher-link-margin candidate, lexicographical tie breaking, and coordinator periodic heartbeat generation.
+- **Verification**:
+  - `./gradlew test :app:sharedLogic:compileKotlinIosSimulatorArm64` passed in 22s (93 actionable tasks).
+  - OpenCodeReview (`ocr delegate rule`) passed with 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
 
+### [2026-09-30] - ICA-904: GitHub Actions Multiplatform CI/CD Pipeline
+- **Branch**: `feature/ICA-904-multiplatform-ci-cd`
+- **Objective**: Configure GitHub Actions CI/CD matrix to automate multiplatform test execution, release APK building, and iOS compilation checks on every PR and release tag.
+- **Implementation**:
+  - Configured `.github/workflows/ci.yml`:
+    - Multi-tier triggers: pushes to `main`, `develop`, `sprint/**`, `release/**`, and version tags `v*`.
+    - Pull request triggers against `main`, `develop`, and `sprint/**`.
+    - Concurrency cancellation group preventing redundant CI runner waste.
+    - Two-stage parallel pipeline:
+      1. `multiplatform-test`: JDK 21 setup, Android SDK license auto-acceptance, Gradle cache, `./gradlew test` across all modules, and `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`.
+      2. `android-release-build`: executes after test pass, runs `./gradlew :app:androidApp:assembleRelease` verifying R8/ProGuard obfuscation rules and publishes release APK artifact (`actions/upload-artifact@v4`).
+- **Verification**:
+  - `./gradlew test :app:sharedLogic:compileKotlinIosSimulatorArm64` verified clean.
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
 
+## 🏆 Sprint 09 & Phase 7 Completion Summary
+- **Milestone**: Phase 7 / Sprint 09 (Cellular Fallback & Cloud Relay Bridge - v2.0 Roadmap)
+- **Result**: 100% Definition of Done (DoD) achieved across all 4 stories (`ICA-901` through `ICA-904`).
+- **All 4 Sprint 09 stories PASSED**:
+  - `ICA-901: Ktor WebSocket Cloud Mesh Relay Gateway` [PASSED]
+  - `ICA-902: Low-Power BLE Proximity Radar & Distance UI` [PASSED]
+  - `ICA-903: Dynamic Mesh Topology Auto-Healing & Leader Re-Election` [PASSED]
+  - `ICA-904: GitHub Actions Multiplatform CI/CD Pipeline` [PASSED]
+- **Integration Highway**: Ready for clean merge into `develop`.
+---
