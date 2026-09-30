@@ -1,72 +1,75 @@
 {
   "project": "Intercom-Alpha",
-  "branchName": "sprint/sprint-09-cellular-cloud-relay",
-  "phase": "Phase 7: Cellular Fallback & Cloud Relay Bridge",
-  "sprint": "Sprint 09",
-  "updatedAt": "2026-09-30T16:20:00Z",
+  "branchName": "sprint/sprint-10-multi-channel-spatial-audio",
+  "phase": "Phase 8: Multi-Channel Intercom, Priority Emergency & Audio Spatialization",
+  "sprint": "Sprint 10",
+  "updatedAt": "2026-09-30T22:45:00Z",
   "stories": [
     {
-      "id": "ICA-901",
+      "id": "ICA-1001",
       "priority": 1,
-      "title": "Ktor WebSocket Cloud Mesh Relay Gateway",
-      "description": "Implement CloudRelayBridge in commonMain to seamlessly connect the local BLE mesh to the Ktor server (:server) via WebSockets, allowing audio and control frames to bridge across cellular data when riders are out of direct BLE range.",
+      "title": "Multi-Channel Group Partitioning & Channel Manager",
+      "description": "Implement ChannelManager in commonMain supporting sub-channel creation, channel switching, and channel-tagged packet segregation across the mesh.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/CloudRelayBridge.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/CloudRelayBridgeTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/channel/ChannelManager.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/channel/ChannelManagerTest.kt"
       ],
       "acceptanceCriteria": [
-        "CloudRelayBridge serializes and transmits encrypted MeshPacket instances over WebSocket",
-        "Receives remote mesh packets from server and injects them into local mesh deduplication pipeline",
-        "Handles connection drops, reconnect backoff, and dual-transport state transitions",
+        "ChannelManager provides active channel switching across 16 configurable sub-channels",
+        "Filters audio packets based on matching active channel or global broadcast flags",
+        "Emits reactive channel state flow for UI selection",
         "100% multiplatform test pass in commonTest"
       ],
       "passes": true
     },
     {
-      "id": "ICA-902",
+      "id": "ICA-1002",
       "priority": 2,
-      "title": "Low-Power BLE Proximity Radar & Distance UI",
-      "description": "Create a proximity radar model and cockpit visualization displaying relative distances and RF link margins to all riders in the mesh group.",
+      "title": "Emergency Priority Voice & Hazard Alert Broadcast",
+      "description": "Implement PriorityBroadcastManager allowing emergency override frames (hazard warnings, crash alerts) to preempt ongoing audio and bypass sub-channel mutes.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/ProximityRadar.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/ProximityRadarTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/PriorityBroadcastManager.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/PriorityBroadcastManagerTest.kt"
       ],
       "acceptanceCriteria": [
-        "ProximityRadar maps RSSI and path loss into discrete proximity zones (NEAR, MEDIUM, FAR, OUT_OF_RANGE)",
-        "Generates reactive flow of proximity updates for Compose and SwiftUI views",
+        "Classifies frames with PriorityLevel (NORMAL, PRIORITY, EMERGENCY_OVERRIDE)",
+        "EMERGENCY_OVERRIDE preempts lower priority audio playout immediately",
+        "Generates audible pre-roll alert chime tone synthesis in pure KMP",
         "100% multiplatform test pass in commonTest"
       ],
       "passes": true
     },
     {
-      "id": "ICA-903",
+      "id": "ICA-1003",
       "priority": 3,
-      "title": "Dynamic Mesh Topology Auto-Healing & Leader Re-Election",
-      "description": "Implement auto-healing leadership election in GroupManager when the active group leader disconnects or is out of range.",
+      "title": "Binaural Stereo Audio Spatializer & Convoy Panning",
+      "description": "Implement SpatialAudioProcessor in commonMain to render incoming mono voice streams into 3D stereo audio panned by rider radar azimuth and distance.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/group/MeshElectionManager.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/group/MeshElectionManagerTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/SpatialAudioProcessor.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/SpatialAudioProcessorTest.kt"
       ],
       "acceptanceCriteria": [
-        "Detects leader heartbeat timeout within 15 seconds",
-        "Executes deterministic Bully election or highest-link-margin consensus",
-        "Elects new coordinator without severing audio session",
+        "Pans mono 16-bit PCM into interleaved stereo (-90 left to +90 right degrees)",
+        "Applies distance attenuation curve and interaural time delay (ITD) emulation",
+        "Zero external dependencies (pure multiplatform DSP)",
         "100% multiplatform test pass in commonTest"
       ],
       "passes": true
     },
     {
-      "id": "ICA-904",
+      "id": "ICA-1004",
       "priority": 4,
-      "title": "GitHub Actions Multiplatform CI/CD Pipeline",
-      "description": "Configure GitHub Actions CI/CD matrix to automate multiplatform test execution, release APK building, and iOS compilation checks on every PR and release tag.",
+      "title": "Adaptive RF Interference & Frequency Map Diagnostic Engine",
+      "description": "Implement RfInterferenceDetector in commonMain to monitor 2.4 GHz channel congestion, calculate noise variance, and advise BLE transport backoff.",
       "targetFiles": [
-        ".github/workflows/ci.yml"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/RfInterferenceDetector.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/RfInterferenceDetectorTest.kt"
       ],
       "acceptanceCriteria": [
-        "Workflow runs ./gradlew test across all modules",
-        "Builds Android assembleRelease and verifies ProGuard/R8 rules",
-        "Compiles iOS framework via compileKotlinIosSimulatorArm64"
+        "Tracks packet delivery ratio dips and RSSI standard deviation over sliding window",
+        "Classifies RF interference levels (LOW, MODERATE, SEVERE)",
+        "Recommends transmission backoff and packet redundancy boost under high noise",
+        "100% multiplatform test pass in commonTest"
       ],
       "passes": true
     }

@@ -201,6 +201,38 @@
   - Stage 2 runs Android release build (`./gradlew :app:androidApp:assembleRelease`) to verify ProGuard / R8 rules and uploads the APK artifact for release distribution.
   - Configured branch filters for Multi-Tier GitFlow (`main`, `develop`, `sprint/**`, `release/**`, tags `v*`).
 
+### 2.24 Multi-Channel Sub-Group Partitioning & Dual-Watch (`ChannelManager.kt`)
+- **Challenge**: Large motorcycle riding groups often have subgroups (e.g. Lead Scouts vs Sweep/Trailer vs Support Vehicle) who need private channels while retaining the ability to hear emergency broadcasts and monitor a secondary channel.
+- **Solution**:
+  - Implemented `ChannelManager.kt` providing 16 distinct sub-channels.
+  - Sub-channel filtering accepts audio frames matching the active channel or configured `monitoredChannelIds` (Dual-Watch).
+  - Emergency SOS frames (`isGlobalBroadcast = true`) unconditionally bypass channel mutes and channel mismatches across all riders.
+  - Scan mode allows monitoring all unmuted channels concurrently.
+  - Emits reactive `channelState: StateFlow<ChannelState>` for instant cockpit channel switching.
+
+### 2.25 Emergency Priority Audio Preemption & Chime Synthesis (`PriorityBroadcastManager.kt`)
+- **Challenge**: Critical safety warnings (e.g. "Gravel in turn", "Deer ahead", or crash detection) must never be drowned out by normal chatter, blocked by sub-channel mutes, or delayed by buffering.
+- **Solution**:
+  - Implemented `PriorityBroadcastManager.kt` managing three traffic tiers: `NORMAL`, `PRIORITY`, and `EMERGENCY_OVERRIDE`.
+  - Immediate preemption: incoming emergency frames immediately override and suppress ongoing conversational streams with zero delay.
+  - Hangover window: 600ms hangover guard prevents normal chatter from cutting in during micro-pauses in emergency voice messages.
+  - Mathematical acoustic synthesis: `AlertChimeSynthesizer` generates pure 48kHz 16-bit PCM alert tones (880Hz single-tone hazard and 880Hz -> 1760Hz two-tone emergency) in pure Kotlin with 8% fade envelope to prevent speaker popping, requiring zero external audio assets.
+
+### 2.26 3D Binaural Stereo Audio Spatializer & ITD Panning (`SpatialAudioProcessor.kt`)
+- **Challenge**: In a group ride, mono audio makes it impossible to intuitively distinguish which rider is talking without glancing at the phone screen.
+- **Solution**:
+  - Implemented `SpatialAudioProcessor.kt` translating incoming mono 48kHz voice streams into spatialized stereo PCM.
+  - Constant-power sine/cosine Interaural Level Difference (ILD) panning law across [-90.0°, +90.0°] azimuth preserves total perceived acoustic energy ($g_L^2 + g_R^2 \approx 1.0$).
+  - Psychoacoustic Interaural Time Difference (ITD) circular delay emulation offsets the sound reaching the contralateral ear by up to 31 samples (~0.65ms), creating rich 3D helmet soundstage.
+  - Distance attenuation curve provides depth cues while strictly clamping minimum gain to 0.35 to guarantee intelligibility.
+
+### 2.27 Adaptive RF Spectrum Interference Detection (`RfInterferenceDetector.kt`)
+- **Challenge**: When riding through urban corridors or areas with heavy 2.4 GHz Wi-Fi saturation, BLE packet delivery rates plunge due to packet collisions.
+- **Solution**:
+  - Implemented `RfInterferenceDetector.kt` evaluating PDR stability and RSSI variance ($\sigma = \sqrt{\frac{1}{N} \sum (x_i - \mu)^2}$) across a 15-second sliding window.
+  - Classifies RF environments into `LOW`, `MODERATE`, and `SEVERE`.
+  - Emits real-time policy advice recommending redundant packet copies (1x -> 2x -> 3x), dynamic scan rate throttling, and randomized backoff windows to prevent collision storms.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index
