@@ -53,7 +53,7 @@
         "Elects new coordinator without severing audio session",
         "100% multiplatform test pass in commonTest"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-904",

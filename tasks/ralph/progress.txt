@@ -324,3 +324,21 @@
   - OpenCodeReview (`ocr delegate rule`) passed with 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
 ---
+
+### [2026-09-30] - ICA-903: Dynamic Mesh Topology Auto-Healing & Leader Re-Election
+- **Branch**: `feature/ICA-903-topology-auto-healing`
+- **Objective**: Implement auto-healing leadership election in `GroupManager` when the active group leader disconnects or is out of range.
+- **Implementation**:
+  - Implemented `MeshElectionManager.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/group/`:
+    - Decentralized consensus state machine: `IDLE`, `LEADER_SUSPECTED`, `ELECTING`, `LEADER_ELECTED`.
+    - 15-second heartbeat silence watchdog detecting leader disconnection across the BLE mesh.
+    - Weighted Bully election protocol: candidates exchange `ELECTION_CLAIM` with local RF link margin (`linkMarginDb`); nodes with superior RF margins (> 3.0 dB) are preferred to ensure the best coordinator for relaying, deterministically falling back to lexicographical node ID.
+    - Zero disruption to active audio pipelines during re-election.
+    - Exposes reactive `state: StateFlow<ElectionState>` and `currentLeaderId: StateFlow<String?>` with buffered `outgoingMessages: ReceiveChannel<ElectionMessage>` channel.
+  - Implemented `MeshElectionManagerTest.kt` in `commonTest`:
+    - 5 comprehensive test suites verifying initial state, 15s timeout detection and victory declaration, yield to higher-link-margin candidate, lexicographical tie breaking, and coordinator periodic heartbeat generation.
+- **Verification**:
+  - `./gradlew test :app:sharedLogic:compileKotlinIosSimulatorArm64` passed in 22s (93 actionable tasks).
+  - OpenCodeReview (`ocr delegate rule`) passed with 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
