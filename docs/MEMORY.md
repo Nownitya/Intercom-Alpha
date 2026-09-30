@@ -218,6 +218,14 @@
   - Hangover window: 600ms hangover guard prevents normal chatter from cutting in during micro-pauses in emergency voice messages.
   - Mathematical acoustic synthesis: `AlertChimeSynthesizer` generates pure 48kHz 16-bit PCM alert tones (880Hz single-tone hazard and 880Hz -> 1760Hz two-tone emergency) in pure Kotlin with 8% fade envelope to prevent speaker popping, requiring zero external audio assets.
 
+### 2.26 3D Binaural Stereo Audio Spatializer & ITD Panning (`SpatialAudioProcessor.kt`)
+- **Challenge**: In a group ride, mono audio makes it impossible to intuitively distinguish which rider is talking without glancing at the phone screen.
+- **Solution**:
+  - Implemented `SpatialAudioProcessor.kt` translating incoming mono 48kHz voice streams into spatialized stereo PCM.
+  - Constant-power sine/cosine Interaural Level Difference (ILD) panning law across [-90.0°, +90.0°] azimuth preserves total perceived acoustic energy ($g_L^2 + g_R^2 \approx 1.0$).
+  - Psychoacoustic Interaural Time Difference (ITD) circular delay emulation offsets the sound reaching the contralateral ear by up to 31 samples (~0.65ms), creating rich 3D helmet soundstage.
+  - Distance attenuation curve provides depth cues while strictly clamping minimum gain to 0.35 to guarantee intelligibility.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

@@ -410,3 +410,21 @@
   - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
 ---
+
+### [2026-09-30] - ICA-1003: Binaural Stereo Audio Spatializer & Convoy Panning
+- **Branch**: `feature/ICA-1003-audio-spatializer`
+- **Objective**: Implement `SpatialAudioProcessor` in `commonMain` to render incoming mono voice streams into 3D stereo audio panned by rider radar azimuth and distance.
+- **Implementation**:
+  - Implemented `SpatialAudioProcessor.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/`:
+    - Constant-power sine/cosine Interaural Level Difference (ILD) panning law across [-90.0°, +90.0°] azimuth, keeping acoustic energy balanced at 3dB center drop ($g_L = g_R = 0.7071$).
+    - Psychoacoustic Interaural Time Difference (ITD) emulation with circular delay line delaying opposite ear by up to 31 samples (~0.65ms at 48kHz).
+    - Distance attenuation curve based on inverse distance with a 0.35 gain safety floor to ensure distant riders are never rendered inaudible.
+    - Output format: interleaved 16-bit stereo PCM [L, R, L, R, ...] running at 48kHz with zero JNI/C or platform-specific dependencies.
+    - Integration helper `spatializeForTarget(mono, target)` directly connecting to `ProximityRadar` `RadarTarget`.
+  - Implemented `SpatialAudioProcessorTest.kt` in `commonTest`:
+    - 5 comprehensive test suites verifying exact $2N$ output byte sizing, center panning gain equality, hard left/right panning isolation, distance attenuation behavior, and `RadarTarget` integration.
+- **Verification**:
+  - `./gradlew test :app:sharedLogic:compileKotlinIosSimulatorArm64` passed in 10s (93 actionable tasks).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
