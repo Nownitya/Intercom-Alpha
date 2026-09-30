@@ -233,7 +233,42 @@
   - Classifies RF environments into `LOW`, `MODERATE`, and `SEVERE`.
   - Emits real-time policy advice recommending redundant packet copies (1x -> 2x -> 3x), dynamic scan rate throttling, and randomized backoff windows to prevent collision storms.
 
+### 2.28 Offline Mesh Quick Text & Canned Hazard Protocol (`MeshTextManager.kt`)
+- **Challenge**: In high-speed highway wind noise or emergency situations, riders may be unable to hear voice clearly or speak without excessive turbulence.
+- **Solution**:
+  - Implemented `MeshTextManager.kt` managing standardized canned convoy alerts (`FUEL_LOW`, `HAZARD_ROAD`, `STOP_IMMEDIATE`, `MECHANICAL_ISSUE`) and custom text payloads (< 280 chars).
+  - Compact serialized JSON wire frames (`MeshTextWireFrame`) routed over BLE mesh.
+  - Automatic peer-to-peer receipt acknowledgment (`DELIVERY_ACK`) confirms message arrival at destination.
+  - Thread-safe mutex with bounded in-memory sliding history (max 100 messages) preventing RAM accumulation.
+  - Exposes reactive `messages: StateFlow<List<MeshTextMessage>>` and unread badge counter.
+
+### 2.29 Decentralized GPS Mesh Telemetry & Convoy Tracking (`ConvoyGpsTracker.kt`)
+- **Challenge**: BLE RSSI distance estimates are sensitive to human body absorption, motorcycle orientation, and terrain multipath, failing to provide precise rider bearing and formation status.
+- **Solution**:
+  - Implemented `ConvoyGpsTracker.kt` computing exact Great-Circle Haversine distance and forward azimuth in pure KMP with zero platform dependencies.
+  - Normalizes relative rider bearing ($-180^\circ \dots +180^\circ$) relative to local rider heading, directly driving 3D `SpatialAudioProcessor` panning and cockpit radar vectors.
+  - Motion-aware adaptive beaconing: stationary (15s), city (6s), and highway cruise (3s) to conserve BLE airtime and battery.
+  - Automatic emergency crash/hard-braking detection ($>35\text{ km/h}$ drop in $<1.5\text{s}$) triggering instant priority telemetry broadcast.
+  - Dynamic formation role detection (Lead Scout, Sweep/Tail, Closest Rider) with automatic 30s stale rider pruning.
+### 2.30 Dynamic Adaptive Bitrate & Codec Profile Switching (`AdaptiveBitrateController.kt`)
+- **Challenge**: Variable BLE RF conditions (tunnel transit, line-of-sight occlusion, terrain obstacles) cause audio dropouts if high bitrate profiles are maintained, while permanently using low bitrates degrades audio quality unnecessarily.
+- **Solution**:
+  - Implemented `AdaptiveBitrateController.kt` in `commonMain` evaluating composite RF metrics (`InterferenceLevel` and `LinkQuality`).
+  - Asymmetric hysteresis: Instantaneous step-down upon RF degradation/critical packet loss prevents packet queue explosion; step-up requires 3 consecutive evaluation cycles of pristine link quality to avoid flapping and audio stutter.
+  - Manual override support with instant fallback to closed-loop AUTO mode.
+  - Reactive `currentProfile: StateFlow<AudioProfile>` consumed directly by the multiplatform audio engine.
+
+### 2.31 Rolling Emergency Voice Blackbox & Encrypted Incident Cache (`EmergencyBlackboxRecorder.kt`)
+- **Challenge**: In motorcycle accidents, severe terrain incidents, or sudden communication loss, investigators and riding partners need the final 60 seconds of voice conversations and sensor data leading up to the event, without risking memory exhaustion or exposing sensitive voice data to third parties.
+- **Solution**:
+  - Implemented `EmergencyBlackboxRecorder.kt` in `commonMain` featuring an in-memory rolling circular buffer (`ArrayDeque<BlackboxAudioFrame>`) storing 60 seconds of compressed ADPCM audio frames.
+  - Hard capacity limits (3,500 frames) and strict cache bounding (5 encrypted reports) ensure heap usage remains strictly below 3 MB RAM (< 1.5 MB typical resident).
+  - Automatic snapshot freeze triggers on `EMERGENCY_OVERRIDE` preemption, crash detection, emergency stop, or road hazard broadcasts with a 10-second cooldown window to eliminate duplicate spam.
+  - Incident snapshots are encrypted using pure KMP RFC 8439 ChaCha20-Poly1305 AEAD (`PacketCipher`), authenticating metadata with associated data verification (`incidentId`).
+  - Generates comprehensive forensic Markdown summaries (`toMarkdownForensicSummary()`) detailing incident time, trigger reason, GPS coordinates, vehicle speed, and active speaking riders.
+
 ---
+
 
 ## 🗂️ 3. Monorepo File & Component Index
 

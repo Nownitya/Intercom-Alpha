@@ -458,3 +458,103 @@
   - `ICA-1004: Adaptive RF Interference & Frequency Map Diagnostic Engine` [PASSED]
 - **Integration Highway**: Ready for clean merge into `develop`.
 ---
+
+## 🚀 Sprint 11: Convoy Situational Awareness, GPS Mesh Telemetry & Blackbox Voice Cache (Phase 9 - v2.0 Roadmap)
+
+### [2026-09-30] - ICA-1101: Offline Mesh Canned Hazard & Quick Text Messaging
+- **Branch**: `feature/ICA-1101-mesh-text-messaging`
+- **Objective**: Implement `MeshTextManager` in `commonMain` supporting canned convoy messages (Fuel Needed, Road Hazard, Stop), custom text payloads, ACK receipts, and unread badge state.
+- **Implementation**:
+  - Implemented `MeshTextManager.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/text/`:
+    - Defined `CannedMessageCode` (`FUEL_LOW`, `HAZARD_ROAD`, `STOP_IMMEDIATE`, `MECHANICAL_ISSUE`, `TURN_AROUND`, `REGROUP`, `ALL_CLEAR`, etc.) and `MessageCategory` (`CANNED_HAZARD`, `STATUS_UPDATE`, `DIRECT_PING`, `CUSTOM_TEXT`).
+    - Standardized canned text templates and compact JSON wire frame encoder/decoder (`MeshTextWireFrame`).
+    - Bounded in-memory message history (max 100 entries) preventing memory leaks during all-day rides.
+    - Automatic receipt acknowledgment: target peer automatically generates `DELIVERY_ACK` wire frame upon receiving direct text payload.
+    - Sender state tracking transitions from `SENT` to `ACKNOWLEDGED` with exact `acknowledgedAt` timestamp upon receipt.
+    - Reactive state telemetry `messages: StateFlow<List<MeshTextMessage>>` and unread badge counter `unreadCount: StateFlow<Int>` with `markAsRead`, `markAllAsRead`, and `clearHistory`.
+  - Implemented `MeshTextManagerTest.kt` in `commonTest`:
+    - 10 unit test suites validating canned message emission, hazard categories, custom text trimming, broadcast delivery, direct peer delivery, automatic ACK generation, ACK receipt state updating, foreign recipient dropping, duplicate suppression, mark-as-read badge decrements, bounded history eviction, and wire frame serialization symmetry.
+- **Verification**:
+  - `./gradlew test`: 100% passing across all modules in 8s.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 24s (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
+
+### [2026-09-30] - ICA-1102: Decentralized GPS Mesh Telemetry & Convoy Tracking
+- **Branch**: `feature/ICA-1102-convoy-gps-tracking`
+- **Objective**: Implement `ConvoyGpsTracker` in `commonMain` to beacon compact GPS coordinates over mesh control channels, calculate relative bearing and Great-Circle distance, and feed `ProximityRadar`.
+- **Implementation**:
+  - Implemented `ConvoyGpsTracker.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/telemetry/`:
+    - Defined `GpsCoordinate`, `MotionState`, `ConvoyTelemetryFrame`, `ConvoyRiderPosition`, and `ConvoyTelemetrySnapshot`.
+    - Pure KMP Great-Circle Haversine distance formula ($d = R \cdot c$) with zero third-party/Java dependencies.
+    - Initial forward azimuth compass bearing calculation ($0^\circ \dots 360^\circ$ True North).
+    - Relative rider bearing normalization ($-180^\circ$ left to $+180^\circ$ right) relative to local rider heading, directly mapping to `SpatialAudioProcessor` and radar vector maps.
+    - Motion-aware adaptive beaconing: stationary (15s), city (6s), highway cruise >30 km/h (3s).
+    - Sudden emergency deceleration watchdog: speed drops $>35\text{ km/h}$ within 1.5s immediately fires emergency alert beacon.
+    - Automatic lead rider, sweep rider, and closest rider detection.
+    - Stale rider timeout pruning (30s default) ensuring disconnected riders do not linger on cockpit displays.
+    - Reactive state telemetry `convoyState: StateFlow<ConvoyTelemetrySnapshot>` and buffered `outgoingFrames: ReceiveChannel<ConvoyTelemetryFrame>`.
+  - Implemented `ConvoyGpsTrackerTest.kt` in `commonTest`:
+    - 7 comprehensive unit test suites validating Haversine distance across known geographic landmarks (Paris-London and equator), forward azimuth and relative bearing quadrants (ahead, behind, hard left, hard right), motion state interval transitions, emergency hard braking detection, remote telemetry ingestion, lead/sweep rider assignment, stale rider timeout pruning, and JSON serialization symmetry.
+- **Verification**:
+  - `./gradlew test`: 100% passing across all modules in 8s.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 9s (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+### [2026-10-01] - ICA-1103: Dynamic Adaptive Bitrate & Codec Profile Switching
+- **Branch**: `feature/ICA-1103-adaptive-bitrate`
+- **Objective**: Implement `AdaptiveBitrateController` in `commonMain` to dynamically shift `AudioProfile` between `ULTRA_LOW`, `LOW`, `MEDIUM`, and `HIGH` based on `RfInterferenceDetector` and `MeshDiagnostics` telemetry.
+- **Implementation**:
+  - Implemented `AdaptiveBitrateController.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/`:
+    - Defined `AdaptationMode` (`AUTO`, `MANUAL_OVERRIDE`) and `BitrateAdaptationState`.
+    - Evaluates composite RF conditions: `InterferenceLevel` (`LOW`, `MODERATE`, `SEVERE`) and `LinkQuality` (`EXCELLENT`, `GOOD`, `MARGINAL`, `CRITICAL`, `LOST`).
+    - Implemented asymmetric hysteresis:
+      - Rapid step-down: Immediately downshifts `AudioProfile` upon severe RF degradation or critical packet loss to preserve audio frame continuity.
+      - Conservative step-up: Requires sustained pristine conditions for 3 consecutive cycles before stepping up profile to avoid flapping.
+    - Manual override API (`pinProfile(...)`, `resetToAuto()`) for rider-enforced low-bandwidth or studio-quality modes.
+    - Reactive telemetry `currentProfile: StateFlow<AudioProfile>` and `adaptationState: StateFlow<BitrateAdaptationState>` consumed by `AudioEngine`.
+  - Implemented `AdaptiveBitrateControllerTest.kt` in `commonTest`:
+    - 6 comprehensive unit test suites validating baseline startup, rapid step-down upon severe interference, conservative step-up across 3 consecutive cycles, manual override pinning and auto-reset, multi-target aggregation with worst-case selection, and thread safety.
+- **Verification**:
+  - `./gradlew test`: 100% passing across all modules in 55s.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 25s (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
+
+### [2026-10-01] - ICA-1104: Rolling Emergency Voice Blackbox & Encrypted Incident Cache
+- **Branch**: `feature/ICA-1104-voice-blackbox`
+- **Objective**: Implement `EmergencyBlackboxRecorder` in `commonMain` to capture a rolling 60-second in-memory circular audio buffer of emergency transmissions, generating encrypted incident forensic reports.
+- **Implementation**:
+  - Implemented `EmergencyBlackboxRecorder.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/`:
+    - Defined `BlackboxAudioFrame`, `IncidentTriggerReason` (`CRASH_DETECTED`, `EMERGENCY_OVERRIDE_AUDIO`, `HAZARD_BROADCAST`, `MANUAL_SOS`, `EXTERNAL_SENSOR`), `IncidentSnapshot`, and `EncryptedIncidentReport`.
+    - Rolling circular buffer (`ArrayDeque<BlackboxAudioFrame>`) storing up to 60 seconds (60,000ms) of compressed ADPCM audio frames with hard capacity safety cap (3,500 frames).
+    - Automatic snapshot freeze upon `EMERGENCY_OVERRIDE` preemption, crash detection, emergency stop, or hazard alerts with 10-second cooldown suppressing redundant spam.
+    - Pure KMP RFC 8439 ChaCha20-Poly1305 AEAD encryption (`PacketCipher`) of incident report snapshots with associated data verification (`incidentId`).
+    - Bounded memory footprint strictly maintained below 3 MB RAM (< 1.5 MB typical resident heap).
+    - Human-readable Markdown forensic incident log export (`toMarkdownForensicSummary()`).
+    - Reactive state telemetry `bufferedFrameCount`, `bufferedDurationMs`, `isRecording`, and `encryptedReports`.
+  - Implemented `EmergencyBlackboxRecorderTest.kt` in `commonTest`:
+    - 11 comprehensive unit test suites validating 60s rolling window pruning, hard capacity bounds, automatic emergency override freeze, crash alert freeze, cooldown duplicate suppression, ChaCha20-Poly1305 encryption/decryption round-trip, tamper and wrong-key rejection, resident memory footprint bounds (< 3 MB), manual SOS/crash telemetry helpers, pause/resume/clear controls, and prioritized frame ingestion.
+- **Verification**:
+  - `./gradlew test`: 100% passing across all modules in 57s.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 20s (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
+
+## 🏆 Sprint 11 & Phase 9 Completion Summary
+- **Milestone**: Phase 9 / Sprint 11 (Convoy Situational Awareness, GPS Mesh Telemetry & Blackbox Voice Cache - v2.0 Roadmap)
+- **Result**: 100% Definition of Done (DoD) achieved across all 4 stories (`ICA-1101` through `ICA-1104`).
+- **All 4 Sprint 11 stories PASSED**:
+  - `ICA-1101: Offline Mesh Canned Hazard & Quick Text Messaging` [PASSED]
+  - `ICA-1102: Decentralized GPS Mesh Telemetry & Convoy Tracking` [PASSED]
+  - `ICA-1103: Dynamic Adaptive Bitrate & Codec Profile Switching` [PASSED]
+  - `ICA-1104: Rolling Emergency Voice Blackbox & Encrypted Incident Cache` [PASSED]
+- **Integration Highway**: Ready for clean merge into `develop`.
+---
+
+
+
+

@@ -21,7 +21,7 @@
         "Thread-safe bounded in-memory message history with deduplication and unread counter",
         "100% multiplatform test pass in commonTest"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-1102",
@@ -39,7 +39,7 @@
         "Feeds relative bearing and ground range directly into ProximityRadar targets",
         "100% multiplatform test pass in commonTest"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-1103",
@@ -57,7 +57,7 @@
         "Emits reactive currentProfile StateFlow consumed by AudioEngine",
         "100% multiplatform test pass in commonTest"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-1104",
@@ -75,7 +75,7 @@
         "Memory footprint strictly bounded (< 3 MB resident RAM)",
         "100% multiplatform test pass in commonTest"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }
