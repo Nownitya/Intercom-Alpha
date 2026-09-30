@@ -226,6 +226,13 @@
   - Psychoacoustic Interaural Time Difference (ITD) circular delay emulation offsets the sound reaching the contralateral ear by up to 31 samples (~0.65ms), creating rich 3D helmet soundstage.
   - Distance attenuation curve provides depth cues while strictly clamping minimum gain to 0.35 to guarantee intelligibility.
 
+### 2.27 Adaptive RF Spectrum Interference Detection (`RfInterferenceDetector.kt`)
+- **Challenge**: When riding through urban corridors or areas with heavy 2.4 GHz Wi-Fi saturation, BLE packet delivery rates plunge due to packet collisions.
+- **Solution**:
+  - Implemented `RfInterferenceDetector.kt` evaluating PDR stability and RSSI variance ($\sigma = \sqrt{\frac{1}{N} \sum (x_i - \mu)^2}$) across a 15-second sliding window.
+  - Classifies RF environments into `LOW`, `MODERATE`, and `SEVERE`.
+  - Emits real-time policy advice recommending redundant packet copies (1x -> 2x -> 3x), dynamic scan rate throttling, and randomized backoff windows to prevent collision storms.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index
