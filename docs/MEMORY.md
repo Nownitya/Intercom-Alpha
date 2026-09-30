@@ -193,6 +193,14 @@
   - Weighting heuristic prioritizes nodes with optimal RF link margins (> 3.0 dB superiority) to maximize relay reliability across the pack, falling back deterministically to lexicographical node ID.
   - Re-election runs completely out-of-band over mesh control frames, preserving 100% of peer-to-peer audio flow with zero packet drops.
 
+### 2.23 GitHub Actions Multiplatform Matrix CI/CD (`.github/workflows/ci.yml`)
+- **Challenge**: Guaranteeing multiplatform build stability (Android SDK, iOS Kotlin Native Simulator ARM64, and JVM test suites) on every sprint branch and PR without manual developer validation.
+- **Solution**:
+  - Implemented `.github/workflows/ci.yml` with dual-stage parallel pipelines.
+  - Stage 1 runs multiplatform tests (`./gradlew test`) and iOS compilation (`./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`).
+  - Stage 2 runs Android release build (`./gradlew :app:androidApp:assembleRelease`) to verify ProGuard / R8 rules and uploads the APK artifact for release distribution.
+  - Configured branch filters for Multi-Tier GitFlow (`main`, `develop`, `sprint/**`, `release/**`, tags `v*`).
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index
