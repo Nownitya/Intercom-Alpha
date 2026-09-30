@@ -428,3 +428,33 @@
   - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
 ---
+
+### [2026-09-30] - ICA-1004: Adaptive RF Interference & Frequency Map Diagnostic Engine
+- **Branch**: `feature/ICA-1004-rf-interference`
+- **Objective**: Implement `RfInterferenceDetector` in `commonMain` to monitor 2.4 GHz channel congestion, calculate noise variance, and advise BLE transport backoff.
+- **Implementation**:
+  - Implemented `RfInterferenceDetector.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/`:
+    - Defined `InterferenceLevel` (`LOW`, `MODERATE`, `SEVERE`) and `RfPolicyAdvice`.
+    - Sliding window telemetry tracking packet delivery ratio (PDR) and RSSI standard deviation $\sigma = \sqrt{\frac{1}{N} \sum (x_i - \mu)^2}$.
+    - Heuristic classification: identifies urban 2.4 GHz saturation when PDR < 70% or RSSI flutter > 7.0 dB.
+    - Policy recommendation: dynamically scales redundant packet copies (1x -> 2x -> 3x), accelerates BLE scan interval (100ms -> 60ms -> 40ms), and injects randomized backoff jitter (0ms -> 15ms -> 40ms) to avoid transmission collisions.
+    - Automatic sample retention pruning (15s sliding window) allowing RF health to recover after clearing high-noise zones.
+    - Reactive state telemetry `policyFlow: StateFlow<RfPolicyAdvice>`.
+  - Implemented `RfInterferenceDetectorTest.kt` in `commonTest`:
+    - 6 unit test suites verifying initial baseline, clean environment stability, moderate interference thresholding, severe interference from packet loss, severe interference from multipath RSSI flutter, sample retention recovery, and reset.
+- **Verification**:
+  - `./gradlew test :app:sharedLogic:compileKotlinIosSimulatorArm64` passed in 11s (93 actionable tasks).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
+
+## 🏆 Sprint 10 & Phase 8 Completion Summary
+- **Milestone**: Phase 8 / Sprint 10 (Multi-Channel Intercom, Priority Emergency & Audio Spatialization - v2.0 Roadmap)
+- **Result**: 100% Definition of Done (DoD) achieved across all 4 stories (`ICA-1001` through `ICA-1004`).
+- **All 4 Sprint 10 stories PASSED**:
+  - `ICA-1001: Multi-Channel Group Partitioning & Channel Manager` [PASSED]
+  - `ICA-1002: Emergency Priority Voice & Hazard Alert Broadcast` [PASSED]
+  - `ICA-1003: Binaural Stereo Audio Spatializer & Convoy Panning` [PASSED]
+  - `ICA-1004: Adaptive RF Interference & Frequency Map Diagnostic Engine` [PASSED]
+- **Integration Highway**: Ready for clean merge into `develop`.
+---

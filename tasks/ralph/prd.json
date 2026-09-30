@@ -71,7 +71,7 @@
         "Recommends transmission backoff and packet redundancy boost under high noise",
         "100% multiplatform test pass in commonTest"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }
