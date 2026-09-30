@@ -36,7 +36,7 @@
         "Generates reactive flow of proximity updates for Compose and SwiftUI views",
         "100% multiplatform test pass in commonTest"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-903",
