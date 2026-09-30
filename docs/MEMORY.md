@@ -250,8 +250,16 @@
   - Motion-aware adaptive beaconing: stationary (15s), city (6s), and highway cruise (3s) to conserve BLE airtime and battery.
   - Automatic emergency crash/hard-braking detection ($>35\text{ km/h}$ drop in $<1.5\text{s}$) triggering instant priority telemetry broadcast.
   - Dynamic formation role detection (Lead Scout, Sweep/Tail, Closest Rider) with automatic 30s stale rider pruning.
+### 2.30 Dynamic Adaptive Bitrate & Codec Profile Switching (`AdaptiveBitrateController.kt`)
+- **Challenge**: Variable BLE RF conditions (tunnel transit, line-of-sight occlusion, terrain obstacles) cause audio dropouts if high bitrate profiles are maintained, while permanently using low bitrates degrades audio quality unnecessarily.
+- **Solution**:
+  - Implemented `AdaptiveBitrateController.kt` in `commonMain` evaluating composite RF metrics (`InterferenceLevel` and `LinkQuality`).
+  - Asymmetric hysteresis: Instantaneous step-down upon RF degradation/critical packet loss prevents packet queue explosion; step-up requires 3 consecutive evaluation cycles of pristine link quality to avoid flapping and audio stutter.
+  - Manual override support with instant fallback to closed-loop AUTO mode.
+  - Reactive `currentProfile: StateFlow<AudioProfile>` consumed directly by the multiplatform audio engine.
 
 ---
+
 
 ## 🗂️ 3. Monorepo File & Component Index
 

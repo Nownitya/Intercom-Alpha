@@ -502,6 +502,26 @@
   - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 9s (Rule 6).
   - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+### [2026-10-01] - ICA-1103: Dynamic Adaptive Bitrate & Codec Profile Switching
+- **Branch**: `feature/ICA-1103-adaptive-bitrate`
+- **Objective**: Implement `AdaptiveBitrateController` in `commonMain` to dynamically shift `AudioProfile` between `ULTRA_LOW`, `LOW`, `MEDIUM`, and `HIGH` based on `RfInterferenceDetector` and `MeshDiagnostics` telemetry.
+- **Implementation**:
+  - Implemented `AdaptiveBitrateController.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/`:
+    - Defined `AdaptationMode` (`AUTO`, `MANUAL_OVERRIDE`) and `BitrateAdaptationState`.
+    - Evaluates composite RF conditions: `InterferenceLevel` (`LOW`, `MODERATE`, `SEVERE`) and `LinkQuality` (`EXCELLENT`, `GOOD`, `MARGINAL`, `CRITICAL`, `LOST`).
+    - Implemented asymmetric hysteresis:
+      - Rapid step-down: Immediately downshifts `AudioProfile` upon severe RF degradation or critical packet loss to preserve audio frame continuity.
+      - Conservative step-up: Requires sustained pristine conditions for 3 consecutive cycles before stepping up profile to avoid flapping.
+    - Manual override API (`pinProfile(...)`, `resetToAuto()`) for rider-enforced low-bandwidth or studio-quality modes.
+    - Reactive telemetry `currentProfile: StateFlow<AudioProfile>` and `adaptationState: StateFlow<BitrateAdaptationState>` consumed by `AudioEngine`.
+  - Implemented `AdaptiveBitrateControllerTest.kt` in `commonTest`:
+    - 6 comprehensive unit test suites validating baseline startup, rapid step-down upon severe interference, conservative step-up across 3 consecutive cycles, manual override pinning and auto-reset, multi-target aggregation with worst-case selection, and thread safety.
+- **Verification**:
+  - `./gradlew test`: 100% passing across all modules in 55s.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 25s (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
 ---
+
 
 

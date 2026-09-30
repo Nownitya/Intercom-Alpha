@@ -57,7 +57,7 @@
         "Emits reactive currentProfile StateFlow consumed by AudioEngine",
         "100% multiplatform test pass in commonTest"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-1104",
