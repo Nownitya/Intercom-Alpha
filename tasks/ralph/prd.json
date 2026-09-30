@@ -1,81 +1,79 @@
 {
   "project": "Intercom-Alpha",
-  "branchName": "sprint/sprint-11-convoy-gps-blackbox",
-  "phase": "Phase 9: Convoy Situational Awareness, GPS Mesh Telemetry & Blackbox Voice Cache",
-  "sprint": "Sprint 11",
-  "updatedAt": "2026-09-30T23:14:00Z",
+  "branchName": "sprint/sprint-12-cockpit-ui-integration",
+  "phase": "Phase 10: Multiplatform Cockpit UI & Bridge Integration",
+  "sprint": "Sprint 12",
+  "updatedAt": "2026-10-01T04:24:00Z",
   "stories": [
     {
-      "id": "ICA-1101",
+      "id": "ICA-1201",
       "priority": 1,
-      "title": "Offline Mesh Canned Hazard & Quick Text Messaging",
-      "description": "Implement MeshTextManager in commonMain supporting canned convoy messages (Fuel Needed, Road Hazard, Stop), custom text payloads, ACK receipts, and unread badge state.",
+      "title": "KMP Swift Bridge Extension for v2.0 Subsystems",
+      "description": "Extend IntercomBridge in iosMain with memory-safe CancellationHandle reactive listeners and controls for ChannelManager, ProximityRadar, ConvoyGpsTracker, MeshTextManager, PriorityBroadcastManager, EmergencyBlackboxRecorder, and AdaptiveBitrateController.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/text/MeshTextManager.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/text/MeshTextManagerTest.kt"
+        "app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomBridge.kt"
       ],
       "acceptanceCriteria": [
-        "Models MeshTextMessage with canned codes, custom text, timestamps, and delivery status",
-        "Supports direct peer-to-peer and group broadcast text frames",
-        "Automatic ACK receipt generation when target peer receives direct message",
-        "Thread-safe bounded in-memory message history with deduplication and unread counter",
-        "100% multiplatform test pass in commonTest"
+        "Exposes reactive observation callbacks returning CancellationHandle for channel, radar, telemetry, text, and emergency states",
+        "Provides swift-accessible command methods for channel selection, text messaging, SOS triggering, and bitrate control",
+        "Thread-safe lifecycle management with clean coroutine scope cancellation",
+        "Clean compilation for iOS Simulator ARM64 target (:app:sharedLogic:compileKotlinIosSimulatorArm64)"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-1102",
+      "id": "ICA-1202",
       "priority": 2,
-      "title": "Decentralized GPS Mesh Telemetry & Convoy Tracking",
-      "description": "Implement ConvoyGpsTracker in commonMain to beacon compact GPS coordinates over mesh control channels, calculate relative bearing and Great-Circle distance, and feed ProximityRadar.",
+      "title": "Native iOS SwiftUI Cockpit v2.0 UI Upgrade",
+      "description": "Upgrade 100% native SwiftUI UI in app/iosApp with multi-channel selector dial, radar bearing compass, canned hazard quick-bar, text message drawer, and emergency SOS banner.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/telemetry/ConvoyGpsTracker.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/telemetry/ConvoyGpsTrackerTest.kt"
+        "app/iosApp/iosApp/IntercomViewModel.swift",
+        "app/iosApp/iosApp/ContentView.swift"
       ],
       "acceptanceCriteria": [
-        "Models GpsCoordinate with latitude, longitude, altitude, speed, bearing, and timestamp",
-        "Pure KMP Haversine distance and forward azimuth calculation with zero platform dependencies",
-        "Adaptive beaconing interval based on motion state (speed > 30 km/h vs stationary)",
-        "Feeds relative bearing and ground range directly into ProximityRadar targets",
-        "100% multiplatform test pass in commonTest"
+        "Subscribes to all IntercomBridge v2.0 reactive listeners with CancellationHandle cleanup in IntercomViewModel",
+        "Builds ChannelDialView with active channel indicator and Dual-Watch badge in ContentView.swift",
+        "Builds ConvoyRadarCompassView rendering relative rider bearings (-180° to +180°) and distance zones",
+        "Builds QuickHazardBar with instant canned message dispatch and unread message drawer sheet",
+        "Builds EmergencySosBanner with audio preemption cue and blackbox capture status",
+        "Strictly complies with Rule 1: 100% Native SwiftUI (no shared Compose on iOS)"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-1103",
+      "id": "ICA-1203",
       "priority": 3,
-      "title": "Dynamic Adaptive Bitrate & Codec Profile Switching",
-      "description": "Implement AdaptiveBitrateController in commonMain to dynamically shift AudioProfile between ULTRA_LOW, LOW, MEDIUM, and HIGH based on RfInterferenceDetector and MeshDiagnostics telemetry.",
+      "title": "Android & Desktop Compose Multiplatform Cockpit Components",
+      "description": "Extend HomeUiState, HomeViewModel, and HomeScreen in sharedUI with multi-channel selector, radar targets, convoy telemetry, quick hazard alerts, and emergency preemption banner.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/AdaptiveBitrateController.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/AdaptiveBitrateControllerTest.kt"
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/state/HomeUiState.kt",
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/HomeViewModel.kt",
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/HomeScreen.kt"
       ],
       "acceptanceCriteria": [
-        "Monitors real-time link margin and RF interference severity",
-        "Selects optimal AudioProfile balancing voice intelligibility against BLE collision risk",
-        "Hysteresis filter requiring 3 consecutive cycles before stepping down/up to avoid flapping",
-        "Emits reactive currentProfile StateFlow consumed by AudioEngine",
+        "HomeUiState models channelState, radarSnapshot, convoyTelemetry, unreadTextCount, and emergencyActive",
+        "HomeViewModel wires shared KMP managers and exposes reactive StateFlow<HomeUiState>",
+        "HomeScreen renders ChannelSelectorBar, ProximityRadarView, QuickHazardBar, and EmergencyPreemptionBanner",
         "100% multiplatform test pass in commonTest"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-1104",
+      "id": "ICA-1204",
       "priority": 4,
-      "title": "Rolling Emergency Voice Blackbox & Encrypted Incident Cache",
-      "description": "Implement EmergencyBlackboxRecorder in commonMain to capture a rolling 60-second in-memory circular audio buffer of emergency transmissions, generating encrypted incident forensic reports.",
+      "title": "Multiplatform End-to-End Presentation Integration Test",
+      "description": "Implement multiplatform integration tests verifying reactive state flow across shared logic, bridge listeners, and UI ViewModels.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/EmergencyBlackboxRecorder.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/EmergencyBlackboxRecorderTest.kt"
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/bridge/IntercomBridgeContractTest.kt",
+        "app/sharedUI/src/commonTest/kotlin/org/nowni/intercom_alpha/feature/home/HomeViewModelTest.kt"
       ],
       "acceptanceCriteria": [
-        "Rolling circular buffer preserving 60 seconds of compressed ADPCM audio frames",
-        "Automatic snapshot freeze upon EMERGENCY_OVERRIDE preemption or crash detection",
-        "Pure KMP ChaCha20-Poly1305 encryption of incident report snapshots",
-        "Memory footprint strictly bounded (< 3 MB resident RAM)",
-        "100% multiplatform test pass in commonTest"
+        "Tests channel switching, dual-watch, and scan mode state flow in HomeViewModel",
+        "Tests canned text dispatch, delivery ACK, and unread badge updates through UI models",
+        "Tests emergency preemption override triggering UI banner and blackbox snapshot capture",
+        "100% multiplatform test pass across all modules"
       ],
-      "passes": true
+      "passes": false
     }
   ]
 }
