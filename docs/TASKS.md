@@ -103,3 +103,17 @@
 | **ICA-902** | Low-Power BLE Proximity Radar & Distance Alert UI | `sharedUI`, `ContentView.swift` | ✅ Completed |
 | **ICA-903** | Dynamic Mesh Topology Auto-Healing & Leader Re-Election | `GroupManager.kt`, `MeshTransport.kt` | ✅ Completed |
 | **ICA-904** | GitHub Actions Multiplatform CI/CD Pipeline | `.github/workflows/ci.yml` | ✅ Completed |
+
+---
+
+### ⚪ Sprint 10: Multi-Channel Intercom, Priority Emergency & Audio Spatialization (Phase 8 - v2.0 Roadmap)
+- **Sprint Goal**: Implement multi-channel sub-group partitioning, hazard emergency voice override, and binaural stereo audio spatialization.
+- **Sprint Branch**: `sprint/sprint-10-multi-channel-spatial-audio`
+
+| Task ID | Item | Target Files | Status |
+| :--- | :--- | :--- | :--- |
+| **ICA-1001** | Multi-Channel Group Partitioning & Channel Manager | `ChannelManager.kt`, `ChannelManagerTest.kt` | ⚪ Backlog |
+| **ICA-1002** | Emergency Priority Voice & Hazard Alert Broadcast | `PriorityBroadcastManager.kt`, `PriorityBroadcastManagerTest.kt` | ⚪ Backlog |
+| **ICA-1003** | Binaural Stereo Audio Spatializer & Convoy Panning | `SpatialAudioProcessor.kt`, `SpatialAudioProcessorTest.kt` | ⚪ Backlog |
+| **ICA-1004** | Adaptive RF Interference & Frequency Map Diagnostic Engine | `RfInterferenceDetector.kt`, `RfInterferenceDetectorTest.kt` | ⚪ Backlog |
+
