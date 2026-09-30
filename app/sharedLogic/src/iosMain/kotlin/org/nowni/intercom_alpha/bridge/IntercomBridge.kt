@@ -30,9 +30,6 @@ import org.nowni.intercom_alpha.text.CannedMessageCode
 import org.nowni.intercom_alpha.text.MeshTextManager
 import org.nowni.intercom_alpha.text.MeshTextMessage
 
-fun interface CancellationHandle {
-    fun cancel()
-}
 
 @OptIn(ExperimentalForeignApi::class)
 class IntercomBridge(

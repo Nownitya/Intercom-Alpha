@@ -232,7 +232,7 @@ class EmergencyBlackboxRecorder(
                     frame.alertType == AlertType.EMERGENCY_STOP ||
                     frame.alertType == AlertType.HAZARD_WARNING
 
-            if (isEmergency && (now - lastAutoIncidentTimestampMs >= incidentCooldownMs)) {
+            if (isEmergency && (lastAutoIncidentTimestampMs == 0L || now - lastAutoIncidentTimestampMs >= incidentCooldownMs)) {
                 lastAutoIncidentTimestampMs = now
                 val reason = when (frame.alertType) {
                     AlertType.CRASH_DETECTED -> IncidentTriggerReason.CRASH_DETECTED
@@ -341,8 +341,21 @@ class EmergencyBlackboxRecorder(
         cipher: PacketCipher
     ): EncryptedIncidentReport {
         val jsonPlaintext = blackboxJson.encodeToString(IncidentSnapshot.serializer(), snapshot).encodeToByteArray()
+        val compressedPlaintext = MiniLz.compress(jsonPlaintext)
+        val payloadToEncrypt = if (compressedPlaintext.size + 1 < jsonPlaintext.size) {
+            val tagged = ByteArray(compressedPlaintext.size + 1)
+            tagged[0] = 1 // Compressed
+            compressedPlaintext.copyInto(tagged, destinationOffset = 1)
+            tagged
+        } else {
+            val tagged = ByteArray(jsonPlaintext.size + 1)
+            tagged[0] = 0 // Raw
+            jsonPlaintext.copyInto(tagged, destinationOffset = 1)
+            tagged
+        }
+
         val encryptedBytes = cipher.encrypt(
-            plaintext = jsonPlaintext,
+            plaintext = payloadToEncrypt,
             associatedData = snapshot.incidentId.encodeToByteArray()
         )
         return EncryptedIncidentReport(
@@ -372,7 +385,15 @@ class EmergencyBlackboxRecorder(
         ) ?: return null
 
         return try {
-            blackboxJson.decodeFromString(IncidentSnapshot.serializer(), decryptedBytes.decodeToString())
+            val jsonString = if (decryptedBytes.isNotEmpty() && decryptedBytes[0] == 1.toByte()) {
+                val decompressed = MiniLz.decompress(decryptedBytes.copyOfRange(1, decryptedBytes.size))
+                decompressed.decodeToString()
+            } else if (decryptedBytes.isNotEmpty() && decryptedBytes[0] == 0.toByte()) {
+                decryptedBytes.copyOfRange(1, decryptedBytes.size).decodeToString()
+            } else {
+                decryptedBytes.decodeToString()
+            }
+            blackboxJson.decodeFromString(IncidentSnapshot.serializer(), jsonString)
         } catch (_: Exception) {
             null
         }
@@ -487,3 +508,163 @@ class EmergencyBlackboxRecorder(
         }
     }
 }
+
+/**
+ * Lightweight, zero-dependency pure KMP LZ77 compressor for bounded RAM incident report payloads.
+ */
+internal object MiniLz {
+    fun compress(src: ByteArray): ByteArray {
+        if (src.isEmpty()) return ByteArray(0)
+        val out = ByteOutput()
+        val head = IntArray(4096) { -1 }
+        var inPos = 0
+        var anchor = 0
+        val maxOffset = 65535
+
+        while (inPos + 4 <= src.size) {
+            val b0 = src[inPos].toInt() and 0xFF
+            val b1 = src[inPos + 1].toInt() and 0xFF
+            val b2 = src[inPos + 2].toInt() and 0xFF
+            val b3 = src[inPos + 3].toInt() and 0xFF
+            val h = ((b0 shl 12) xor (b1 shl 8) xor (b2 shl 4) xor b3) and 4095
+            val matchPos = head[h]
+            head[h] = inPos
+
+            if (matchPos >= 0 && (inPos - matchPos) in 1..maxOffset &&
+                src[matchPos] == src[inPos] &&
+                src[matchPos + 1] == src[inPos + 1] &&
+                src[matchPos + 2] == src[inPos + 2] &&
+                src[matchPos + 3] == src[inPos + 3]
+            ) {
+                val offset = inPos - matchPos
+                var len = 4
+                while (inPos + len < src.size && src[matchPos + (len % offset)] == src[inPos + len] && len < 65535) {
+                    len++
+                }
+
+                if (len >= 4) {
+                    val litLen = inPos - anchor
+                    out.writeVarInt(litLen)
+                    if (litLen > 0) {
+                        out.writeBytes(src, anchor, litLen)
+                    }
+                    out.writeShort(offset)
+                    out.writeShort(len)
+                    inPos += len
+                    anchor = inPos
+                    continue
+                }
+            }
+            inPos++
+        }
+
+        val litLen = src.size - anchor
+        if (litLen > 0) {
+            out.writeVarInt(litLen)
+            out.writeBytes(src, anchor, litLen)
+            out.writeShort(0)
+            out.writeShort(0)
+        }
+        return out.toByteArray()
+    }
+
+    fun decompress(src: ByteArray): ByteArray {
+        if (src.isEmpty()) return ByteArray(0)
+        val inStream = ByteInput(src)
+        val out = ByteOutput(src.size * 2)
+
+        while (inStream.hasRemaining()) {
+            val litLen = inStream.readVarInt()
+            if (litLen > 0) {
+                out.writeBytes(inStream.readBytes(litLen))
+            }
+            if (!inStream.hasRemaining()) break
+            val offset = inStream.readShort()
+            val matchLen = inStream.readShort()
+            if (offset > 0 && matchLen > 0) {
+                val currentSize = out.size()
+                val matchStart = currentSize - offset
+                for (i in 0 until matchLen) {
+                    out.writeByte(out.getByte(matchStart + i))
+                }
+            }
+        }
+        return out.toByteArray()
+    }
+}
+
+private class ByteOutput(capacity: Int = 1024) {
+    private var buf = ByteArray(capacity)
+    var count = 0
+        private set
+
+    private fun ensureCapacity(minCap: Int) {
+        if (minCap > buf.size) {
+            var newCap = buf.size * 2
+            if (newCap < minCap) newCap = minCap
+            buf = buf.copyOf(newCap)
+        }
+    }
+
+    fun writeByte(b: Byte) {
+        ensureCapacity(count + 1)
+        buf[count++] = b
+    }
+
+    fun writeShort(s: Int) {
+        ensureCapacity(count + 2)
+        buf[count++] = ((s ushr 8) and 0xFF).toByte()
+        buf[count++] = (s and 0xFF).toByte()
+    }
+
+    fun writeVarInt(value: Int) {
+        var v = value
+        while ((v and 0x7F.inv()) != 0) {
+            writeByte(((v and 0x7F) or 0x80).toByte())
+            v = v ushr 7
+        }
+        writeByte((v and 0x7F).toByte())
+    }
+
+    fun writeBytes(src: ByteArray, offset: Int = 0, length: Int = src.size) {
+        ensureCapacity(count + length)
+        src.copyInto(buf, destinationOffset = count, startIndex = offset, endIndex = offset + length)
+        count += length
+    }
+
+    fun getByte(index: Int): Byte = buf[index]
+    fun size(): Int = count
+    fun toByteArray(): ByteArray = buf.copyOf(count)
+}
+
+private class ByteInput(private val buf: ByteArray) {
+    private var pos = 0
+    fun hasRemaining(): Boolean = pos < buf.size
+
+    fun readShort(): Int {
+        if (pos + 2 > buf.size) return 0
+        val b1 = buf[pos++].toInt() and 0xFF
+        val b2 = buf[pos++].toInt() and 0xFF
+        return (b1 shl 8) or b2
+    }
+
+    fun readVarInt(): Int {
+        var value = 0
+        var shift = 0
+        while (pos < buf.size) {
+            val b = buf[pos++].toInt()
+            value = value or ((b and 0x7F) shl shift)
+            if ((b and 0x80) == 0) break
+            shift += 7
+        }
+        return value
+    }
+
+    fun readBytes(length: Int): ByteArray {
+        val actualLen = kotlin.math.min(length, buf.size - pos)
+        val result = buf.copyOfRange(pos, pos + actualLen)
+        pos += actualLen
+        return result
+    }
+}
+

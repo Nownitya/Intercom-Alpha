@@ -211,7 +211,7 @@ class ConvoyGpsTracker(
                 (prevCoord.speedKmh - coordinate.speedKmh) >= 35.0f &&
                 (now - prevCoord.timestampMs) <= 1500L
 
-        val shouldBeacon = forceImmediateBeacon || isEmergencyDecel ||
+        val shouldBeacon = forceImmediateBeacon || isEmergencyDecel || lastBeaconTimestampMs == 0L ||
                 (now - lastBeaconTimestampMs) >= motionState.beaconIntervalMs
 
         if (shouldBeacon) {
@@ -237,7 +237,11 @@ class ConvoyGpsTracker(
     suspend fun handleIncomingTelemetry(frame: ConvoyTelemetryFrame) = mutex.withLock {
         if (frame.peerId == localPeerId) return@withLock
 
-        val now = currentTimeMillis()
+        val now = when {
+            frame.timestampMs > 0L -> frame.timestampMs
+            frame.coordinate.timestampMs > 0L -> frame.coordinate.timestampMs
+            else -> currentTimeMillis()
+        }
         val local = localCoord
 
         val (dist, absBearing, relBearing, isAhead, isBehind) = if (local != null) {
