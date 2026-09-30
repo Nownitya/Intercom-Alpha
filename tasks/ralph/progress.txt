@@ -392,3 +392,21 @@
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
 ---
 
+### [2026-09-30] - ICA-1002: Emergency Priority Voice & Hazard Alert Broadcast
+- **Branch**: `feature/ICA-1002-emergency-broadcast`
+- **Objective**: Implement `PriorityBroadcastManager` allowing emergency override frames (hazard warnings, crash alerts) to preempt ongoing audio and bypass sub-channel mutes.
+- **Implementation**:
+  - Implemented `PriorityBroadcastManager.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/`:
+    - Defined `PriorityLevel` (`NORMAL`, `PRIORITY`, `EMERGENCY_OVERRIDE`) and `AlertType` (`HAZARD_WARNING`, `CRASH_DETECTED`, `EMERGENCY_STOP`).
+    - Preemptive audio arbiter: incoming `EMERGENCY_OVERRIDE` frames immediately suppress and drop lower-priority audio streams.
+    - Hangover protection: configured 600ms hangover window to ensure conversational pauses in emergency communications do not leak normal chatter.
+    - Pure multiplatform sine synthesis (`AlertChimeSynthesizer`): generates mathematically computed 48kHz 16-bit PCM alert chimes (880Hz hazard single-tone, 880Hz -> 1760Hz emergency ascending two-tone) with 8% fade envelope to prevent speaker clicks, requiring zero external assets.
+    - Factory method `createEmergencyBroadcast(...)` automatically prepends synthesized alert chime before emergency voice payload.
+    - Reactive state telemetry `activePriority: StateFlow<PriorityLevel>` and `isEmergencyActive: StateFlow<Boolean>`.
+  - Implemented `PriorityBroadcastManagerTest.kt` in `commonTest`:
+    - 7 comprehensive unit test suites validating chime byte sizing and non-zero audio content, normal traffic flow, emergency stream preemption, hangover window decay, multi-tier guidance preemption, chime pre-roll assembly, and explicit reset.
+- **Verification**:
+  - `./gradlew test :app:sharedLogic:compileKotlinIosSimulatorArm64` passed in 29s (93 actionable tasks).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
