@@ -552,8 +552,29 @@
   - `ICA-1102: Decentralized GPS Mesh Telemetry & Convoy Tracking` [PASSED]
   - `ICA-1103: Dynamic Adaptive Bitrate & Codec Profile Switching` [PASSED]
   - `ICA-1104: Rolling Emergency Voice Blackbox & Encrypted Incident Cache` [PASSED]
-- **Integration Highway**: Ready for clean merge into `develop`.
 ---
+
+## 🚀 Sprint 12: Cockpit UI & Multiplatform Bridge Integration (Phase 10 - v2.0 Roadmap)
+
+### [2026-10-01] - ICA-1201: KMP Swift Bridge Extension for v2.0 Subsystems
+- **Branch**: `feature/ICA-1201-kmp-swift-bridge`
+- **Objective**: Extend `IntercomBridge` in `iosMain` with memory-safe `CancellationHandle` reactive listeners and commands for `ChannelManager`, `ProximityRadar`, `ConvoyGpsTracker`, `MeshTextManager`, `PriorityBroadcastManager`, `EmergencyBlackboxRecorder`, and `AdaptiveBitrateController`.
+- **Implementation**:
+  - Enhanced `IntercomBridge.kt` in `app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/bridge/`:
+    - Channel management: `observeChannelState`, `selectChannel`, `setDualWatch`, `setScanMode`, `toggleChannelMute`.
+    - Radar & GPS telemetry: `observeRadarSnapshot`, `observeConvoyTelemetry`, `updateGpsLocation`, `updatePeerRssi`.
+    - Canned & custom text messaging: `observeMessages`, `observeUnreadCount`, `sendCannedMessage`, `sendCustomText`, `markMessageAsRead`, `markAllMessagesAsRead`, `clearMessageHistory`.
+    - Priority audio & emergency: `observePriorityLevel`, `observeIsEmergencyActive`.
+    - Voice blackbox & SOS: `observeBlackboxReports`, `observeBlackboxBufferedCount`, `triggerManualSos`, `clearBlackboxCache`.
+    - Dynamic adaptive bitrate: `observeCurrentAudioProfile`, `observeAdaptationState`, `pinAudioProfile`, `resetAudioProfileToAuto`.
+    - Integrated audio recording pipeline: pipes incoming audio into `EmergencyBlackboxRecorder` rolling buffer and dynamically applies bitrate profile from `AdaptiveBitrateController`.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 5m 33s with 0 errors (Rule 6).
+  - `./gradlew test`: 100% passing across all modules in 27s.
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
+
 
 
 

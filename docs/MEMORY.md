@@ -267,6 +267,14 @@
   - Incident snapshots are encrypted using pure KMP RFC 8439 ChaCha20-Poly1305 AEAD (`PacketCipher`), authenticating metadata with associated data verification (`incidentId`).
   - Generates comprehensive forensic Markdown summaries (`toMarkdownForensicSummary()`) detailing incident time, trigger reason, GPS coordinates, vehicle speed, and active speaking riders.
 
+### 2.32 KMP Swift Bridge Extension for v2.0 Subsystems (`IntercomBridge.kt`)
+- **Challenge**: Seamlessly exposing rich KMP features (16-channel management, RF radar snapshots, convoy GPS bearings, emergency preemption, and blackbox incident reports) to native Swift / SwiftUI on iOS without memory leaks, retain cycles, or shared UI contamination (Rule 1).
+- **Solution**:
+  - Enhanced `IntercomBridge.kt` in `iosMain` providing reactive observer factory functions returning `CancellationHandle` functional interfaces (`fun cancel()`).
+  - Swift views and `@MainActor` ViewModels bind directly to bridge callbacks tied to the SwiftUI view lifecycle (`.onAppear { handle = bridge.observe... }` / `.onDisappear { handle.cancel() }`).
+  - Exposes thread-safe dispatch commands (`selectActiveChannel`, `sendCannedMessage`, `updateGpsLocation`, `triggerManualSos`, `setManualOverride`) executing asynchronously within the bridge's SupervisorJob scope on `Dispatchers.Main`.
+  - Integrates the audio pipeline so incoming mesh frames are continuously buffered into `EmergencyBlackboxRecorder`, and outgoing compression respects `AdaptiveBitrateController` profile shifts.
+
 ---
 
 

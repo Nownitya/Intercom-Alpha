@@ -19,7 +19,7 @@
         "Thread-safe lifecycle management with clean coroutine scope cancellation",
         "Clean compilation for iOS Simulator ARM64 target (:app:sharedLogic:compileKotlinIosSimulatorArm64)"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-1202",
