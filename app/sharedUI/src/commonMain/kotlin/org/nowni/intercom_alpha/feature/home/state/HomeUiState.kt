@@ -1,7 +1,14 @@
 package org.nowni.intercom_alpha.feature.home.state
 
+import org.nowni.intercom_alpha.audio.PriorityLevel
+import org.nowni.intercom_alpha.channel.ChannelState
 import org.nowni.intercom_alpha.common.AudioProfile
 import org.nowni.intercom_alpha.mesh.Peer
+import org.nowni.intercom_alpha.mesh.RadarSnapshot
+import org.nowni.intercom_alpha.telemetry.ConvoyTelemetrySnapshot
+import org.nowni.intercom_alpha.telemetry.MotionState
+import org.nowni.intercom_alpha.text.CannedMessageCode
+import org.nowni.intercom_alpha.text.MeshTextMessage
 
 data class HomeUiState(
     val isTransmitting: Boolean = false,
@@ -14,7 +21,18 @@ data class HomeUiState(
     val peers: List<Peer> = emptyList(),
     val showShareDialog: Boolean = false,
     val showJoinDialog: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+
+    // v2.0 Cockpit Subsystem State
+    val channelState: ChannelState = ChannelState(),
+    val radarSnapshot: RadarSnapshot = RadarSnapshot(0L),
+    val convoySnapshot: ConvoyTelemetrySnapshot = ConvoyTelemetrySnapshot(null, MotionState.STATIONARY),
+    val messages: List<MeshTextMessage> = emptyList(),
+    val unreadTextCount: Int = 0,
+    val isEmergencyActive: Boolean = false,
+    val activePriorityLevel: PriorityLevel = PriorityLevel.NORMAL,
+    val blackboxBufferedCount: Int = 0,
+    val showMessagesDialog: Boolean = false
 )
 
 sealed interface HomeUiAction {
@@ -26,6 +44,17 @@ sealed interface HomeUiAction {
     data class ToggleJoinDialog(val show: Boolean) : HomeUiAction
     data class JoinGroup(val inviteCode: String) : HomeUiAction
     data object ClearError : HomeUiAction
+
+    // v2.0 Cockpit Actions
+    data class SelectChannel(val channelId: Int) : HomeUiAction
+    data class ToggleDualWatch(val channelId: Int) : HomeUiAction
+    data object ToggleScanMode : HomeUiAction
+    data class SendCannedHazard(val code: CannedMessageCode) : HomeUiAction
+    data class SendCustomText(val content: String) : HomeUiAction
+    data object MarkMessagesAsRead : HomeUiAction
+    data object TriggerSos : HomeUiAction
+    data object ClearEmergency : HomeUiAction
+    data class ToggleMessagesDialog(val show: Boolean) : HomeUiAction
 }
 
 sealed interface HomeUiEvent {
