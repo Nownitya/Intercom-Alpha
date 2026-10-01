@@ -20,12 +20,13 @@
 
 ---
 
-## 🚀 Next Milestone: Sprint 13 (Phase 11: v2.0 Production Release & Hardening)
-**Proposed Focus:** Production release builds, multiplatform end-to-end profiling validation, release bundle assembly, and `v2.0.0` release tagging:
-- `ICA-1301`: Multiplatform Production Release Compilation & Optimization (`assembleRelease`, iOS Simulator & Arm64 XCFramework)
-- `ICA-1302`: Long-Running Battery, WakeLock & Memory Profiling Gate (Validation of <30% 4-hour drain and <3MB RAM bounds)
-- `ICA-1303`: Final Documentation, User Guides & Architecture Diagrams Sync
-- `ICA-1304`: Release Tagging (`v2.0.0`) & Production Release Branch Merge (`develop` ➔ `main`)
+## 🚀 Active Milestone: Sprint 13 (Phase 11: v2.0 Production Release & Hardening)
+**Sprint Goal:** Wire Android platform hardware engine to Compose Cockpit UI, validate release build variants, verify battery/memory bounds, and perform v2.0.0 production release tagging.
+- **Sprint Branch:** `sprint/sprint-13-v2-production-release`
+- `ICA-1301`: Android Platform Hardware-to-Cockpit Service Bridge
+- `ICA-1302`: Multiplatform Production Release Build & ProGuard Hardening
+- `ICA-1303`: Long-Running Battery, WakeLock & Memory Profiling Gate
+- `ICA-1304`: Architecture Sync, Documentation & v2.0.0 Release Tagging
 
 ---
 

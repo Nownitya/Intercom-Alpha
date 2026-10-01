@@ -1,79 +1,83 @@
 {
   "project": "Intercom-Alpha",
-  "branchName": "sprint/sprint-12-cockpit-ui-integration",
-  "phase": "Phase 10: Multiplatform Cockpit UI & Bridge Integration",
-  "sprint": "Sprint 12",
-  "updatedAt": "2026-10-01T04:24:00Z",
+  "branchName": "sprint/sprint-13-v2-production-release",
+  "phase": "Phase 11: v2.0 Production Release & Hardening",
+  "sprint": "Sprint 13",
+  "updatedAt": "2026-10-01T07:22:00Z",
   "stories": [
     {
-      "id": "ICA-1201",
+      "id": "ICA-1301",
       "priority": 1,
-      "title": "KMP Swift Bridge Extension for v2.0 Subsystems",
-      "description": "Extend IntercomBridge in iosMain with memory-safe CancellationHandle reactive listeners and controls for ChannelManager, ProximityRadar, ConvoyGpsTracker, MeshTextManager, PriorityBroadcastManager, EmergencyBlackboxRecorder, and AdaptiveBitrateController.",
+      "title": "Android Platform Hardware-to-Cockpit Service Bridge",
+      "description": "Wire HomeViewModel to the live Android IntercomForegroundService, connecting real Push-To-Talk audio capture/playback, live BLE mesh peers, real-time RMS audio levels, and GPS/canned hazard mesh packet routing.",
       "targetFiles": [
-        "app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomBridge.kt"
-      ],
-      "acceptanceCriteria": [
-        "Exposes reactive observation callbacks returning CancellationHandle for channel, radar, telemetry, text, and emergency states",
-        "Provides swift-accessible command methods for channel selection, text messaging, SOS triggering, and bitrate control",
-        "Thread-safe lifecycle management with clean coroutine scope cancellation",
-        "Clean compilation for iOS Simulator ARM64 target (:app:sharedLogic:compileKotlinIosSimulatorArm64)"
-      ],
-      "passes": true
-    },
-    {
-      "id": "ICA-1202",
-      "priority": 2,
-      "title": "Native iOS SwiftUI Cockpit v2.0 UI Upgrade",
-      "description": "Upgrade 100% native SwiftUI UI in app/iosApp with multi-channel selector dial, radar bearing compass, canned hazard quick-bar, text message drawer, and emergency SOS banner.",
-      "targetFiles": [
-        "app/iosApp/iosApp/IntercomViewModel.swift",
-        "app/iosApp/iosApp/ContentView.swift"
-      ],
-      "acceptanceCriteria": [
-        "Subscribes to all IntercomBridge v2.0 reactive listeners with CancellationHandle cleanup in IntercomViewModel",
-        "Builds ChannelDialView with active channel indicator and Dual-Watch badge in ContentView.swift",
-        "Builds ConvoyRadarCompassView rendering relative rider bearings (-180° to +180°) and distance zones",
-        "Builds QuickHazardBar with instant canned message dispatch and unread message drawer sheet",
-        "Builds EmergencySosBanner with audio preemption cue and blackbox capture status",
-        "Strictly complies with Rule 1: 100% Native SwiftUI (no shared Compose on iOS)"
-      ],
-      "passes": true
-    },
-    {
-      "id": "ICA-1203",
-      "priority": 3,
-      "title": "Android & Desktop Compose Multiplatform Cockpit Components",
-      "description": "Extend HomeUiState, HomeViewModel, and HomeScreen in sharedUI with multi-channel selector, radar targets, convoy telemetry, quick hazard alerts, and emergency preemption banner.",
-      "targetFiles": [
-        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/state/HomeUiState.kt",
+        "app/androidApp/src/main/kotlin/org/nowni/intercom_alpha/service/IntercomForegroundService.kt",
+        "app/androidApp/src/main/kotlin/org/nowni/intercom_alpha/bridge/AndroidPlatformBridge.kt",
         "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/HomeViewModel.kt",
-        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/HomeScreen.kt"
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/state/HomeUiState.kt",
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/di/AppModule.kt"
       ],
       "acceptanceCriteria": [
-        "HomeUiState models channelState, radarSnapshot, convoyTelemetry, unreadTextCount, and emergencyActive",
-        "HomeViewModel wires shared KMP managers and exposes reactive StateFlow<HomeUiState>",
-        "HomeScreen renders ChannelSelectorBar, ProximityRadarView, QuickHazardBar, and EmergencyPreemptionBanner",
-        "100% multiplatform test pass in commonTest"
+        "HomeViewModel binds cleanly to platform hardware intercom provider interface without violating KMP separation",
+        "StartTransmitting/StopTransmitting triggers live AudioEngine recording and BLE mesh audio packet dispatch",
+        "Real BLE mesh peer roster flows into HomeUiState.peers replacing static mocks",
+        "Live microphone input level and speaker output level flow from AudioEngine into HomeUiState meters",
+        "Outgoing canned hazard and GPS telemetry packets route directly to MeshTransport broadcast",
+        "Zero regressions in existing multiplatform test suites"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-1204",
-      "priority": 4,
-      "title": "Multiplatform End-to-End Presentation Integration Test",
-      "description": "Implement multiplatform integration tests verifying reactive state flow across shared logic, bridge listeners, and UI ViewModels.",
+      "id": "ICA-1302",
+      "priority": 2,
+      "title": "Multiplatform Production Release Build & ProGuard Hardening",
+      "description": "Configure release build targets, versioning (versionCode = 2, versionName = '2.0.0'), Proguard/R8 obfuscation rules for KMP/Ktor/Serialization, and verify assembleRelease for Android and XCFramework for iOS.",
       "targetFiles": [
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/bridge/IntercomBridgeContractTest.kt",
-        "app/sharedUI/src/commonTest/kotlin/org/nowni/intercom_alpha/feature/home/HomeViewModelTest.kt"
+        "app/androidApp/build.gradle.kts",
+        "app/androidApp/proguard-rules.pro",
+        "gradle/libs.versions.toml"
       ],
       "acceptanceCriteria": [
-        "Tests channel switching, dual-watch, and scan mode state flow in HomeViewModel",
-        "Tests canned text dispatch, delivery ACK, and unread badge updates through UI models",
-        "Tests emergency preemption override triggering UI banner and blackbox snapshot capture",
-        "100% multiplatform test pass across all modules"
+        "Android release build succeeds via ./gradlew :app:androidApp:assembleRelease",
+        "ProGuard rules safely preserve kotlinx.serialization models and Koin bindings",
+        "iOS framework compiles cleanly via ./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64",
+        "App bundle size is optimized with minification enabled"
       ],
-      "passes": true
+      "passes": false
+    },
+    {
+      "id": "ICA-1303",
+      "priority": 3,
+      "title": "Long-Running Battery, WakeLock & Memory Profiling Gate",
+      "description": "Validate 4-hour background mesh continuity, CPU WakeLock acquisition/release semantics, and verify RAM stays bounded <80MB total (with <3MB blackbox cache).",
+      "targetFiles": [
+        "app/androidApp/src/main/kotlin/org/nowni/intercom_alpha/service/IntercomForegroundService.kt",
+        "app/androidApp/src/test/kotlin/org/nowni/intercom_alpha/profiler/PowerProfilerTest.kt"
+      ],
+      "acceptanceCriteria": [
+        "WakeLock acquire/release is strictly balanced across PTT and standby states",
+        "Memory footprint benchmark confirms LZ77 compressed blackbox stays bounded <1MB under 3000 frames",
+        "Background audio routing releases SCO cleanly upon service termination"
+      ],
+      "passes": false
+    },
+    {
+      "id": "ICA-1304",
+      "priority": 4,
+      "title": "Architecture Sync, Documentation & v2.0.0 Release Tagging",
+      "description": "Update project documentation (PRD.md, ARCHITECTURE.md, TASKS.md, SPRINT.md, CHANGELOG.md), regenerate knowledge graph and archify diagrams, tag release v2.0.0, and merge sprint branch to develop.",
+      "targetFiles": [
+        "docs/TASKS.md",
+        "SPRINT.md",
+        "CHANGELOG.md",
+        "docs/PRD.md"
+      ],
+      "acceptanceCriteria": [
+        "100% of Definition of Done criteria met across all stories",
+        "Graphify knowledge base synced with zero errors",
+        "Clean git commit history with semantic versioning tag v2.0.0"
+      ],
+      "passes": false
     }
   ]
 }
