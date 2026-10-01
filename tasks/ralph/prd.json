@@ -25,7 +25,7 @@
         "Outgoing canned hazard and GPS telemetry packets route directly to MeshTransport broadcast",
         "Zero regressions in existing multiplatform test suites"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-1302",

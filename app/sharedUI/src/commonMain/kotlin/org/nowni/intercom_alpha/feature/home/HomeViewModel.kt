@@ -11,11 +11,12 @@ import org.nowni.intercom_alpha.audio.AdaptiveBitrateController
 import org.nowni.intercom_alpha.audio.AlertType
 import org.nowni.intercom_alpha.audio.EmergencyBlackboxRecorder
 import org.nowni.intercom_alpha.audio.PriorityBroadcastManager
+import org.nowni.intercom_alpha.bridge.ControlPayloadTag
+import org.nowni.intercom_alpha.bridge.IntercomHardwareBridge
+import org.nowni.intercom_alpha.bridge.NoOpIntercomHardwareBridge
 import org.nowni.intercom_alpha.channel.ChannelManager
-import org.nowni.intercom_alpha.common.AudioProfile
 import org.nowni.intercom_alpha.feature.home.state.HomeUiAction
 import org.nowni.intercom_alpha.feature.home.state.HomeUiState
-import org.nowni.intercom_alpha.mesh.Peer
 import org.nowni.intercom_alpha.mesh.ProximityRadar
 import org.nowni.intercom_alpha.telemetry.ConvoyGpsTracker
 import org.nowni.intercom_alpha.text.MeshTextManager
@@ -27,22 +28,24 @@ class HomeViewModel(
     val meshTextManager: MeshTextManager = MeshTextManager("android-local", "Android Rider"),
     val priorityManager: PriorityBroadcastManager = PriorityBroadcastManager(),
     val blackboxRecorder: EmergencyBlackboxRecorder = EmergencyBlackboxRecorder(),
-    val bitrateController: AdaptiveBitrateController = AdaptiveBitrateController()
+    val bitrateController: AdaptiveBitrateController = AdaptiveBitrateController(),
+    val hardwareBridge: IntercomHardwareBridge = NoOpIntercomHardwareBridge()
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
         HomeUiState(
             groupName = "Rider Club Alpha",
             inviteCode = "INTERCOM:v1:eyJncm91cElkIjoiZ3JwLTEwMSIsImdyb3VwTmFtZSI6IlJpZGVyIENsdWIgQWxwaGEiLCJsZWFkZXJJZCI6InBlZXItMSIsImV4cGlyZXNBdCI6NDkyMDA4ODQwMDAwMH0=",
-            peers = listOf(
-                Peer("peer-1", "Rider Alpha (Lead)", -55, 0L, true, AudioProfile.MEDIUM),
-                Peer("peer-2", "Rider Bravo", -68, 0L, true, AudioProfile.MEDIUM)
-            )
+            peers = emptyList()
         )
     )
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     init {
+        // 1. Attach shared logic subsystems to platform hardware bridge
+        hardwareBridge.attachSubsystems(channelManager, blackboxRecorder)
+
+        // 2. Synchronize shared logic subsystem flows
         viewModelScope.launch {
             channelManager.channelState.collect { state ->
                 _uiState.update { it.copy(channelState = state) }
@@ -88,16 +91,89 @@ class HomeViewModel(
                 _uiState.update { it.copy(activeProfile = profile) }
             }
         }
+
+        // 3. Observe live platform hardware states (PTT, BLE peers, and mic/speaker RMS levels)
+        viewModelScope.launch {
+            hardwareBridge.isTransmitting.collect { transmitting ->
+                _uiState.update { it.copy(isTransmitting = transmitting) }
+            }
+        }
+        viewModelScope.launch {
+            hardwareBridge.connectedPeers.collect { livePeers ->
+                _uiState.update { it.copy(peers = livePeers) }
+                for (peer in livePeers) {
+                    proximityRadar.updatePeerRssi(peer.id, peer.rssi, displayName = peer.name)
+                }
+            }
+        }
+        viewModelScope.launch {
+            hardwareBridge.inputLevel.collect { level ->
+                _uiState.update { it.copy(inputLevel = level) }
+            }
+        }
+        viewModelScope.launch {
+            hardwareBridge.outputLevel.collect { level ->
+                _uiState.update { it.copy(outputLevel = level) }
+            }
+        }
+
+        // 4. Pipe outgoing canned hazard text messages to hardware BLE mesh
+        viewModelScope.launch {
+            for (wireFrame in meshTextManager.outgoingFrames) {
+                val encoded = MeshTextManager.encodeWireFrame(wireFrame)
+                hardwareBridge.sendControlPayload(ControlPayloadTag.TAG_TEXT, encoded)
+            }
+        }
+
+        // 5. Pipe outgoing GPS telemetry frames to hardware BLE mesh
+        viewModelScope.launch {
+            for (telemetryFrame in convoyGpsTracker.outgoingFrames) {
+                val encoded = ConvoyGpsTracker.encodeTelemetryFrame(telemetryFrame)
+                hardwareBridge.sendControlPayload(ControlPayloadTag.TAG_GPS, encoded)
+            }
+        }
+
+        // 6. Ingest incoming over-the-air text, GPS, and emergency alerts
+        viewModelScope.launch {
+            hardwareBridge.incomingTextFrames.collect { frame ->
+                meshTextManager.handleIncomingWireFrame(frame)
+            }
+        }
+        viewModelScope.launch {
+            hardwareBridge.incomingGpsFrames.collect { frame ->
+                convoyGpsTracker.handleIncomingTelemetry(frame)
+            }
+        }
+        viewModelScope.launch {
+            hardwareBridge.incomingEmergencyAlerts.collect {
+                val sosFrame = priorityManager.createEmergencyBroadcast(
+                    senderId = "remote-sos",
+                    audioData = ByteArray(0),
+                    alertType = AlertType.CRASH_DETECTED,
+                    sequence = 1L
+                )
+                priorityManager.shouldPlayFrame(sosFrame)
+            }
+        }
+
+        // 7. Ingest live local GPS fixes into convoy tracker
+        viewModelScope.launch {
+            hardwareBridge.localGpsCoordinate.collect { coord ->
+                if (coord != null) {
+                    convoyGpsTracker.updateLocalLocation(coord)
+                }
+            }
+        }
     }
 
     fun onAction(action: HomeUiAction) {
         when (action) {
             HomeUiAction.StartTransmitting -> {
-                _uiState.update { it.copy(isTransmitting = true) }
+                hardwareBridge.setPttActive(true)
             }
 
             HomeUiAction.StopTransmitting -> {
-                _uiState.update { it.copy(isTransmitting = false) }
+                hardwareBridge.setPttActive(false)
             }
 
             is HomeUiAction.SelectAudioProfile -> {
@@ -191,6 +267,7 @@ class HomeViewModel(
                         sequence = 1L
                     )
                     priorityManager.shouldPlayFrame(sosFrame)
+                    hardwareBridge.sendControlPayload(ControlPayloadTag.TAG_EMERGENCY, ByteArray(1) { 1 })
                 }
             }
 

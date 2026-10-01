@@ -37,6 +37,18 @@ import org.nowni.intercom_alpha.mesh.MeshTransport
 import org.nowni.intercom_alpha.mesh.MeshTransportImpl
 import org.nowni.intercom_alpha.mesh.Peer
 import org.nowni.intercom_alpha.power.PowerManagerHelper
+import android.Manifest
+import android.content.pm.PackageManager
+import android.location.LocationListener
+import android.location.LocationManager
+import org.nowni.intercom_alpha.audio.BlackboxAudioFrame
+import org.nowni.intercom_alpha.audio.PriorityLevel
+import org.nowni.intercom_alpha.bridge.AndroidPlatformBridge
+import org.nowni.intercom_alpha.bridge.ControlPayloadTag
+import org.nowni.intercom_alpha.channel.ChannelAudioFrame
+import org.nowni.intercom_alpha.telemetry.ConvoyGpsTracker
+import org.nowni.intercom_alpha.telemetry.GpsCoordinate
+import org.nowni.intercom_alpha.text.MeshTextManager
 
 class IntercomForegroundService : Service() {
 
@@ -53,6 +65,8 @@ class IntercomForegroundService : Service() {
     private var audioTxJob: Job? = null
     private var peersJob: Job? = null
     private var headsetEventsJob: Job? = null
+    private var controlRxJob: Job? = null
+    private var locationListener: LocationListener? = null
 
     private val _isTransmitting = MutableStateFlow(false)
     val isTransmitting: StateFlow<Boolean> = _isTransmitting.asStateFlow()
@@ -120,6 +134,7 @@ class IntercomForegroundService : Service() {
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
+        AndroidPlatformBridge.instance.bindService(this)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -198,13 +213,36 @@ class IntercomForegroundService : Service() {
                     )
                 )
 
-                // 4. Pipe incoming Mesh audio packets directly to AudioEngine playback
+                // 4. Pipe incoming Mesh audio packets directly to AudioEngine playback with Channel filtering and Blackbox caching
                 audioRxJob?.cancel()
                 audioRxJob = serviceScope.launch(Dispatchers.Default) {
                     for (packet in meshTransport.incomingAudio) {
                         try {
-                            val pcmShorts = audioEngine.decode(packet.data, packet.profile)
-                            audioEngine.playAudio(pcmShorts)
+                            val bridge = AndroidPlatformBridge.instance
+                            val activeChannelId = bridge.channelManager?.channelState?.value?.activeChannelId ?: 1
+                            val channelAudioFrame = ChannelAudioFrame(
+                                channelId = activeChannelId,
+                                senderId = packet.senderId,
+                                sequence = packet.sequence,
+                                timestamp = packet.timestamp,
+                                data = packet.data
+                            )
+                            val channelMgr = bridge.channelManager
+                            if (channelMgr == null || channelMgr.filterIncomingFrame(channelAudioFrame)) {
+                                val pcmShorts = audioEngine.decode(packet.data, packet.profile)
+                                audioEngine.playAudio(pcmShorts)
+
+                                bridge.blackboxRecorder?.recordFrame(
+                                    BlackboxAudioFrame(
+                                        timestampMs = packet.timestamp,
+                                        sequence = packet.sequence,
+                                        speakerId = packet.senderId,
+                                        speakerName = "",
+                                        priority = PriorityLevel.NORMAL,
+                                        adpcmData = packet.data
+                                    )
+                                )
+                            }
                         } catch (e: Exception) {
                             Log.e(TAG, "Error playing incoming audio packet", e)
                         }
@@ -247,6 +285,70 @@ class IntercomForegroundService : Service() {
                     }
                 }
 
+                // 8. Pipe incoming Mesh control packets (canned hazard text, GPS telemetry, emergency SOS)
+                controlRxJob?.cancel()
+                controlRxJob = serviceScope.launch(Dispatchers.Default) {
+                    for (controlPacket in meshTransport.incomingControl) {
+                        val payload = controlPacket.payload
+                        if (payload.isNotEmpty()) {
+                            val tag = payload[0]
+                            val content = payload.copyOfRange(1, payload.size)
+                            when (tag) {
+                                ControlPayloadTag.TAG_TEXT -> {
+                                    try {
+                                        val wireFrame = MeshTextManager.decodeWireFrame(content)
+                                        AndroidPlatformBridge.instance.postIncomingText(wireFrame)
+                                    } catch (e: Exception) {
+                                        Log.e(TAG, "Error decoding incoming text wire frame", e)
+                                    }
+                                }
+                                ControlPayloadTag.TAG_GPS -> {
+                                    try {
+                                        val frame = ConvoyGpsTracker.decodeTelemetryFrame(content)
+                                        AndroidPlatformBridge.instance.postIncomingGps(frame)
+                                    } catch (e: Exception) {
+                                        Log.e(TAG, "Error decoding incoming GPS frame", e)
+                                    }
+                                }
+                                ControlPayloadTag.TAG_EMERGENCY -> {
+                                    AndroidPlatformBridge.instance.postEmergencyAlert()
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 9. Stream real-time Android GPS coordinates into ConvoyGpsTracker
+                try {
+                    val locationManager = getSystemService(Context.LOCATION_SERVICE) as? LocationManager
+                    if (locationManager != null &&
+                        (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+                         checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
+                        locationListener = LocationListener { loc ->
+                            AndroidPlatformBridge.instance.postLocalGps(
+                                GpsCoordinate(
+                                    latitude = loc.latitude,
+                                    longitude = loc.longitude,
+                                    altitudeMeters = loc.altitude,
+                                    speedKmh = (loc.speed * 3.6).toFloat(),
+                                    headingDegrees = loc.bearing,
+                                    accuracyMeters = loc.accuracy,
+                                    timestampMs = loc.time
+                                )
+                            )
+                        }
+                        locationListener?.let { listener ->
+                            if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000L, 5f, listener)
+                            } else if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 2000L, 5f, listener)
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.w(TAG, "GPS location listener registration skipped", e)
+                }
+
                 updateNotification()
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to start intercom session", e)
@@ -270,6 +372,14 @@ class IntercomForegroundService : Service() {
             peersJob = null
             headsetEventsJob?.cancel()
             headsetEventsJob = null
+            controlRxJob?.cancel()
+            controlRxJob = null
+            locationListener?.let { listener ->
+                val locationManager = getSystemService(Context.LOCATION_SERVICE) as? LocationManager
+                locationManager?.removeUpdates(listener)
+                locationListener = null
+            }
+            AndroidPlatformBridge.instance.unbindService()
 
             serviceScope.launch {
                 try {
@@ -301,6 +411,7 @@ class IntercomForegroundService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "IntercomForegroundService onDestroy")
+        AndroidPlatformBridge.instance.unbindService()
         handleExplicitDisconnect()
         serviceScope.cancel()
     }
