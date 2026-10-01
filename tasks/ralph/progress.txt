@@ -627,6 +627,25 @@
   - `./gradlew test`: 100% test pass across all modules (151+ tests in sharedLogic, sharedUI, core, server, desktopApp, androidApp) in 12s.
   - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 39s with 0 errors (Rule 6).
   - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+---
+
+### [2026-10-01] - ICA-1301: Android Platform Hardware-to-Cockpit Service Bridge
+- **Branch**: `feature/ICA-1301-android-hardware-service-bridge`
+- **Objective**: Wire HomeViewModel to the live Android IntercomForegroundService, connecting real Push-To-Talk audio capture/playback, live BLE mesh peers, real-time RMS audio levels, and GPS/canned hazard mesh packet routing.
+- **Implementation**:
+  - `IntercomHardwareBridge.kt`: Defined platform abstraction contract with `isTransmitting`, `connectedPeers`, `inputLevel`, `outputLevel`, `incomingTextFrames`, `incomingGpsFrames`, `incomingEmergencyAlerts`, `localGpsCoordinate`, and `NoOpIntercomHardwareBridge` fallback.
+  - `AndroidPlatformBridge.kt`: Concrete Android singleton coordinating with `IntercomForegroundService`, syncing PTT state, BLE peers, and mic/speaker RMS levels, while forwarding OTA control packets and location updates.
+  - `IntercomForegroundService.kt`: Bound `AndroidPlatformBridge.instance` in `onCreate()` / `onDestroy()`, wired channel filtering and blackbox recording to incoming mesh audio, added incoming control packet listener dispatching text/GPS/SOS, and streamed real-time GPS location updates via Android `LocationManager`.
+  - `HomeViewModel.kt`: Injected `IntercomHardwareBridge`, bound UI PTT actions to hardware PTT, piped live BLE peers directly into `HomeUiState.peers` and `ProximityRadar`, streamed RMS levels into UI meters, routed outgoing canned hazard text and GPS frames over BLE mesh, and ingested incoming OTA messages/telemetry.
+  - `HomeScreen.kt`: Updated microphone audio level meter to prioritize live streamed RMS level over static fallbacks.
+  - `MainActivity.kt`: Expanded permission requests to include `ACCESS_FINE_LOCATION` and `ACCESS_COARSE_LOCATION` across all Android versions for Convoy GPS tracking.
+  - `AppModule.kt` & `IntercomAlphaApplication.kt`: Added `createSharedUiModule(hardwareBridge)` for type-safe DI injection of `AndroidPlatformBridge.instance` on Android while preserving `NoOpIntercomHardwareBridge` for JVM/tests.
+  - `HomeViewModelTest.kt`: Added unit tests verifying real-time hardware bridge PTT, peer discovery, audio level streaming, and OTA control frame ingestion.
+- **Verification**:
+  - `./gradlew test`: 100% test pass across all modules in 16s.
+  - `./gradlew :app:androidApp:assembleDebug`: BUILD SUCCESSFUL in 33s.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
 ---
 

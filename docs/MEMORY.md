@@ -309,8 +309,16 @@
     - `PowerProfiler.kt`: Added `currentTxStartMs` tracking across intermediate reports to ensure robust runaway wakelock detection (> 60s continuous Tx).
     - `ConvoyGpsTracker.kt`: Added fallback to `coordinate.timestampMs` in `handleIncomingTelemetry` when `frame.timestampMs` is 0L, ensuring accurate stale rider pruning.
 
----
 
+### 2.36 Android Platform Hardware-to-Cockpit Service Bridge (`AndroidPlatformBridge.kt` & `IntercomHardwareBridge.kt`)
+- **Challenge**: Connecting the presentation layer (`HomeViewModel` in `sharedUI`) to the background Android engine (`IntercomForegroundService` in `androidApp`) to replace mock states with live Bluetooth LE mesh audio, real peers, real-time mic/speaker RMS meters, and OTA control packets, while maintaining 100% KMP architectural cleanliness and zero-leak lifecycle safety.
+- **Solution**:
+  - `IntercomHardwareBridge.kt`: Defined pure KMP platform hardware contract in `sharedLogic/commonMain` with reactive StateFlows for `isTransmitting`, `connectedPeers`, `inputLevel`, `outputLevel`, `localGpsCoordinate`, and SharedFlows for incoming OTA text, GPS, and emergency frames. Implemented `NoOpIntercomHardwareBridge` for JVM/desktop/test environments.
+  - `AndroidPlatformBridge.kt`: Concrete Android singleton in `androidApp` coordinating bidirectional flow with `IntercomForegroundService`. Observes live mic/speaker RMS levels, syncs PTT state across UI and physical helmet buttons, and routes outgoing control packets.
+  - `IntercomForegroundService.kt`: Bound `AndroidPlatformBridge.instance` on create/destroy, integrated channel audio filtering and blackbox recording on incoming audio packets, added incoming control packet dispatch (text, GPS, emergency SOS), and streamed real-time Android `LocationManager` updates into `ConvoyGpsTracker`.
+  - `AppModule.kt`: Implemented `createSharedUiModule(hardwareBridge)` for type-safe DI injection of `AndroidPlatformBridge.instance` on Android while retaining `NoOpIntercomHardwareBridge` for multiplatform test suites.
+
+---
 
 ## 🗂️ 3. Monorepo File & Component Index
 

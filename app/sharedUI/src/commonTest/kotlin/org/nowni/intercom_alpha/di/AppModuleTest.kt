@@ -50,6 +50,7 @@ class AppModuleTest {
         val priorityManager: PriorityBroadcastManager = koin.get()
         val blackboxRecorder: EmergencyBlackboxRecorder = koin.get()
         val bitrateController: AdaptiveBitrateController = koin.get()
+        val hardwareBridge: org.nowni.intercom_alpha.bridge.IntercomHardwareBridge = koin.get()
         val homeViewModel: HomeViewModel = koin.get()
 
         assertNotNull(channelManager)
@@ -59,6 +60,7 @@ class AppModuleTest {
         assertNotNull(priorityManager)
         assertNotNull(blackboxRecorder)
         assertNotNull(bitrateController)
+        assertNotNull(hardwareBridge)
         assertNotNull(homeViewModel)
     }
 }
