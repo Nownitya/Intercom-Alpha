@@ -341,6 +341,36 @@
     - Confirmed LZ77 compressed blackbox stays bounded < 1 MB (< 505 KB buffer alone, < 850 KB with active incident snapshot, < 1.2 MB across 5 incident snapshots; well under 3 MB threshold).
     - Validated 4-hour motorcycle ride power model demonstrating < 3.2% total battery consumption on a reference 4,000 mAh battery (target < 30%).
 
+### 2.39 Pure KMP Perfect Forward Secrecy & Ephemeral Key Ratchet (`MeshKeyRatchet.kt`, `PacketCipher.kt`)
+- **Challenge**: Standard symmetric mesh channel keys provide no forward secrecy if a rider's device is compromised, lost, or inspected offline after a group tour.
+- **Solution**:
+  - Implemented RFC 2104 HMAC-SHA256 and RFC 5869 HKDF-SHA256 in 100% pure Kotlin Multiplatform (Rule 3) within `PacketCipher.kt`.
+  - Created `MeshKeyRatchet.kt` implementing symmetric KDF chain ratcheting. Message keys advance per transmission, immediately zeroizing ephemeral secrets via `.fill(0)`.
+  - Maintained bounded out-of-order skipped key cache (`maxSkippedKeysPerPeer = 100`) to recover disordered packet delivery while enforcing replay protection.
+  - Provided full zeroization on session termination via `destroy()`.
+
+### 2.40 Direct Helmet Intercom Bluetooth GATT Accessory Profile (`HelmetAccessoryManager.kt`)
+- **Challenge**: Riders wearing gloves at highway speeds cannot interact with touchscreen phones; they rely on Cardo PackTalk, Sena 50S/RC4, or EJEAS handlebar remotes.
+- **Solution**:
+  - Created pure KMP `HelmetAccessoryManager.kt` supporting Cardo, Sena, EJEAS, and generic BLE HID handlebar remotes.
+  - Parsed Bluetooth SIG standard Battery level (`0x2A19`), Device Information, button opcodes/bitmasks, and integrated a 60-second runaway PTT safety watchdog.
+  - Provided audio route preference arbitration (`BLUETOOTH_SCO`, `A2DP_HIGH_FIDELITY`, `BUILTIN_SPEAKER`) and automatic PTT release on accessory disconnect.
+
+### 2.41 iOS 18+ Live Activity & Dynamic Island Hands-Free Cockpit Widget (`IntercomActivityWidget.swift`)
+- **Challenge**: iOS riders require glanceable mesh state and hands-free PTT without keeping the app foregrounded, strictly complying with Rule 1 (100% native SwiftUI / zero shared Compose on iOS).
+- **Solution**:
+  - Implemented native `ActivityAttributes` and `ContentState` in `IntercomActivityAttributes.swift`.
+  - Built `IntercomActivityWidget.swift` with Compact Leading/Trailing, Minimal, and Expanded Dynamic Island layouts, live radar bearing compass indicators, and a Lock Screen / StandBy cockpit card.
+  - Tied ActivityKit lifecycle directly to `IntercomViewModel.swift` using iOS 16.2+ / iOS 18+ `ActivityContent`.
+
+### 2.42 Multi-Cluster Cloud Cross-Mesh SFU Signaling & Audio Bridging (`SignalingProtocol.kt`, `SignalingServerManager.kt`, `CloudRelayBridge.kt`)
+- **Challenge**: Multiple geographically separated riding convoys need to bridge across cellular networks without audio transcoding or latency overhead, while preventing routing loops.
+- **Solution**:
+  - Added polymorphic `SignalingMessage.ClusterBridge` message with `#type` class discriminator preventing collision with `MeshPacket.Control.type`.
+  - Enabled transcode-free routing of 4-bit ADPCM packets across rooms and clusters with zero latency penalty and bidirectional server room bridging (`bridgeRooms`, `unbridgeRooms`, `getBridgedRooms`).
+  - Implemented circular routing loop prevention in `CloudRelayBridge` via `hopLimit` and `clusterPath` traversal inspection.
+  - Dynamically aggregated multi-cluster peer presence and smoothed incoming cross-mesh audio frames via `AdaptiveJitterBuffer`.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.0] - 2026-10-04 — Sprint 14: Advanced Convoy Mesh, Forward-Secret Key Ratchet & Live Activity
+
+### Added
+- **Pure KMP Perfect Forward Secrecy (PFS) & Ephemeral Key Ratchet (`MeshKeyRatchet.kt` & `PacketCipher.kt`)**: Implemented RFC 2104 HMAC-SHA256 and RFC 5869 HKDF-SHA256 in 100% pure Kotlin Multiplatform (Rule 3). Implemented rolling symmetric KDF chain ratcheting deriving ephemeral keys that immediately zeroize previous secrets (`.fill(0)`), combined with a bounded skipped key cache for disordered mesh packet decryption and replay defense.
+- **Direct Helmet Intercom Bluetooth GATT Accessory Profile (`HelmetAccessoryManager.kt`)**: Implemented specialized BLE GATT client profile with parsers for Cardo PackTalk, Sena 50S/RC4, EJEAS EUC, and generic BLE HID handlebar remotes. Integrated SIG Battery telemetry, button press/release opcodes, 60-second runaway PTT safety watchdog, and audio route preference arbitration (`BLUETOOTH_SCO`, `A2DP`, `BUILTIN_SPEAKER`).
+- **iOS 18+ Live Activity & Dynamic Island Hands-Free PTT Widget (`IntercomActivityWidget.swift` & `IntercomActivityAttributes.swift`)**: Built 100% native SwiftUI / ActivityKit cockpit widget (Rule 1) with Compact, Minimal, and Expanded Dynamic Island layouts, live radar bearing compass indicators, large hands-on PTT touch trigger, and StandBy/Lock Screen active audio controls tied to `IntercomViewModel`.
+- **Multi-Cluster Cloud Cross-Mesh SFU Signaling & Audio Bridging (`SignalingProtocol.kt`, `SignalingServerManager.kt`, `CloudRelayBridge.kt`)**: Added polymorphic `SignalingMessage.ClusterBridge` message with `#type` discriminator. Supported transcode-free routing of 4-bit ADPCM packets across rooms and clusters with zero latency penalty, bidirectional server room bridging, loop prevention via hop limit and path traversal inspection, multi-cluster peer presence aggregation, and adaptive jitter buffer smoothing.
+
+---
+
 ## [2.0.0] - 2026-10-04 — Sprint 13: v2.0 Production Release & Hardening
 
 ### Added

@@ -15,14 +15,15 @@
 
 | Task ID | Item | Owner | Target Files | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **ICA-1401** | Pure KMP Perfect Forward Secrecy (PFS) & Ephemeral Key Ratchet Engine | Ralph | `MeshKeyRatchet.kt`, `PacketCipher.kt`, `MeshKeyRatchetTest.kt` | ⏳ Pending |
-| **ICA-1402** | Direct Helmet Intercom Bluetooth GATT Accessory Profile (Cardo / Sena / EJEAS) | Ralph | `HelmetAccessoryManager.kt`, `HeadsetManager.kt`, `HelmetAccessoryManagerTest.kt` | ⏳ Pending |
-| **ICA-1403** | iOS 18+ Live Activity & Dynamic Island Hands-Free PTT Widget | Ralph | `IntercomActivityAttributes.swift`, `IntercomActivityWidget.swift`, `IntercomViewModel.swift`, `IntercomBridge.kt` | ⏳ Pending |
-| **ICA-1404** | Multi-Cluster Cloud Cross-Mesh SFU Signaling & Audio Bridging | Ralph | `SignalingProtocol.kt`, `SignalingServerManager.kt`, `CloudRelayBridge.kt`, `MultiClusterBridgeTest.kt` | ⏳ Pending |
+| **ICA-1401** | Pure KMP Perfect Forward Secrecy (PFS) & Ephemeral Key Ratchet Engine | Ralph | `MeshKeyRatchet.kt`, `PacketCipher.kt`, `MeshKeyRatchetTest.kt` | ✅ Completed |
+| **ICA-1402** | Direct Helmet Intercom Bluetooth GATT Accessory Profile (Cardo / Sena / EJEAS) | Ralph | `HelmetAccessoryManager.kt`, `HeadsetManager.kt`, `HelmetAccessoryManagerTest.kt` | ✅ Completed |
+| **ICA-1403** | iOS 18+ Live Activity & Dynamic Island Hands-Free PTT Widget | Ralph | `IntercomActivityAttributes.swift`, `IntercomActivityWidget.swift`, `IntercomViewModel.swift`, `IntercomBridge.kt` | ✅ Completed |
+| **ICA-1404** | Multi-Cluster Cloud Cross-Mesh SFU Signaling & Audio Bridging | Ralph | `SignalingProtocol.kt`, `SignalingServerManager.kt`, `CloudRelayBridge.kt`, `MultiClusterBridgeTest.kt` | ✅ Completed |
 
 ---
 
 ## 📦 Historical Sprint Archive
+- ✅ **Sprint 14: Advanced Convoy Mesh, Forward-Secret Key Ratchet & Live Activity**: Completed 2026-10-04 (100% DoD).
 - ✅ **Sprint 13: v2.0 Production Release & Hardening (v2.0.0 Release Tag)**: Completed 2026-10-04 (100% DoD).
 - ✅ **Sprint 12: Multiplatform Cockpit UI & Bridge Integration**: Completed 2026-10-01 (100% DoD).
 - ✅ **Sprint 11: Convoy Situational Awareness, GPS Mesh Telemetry & Blackbox Voice Cache**: Completed 2026-10-01 (100% DoD).
