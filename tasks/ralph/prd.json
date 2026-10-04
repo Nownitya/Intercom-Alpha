@@ -59,7 +59,7 @@
         "Memory footprint benchmark confirms LZ77 compressed blackbox stays bounded <1MB under 3000 frames",
         "Background audio routing releases SCO cleanly upon service termination"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-1304",

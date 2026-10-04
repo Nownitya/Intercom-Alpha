@@ -150,12 +150,12 @@
 ### ⏳ Sprint 13: v2.0 Production Release & Hardening (Phase 11 - v2.0 Roadmap)
 - **Sprint Goal**: Wire Android platform hardware engine to Compose Cockpit UI, validate release build variants, verify battery/memory bounds, and perform v2.0.0 production release tagging.
 - **Sprint Branch**: `sprint/sprint-13-v2-production-release`
-- **Status**: ⏳ In Progress (2 of 4 Stories Passed)
+- **Status**: ⏳ In Progress (3 of 4 Stories Passed)
 
 | Task ID | Item | Target Files | Status |
 | :--- | :--- | :--- | :--- |
 | **ICA-1301** | Android Platform Hardware-to-Cockpit Service Bridge | `IntercomForegroundService.kt`, `AndroidPlatformBridge.kt`, `HomeViewModel.kt`, `HomeUiState.kt` | ✅ Completed |
 | **ICA-1302** | Multiplatform Production Release Build & ProGuard Hardening | `build.gradle.kts`, `proguard-rules.pro`, `libs.versions.toml` | ✅ Completed |
-| **ICA-1303** | Long-Running Battery, WakeLock & Memory Profiling Gate | `PowerProfilerTest.kt`, `IntercomForegroundService.kt` | ⏳ Pending |
+| **ICA-1303** | Long-Running Battery, WakeLock & Memory Profiling Gate | `PowerProfilerTest.kt`, `IntercomForegroundService.kt` | ✅ Completed |
 | **ICA-1304** | Architecture Sync, Documentation & v2.0.0 Release Tagging | `docs/PRD.md`, `CHANGELOG.md`, `ROADMAP.md` | ⏳ Pending |
 

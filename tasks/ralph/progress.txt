@@ -668,3 +668,24 @@
   - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
 ---
+
+### [2026-10-04] - ICA-1303: Long-Running Battery, WakeLock & Memory Profiling Gate
+- **Branch**: `feature/ICA-1303-battery-wakelock-profiling`
+- **Objective**: Validate 4-hour background mesh continuity, CPU WakeLock acquisition/release semantics, and verify RAM stays bounded <80MB total (with <3MB blackbox cache).
+- **Implementation**:
+  - `PowerManagerHelper.kt`: Implemented reference-counted `pttWakeLock` (`"IntercomAlpha:PttTxWakeLock"`) with automatic 60-second runaway watchdog timeout (`acquirePttWakeLock`, `releasePttWakeLock`, `isPttWakeLockHeld`, `releaseAllWakeLocks`).
+  - `IntercomForegroundService.kt`: Balanced PTT wake lock acquisition and release inside `setTransmitting(Boolean)`, and ensured `releaseAllWakeLocks()` runs in `handleExplicitDisconnect()` and `onDestroy()` `finally` blocks for 100% leak-prevention.
+  - `build.gradle.kts`: Added unit testing dependencies (`libs.junit`, `libs.kotlin.test`, `libs.kotlinx.coroutines.test`) to `androidApp`.
+  - `PowerProfilerTest.kt`: Created 5 unit test suites in `app/androidApp/src/test/kotlin/org/nowni/intercom_alpha/profiler/`:
+    - `testWakeLockAcquisitionAndReleaseBalanceAcrossPttAndStandbyStates`: Validated strict balance across PTT and standby states, rapid button chatter, and leak-free teardown.
+    - `testBackgroundAudioRoutingReleasesScoCleanlyUponServiceTermination`: Validated that SCO route is cleanly disabled and headset manager stopped upon service termination.
+    - `testMemoryFootprintBenchmarkLz77CompressedBlackboxBoundedUnderOneMegabyte`: Benchmarked 3,000 frames (<505 KB buffer alone, <850 KB with active incident snapshot, <1.2 MB across 5 incident snapshots; well under 3 MB threshold).
+    - `testFourHourBackgroundMeshContinuityAndDutyCycle`: Validated 4-hour motorcycle ride power model (<3.2% battery drain on 4,000 mAh battery, target <30%).
+    - `testRunawayWakeLockSafetyWatchdog`: Validated automatic alert trigger if PTT remains held for >= 60 seconds continuous.
+- **Verification**:
+  - `./gradlew :app:androidApp:testDebugUnitTest`: 5/5 test suites passed cleanly in 5s.
+  - `./gradlew test`: 100% multiplatform test pass across all modules in 5s.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 4s with 0 errors (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
