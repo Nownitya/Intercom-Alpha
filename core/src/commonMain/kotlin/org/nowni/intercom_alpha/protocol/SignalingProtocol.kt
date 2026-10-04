@@ -1,8 +1,11 @@
 package org.nowni.intercom_alpha.protocol
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Polymorphic
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonClassDiscriminator
 
 @Serializable
 data class PeerInfo(
@@ -10,9 +13,12 @@ data class PeerInfo(
     val displayName: String,
     val platform: String,
     val currentRoom: String? = null,
-    val isTransmitting: Boolean = false
+    val isTransmitting: Boolean = false,
+    val clusterId: String? = null
 )
 
+@OptIn(ExperimentalSerializationApi::class)
+@JsonClassDiscriminator("#type")
 @Serializable
 sealed class SignalingMessage {
 
@@ -126,9 +132,31 @@ sealed class SignalingMessage {
     ) : SignalingMessage()
 
     @Serializable
+    @SerialName("ClusterBridge")
+    data class ClusterBridge(
+        val bridgeId: String,
+        val sourceClusterId: String,
+        val targetClusterId: String? = null,
+        val targetRoomId: String? = null,
+        val packetType: String,
+        val payloadBase64: String,
+        val hopLimit: Int = 3,
+        val clusterPath: List<String> = emptyList(),
+        val memberPresence: List<PeerInfo> = emptyList(),
+        val timestampMs: Long
+    ) : SignalingMessage()
+
+    @Serializable
     @SerialName("ErrorMessage")
     data class ErrorMessage(
         val code: Int,
         val message: String
     ) : SignalingMessage()
+}
+
+val DefaultSignalingJson = Json {
+    classDiscriminator = "#type"
+    ignoreUnknownKeys = true
+    prettyPrint = false
+    encodeDefaults = true
 }

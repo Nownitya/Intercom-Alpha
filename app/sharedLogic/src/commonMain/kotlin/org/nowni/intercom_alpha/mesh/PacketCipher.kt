@@ -511,3 +511,78 @@ object Sha256 {
         return out
     }
 }
+
+/**
+ * Pure Kotlin RFC 2104 HMAC-SHA256 implementation with zero platform dependencies.
+ */
+object HmacSha256 {
+    private const val BLOCK_SIZE = 64
+
+    fun mac(key: ByteArray, data: ByteArray): ByteArray {
+        val preparedKey = when {
+            key.size > BLOCK_SIZE -> Sha256.digest(key)
+            else -> key
+        }
+        val keyPadded = ByteArray(BLOCK_SIZE)
+        preparedKey.copyInto(keyPadded, 0)
+
+        val kIpad = ByteArray(BLOCK_SIZE)
+        val kOpad = ByteArray(BLOCK_SIZE)
+        for (i in 0 until BLOCK_SIZE) {
+            kIpad[i] = (keyPadded[i].toInt() xor 0x36).toByte()
+            kOpad[i] = (keyPadded[i].toInt() xor 0x5c).toByte()
+        }
+
+        val innerData = ByteArray(BLOCK_SIZE + data.size)
+        kIpad.copyInto(innerData, 0)
+        data.copyInto(innerData, BLOCK_SIZE)
+        val innerHash = Sha256.digest(innerData)
+
+        val outerData = ByteArray(BLOCK_SIZE + 32)
+        kOpad.copyInto(outerData, 0)
+        innerHash.copyInto(outerData, BLOCK_SIZE)
+        return Sha256.digest(outerData)
+    }
+}
+
+/**
+ * Pure Kotlin RFC 5869 HKDF-SHA256 (HMAC-based Extract-and-Expand Key Derivation).
+ */
+object HkdfSha256 {
+
+    fun extract(salt: ByteArray?, ikm: ByteArray): ByteArray {
+        val effectiveSalt = if (salt == null || salt.isEmpty()) ByteArray(32) else salt
+        return HmacSha256.mac(effectiveSalt, ikm)
+    }
+
+    fun expand(prk: ByteArray, info: ByteArray, length: Int): ByteArray {
+        require(length <= 255 * 32) { "HKDF expand length must be <= 8160 bytes" }
+        val n = (length + 31) / 32
+        val okm = ByteArray(length)
+        var t = ByteArray(0)
+        var offset = 0
+
+        for (i in 1..n) {
+            val input = ByteArray(t.size + info.size + 1)
+            t.copyInto(input, 0)
+            info.copyInto(input, t.size)
+            input[input.size - 1] = i.toByte()
+
+            t = HmacSha256.mac(prk, input)
+            val bytesToCopy = minOf(32, length - offset)
+            t.copyInto(okm, offset, 0, bytesToCopy)
+            offset += bytesToCopy
+        }
+        return okm
+    }
+
+    fun deriveSecrets(
+        salt: ByteArray?,
+        ikm: ByteArray,
+        info: ByteArray,
+        length: Int
+    ): ByteArray {
+        val prk = extract(salt, ikm)
+        return expand(prk, info, length)
+    }
+}

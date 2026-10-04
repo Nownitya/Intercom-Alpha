@@ -1,81 +1,81 @@
 {
   "project": "Intercom-Alpha",
-  "branchName": "sprint/sprint-13-v2-production-release",
-  "phase": "Phase 11: v2.0 Production Release & Hardening",
-  "sprint": "Sprint 13",
-  "updatedAt": "2026-10-01T07:22:00Z",
+  "branchName": "sprint/sprint-14-advanced-convoy-mesh",
+  "phase": "Phase 12: Advanced Convoy Mesh, Forward-Secret Key Ratchet & Live Activity",
+  "sprint": "Sprint 14",
+  "updatedAt": "2026-10-04T15:55:00Z",
   "stories": [
     {
-      "id": "ICA-1301",
+      "id": "ICA-1401",
       "priority": 1,
-      "title": "Android Platform Hardware-to-Cockpit Service Bridge",
-      "description": "Wire HomeViewModel to the live Android IntercomForegroundService, connecting real Push-To-Talk audio capture/playback, live BLE mesh peers, real-time RMS audio levels, and GPS/canned hazard mesh packet routing.",
+      "title": "Pure KMP Perfect Forward Secrecy (PFS) & Ephemeral Key Ratchet Engine",
+      "description": "Implement pure Kotlin multiplatform Double-Ratchet / Ephemeral Key Rotation engine (MeshKeyRatchet.kt) for mesh channels: derive rolling ephemeral session keys from master group secret using pure Kotlin HKDF-SHA256, maintain out-of-order packet decryption key cache with replay protection, and support out-of-band RATCHET_ADVANCE control frames.",
       "targetFiles": [
-        "app/androidApp/src/main/kotlin/org/nowni/intercom_alpha/service/IntercomForegroundService.kt",
-        "app/androidApp/src/main/kotlin/org/nowni/intercom_alpha/bridge/AndroidPlatformBridge.kt",
-        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/HomeViewModel.kt",
-        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/state/HomeUiState.kt",
-        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/di/AppModule.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/crypto/MeshKeyRatchet.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/PacketCipher.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/crypto/MeshKeyRatchetTest.kt"
       ],
       "acceptanceCriteria": [
-        "HomeViewModel binds cleanly to platform hardware intercom provider interface without violating KMP separation",
-        "StartTransmitting/StopTransmitting triggers live AudioEngine recording and BLE mesh audio packet dispatch",
-        "Real BLE mesh peer roster flows into HomeUiState.peers replacing static mocks",
-        "Live microphone input level and speaker output level flow from AudioEngine into HomeUiState meters",
-        "Outgoing canned hazard and GPS telemetry packets route directly to MeshTransport broadcast",
-        "Zero regressions in existing multiplatform test suites"
+        "Pure Kotlin Multiplatform with zero Java (java.security.*) or C/JNI dependencies (Rule 3)",
+        "Key ratchet advances automatically every N packets or time window while supporting out-of-order packet arrival",
+        "Previous session keys are securely cleared from memory guaranteeing forward secrecy",
+        "100% test pass on JVM and compileKotlinIosSimulatorArm64 (Rule 6)"
       ],
       "passes": true
     },
     {
-      "id": "ICA-1302",
+      "id": "ICA-1402",
       "priority": 2,
-      "title": "Multiplatform Production Release Build & ProGuard Hardening",
-      "description": "Configure release build targets, versioning (versionCode = 2, versionName = '2.0.0'), Proguard/R8 obfuscation rules for KMP/Ktor/Serialization, and verify assembleRelease for Android and XCFramework for iOS.",
+      "title": "Direct Helmet Intercom Bluetooth GATT Accessory Profile (Cardo / Sena / EJEAS)",
+      "description": "Implement specialized Bluetooth Low Energy GATT client profile (HelmetAccessoryManager.kt) for direct motorcycle helmet intercom communication: Cardo, Sena, and EJEAS handlebar remote PTT button listening, battery level telemetry reporting, and SCO/A2DP audio link fallback management.",
       "targetFiles": [
-        "app/androidApp/build.gradle.kts",
-        "app/androidApp/proguard-rules.pro",
-        "gradle/libs.versions.toml"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/headset/HelmetAccessoryManager.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/headset/HeadsetManager.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/headset/HelmetAccessoryManagerTest.kt"
       ],
       "acceptanceCriteria": [
-        "Android release build succeeds via ./gradlew :app:androidApp:assembleRelease",
-        "ProGuard rules safely preserve kotlinx.serialization models and Koin bindings",
-        "iOS framework compiles cleanly via ./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64",
-        "App bundle size is optimized with minification enabled"
+        "Pure KMP contract with platform-agnostic GATT characteristic UUID definitions",
+        "Detects and parses remote PTT click/press/release events from handlebar remotes and helmet dials",
+        "Streams accessory battery percentage and connection status to HomeUiState and IntercomViewModel",
+        "Full unit test suite verifying accessory discovery, event dispatch, and disconnect handling"
       ],
       "passes": true
     },
     {
-      "id": "ICA-1303",
+      "id": "ICA-1403",
       "priority": 3,
-      "title": "Long-Running Battery, WakeLock & Memory Profiling Gate",
-      "description": "Validate 4-hour background mesh continuity, CPU WakeLock acquisition/release semantics, and verify RAM stays bounded <80MB total (with <3MB blackbox cache).",
+      "title": "iOS 18+ Live Activity & Dynamic Island Hands-Free PTT Widget",
+      "description": "Implement 100% native iOS Live Activity and Dynamic Island interactive cockpit widget (IntercomActivityWidget.swift) using ActivityKit and WidgetKit: compact leading/trailing indicators, expanded view with large hands-on PTT touch trigger, active rider radar bearing, and emergency alert card.",
       "targetFiles": [
-        "app/androidApp/src/main/kotlin/org/nowni/intercom_alpha/service/IntercomForegroundService.kt",
-        "app/androidApp/src/test/kotlin/org/nowni/intercom_alpha/profiler/PowerProfilerTest.kt"
+        "app/iosApp/iosApp/IntercomActivityAttributes.swift",
+        "app/iosApp/iosApp/IntercomActivityWidget.swift",
+        "app/iosApp/iosApp/IntercomViewModel.swift",
+        "app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomBridge.kt"
       ],
       "acceptanceCriteria": [
-        "WakeLock acquire/release is strictly balanced across PTT and standby states",
-        "Memory footprint benchmark confirms LZ77 compressed blackbox stays bounded <1MB under 3000 frames",
-        "Background audio routing releases SCO cleanly upon service termination"
+        "100% Native SwiftUI / WidgetKit implementation adhering to Rule 1 (zero shared Compose on iOS)",
+        "Dynamic Island displays real-time active channel, transmitting rider, and RF link margin",
+        "Lock Screen Live Activity provides instant 1-tap channel switch and SOS trigger",
+        "ActivityKit lifecycle tied cleanly to active intercom session via IntercomBridge"
       ],
       "passes": true
     },
     {
-      "id": "ICA-1304",
+      "id": "ICA-1404",
       "priority": 4,
-      "title": "Architecture Sync, Documentation & v2.0.0 Release Tagging",
-      "description": "Update project documentation (PRD.md, ARCHITECTURE.md, TASKS.md, SPRINT.md, CHANGELOG.md), regenerate knowledge graph and archify diagrams, tag release v2.0.0, and merge sprint branch to develop.",
+      "title": "Multi-Cluster Cloud Cross-Mesh SFU Signaling & Audio Bridging",
+      "description": "Extend :core signaling protocol and :server Ktor SFU audio bridge to interconnect multiple independent BLE mesh clusters: SignalingMessage.ClusterBridge, transcode-free routing of 4-bit ADPCM packets with jitter smoothing, and multi-cluster peer presence aggregation.",
       "targetFiles": [
-        "docs/TASKS.md",
-        "SPRINT.md",
-        "CHANGELOG.md",
-        "docs/PRD.md"
+        "core/src/commonMain/kotlin/org/nowni/intercom_alpha/protocol/SignalingProtocol.kt",
+        "server/src/main/kotlin/org/nowni/intercom_alpha/server/signaling/SignalingServerManager.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/CloudRelayBridge.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/MultiClusterBridgeTest.kt"
       ],
       "acceptanceCriteria": [
-        "100% of Definition of Done criteria met across all stories",
-        "Graphify knowledge base synced with zero errors",
-        "Clean git commit history with semantic versioning tag v2.0.0"
+        "SignalingProtocol registers ClusterBridge polymorphic message type with #type discriminator",
+        "SignalingServerManager routes audio frames across rooms without audio transcoding or latency penalty",
+        "CloudRelayBridge aggregates cross-cluster peer presence and prevents routing loops",
+        "100% test pass across :core, :server, and :app:sharedLogic"
       ],
       "passes": true
     }
