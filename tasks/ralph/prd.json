@@ -39,7 +39,7 @@
         "Streams accessory battery percentage and connection status to HomeUiState and IntercomViewModel",
         "Full unit test suite verifying accessory discovery, event dispatch, and disconnect handling"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-1403",

@@ -742,3 +742,31 @@
   - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
 ---
+
+### [2026-10-04] - ICA-1402: Direct Helmet Intercom Bluetooth GATT Accessory Profile (Cardo / Sena / EJEAS)
+- **Branch**: `feature/ICA-1402-helmet-gatt-accessory`
+- **Objective**: Implement specialized Bluetooth Low Energy GATT client profile (`HelmetAccessoryManager.kt`) for direct motorcycle helmet intercom communication: Cardo, Sena, and EJEAS handlebar remote PTT button listening, battery level telemetry reporting, and SCO/A2DP audio link fallback management.
+- **Implementation**:
+  - `HelmetAccessoryManager.kt`: Created pure KMP accessory manager in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/headset/`:
+    - Defined `HelmetBrand` (`CARDO`, `SENA`, `EJEAS`, `GENERIC_BLE_REMOTE`, `UNKNOWN`), `RemotePttAction` (`PRESSED`, `RELEASED`, `CLICK`, `DOUBLE_CLICK`, `LONG_PRESS`), `RemotePttEvent`, and `HelmetAccessoryState`.
+    - Defined standard Bluetooth SIG and vendor GATT UUID constants (`BATTERY_SERVICE`, `DEVICE_INFO`, `CARDO_CONTROL`, `SENA_RC`, `EJEAS_REMOTE`, `HID_REPORT`).
+    - Implemented GATT notification parsers for Cardo PackTalk/Freecom opcodes, Sena 50S/RC4 center button bitmasks, EJEAS EUC/V6 opcodes, and generic BLE HID keyboard/consumer reports.
+    - Added automatic device name / manufacturer identification heuristics.
+    - Integrated runaway PTT safety watchdog: automatically forces PTT release after 60 continuous seconds to prevent battery drain or open-mic chatter.
+    - Provided audio route preference arbitration (`BLUETOOTH_SCO`, `A2DP_HIGH_FIDELITY`, `BUILTIN_SPEAKER`) and automatic PTT release on accessory disconnect.
+  - `HelmetAccessoryManagerTest.kt`: Created 11 comprehensive unit test suites in `commonTest`:
+    - Tested brand identification from device names and manufacturer strings.
+    - Tested battery percentage parsing (clamped 0..100%).
+    - Tested firmware revision and model number parsing.
+    - Tested Cardo, Sena, and EJEAS button event frames.
+    - Tested generic BLE HID reports.
+    - Tested runaway PTT safety watchdog at 30s vs 65s.
+    - Tested disconnect auto-release and audio route preference overrides.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: 173 tests passed in 22s.
+  - `./gradlew test`: 100% test pass across all modules in 14s.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 39s (Rule 6).
+  - `./gradlew :app:androidApp:assembleDebug`: BUILD SUCCESSFUL in 19s.
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
