@@ -184,6 +184,11 @@ class IntercomForegroundService : Service() {
     fun setTransmitting(transmitting: Boolean) {
         if (_isTransmitting.value != transmitting) {
             _isTransmitting.value = transmitting
+            if (transmitting) {
+                powerManagerHelper.acquirePttWakeLock()
+            } else {
+                powerManagerHelper.releasePttWakeLock()
+            }
             updateNotification()
         }
     }
@@ -403,8 +408,8 @@ class IntercomForegroundService : Service() {
                 stopSelf()
             }
         } finally {
-            // Leak-prevention: Ensure partial wake lock is always released
-            powerManagerHelper.releaseWakeLock()
+            // Leak-prevention: Ensure both PTT and session partial wake locks are strictly released
+            powerManagerHelper.releaseAllWakeLocks()
         }
     }
 
