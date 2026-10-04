@@ -116,6 +116,16 @@ sealed class SignalingMessage {
     ) : SignalingMessage()
 
     @Serializable
+    @SerialName("MeshRelay")
+    data class MeshRelay(
+        val roomId: String,
+        val fromPeerId: String,
+        val packetType: String,
+        val payloadBase64: String,
+        val timestampMs: Long
+    ) : SignalingMessage()
+
+    @Serializable
     @SerialName("ErrorMessage")
     data class ErrorMessage(
         val code: Int,

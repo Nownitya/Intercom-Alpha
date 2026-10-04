@@ -80,6 +80,9 @@ class SignalingServerManager {
             is SignalingMessage.AudioPing -> {
                 sendToPeer(fromPeerId, SignalingMessage.AudioPong(fromPeerId, message.timestampMs))
             }
+            is SignalingMessage.MeshRelay -> {
+                broadcastToRoom(message.roomId, message, excludePeerId = fromPeerId)
+            }
             else -> {
                 // Unknown or unhandled message type
             }
@@ -150,15 +153,17 @@ class SignalingServerManager {
         }
     }
 
-    private suspend fun broadcastToRoom(roomId: String, message: SignalingMessage) {
+    private suspend fun broadcastToRoom(roomId: String, message: SignalingMessage, excludePeerId: String? = null) {
         val members = roomMembers[roomId] ?: return
         val text = json.encodeToString(message)
         members.forEach { memberId ->
-            val session = activeSessions[memberId]
-            if (session != null) {
-                try {
-                    session.session.send(Frame.Text(text))
-                } catch (_: Exception) {
+            if (memberId != excludePeerId) {
+                val session = activeSessions[memberId]
+                if (session != null) {
+                    try {
+                        session.session.send(Frame.Text(text))
+                    } catch (_: Exception) {
+                    }
                 }
             }
         }

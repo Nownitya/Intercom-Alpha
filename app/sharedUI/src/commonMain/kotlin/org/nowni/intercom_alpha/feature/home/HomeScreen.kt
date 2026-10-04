@@ -2,6 +2,8 @@ package org.nowni.intercom_alpha.feature.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,20 +21,29 @@ fun HomeScreen(
     onAction: (HomeUiAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
+    Box(
         modifier = modifier
-            .background(MaterialTheme.colorScheme.background)
-            .safeContentPadding()
             .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .safeContentPadding()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxWidth()
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Header with Group & Quick Actions
+            // 1. Emergency Preemption Banner
+            EmergencyPreemptionBanner(
+                isEmergencyActive = uiState.isEmergencyActive,
+                blackboxFrameCount = uiState.blackboxBufferedCount,
+                onTriggerSos = { onAction(HomeUiAction.TriggerSos) },
+                onClearEmergency = { onAction(HomeUiAction.ClearEmergency) }
+            )
+
+            // 2. Header with Group Name & Profile & Quick Actions
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -46,7 +57,7 @@ fun HomeScreen(
                         maxLines = 1
                     )
                     Text(
-                        text = "BLE Mesh — ${uiState.activeProfile.name}",
+                        text = "BLE Mesh — Codec: ${uiState.activeProfile.name}",
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -69,46 +80,85 @@ fun HomeScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            AudioLevelMeter(
-                label = "Microphone In",
-                level = if (uiState.isTransmitting) 0.70f else uiState.inputLevel
+            // 3. Multi-Channel Selector Bar with Dual-Watch & Scan
+            ChannelSelectorBar(
+                channelState = uiState.channelState,
+                onSelectChannel = { onAction(HomeUiAction.SelectChannel(it)) },
+                onToggleDualWatch = { onAction(HomeUiAction.ToggleDualWatch(it)) },
+                onToggleScanMode = { onAction(HomeUiAction.ToggleScanMode) }
             )
-            AudioLevelMeter(
-                label = "Speaker Out",
-                level = uiState.outputLevel
+
+            // 4. Proximity Radar & Convoy GPS Telemetry
+            ProximityRadarView(
+                radarSnapshot = uiState.radarSnapshot,
+                convoySnapshot = uiState.convoySnapshot
+            )
+
+            // 5. Audio Level Meters
+            Column(modifier = Modifier.fillMaxWidth()) {
+                AudioLevelMeter(
+                    label = "Microphone In",
+                    level = if (uiState.inputLevel > 0f) uiState.inputLevel else if (uiState.isTransmitting) 0.40f else 0.0f
+                )
+                AudioLevelMeter(
+                    label = "Speaker Out",
+                    level = uiState.outputLevel
+                )
+            }
+
+            // 6. Push-To-Talk Button
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                PttButton(
+                    isPressed = uiState.isTransmitting,
+                    onPressStart = { onAction(HomeUiAction.StartTransmitting) },
+                    onPressEnd = { onAction(HomeUiAction.StopTransmitting) }
+                )
+            }
+
+            // 7. Quick Hazard Alert Bar & Mesh Text Access
+            QuickHazardBar(
+                unreadCount = uiState.unreadTextCount,
+                onSendHazard = { onAction(HomeUiAction.SendCannedHazard(it)) },
+                onOpenMessages = { onAction(HomeUiAction.ToggleMessagesDialog(true)) },
+                onTriggerSos = { onAction(HomeUiAction.TriggerSos) }
+            )
+
+            // 8. Active Group Peers List
+            PeerList(
+                peers = uiState.peers,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 120.dp, max = 220.dp)
             )
         }
 
-        PttButton(
-            isPressed = uiState.isTransmitting,
-            onPressStart = { onAction(HomeUiAction.StartTransmitting) },
-            onPressEnd = { onAction(HomeUiAction.StopTransmitting) }
-        )
+        // Dialogs
+        if (uiState.showShareDialog) {
+            QrShareDialog(
+                groupName = uiState.groupName,
+                inviteCode = uiState.inviteCode,
+                onDismiss = { onAction(HomeUiAction.ToggleShareDialog(false)) }
+            )
+        }
 
-        PeerList(
-            peers = uiState.peers,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-        )
-    }
+        if (uiState.showJoinDialog) {
+            QrJoinDialog(
+                onJoin = { onAction(HomeUiAction.JoinGroup(it)) },
+                onDismiss = { onAction(HomeUiAction.ToggleJoinDialog(false)) }
+            )
+        }
 
-    // QR Share Dialog
-    if (uiState.showShareDialog) {
-        QrShareDialog(
-            groupName = uiState.groupName,
-            inviteCode = uiState.inviteCode,
-            onDismiss = { onAction(HomeUiAction.ToggleShareDialog(false)) }
-        )
-    }
-
-    // QR Join Dialog
-    if (uiState.showJoinDialog) {
-        QrJoinDialog(
-            onJoin = { onAction(HomeUiAction.JoinGroup(it)) },
-            onDismiss = { onAction(HomeUiAction.ToggleJoinDialog(false)) }
-        )
+        if (uiState.showMessagesDialog) {
+            MessageHistoryDialog(
+                messages = uiState.messages,
+                onSendCustomText = { onAction(HomeUiAction.SendCustomText(it)) },
+                onDismiss = { onAction(HomeUiAction.ToggleMessagesDialog(false)) }
+            )
+        }
     }
 }

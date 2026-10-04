@@ -1,7 +1,7 @@
 # System Architecture Document — Intercom-Alpha
 
-> **Document Version:** 1.0  
-> **Status:** Active / Engineering Ready  
+> **Document Version:** 2.0  
+> **Status:** Production Release Tagged (`v2.0.0`)  
 > **Interactive Diagram:** [`docs/architecture/intercom-alpha-architecture.html`](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/architecture/intercom-alpha-architecture.html)  
 > **Obsidian Reference:** `02_Architecture/` & `ADRs/`
 

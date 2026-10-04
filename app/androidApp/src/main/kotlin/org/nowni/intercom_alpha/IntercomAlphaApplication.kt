@@ -5,7 +5,8 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
-import org.nowni.intercom_alpha.di.sharedUiModule
+import org.nowni.intercom_alpha.bridge.AndroidPlatformBridge
+import org.nowni.intercom_alpha.di.createSharedUiModule
 
 class IntercomAlphaApplication : Application() {
     override fun onCreate() {
@@ -14,7 +15,7 @@ class IntercomAlphaApplication : Application() {
         startKoin {
             androidLogger(Level.INFO)
             androidContext(this@IntercomAlphaApplication)
-            modules(sharedUiModule)
+            modules(createSharedUiModule(hardwareBridge = AndroidPlatformBridge.instance))
         }
     }
 }

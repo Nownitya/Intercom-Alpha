@@ -127,6 +127,7 @@ class PowerProfiler(
     private var sessionStartMs = startTimeMs
     private var currentState = RadioPowerState.IDLE
     private var lastStateTransitionMs = startTimeMs
+    private var currentTxStartMs: Long? = null
 
     private var timeInIdleMs = 0L
     private var timeInTxMs = 0L
@@ -139,6 +140,11 @@ class PowerProfiler(
     suspend fun transitionTo(newState: RadioPowerState, now: Long = currentTimeMillis()) {
         mutex.withLock {
             accumulateStateTime(now)
+            if (newState == RadioPowerState.TRANSMITTING && currentState != RadioPowerState.TRANSMITTING) {
+                currentTxStartMs = now
+            } else if (newState != RadioPowerState.TRANSMITTING) {
+                currentTxStartMs = null
+            }
             currentState = newState
             lastStateTransitionMs = now
         }
@@ -154,6 +160,11 @@ class PowerProfiler(
      */
     suspend fun generateReport(now: Long = currentTimeMillis()): PowerReport {
         return mutex.withLock {
+            val currentTxDurationSec = if (currentState == RadioPowerState.TRANSMITTING) {
+                val txStart = currentTxStartMs ?: lastStateTransitionMs
+                (now - txStart) / 1000L
+            } else 0L
+
             accumulateStateTime(now)
             lastStateTransitionMs = now
 
@@ -176,7 +187,6 @@ class PowerProfiler(
             // Alert evaluation
             var alert = PowerAlert.NONE
             if (currentState == RadioPowerState.TRANSMITTING) {
-                val currentTxDurationSec = (now - lastStateTransitionMs) / 1000L
                 if (currentTxDurationSec >= spec.maxContinuousTxSeconds) {
                     alert = PowerAlert.RUNAWAY_WAKELOCK
                 }
@@ -210,6 +220,7 @@ class PowerProfiler(
         mutex.withLock {
             sessionStartMs = now
             lastStateTransitionMs = now
+            currentTxStartMs = null
             currentState = RadioPowerState.IDLE
             timeInIdleMs = 0L
             timeInTxMs = 0L
