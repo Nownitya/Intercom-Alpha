@@ -77,7 +77,7 @@
         "CloudRelayBridge aggregates cross-cluster peer presence and prevents routing loops",
         "100% test pass across :core, :server, and :app:sharedLogic"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }
