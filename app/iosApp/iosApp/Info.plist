@@ -18,5 +18,7 @@
 	<string>Intercom-Alpha advertises Bluetooth LE mesh packets so nearby riders can discover your intercom.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Intercom-Alpha requires camera access to scan QR group invite codes.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 </dict>
 </plist>
