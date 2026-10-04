@@ -49,13 +49,13 @@ class MainActivity : ComponentActivity() {
 
         permissionsToRequest.add(Manifest.permission.RECORD_AUDIO)
         permissionsToRequest.add(Manifest.permission.MODIFY_AUDIO_SETTINGS)
+        permissionsToRequest.add(Manifest.permission.ACCESS_FINE_LOCATION)
+        permissionsToRequest.add(Manifest.permission.ACCESS_COARSE_LOCATION)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             permissionsToRequest.add(Manifest.permission.BLUETOOTH_CONNECT)
             permissionsToRequest.add(Manifest.permission.BLUETOOTH_SCAN)
             permissionsToRequest.add(Manifest.permission.BLUETOOTH_ADVERTISE)
-        } else {
-            permissionsToRequest.add(Manifest.permission.ACCESS_FINE_LOCATION)
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

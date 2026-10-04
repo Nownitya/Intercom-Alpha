@@ -6,13 +6,18 @@ import kotlinx.coroutines.test.*
 import org.nowni.intercom_alpha.audio.AdaptiveBitrateController
 import org.nowni.intercom_alpha.audio.EmergencyBlackboxRecorder
 import org.nowni.intercom_alpha.audio.PriorityBroadcastManager
+import org.nowni.intercom_alpha.bridge.NoOpIntercomHardwareBridge
 import org.nowni.intercom_alpha.channel.ChannelManager
 import org.nowni.intercom_alpha.common.AudioProfile
 import org.nowni.intercom_alpha.feature.home.state.HomeUiAction
+import org.nowni.intercom_alpha.mesh.Peer
 import org.nowni.intercom_alpha.mesh.ProximityRadar
 import org.nowni.intercom_alpha.telemetry.ConvoyGpsTracker
+import org.nowni.intercom_alpha.telemetry.GpsCoordinate
 import org.nowni.intercom_alpha.text.CannedMessageCode
 import org.nowni.intercom_alpha.text.MeshTextManager
+import org.nowni.intercom_alpha.text.MeshTextWireFrame
+import org.nowni.intercom_alpha.text.TextWireType
 import kotlin.test.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -25,6 +30,7 @@ class HomeViewModelTest {
     private lateinit var priorityManager: PriorityBroadcastManager
     private lateinit var blackboxRecorder: EmergencyBlackboxRecorder
     private lateinit var bitrateController: AdaptiveBitrateController
+    private lateinit var hardwareBridge: NoOpIntercomHardwareBridge
     private lateinit var viewModel: HomeViewModel
 
     private val testDispatcher = StandardTestDispatcher()
@@ -40,6 +46,7 @@ class HomeViewModelTest {
         priorityManager = PriorityBroadcastManager()
         blackboxRecorder = EmergencyBlackboxRecorder()
         bitrateController = AdaptiveBitrateController()
+        hardwareBridge = NoOpIntercomHardwareBridge()
 
         viewModel = HomeViewModel(
             channelManager = channelManager,
@@ -48,7 +55,8 @@ class HomeViewModelTest {
             meshTextManager = meshTextManager,
             priorityManager = priorityManager,
             blackboxRecorder = blackboxRecorder,
-            bitrateController = bitrateController
+            bitrateController = bitrateController,
+            hardwareBridge = hardwareBridge
         )
     }
 
@@ -99,23 +107,29 @@ class HomeViewModelTest {
         assertEquals(1, viewModel.uiState.value.messages.size)
         assertEquals(CannedMessageCode.FUEL_LOW, viewModel.uiState.value.messages.first().cannedCode)
 
-        // Send custom message
-        viewModel.onAction(HomeUiAction.SendCustomText("Taking next exit for gas"))
+        // Mark read
+        viewModel.onAction(HomeUiAction.MarkMessagesAsRead)
+        advanceUntilIdle()
+        assertEquals(0, viewModel.uiState.value.unreadTextCount)
+
+        // Send custom text
+        viewModel.onAction(HomeUiAction.SendCustomText("Need a break in 5 miles"))
         advanceUntilIdle()
         assertEquals(2, viewModel.uiState.value.messages.size)
+        assertEquals("Need a break in 5 miles", viewModel.uiState.value.messages.last().content)
 
-        // Toggle messages dialog
+        // Open/Close messages dialog
         viewModel.onAction(HomeUiAction.ToggleMessagesDialog(true))
         advanceUntilIdle()
         assertTrue(viewModel.uiState.value.showMessagesDialog)
-        assertEquals(0, viewModel.uiState.value.unreadTextCount)
 
         viewModel.onAction(HomeUiAction.ToggleMessagesDialog(false))
+        advanceUntilIdle()
         assertFalse(viewModel.uiState.value.showMessagesDialog)
     }
 
     @Test
-    fun testEmergencyPreemptionAndReset() = runTest(testDispatcher) {
+    fun testEmergencySosTriggerAndPreemption() = runTest(testDispatcher) {
         assertFalse(viewModel.uiState.value.isEmergencyActive)
 
         // Trigger SOS
@@ -136,13 +150,78 @@ class HomeViewModelTest {
         assertFalse(viewModel.uiState.value.isTransmitting)
 
         viewModel.onAction(HomeUiAction.StartTransmitting)
+        advanceUntilIdle()
         assertTrue(viewModel.uiState.value.isTransmitting)
+        assertTrue(hardwareBridge.isTransmitting.value)
 
         viewModel.onAction(HomeUiAction.StopTransmitting)
+        advanceUntilIdle()
         assertFalse(viewModel.uiState.value.isTransmitting)
+        assertFalse(hardwareBridge.isTransmitting.value)
 
         viewModel.onAction(HomeUiAction.SelectAudioProfile(AudioProfile.ULTRA_LOW))
         advanceUntilIdle()
         assertEquals(AudioProfile.ULTRA_LOW, viewModel.uiState.value.activeProfile)
+    }
+
+    @Test
+    fun testHardwareBridgeLivePeersAndLevelsStreaming() = runTest(testDispatcher) {
+        assertEquals(0, viewModel.uiState.value.peers.size)
+
+        // 1. Simulate real BLE mesh peers discovery
+        val livePeers = listOf(
+            Peer(id = "peer-real-1", name = "Captain Alpha", rssi = -58, lastSeen = 1000L, isConnected = true, audioProfile = AudioProfile.MEDIUM),
+            Peer(id = "peer-real-2", name = "Sweep Bravo", rssi = -72, lastSeen = 1000L, isConnected = true, audioProfile = AudioProfile.MEDIUM)
+        )
+        hardwareBridge.updatePeers(livePeers)
+        advanceUntilIdle()
+
+        assertEquals(2, viewModel.uiState.value.peers.size)
+        assertEquals("Captain Alpha", viewModel.uiState.value.peers[0].name)
+        assertEquals(2, viewModel.uiState.value.radarSnapshot.targets.size)
+
+        // 2. Simulate live microphone and speaker RMS audio levels
+        hardwareBridge.updateLevels(input = 0.82f, output = 0.44f)
+        advanceUntilIdle()
+
+        assertEquals(0.82f, viewModel.uiState.value.inputLevel)
+        assertEquals(0.44f, viewModel.uiState.value.outputLevel)
+    }
+
+    @Test
+    fun testHardwareBridgeOtaControlPacketIngestion() = runTest(testDispatcher) {
+        // 1. Ingest incoming remote text message over OTA bridge
+        val incomingWire = MeshTextWireFrame(
+            wireType = TextWireType.TEXT_PAYLOAD,
+            messageId = "ota-msg-1",
+            senderId = "peer-scout",
+            senderName = "Scout Lead",
+            cannedCode = CannedMessageCode.HAZARD_ROAD,
+            content = "Caution: Hazard in Road",
+            timestamp = 1000L
+        )
+        hardwareBridge.simulateIncomingText(incomingWire)
+        advanceUntilIdle()
+
+        assertEquals(1, viewModel.uiState.value.messages.size)
+        assertEquals(1, viewModel.uiState.value.unreadTextCount)
+        assertEquals("Scout Lead", viewModel.uiState.value.messages.first().senderName)
+
+        // 2. Ingest incoming local GPS coordinate from Android LocationManager
+        val loc = GpsCoordinate(
+            latitude = 37.7749,
+            longitude = -122.4194,
+            altitudeMeters = 15.0,
+            speedKmh = 65.0f,
+            headingDegrees = 180.0f,
+            accuracyMeters = 3.5f,
+            timestampMs = 2000L
+        )
+        hardwareBridge.simulateLocalGps(loc)
+        advanceUntilIdle()
+
+        val convoySnapshot = viewModel.uiState.value.convoySnapshot
+        assertNotNull(convoySnapshot.localCoordinate)
+        assertEquals(37.7749, convoySnapshot.localCoordinate?.latitude)
     }
 }

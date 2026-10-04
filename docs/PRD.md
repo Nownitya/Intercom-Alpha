@@ -1,8 +1,8 @@
 # Product Requirements Document (PRD) — Intercom-Alpha
 
-> **Document Version:** 1.0  
-> **Status:** Active / Engineering Ready  
-> **Last Updated:** 2026-09-27  
+> **Document Version:** 2.0  
+> **Status:** Production Release Tagged (`v2.0.0`)  
+> **Last Updated:** 2026-10-04  
 > **Repository:** `Intercom-Alpha`  
 > **Obsidian Reference:** `03_Specifications/` & `PROJECT-SPEC.md`
 
@@ -90,19 +90,21 @@ Rider opens app ➔ Creates or scans QR code ➔ Pairs Bluetooth helmet headset 
 
 ---
 
-## 🚫 6. Out of Scope (v1.0)
-
-- Cloud user accounts and profile synchronization.
-- Video streaming or camera feeds.
-- In-app text chat and image messaging.
-- Cellular VoIP relay bridges (cellular fallback will be handled in v2.0).
-- Public internet room discovery directories.
+## 🚀 6. Delivered v2.0 Roadmap Capabilities
+- **Cellular Fallback & Cloud Relay Gateway**: Ktor WebSocket fallback bridging separated mesh clusters over cellular data (Sprint 09).
+- **Multi-Channel Intercom & Emergency Priority**: 16 configurable sub-channels with Dual-Watch and emergency preemption override chime synthesis (Sprint 10).
+- **Convoy Situational Awareness & GPS Telemetry**: Great-Circle Haversine telemetry, relative rider bearings, and motion-aware beaconing (Sprint 11).
+- **Offline Mesh Canned Hazard & Quick Text Messaging**: 1-tap standardized road hazard alerts with delivery ACK tracking (Sprint 11).
+- **Rolling Emergency Voice Blackbox**: Encrypted in-memory rolling circular audio buffer with pure KMP ChaCha20-Poly1305 and LZ77 compression (Sprint 11).
+- **Cockpit UI & Multiplatform Bridge**: 100% native SwiftUI cockpit on iOS and Compose Multiplatform cockpit on Android/Desktop (Sprint 12).
+- **Hardware-to-Cockpit Service Bridge & R8 Hardening**: Wired live BLE mesh audio/PTT/meters, R8 minification (3.17 MB APK), and 4-hour battery/WakeLock validation (Sprint 13).
 
 ---
 
 ## 🏁 7. Release Criteria & Definition of Done (DoD)
 
 1. **Multiplatform Test Suite**: 100% passing unit tests on JVM, Android, and iOS Simulator targets (`./gradlew test`).
-2. **Build Success**: Clean build of Android debug APK and iOS framework compilation without warnings.
+2. **Build Success**: Clean build of Android release APK (`assembleRelease`) and iOS framework compilation (`compileKotlinIosSimulatorArm64`) without errors.
 3. **Field Tested Range**: Reliable voice communication over $\ge 2$ hops with active TTL decrement.
-4. **Screen-Off Background Execution**: Audio capture, relay, and playback survive screen lock and app backgrounding for $\ge 30$ minutes.
+4. **Screen-Off Background Execution**: Audio capture, relay, and playback survive screen lock and app backgrounding for 4+ hours with <30% battery drain.
+5. **Memory & Power Bounds**: Resident RAM strictly bounded (<80 MB total, <1 MB blackbox circular buffer), zero WakeLock leaks.

@@ -98,7 +98,7 @@ fun HomeScreen(
             Column(modifier = Modifier.fillMaxWidth()) {
                 AudioLevelMeter(
                     label = "Microphone In",
-                    level = if (uiState.isTransmitting) 0.70f else uiState.inputLevel
+                    level = if (uiState.inputLevel > 0f) uiState.inputLevel else if (uiState.isTransmitting) 0.40f else 0.0f
                 )
                 AudioLevelMeter(
                     label = "Speaker Out",
