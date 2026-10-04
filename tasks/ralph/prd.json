@@ -77,7 +77,7 @@
         "Graphify knowledge base synced with zero errors",
         "Clean git commit history with semantic versioning tag v2.0.0"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }
