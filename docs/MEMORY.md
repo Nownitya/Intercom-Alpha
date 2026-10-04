@@ -318,6 +318,18 @@
   - `IntercomForegroundService.kt`: Bound `AndroidPlatformBridge.instance` on create/destroy, integrated channel audio filtering and blackbox recording on incoming audio packets, added incoming control packet dispatch (text, GPS, emergency SOS), and streamed real-time Android `LocationManager` updates into `ConvoyGpsTracker`.
   - `AppModule.kt`: Implemented `createSharedUiModule(hardwareBridge)` for type-safe DI injection of `AndroidPlatformBridge.instance` on Android while retaining `NoOpIntercomHardwareBridge` for multiplatform test suites.
 
+### 2.37 Multiplatform Production Release Build & ProGuard Hardening (`proguard-rules.pro`, `build.gradle.kts`)
+- **Challenge**: Enabling aggressive R8 code minification and resource shrinking for production Android releases while preventing runtime serialization reflection failures, missing Koin injection bindings, and binary bloat across KMP modules.
+- **Solution**:
+  - `gradle/libs.versions.toml`: Centralized version catalog declaring `versionCode = "2"` and `versionName = "2.0.0"`.
+  - `app/androidApp/build.gradle.kts`: Configured release build type with `isMinifyEnabled = true`, `isShrinkResources = true`, `signingConfig = signingConfigs.getByName("debug")`, and mapped version parameters directly from the catalog.
+  - `app/androidApp/proguard-rules.pro`: Hardened v2.0 optimization and preservation rules:
+    - Retained `@Serializable`, `KSerializer`, `PolymorphicSerializer`, and SerialName mappings across all mesh control/data frames.
+    - Preserved Koin modules and reflection metadata to prevent runtime `NoBeanDefFoundException`.
+    - Protected Android Navigation 3 polymorphic `NavKey` serializers and Jetpack Compose runtime internals.
+    - Kept Ktor WebSocket networking engines and all v2.0 domain subsystems (`channel`, `radar`, `gps`, `text`, `priority`, `blackbox`, `bitrate`, `spatial`, `cellular`, `crypto`, `bridge`).
+  - Achieved a lean 3.17 MB release APK size with 100% build pass and clean Kotlin/Native iOS framework compilation (`compileKotlinIosSimulatorArm64`).
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

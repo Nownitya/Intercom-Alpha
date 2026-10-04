@@ -649,8 +649,22 @@
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
 ---
 
-
-
-
-
-
+### [2026-10-04] - ICA-1302: Multiplatform Production Release Build & ProGuard Hardening
+- **Branch**: `feature/ICA-1302-release-build-proguard`
+- **Objective**: Configure release build targets, versioning (versionCode = 2, versionName = '2.0.0'), Proguard/R8 obfuscation rules for KMP/Ktor/Serialization, and verify assembleRelease for Android and XCFramework for iOS.
+- **Implementation**:
+  - `gradle/libs.versions.toml`: Defined `versionCode = "2"` and `versionName = "2.0.0"` in `[versions]`.
+  - `app/androidApp/build.gradle.kts`: Wired `versionCode = libs.versions.versionCode.get().toInt()` and `versionName = libs.versions.versionName.get()`. Configured `release` build type with `isMinifyEnabled = true`, `isShrinkResources = true`, `signingConfig = signingConfigs.getByName("debug")`, and optimized ProGuard mapping.
+  - `app/androidApp/proguard-rules.pro`: Upgraded to v2.0.0 hardening rules, preserving:
+    - Pure KMP serialization models (`@Serializable`, `KSerializer`, `PolymorphicSerializer` for `MeshPacket`, `ConvoyCoordinate`, `MeshTextMessage`, `HazardAlert`, etc.).
+    - Koin dependency injection modules and reflection bindings.
+    - Android Jetpack Compose, Lifecycle ViewModels, and Navigation 3 backstack classes.
+    - Ktor client/server networking and WebSocket protocol engines.
+    - All v2.0 domain subsystems (`channel`, `radar`, `gps`, `text`, `priority`, `blackbox`, `bitrate`, `spatial`, `cellular`, `crypto`, `bridge`, `service`, `power`, `headset`).
+- **Verification**:
+  - `./gradlew :app:androidApp:assembleRelease`: BUILD SUCCESSFUL. R8 minification and resource shrinking executed cleanly; generated 3.17 MB production release APK.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 1m 15s with 0 errors (Rule 6).
+  - `./gradlew test` & `./gradlew :app:sharedLogic:jvmTest :app:sharedUI:jvmTest`: 100% test pass across all modules in 1m 9s.
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---

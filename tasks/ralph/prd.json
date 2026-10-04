@@ -43,7 +43,7 @@
         "iOS framework compiles cleanly via ./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64",
         "App bundle size is optimized with minification enabled"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-1303",
