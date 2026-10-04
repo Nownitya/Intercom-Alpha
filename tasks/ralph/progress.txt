@@ -717,3 +717,28 @@
   - `ICA-1304: Architecture Sync, Documentation & v2.0.0 Release Tagging` [PASSED]
 - **Release Status**: `v2.0.0` Production Release Ready and Tagged.
 ---
+
+## 🚀 Sprint 14: Advanced Convoy Mesh, Forward-Secret Key Ratchet & Live Activity (Phase 12 - v2.1 Roadmap)
+
+### [2026-10-04] - ICA-1401: Pure KMP Perfect Forward Secrecy (PFS) & Ephemeral Key Ratchet Engine
+- **Branch**: `feature/ICA-1401-key-ratchet-pfs`
+- **Objective**: Implement pure Kotlin multiplatform Double-Ratchet / Ephemeral Key Rotation engine (MeshKeyRatchet.kt) for mesh channels: derive rolling ephemeral session keys from master group secret using pure Kotlin HKDF-SHA256, maintain out-of-order packet decryption key cache with replay protection, and support forward secrecy with secure key zeroization.
+- **Implementation**:
+  - `PacketCipher.kt`: Added pure Kotlin `HmacSha256` (RFC 2104) and `HkdfSha256` (RFC 5869 extract-and-expand) with zero Java (`java.security.*`) or C/JNI dependencies.
+  - `MeshKeyRatchet.kt`: Implemented symmetric KDF chain ratcheting in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/crypto/`:
+    - Generates independent sender chains per node derived from master group secret.
+    - Ephemeral message keys advance per transmission, immediately zeroizing temporary keys via `.fill(0)`.
+    - Receiver maintains bounded out-of-order skipped key cache (`maxSkippedKeysPerPeer = 100`) allowing disordered packet recovery while rejecting replayed and expired packets.
+    - Complete instance zeroization via `destroy()`.
+    - Defined `RatchetEnvelope` serialized wire model.
+  - `MeshKeyRatchetTest.kt`: Created 10 comprehensive unit test suites in `commonTest`:
+    - Verified RFC 4231 HMAC-SHA256 and RFC 5869 HKDF-SHA256 official test vectors byte-for-byte.
+    - Tested sequential ratchet encryption/decryption across 10 steps.
+    - Tested out-of-order packet arrival (delivery order 3, 1, 0, 4, 2 recovered 100%).
+    - Verified replay attack prevention, corrupted ciphertext/tag rejection, max skipped key bounds, multi-party mesh exchange (Alice, Bob, Charlie), and secure zeroization lifecycle.
+- **Verification**:
+  - Multiplatform test suites passed: `./gradlew test` (161 tests in sharedLogic, 100% passing across all modules).
+  - Platform compilation passed: `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64` and `./gradlew :app:androidApp:assembleDebug`.
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---

@@ -21,7 +21,7 @@
         "Previous session keys are securely cleared from memory guaranteeing forward secrecy",
         "100% test pass on JVM and compileKotlinIosSimulatorArm64 (Rule 6)"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-1402",
