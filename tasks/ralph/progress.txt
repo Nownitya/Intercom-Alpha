@@ -769,4 +769,26 @@
   - `./gradlew :app:androidApp:assembleDebug`: BUILD SUCCESSFUL in 19s.
   - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+### [2026-10-04] - ICA-1403: iOS 18+ Live Activity & Dynamic Island Hands-Free PTT Widget
+- **Branch**: `feature/ICA-1403-ios-live-activity`
+- **Objective**: Implement 100% native iOS Live Activity and Dynamic Island interactive cockpit widget (`IntercomActivityWidget.swift`) using ActivityKit and WidgetKit: compact leading/trailing indicators, expanded view with large hands-on PTT touch trigger, active rider radar bearing, and emergency alert card.
+- **Implementation**:
+  - `IntercomActivityAttributes.swift`: Created pure Swift `ActivityAttributes` and `ContentState` struct in `app/iosApp/iosApp/`:
+    - Tracks `channelName`, `channelFrequency`, `isTransmitting`, `activeSpeakerName`, `activeSpeakerCallsign`, `meshNodeCount`, `rfLinkMarginDbm`, `isEmergencyActive`, `emergencySenderCallsign`, `radarBearingDegrees`, `batteryPercent`.
+  - `IntercomActivityWidget.swift`: Implemented 100% native SwiftUI `Widget` and `ActivityConfiguration`:
+    - Dynamic Island Compact: Leading shows live waveform / mic status, trailing shows channel name and node count badge.
+    - Dynamic Island Minimal: Clean dynamic transmission / listening glyph.
+    - Dynamic Island Expanded: Leading channel badge, trailing battery and RF dBm link margin, center live speaker callsign & radar compass bearing indicator (`formatBearing()`), bottom interactive PTT toggle button and emergency SOS trigger.
+    - Lock Screen / StandBy Banner: Full cockpit card with mesh health indicators, speaker banner, and large tactile PTT button.
+  - `Info.plist`: Added `NSSupportsLiveActivities` key (`true`) to enable ActivityKit on iOS 16.2+ and iOS 18+.
+  - `IntercomViewModel.swift`: Tied ActivityKit lifecycle cleanly to active intercom session:
+    - Added `@Published var isLiveActivityActive: Bool`.
+    - Added `startLiveActivity()`, `updateLiveActivity()`, `endLiveActivity()`, and `makeActivityContentState()` using iOS 16.2+ `ActivityContent`.
+    - Integrated automatic Live Activity lifecycle start/stop with intercom connection state (`isIntercomConnected`).
+- **Verification**:
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 11s (Rule 6).
+  - `./gradlew test`: 100% multiplatform test pass across all modules in 18s (Rule 6).
+  - `./gradlew :app:androidApp:assembleDebug`: BUILD SUCCESSFUL in 18s.
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
 ---

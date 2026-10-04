@@ -58,7 +58,7 @@
         "Lock Screen Live Activity provides instant 1-tap channel switch and SOS trigger",
         "ActivityKit lifecycle tied cleanly to active intercom session via IntercomBridge"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-1404",
