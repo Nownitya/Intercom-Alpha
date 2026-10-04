@@ -791,4 +791,20 @@
   - `./gradlew :app:androidApp:assembleDebug`: BUILD SUCCESSFUL in 18s.
   - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+### [2026-10-04] - ICA-1404: Multi-Cluster Cloud Cross-Mesh SFU Signaling & Audio Bridging
+- **Branch**: `feature/ICA-1404-multi-cluster-sfu-bridge`
+- **Objective**: Extend `:core` signaling protocol and `:server` Ktor SFU audio bridge to interconnect multiple independent BLE mesh clusters: `SignalingMessage.ClusterBridge`, transcode-free routing of 4-bit ADPCM packets with jitter smoothing, and multi-cluster peer presence aggregation.
+- **Implementation**:
+  - `SignalingProtocol.kt`: Added `clusterId` to `PeerInfo`, annotated `SignalingMessage` with `@JsonClassDiscriminator("#type")`, registered polymorphic `SignalingMessage.ClusterBridge` message with `bridgeId`, `sourceClusterId`, `targetClusterId`, `targetRoomId`, `packetType`, `payloadBase64`, `hopLimit`, `clusterPath`, `memberPresence`, and `timestampMs`. Provided standard `DefaultSignalingJson`.
+  - `SignalingServerManager.kt`: Configured `Json { classDiscriminator = "#type" }`. Implemented bidirectional room bridging (`bridgeRooms`, `unbridgeRooms`, `getBridgedRooms`), transcode-free cross-room audio frame bridging on `MeshRelay`, and `handleClusterBridge` with TTL/hopLimit enforcement, circular loop detection, direct room/cluster routing, and multi-cluster broadcast routing with zero latency penalty and zero transcoding.
+  - `CloudRelayBridge.kt`: Enhanced with `initialClusterId`, `currentClusterId`, `jitterBuffer` (`AdaptiveJitterBuffer`), and peer presence state tracking (`clusterPresence`, `aggregatedPeers`). Implemented `forwardClusterBridge(...)` and `broadcastClusterPresence(...)`. Added `handleIncomingClusterBridge` filtering out self-cluster echoes, visited cluster paths, expired hop limits, and mismatched target clusters, while aggregating remote cluster members and routing 4-bit ADPCM packets with adaptive jitter buffer smoothing.
+  - `SignalingProtocolTest.kt`: Added `testClusterBridgeMessageSerialization` and `testClassDiscriminatorUsesPoundType`.
+  - `SignalingServerManagerTest.kt`: Created unit tests verifying room bridging, hop limit enforcement, and routing metrics.
+  - `MultiClusterBridgeTest.kt`: Created 7 comprehensive tests in `commonTest` verifying polymorphic serialization, loop prevention (self-origin, visited path, TTL expiration), target cluster filtering, byte-for-byte transcode-free ADPCM audio delivery, adaptive jitter playout smoothing, multi-cluster presence aggregation/removal, and multi-path deduplication.
+- **Verification**:
+  - `./gradlew test`: 100% test pass across all modules in 13s (180 tests in sharedLogic, all core and server tests passing).
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 25s (Rule 6).
+  - `./gradlew :app:androidApp:assembleDebug`: BUILD SUCCESSFUL in 8s (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
 ---
