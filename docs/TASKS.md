@@ -164,7 +164,7 @@
 ### ✅ Sprint 14: Advanced Convoy Mesh, Forward-Secret Key Ratchet & Live Activity (Phase 12 - v2.1 Roadmap)
 - **Sprint Goal**: Deliver pure KMP Perfect Forward Secrecy (PFS) session key ratcheting, direct helmet Bluetooth GATT accessory integration (Cardo/Sena/EJEAS), native iOS 18+ Live Activity / Dynamic Island PTT widget, and multi-cluster cloud cross-mesh SFU bridging.
 - **Sprint Branch**: `sprint/sprint-14-advanced-convoy-mesh`
-- **Status**: ✅ 100% Complete (All 4 Stories Passed & Merged into develop)
+- **Status**: ✅ 100% Complete (All 4 Stories Passed & v2.1.0 Release Tagged)
 
 | Task ID | Item | Target Files | Status |
 | :--- | :--- | :--- | :--- |
