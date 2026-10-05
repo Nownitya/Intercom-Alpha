@@ -16,6 +16,8 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.nowni.intercom_alpha.audio.EmergencyBlackboxRecorder
 import org.nowni.intercom_alpha.channel.ChannelManager
+import org.nowni.intercom_alpha.headset.HelmetAccessoryManager
+import org.nowni.intercom_alpha.headset.HelmetAccessoryState
 import org.nowni.intercom_alpha.mesh.ControlType
 import org.nowni.intercom_alpha.mesh.Peer
 import org.nowni.intercom_alpha.service.IntercomForegroundService
@@ -58,9 +60,17 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
     private val _localGpsCoordinate = MutableStateFlow<GpsCoordinate?>(null)
     override val localGpsCoordinate: StateFlow<GpsCoordinate?> = _localGpsCoordinate.asStateFlow()
 
+    private val _helmetAccessoryState = MutableStateFlow(HelmetAccessoryState())
+    override val helmetAccessoryState: StateFlow<HelmetAccessoryState> = _helmetAccessoryState.asStateFlow()
+
+    private val _isCloudBridgeConnected = MutableStateFlow(false)
+    override val isCloudBridgeConnected: StateFlow<Boolean> = _isCloudBridgeConnected.asStateFlow()
+
     var channelManager: ChannelManager? = null
         private set
     var blackboxRecorder: EmergencyBlackboxRecorder? = null
+        private set
+    var helmetAccessoryManager: HelmetAccessoryManager? = null
         private set
 
     private var boundService: IntercomForegroundService? = null
@@ -70,9 +80,22 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         val instance by lazy { AndroidPlatformBridge() }
     }
 
-    override fun attachSubsystems(channelManager: ChannelManager, blackboxRecorder: EmergencyBlackboxRecorder) {
+    override fun attachSubsystems(
+        channelManager: ChannelManager,
+        blackboxRecorder: EmergencyBlackboxRecorder,
+        helmetAccessoryManager: HelmetAccessoryManager?
+    ) {
         this.channelManager = channelManager
         this.blackboxRecorder = blackboxRecorder
+        this.helmetAccessoryManager = helmetAccessoryManager
+
+        helmetAccessoryManager?.let { accessoryMgr ->
+            scope.launch {
+                accessoryMgr.accessoryState.collect { state ->
+                    _helmetAccessoryState.value = state
+                }
+            }
+        }
     }
 
     fun bindService(service: IntercomForegroundService) {

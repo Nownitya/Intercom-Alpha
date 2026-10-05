@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.nowni.intercom_alpha.audio.EmergencyBlackboxRecorder
 import org.nowni.intercom_alpha.channel.ChannelManager
+import org.nowni.intercom_alpha.headset.HelmetAccessoryManager
+import org.nowni.intercom_alpha.headset.HelmetAccessoryState
 import org.nowni.intercom_alpha.mesh.Peer
 import org.nowni.intercom_alpha.telemetry.ConvoyTelemetryFrame
 import org.nowni.intercom_alpha.telemetry.GpsCoordinate
@@ -24,7 +26,8 @@ object ControlPayloadTag {
 
 /**
  * Platform hardware abstraction contract for Push-To-Talk, BLE Mesh peer roster,
- * audio RMS level metering, GPS coordinate streaming, and non-audio control packet transmission.
+ * audio RMS level metering, GPS coordinate streaming, non-audio control packet transmission,
+ * connected helmet Bluetooth GATT accessories (Cardo / Sena / EJEAS), and cloud relay bridging.
  */
 interface IntercomHardwareBridge {
     val isTransmitting: StateFlow<Boolean>
@@ -37,9 +40,16 @@ interface IntercomHardwareBridge {
     val incomingEmergencyAlerts: SharedFlow<Unit>
     val localGpsCoordinate: StateFlow<GpsCoordinate?>
 
+    val helmetAccessoryState: StateFlow<HelmetAccessoryState>
+    val isCloudBridgeConnected: StateFlow<Boolean>
+
     fun setPttActive(active: Boolean)
     fun sendControlPayload(tag: Byte, payload: ByteArray)
-    fun attachSubsystems(channelManager: ChannelManager, blackboxRecorder: EmergencyBlackboxRecorder) {}
+    fun attachSubsystems(
+        channelManager: ChannelManager,
+        blackboxRecorder: EmergencyBlackboxRecorder,
+        helmetAccessoryManager: HelmetAccessoryManager? = null
+    ) {}
 }
 
 /**
@@ -75,6 +85,12 @@ open class NoOpIntercomHardwareBridge(
     protected val _localGpsCoordinate = MutableStateFlow<GpsCoordinate?>(null)
     override val localGpsCoordinate: StateFlow<GpsCoordinate?> = _localGpsCoordinate.asStateFlow()
 
+    protected val _helmetAccessoryState = MutableStateFlow(HelmetAccessoryState())
+    override val helmetAccessoryState: StateFlow<HelmetAccessoryState> = _helmetAccessoryState.asStateFlow()
+
+    protected val _isCloudBridgeConnected = MutableStateFlow(false)
+    override val isCloudBridgeConnected: StateFlow<Boolean> = _isCloudBridgeConnected.asStateFlow()
+
     override fun setPttActive(active: Boolean) {
         _isTransmitting.value = active
     }
@@ -102,5 +118,13 @@ open class NoOpIntercomHardwareBridge(
 
     fun simulateLocalGps(coord: GpsCoordinate) {
         _localGpsCoordinate.value = coord
+    }
+
+    fun simulateHelmetAccessoryState(state: HelmetAccessoryState) {
+        _helmetAccessoryState.value = state
+    }
+
+    fun simulateCloudBridgeConnected(connected: Boolean) {
+        _isCloudBridgeConnected.value = connected
     }
 }

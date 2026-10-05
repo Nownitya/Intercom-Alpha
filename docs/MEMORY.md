@@ -371,6 +371,16 @@
   - Implemented circular routing loop prevention in `CloudRelayBridge` via `hopLimit` and `clusterPath` traversal inspection.
   - Dynamically aggregated multi-cluster peer presence and smoothed incoming cross-mesh audio frames via `AdaptiveJitterBuffer`.
 
+### 2.43 Zero-Scroll Tactical Cockpit HUD Ergonomics & Subsystem Integration (Sprint 15)
+- **Challenge**: Standard mobile layouts require vertical scrolling, hiding the PTT button or critical hazards when mounted on motorcycle handlebars (RAM/QuadLock mounts). Riders wearing thick gloves at highway speeds cannot perform small precision taps or scroll gestures.
+- **Solution**:
+  - Enforced zero-scroll layout contract: all critical controls (Avionics Bar, Channel Selector, Vector Radar, PTT Actuator, Hazard Strip, Emergency SOS Bar) fit in a non-scrolling single viewport on mobile screens ($H \le 844$dp).
+  - Central 140dp circular tactile PTT actuator with pulsating crimson hot-mic wave, tactile haptic feedback on touch-down and touch-up, and safety VOX lock bypass.
+  - Flanking quick-actuators: 58dp speaker volume toggle (30% -> 60% -> 100%) and 58dp VOX lock button.
+  - Single-row 4-column hazard macro bar (`⚠️ HAZARD`, `⛽ FUEL`, `🛑 STOP`, `🔧 BIKE`) with $\ge 52$dp height touch targets for gloved fingers.
+  - Circular vector radar display: concentric distance rings (100m, 500m, 1.5km), heading chevron, crosshairs, and dynamically plotted color-coded rider dots (Green < 100m, Cyan < 500m, Amber $\ge$ 500m) with live telemetry callout.
+  - End-to-end hardware telemetry wiring: Cardo/Sena GATT battery level and PTT events (`HelmetAccessoryManager`), Perfect Forward Secrecy session ratchet (`MeshKeyRatchet`), and multi-cluster cloud bridge status (`CloudRelayBridge`) integrated across `HomeViewModel`, `AndroidPlatformBridge`, and native iOS `IntercomBridge` / `IntercomViewModel`.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index
