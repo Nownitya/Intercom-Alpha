@@ -1,8 +1,8 @@
 # Product Requirements Document (PRD) — Intercom-Alpha
 
-> **Document Version:** 2.0  
-> **Status:** Production Release Tagged (`v2.0.0`)  
-> **Last Updated:** 2026-10-04  
+> **Document Version:** 2.1  
+> **Status:** Production Release Tagged (`v2.1.0`)  
+> **Last Updated:** 2026-10-05  
 > **Repository:** `Intercom-Alpha`  
 > **Obsidian Reference:** `03_Specifications/` & `PROJECT-SPEC.md`
 

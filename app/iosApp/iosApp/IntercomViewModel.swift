@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import ActivityKit
 import SharedLogic
 
 @MainActor
@@ -46,6 +47,7 @@ final class IntercomViewModel: ObservableObject {
 
     private let bridge = IntercomBridge(localPeerId: "ios-lead", localPeerName: "iOS Lead")
     private var cancellables: [CancellationHandle] = []
+    private var activeActivity: Activity<IntercomActivityAttributes>? = nil
 
     init() {
         setupObservers()
@@ -53,6 +55,7 @@ final class IntercomViewModel: ObservableObject {
     }
 
     deinit {
+        endLiveActivity()
         cancellables.forEach { $0.cancel() }
         bridge.stop()
     }
@@ -60,9 +63,11 @@ final class IntercomViewModel: ObservableObject {
     func start() {
         bridge.start(groupName: groupName)
         inviteCode = bridge.generateInviteCode()
+        startLiveActivity()
     }
 
     func stop() {
+        endLiveActivity()
         bridge.stop()
     }
 
@@ -72,12 +77,14 @@ final class IntercomViewModel: ObservableObject {
         guard !isTransmitting else { return }
         isTransmitting = true
         bridge.setPttActive(active: true)
+        updateLiveActivity()
     }
 
     func stopPtt() {
         guard isTransmitting else { return }
         isTransmitting = false
         bridge.setPttActive(active: false)
+        updateLiveActivity()
     }
 
     func toggleVox() {
@@ -325,5 +332,63 @@ final class IntercomViewModel: ObservableObject {
             }
         }
         cancellables.append(bitrateSub)
+    }
+
+    // --- ActivityKit Live Activity & Dynamic Island ---
+
+    func startLiveActivity() {
+        guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
+        guard activeActivity == nil else { return }
+
+        let attributes = IntercomActivityAttributes(
+            groupName: groupName,
+            localRiderName: "iOS Lead"
+        )
+        let initialContentState = makeActivityContentState()
+
+        do {
+            let activity = try Activity.request(
+                attributes: attributes,
+                content: .init(state: initialContentState, staleDate: nil)
+            )
+            activeActivity = activity
+        } catch {
+            print("Failed to start Intercom Live Activity: \(error.localizedDescription)")
+        }
+    }
+
+    func updateLiveActivity() {
+        guard let activity = activeActivity else { return }
+        let updatedState = makeActivityContentState()
+        Task {
+            await activity.update(.init(state: updatedState, staleDate: nil))
+        }
+    }
+
+    func endLiveActivity() {
+        guard let activity = activeActivity else { return }
+        let finalState = makeActivityContentState()
+        Task {
+            await activity.end(.init(state: finalState, staleDate: nil), dismissalPolicy: .immediate)
+        }
+        activeActivity = nil
+    }
+
+    private func makeActivityContentState() -> IntercomActivityAttributes.ContentState {
+        let activeChan = channels.first(where: { $0.id == activeChannelId })
+        let closestRider = convoySnapshot?.closestRider
+
+        return IntercomActivityAttributes.ContentState(
+            isTransmitting: isTransmitting,
+            activeSpeaker: isTransmitting ? "You (Transmitting)" : nil,
+            activeChannelName: activeChan?.name ?? "Convoy Main",
+            activeChannelId: activeChannelId,
+            peerCount: peers.count,
+            isEmergencyActive: isEmergencyActive,
+            leadDistanceMeters: closestRider?.distanceMeters,
+            relativeBearingDegrees: closestRider?.relativeBearingDegrees,
+            batteryPercent: 95,
+            unreadMessageCount: unreadCount
+        )
     }
 }

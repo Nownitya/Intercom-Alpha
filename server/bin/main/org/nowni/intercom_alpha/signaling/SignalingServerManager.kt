@@ -13,13 +13,31 @@ import java.util.concurrent.ConcurrentHashMap
 class SignalingServerManager {
 
     private val json = Json {
+        classDiscriminator = "#type"
         prettyPrint = false
         ignoreUnknownKeys = true
     }
 
     private val activeSessions = ConcurrentHashMap<String, PeerSession>()
     private val roomMembers = ConcurrentHashMap<String, ConcurrentHashMap.KeySetView<String, Boolean>>()
+    private val bridgedRooms = ConcurrentHashMap<String, ConcurrentHashMap.KeySetView<String, Boolean>>()
     private val mutex = Mutex()
+    private var clusterBridgesRoutedCount = 0L
+
+    fun bridgeRooms(roomA: String, roomB: String) {
+        if (roomA == roomB) return
+        bridgedRooms.computeIfAbsent(roomA) { ConcurrentHashMap.newKeySet() }.add(roomB)
+        bridgedRooms.computeIfAbsent(roomB) { ConcurrentHashMap.newKeySet() }.add(roomA)
+    }
+
+    fun unbridgeRooms(roomA: String, roomB: String) {
+        bridgedRooms[roomA]?.remove(roomB)
+        bridgedRooms[roomB]?.remove(roomA)
+    }
+
+    fun getBridgedRooms(roomId: String): Set<String> {
+        return bridgedRooms[roomId]?.toSet() ?: emptySet()
+    }
 
     suspend fun registerPeer(peerSession: PeerSession) {
         val peerId = peerSession.info.peerId
@@ -81,10 +99,81 @@ class SignalingServerManager {
                 sendToPeer(fromPeerId, SignalingMessage.AudioPong(fromPeerId, message.timestampMs))
             }
             is SignalingMessage.MeshRelay -> {
+                // Direct broadcast to local room
                 broadcastToRoom(message.roomId, message, excludePeerId = fromPeerId)
+
+                // Transcode-free cross-room audio frame bridging to connected rooms with zero latency penalty
+                val bridged = bridgedRooms[message.roomId]
+                if (bridged != null) {
+                    for (targetRoom in bridged) {
+                        broadcastToRoom(targetRoom, message, excludePeerId = fromPeerId)
+                    }
+                }
+            }
+            is SignalingMessage.ClusterBridge -> {
+                handleClusterBridge(fromPeerId, message)
             }
             else -> {
                 // Unknown or unhandled message type
+            }
+        }
+    }
+
+    suspend fun handleClusterBridge(fromPeerId: String, bridge: SignalingMessage.ClusterBridge) {
+        // Drop expired packets
+        if (bridge.hopLimit <= 0) return
+
+        // Drop packets looping back through source cluster more than once
+        if (bridge.clusterPath.count { it == bridge.sourceClusterId } > 1) return
+
+        clusterBridgesRoutedCount++
+        val nextHopLimit = bridge.hopLimit - 1
+        val updatedPath = if (bridge.clusterPath.contains(bridge.sourceClusterId)) {
+            bridge.clusterPath
+        } else {
+            bridge.clusterPath + bridge.sourceClusterId
+        }
+
+        val nextBridge = bridge.copy(
+            hopLimit = nextHopLimit,
+            clusterPath = updatedPath
+        )
+
+        // 1. Direct target room routing
+        val targetRoom = bridge.targetRoomId
+        if (targetRoom != null) {
+            broadcastToRoom(targetRoom, nextBridge, excludePeerId = fromPeerId)
+            return
+        }
+
+        // 2. Direct target cluster routing
+        val targetCluster = bridge.targetClusterId
+        if (targetCluster != null) {
+            val text = json.encodeToString<SignalingMessage>(nextBridge)
+            activeSessions.values.forEach { session ->
+                if (session.info.peerId != fromPeerId && session.info.clusterId == targetCluster) {
+                    try {
+                        session.session.send(Frame.Text(text))
+                    } catch (_: Exception) {}
+                }
+            }
+            return
+        }
+
+        // 3. Multi-cluster broadcast routing across all rooms transcode-free
+        val senderSession = activeSessions[fromPeerId]
+        val senderRoom = senderSession?.info?.currentRoom
+
+        if (senderRoom != null && bridgedRooms.containsKey(senderRoom)) {
+            val targets = bridgedRooms[senderRoom] ?: emptySet()
+            for (targetRoom in targets) {
+                broadcastToRoom(targetRoom, nextBridge, excludePeerId = fromPeerId)
+            }
+        } else {
+            roomMembers.keys.forEach { roomId ->
+                if (roomId != senderRoom) {
+                    broadcastToRoom(roomId, nextBridge, excludePeerId = fromPeerId)
+                }
             }
         }
     }
@@ -173,7 +262,9 @@ class SignalingServerManager {
         return mapOf(
             "activePeers" to activeSessions.size,
             "activeRooms" to roomMembers.size,
-            "rooms" to roomMembers.mapValues { it.value.size }
+            "rooms" to roomMembers.mapValues { it.value.size },
+            "bridgedRooms" to bridgedRooms.mapValues { it.value.size },
+            "clusterBridgesRouted" to clusterBridgesRoutedCount
         )
     }
 }

@@ -124,5 +124,6 @@ For critical production defects (e.g., Bluetooth permission crash on iOS 18 or A
 | `v0.5.0` | `41f4d92` | Phase 3: Core BLE Mesh Engine & Multi-Hop Relay |
 | `v0.6.0` | `8c4e70e` | Phase 4: Dual-Radio Cloud Relay & Background Service |
 | `v0.7.0` | `1cdb52e` | Phase 5: Pure KMP Audio Codec, Jitter Buffer & PLC |
-| `v0.8.0` | *(Pending)*| Phase 6: Real-World Field Testing & Hardening |
-| `v1.0.0` | *(Target)* | Production Release v1.0.0 |
+| `v1.0.0` | `7be2904` | Sprint 08: Production Release v1.0.0 — Off-Grid BLE Mesh Multiplatform Intercom |
+| `v2.0.0` | `9785675` | Sprint 13: Production Release v2.0.0 — Android Platform Hardware, R8 Minification & Profiling |
+| `v2.1.0` | *(Current)* | Sprint 14: Production Release v2.1.0 — Advanced Convoy Mesh, Forward-Secret Key Ratchet & Live Activity |

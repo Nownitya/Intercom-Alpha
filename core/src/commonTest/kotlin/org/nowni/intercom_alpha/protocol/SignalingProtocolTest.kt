@@ -65,4 +65,48 @@ class SignalingProtocolTest {
         val decoded = json.decodeFromString<SignalingMessage>(encoded)
         assertEquals(relay, decoded)
     }
+
+    @Test
+    fun testClusterBridgeMessageSerialization() {
+        val bridge: SignalingMessage = SignalingMessage.ClusterBridge(
+            bridgeId = "bridge-alpha-beta",
+            sourceClusterId = "cluster-alpha",
+            targetClusterId = "cluster-beta",
+            targetRoomId = "Convoy-1",
+            packetType = "AUDIO",
+            payloadBase64 = "UklGRg==",
+            hopLimit = 2,
+            clusterPath = listOf("cluster-alpha"),
+            memberPresence = listOf(
+                PeerInfo(
+                    peerId = "peer-101",
+                    displayName = "Lead",
+                    platform = "Android",
+                    currentRoom = "Convoy-1",
+                    clusterId = "cluster-alpha"
+                )
+            ),
+            timestampMs = 1727734900000L
+        )
+
+        val encoded = DefaultSignalingJson.encodeToString(bridge)
+        assertTrue(encoded.contains("\"#type\":\"ClusterBridge\"") || encoded.contains("\"#type\": \"ClusterBridge\""))
+        assertTrue(encoded.contains("cluster-alpha"))
+        assertTrue(encoded.contains("cluster-beta"))
+
+        val decoded = DefaultSignalingJson.decodeFromString<SignalingMessage>(encoded)
+        assertEquals(bridge, decoded)
+    }
+
+    @Test
+    fun testClassDiscriminatorUsesPoundType() {
+        val ping: SignalingMessage = SignalingMessage.AudioPing(
+            fromPeerId = "peer-alpha",
+            timestampMs = 12345L
+        )
+        val encoded = DefaultSignalingJson.encodeToString(ping)
+        assertTrue(encoded.contains("\"#type\""))
+        val decoded = DefaultSignalingJson.decodeFromString<SignalingMessage>(encoded)
+        assertEquals(ping, decoded)
+    }
 }

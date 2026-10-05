@@ -3,6 +3,37 @@
 > **Obsidian Source:** `D:\ObsidianVault\Vault1\ObsidianVault\Android\Projects\Intercom-Alpha\10-Daily-Notes\`  
 > **MemPalace Integration:** Wing `intercom_alpha` (2,426 drawers)
 
+## 📅 2026-10-04: Sprint 14 — Advanced Convoy Mesh, Forward-Secret Key Ratchet & Live Activity (Phase 12)
+
+### Summary
+1. **Pure KMP Perfect Forward Secrecy (PFS) & Ephemeral Key Ratchet Engine (`MeshKeyRatchet.kt`)**:
+   - RFC 2104 HMAC-SHA256 and RFC 5869 HKDF-SHA256 implemented in 100% pure Kotlin Multiplatform (Rule 3).
+   - Rolling symmetric KDF chain ratcheting deriving ephemeral transmission keys that zeroize previous session keys (`.fill(0)`).
+   - Bounded out-of-order skipped key cache (up to 100 keys per peer) allowing disordered packet decryption while enforcing replay protection.
+2. **Direct Helmet Intercom Bluetooth GATT Accessory Profile (`HelmetAccessoryManager.kt`)**:
+   - Platform-agnostic BLE GATT client profile supporting Cardo PackTalk/Freecom, Sena 50S/RC4, EJEAS EUC, and generic BLE HID handlebar remotes.
+   - Standard Bluetooth SIG Battery service (`0x2A19`), Device Info, button opcodes/bitmasks, and 60-second runaway PTT safety watchdog.
+   - Dynamic audio route preference arbitration (`BLUETOOTH_SCO`, `A2DP_HIGH_FIDELITY`, `BUILTIN_SPEAKER`) and automatic disconnect release.
+3. **Native iOS 18+ Live Activity & Dynamic Island Hands-Free PTT Widget (`IntercomActivityWidget.swift`)**:
+   - 100% native SwiftUI / ActivityKit / WidgetKit implementation (Rule 1).
+   - Dynamic Island Compact, Minimal, and Expanded layouts displaying live channel, transmitting speaker, RF link margin, compass radar bearing, and interactive PTT button.
+   - Lock Screen / StandBy banner with tactile hands-free controls.
+   - Intercom session lifecycle integration via `IntercomViewModel.swift`.
+4. **Multi-Cluster Cloud Cross-Mesh SFU Signaling & Audio Bridging (`SignalingProtocol.kt`, `SignalingServerManager.kt`, `CloudRelayBridge.kt`)**:
+   - Polymorphic `SignalingMessage.ClusterBridge` registered with `#type` class discriminator preventing collision with `MeshPacket.Control.type`.
+   - Transcode-free cross-room and cross-cluster routing of 4-bit ADPCM packets with zero latency penalty.
+   - Bidirectional room bridging (`bridgeRooms`, `unbridgeRooms`, `getBridgedRooms`) in `SignalingServerManager`.
+   - Circular routing loop prevention in `CloudRelayBridge` via `hopLimit` and `clusterPath` traversal inspection.
+   - Multi-cluster peer presence aggregation with dynamic remote cluster member tracking.
+   - `AdaptiveJitterBuffer` integration for jitter smoothing on incoming cross-mesh audio streams.
+5. **Verification**:
+   - Multiplatform tests: `./gradlew test` (100% pass across `:core`, `:server`, `:app:sharedLogic`, and `:app:androidApp`).
+   - Platform compilation: `:app:sharedLogic:compileKotlinIosSimulatorArm64` and `:app:androidApp:assembleDebug` both passed.
+   - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+   - Knowledge graph updated via `graphify update .` (2,289 nodes, 4,488 edges, 172 communities).
+
+---
+
 ## 📅 2026-10-01: Sprint 12 — Multiplatform Cockpit UI & Bridge Integration (Phase 10 - v2.0 Roadmap)
 
 ### Summary
