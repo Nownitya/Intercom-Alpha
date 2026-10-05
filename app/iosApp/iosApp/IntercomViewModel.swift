@@ -45,6 +45,12 @@ final class IntercomViewModel: ObservableObject {
     // --- Adaptive Bitrate ---
     @Published var currentAudioProfile: AudioProfile = .medium
 
+    // --- Sprint 14 & 15 Telemetry & Cockpit Subsystems ---
+    @Published var accessoryState: HelmetAccessoryState? = nil
+    @Published var isPfsRatchetActive: Bool = true
+    @Published var isVoxLocked: Bool = false
+    @Published var speakerVolume: Float = 0.8
+
     private let bridge = IntercomBridge(localPeerId: "ios-lead", localPeerName: "iOS Lead")
     private var cancellables: [CancellationHandle] = []
     private var activeActivity: Activity<IntercomActivityAttributes>? = nil
@@ -93,7 +99,31 @@ final class IntercomViewModel: ObservableObject {
     }
 
     func setVolume(_ volume: Float) {
+        speakerVolume = volume
         bridge.setOutputVolume(volume: volume)
+    }
+
+    func cycleVolume() {
+        let newVol: Float
+        if speakerVolume < 0.35 {
+            newVol = 0.6
+        } else if speakerVolume < 0.75 {
+            newVol = 1.0
+        } else {
+            newVol = 0.3
+        }
+        setVolume(newVol)
+    }
+
+    func toggleVoxLock() {
+        isVoxLocked.toggle()
+        if isVoxLocked {
+            bridge.setVoxEnabled(enabled: false, thresholdDb: -40.0)
+            bridge.setPttActive(active: false)
+            isTransmitting = false
+        } else {
+            bridge.setVoxEnabled(enabled: voxEnabled, thresholdDb: -40.0)
+        }
     }
 
     // --- Channel Sub-Group Controls ---
@@ -332,6 +362,15 @@ final class IntercomViewModel: ObservableObject {
             }
         }
         cancellables.append(bitrateSub)
+
+        let accessorySub = bridge.observeHelmetAccessory { [weak self] state in
+            Task { @MainActor in
+                self?.accessoryState = state
+            }
+        }
+        cancellables.append(accessorySub)
+
+        isPfsRatchetActive = bridge.isPfsRatchetActive()
     }
 
     // --- ActivityKit Live Activity & Dynamic Island ---

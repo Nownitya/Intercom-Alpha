@@ -173,3 +173,17 @@
 | **ICA-1403** | iOS 18+ Live Activity & Dynamic Island Hands-Free PTT Widget | `IntercomActivityAttributes.swift`, `IntercomActivityWidget.swift`, `IntercomViewModel.swift`, `IntercomBridge.kt` | ✅ Completed |
 | **ICA-1404** | Multi-Cluster Cloud Cross-Mesh SFU Signaling & Audio Bridging | `SignalingProtocol.kt`, `SignalingServerManager.kt`, `CloudRelayBridge.kt`, `MultiClusterBridgeTest.kt` | ✅ Completed |
 
+---
+
+### 🚀 Sprint 15: Zero-Scroll Tactical Cockpit HUD & Hardware Telemetry Integration (Phase 13 - v2.2 Roadmap)
+- **Sprint Goal**: Deliver end-to-end integration of Sprint 14 subsystems (`HelmetAccessoryManager`, `MeshKeyRatchet`, `CloudRelayBridge`) into presentation models, and build the Zero-Scroll Tactical Cockpit HUD across Compose Multiplatform (`sharedUI`) and 100% Native iOS SwiftUI (`iosApp`).
+- **Sprint Branch**: `sprint/sprint-15-cockpit-hud-integration`
+- **Status**: ✅ 100% Complete (All 4 Stories Implemented & Verified)
+
+| Task ID | Item | Target Files | Status |
+| :--- | :--- | :--- | :--- |
+| **ICA-1501** | Subsystem Telemetry Wiring (Accessory, PFS Ratchet, SFU Cloud) | `IntercomHardwareBridge.kt`, `AndroidPlatformBridge.kt`, `IntercomBridge.kt`, `HomeViewModel.kt`, `HomeUiState.kt` | ✅ Completed |
+| **ICA-1502** | Compose Multiplatform Zero-Scroll Cockpit HUD | `HomeScreen.kt`, `PttButton.kt`, `QuickHazardBar.kt`, `ProximityRadarView.kt` | ✅ Completed |
+| **ICA-1503** | Native iOS SwiftUI Tactical Cockpit HUD | `ContentView.swift`, `IntercomViewModel.swift` | ✅ Completed |
+| **ICA-1504** | Multiplatform Verification Gates & Presentation Regression Tests | `HomeViewModelTest.kt`, Gradle automated tests, OpenCodeReview | ✅ Completed |
+

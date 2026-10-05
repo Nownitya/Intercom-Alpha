@@ -11,10 +11,14 @@ import org.nowni.intercom_alpha.group.Group
 import org.nowni.intercom_alpha.group.GroupConfig
 import org.nowni.intercom_alpha.group.GroupManager
 import org.nowni.intercom_alpha.group.GroupManagerImpl
+import org.nowni.intercom_alpha.crypto.MeshKeyRatchet
 import org.nowni.intercom_alpha.headset.HeadsetButtonEvent
 import org.nowni.intercom_alpha.headset.HeadsetInfo
 import org.nowni.intercom_alpha.headset.HeadsetManager
 import org.nowni.intercom_alpha.headset.HeadsetManagerImpl
+import org.nowni.intercom_alpha.headset.HelmetAccessoryManager
+import org.nowni.intercom_alpha.headset.HelmetAccessoryState
+import org.nowni.intercom_alpha.headset.RemotePttAction
 import org.nowni.intercom_alpha.mesh.ConnectionState
 import org.nowni.intercom_alpha.mesh.MeshConfig
 import org.nowni.intercom_alpha.mesh.MeshTransport
@@ -30,7 +34,6 @@ import org.nowni.intercom_alpha.text.CannedMessageCode
 import org.nowni.intercom_alpha.text.MeshTextManager
 import org.nowni.intercom_alpha.text.MeshTextMessage
 
-
 @OptIn(ExperimentalForeignApi::class)
 class IntercomBridge(
     val localPeerId: String = "ios-local",
@@ -45,7 +48,7 @@ class IntercomBridge(
     val groupManager: GroupManager = GroupManagerImpl(meshTransport)
     val keepAlive: BackgroundKeepAlive = BackgroundKeepAlive()
 
-    // v2.0 Subsystems
+    // v2.0 & Sprint 14 Subsystems
     val channelManager: ChannelManager = ChannelManager()
     val proximityRadar: ProximityRadar = ProximityRadar()
     val convoyGpsTracker: ConvoyGpsTracker = ConvoyGpsTracker(localPeerId, localPeerName)
@@ -53,6 +56,11 @@ class IntercomBridge(
     val priorityManager: PriorityBroadcastManager = PriorityBroadcastManager()
     val blackboxRecorder: EmergencyBlackboxRecorder = EmergencyBlackboxRecorder()
     val bitrateController: AdaptiveBitrateController = AdaptiveBitrateController()
+    val helmetAccessoryManager: HelmetAccessoryManager = HelmetAccessoryManager()
+    val keyRatchet: MeshKeyRatchet = MeshKeyRatchet(
+        localNodeId = localPeerId,
+        masterSecret = "intercom-mesh-master-salt-default".encodeToByteArray()
+    )
 
     private var audioRxJob: Job? = null
     private var audioTxJob: Job? = null
@@ -118,14 +126,30 @@ class IntercomBridge(
                 }
             }
 
-            // 6. Intercept physical headset buttons (e.g. helmet PTT or AirPods click)
+            // 6. Intercept physical headset buttons and remote BLE accessory PTT
             headsetEventsJob?.cancel()
             headsetEventsJob = scope.launch(Dispatchers.Main) {
-                for (event in headsetManager.buttonEvents) {
-                    when (event) {
-                        HeadsetButtonEvent.PTT_PRESS -> setPttActive(true)
-                        HeadsetButtonEvent.PTT_RELEASE -> setPttActive(false)
-                        else -> {}
+                launch {
+                    for (event in headsetManager.buttonEvents) {
+                        when (event) {
+                            HeadsetButtonEvent.PTT_PRESS -> setPttActive(true)
+                            HeadsetButtonEvent.PTT_RELEASE -> setPttActive(false)
+                            else -> {}
+                        }
+                    }
+                }
+                launch {
+                    helmetAccessoryManager.remotePttEvents.collect { event ->
+                        when (event.action) {
+                            RemotePttAction.PRESSED -> setPttActive(true)
+                            RemotePttAction.RELEASED -> setPttActive(false)
+                            RemotePttAction.CLICK -> {
+                                setPttActive(true)
+                                delay(300)
+                                setPttActive(false)
+                            }
+                            else -> {}
+                        }
                     }
                 }
             }
@@ -517,4 +541,17 @@ class IntercomBridge(
         }
         return CancellationHandle { job.cancel() }
     }
+
+    // --- Helmet Accessory Observers & PFS Ratchet Status ---
+
+    fun observeHelmetAccessory(onState: (HelmetAccessoryState) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            helmetAccessoryManager.accessoryState.collect { state ->
+                onState(state)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun isPfsRatchetActive(): Boolean = !keyRatchet.isWiped
 }

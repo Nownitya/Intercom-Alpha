@@ -224,4 +224,38 @@ class HomeViewModelTest {
         assertNotNull(convoySnapshot.localCoordinate)
         assertEquals(37.7749, convoySnapshot.localCoordinate?.latitude)
     }
+
+    @Test
+    fun testSprint14TelemetryAndVoxLock() = runTest(testDispatcher) {
+        // 1. Helmet accessory state sync
+        val dummyAccessory = org.nowni.intercom_alpha.headset.HelmetAccessoryState(
+            brand = org.nowni.intercom_alpha.headset.HelmetBrand.CARDO,
+            deviceName = "Cardo PACKTALK EDGE",
+            isConnected = true,
+            batteryPercent = 85
+        )
+        hardwareBridge.simulateHelmetAccessoryState(dummyAccessory)
+        advanceUntilIdle()
+
+        assertEquals("Cardo PACKTALK EDGE", viewModel.uiState.value.accessoryState.deviceName)
+        assertEquals(85, viewModel.uiState.value.accessoryState.batteryPercent)
+        assertTrue(viewModel.uiState.value.accessoryState.isConnected)
+
+        // 2. Cloud bridge state sync
+        hardwareBridge.simulateCloudBridgeConnected(true)
+        advanceUntilIdle()
+        assertTrue(viewModel.uiState.value.isCloudBridgeConnected)
+
+        // 3. Vox Lock action
+        assertFalse(viewModel.uiState.value.isVoxLocked)
+        viewModel.onAction(HomeUiAction.ToggleVoxLock)
+        advanceUntilIdle()
+        assertTrue(viewModel.uiState.value.isVoxLocked)
+        assertTrue(viewModel.uiState.value.isTransmitting)
+
+        viewModel.onAction(HomeUiAction.ToggleVoxLock)
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.isVoxLocked)
+        assertFalse(viewModel.uiState.value.isTransmitting)
+    }
 }

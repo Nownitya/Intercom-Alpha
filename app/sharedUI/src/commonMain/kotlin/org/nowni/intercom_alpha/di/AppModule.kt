@@ -23,6 +23,7 @@ fun createSharedUiModule(
     single { PriorityBroadcastManager() }
     single { EmergencyBlackboxRecorder() }
     single { AdaptiveBitrateController() }
+    single { org.nowni.intercom_alpha.headset.HelmetAccessoryManager() }
     single<IntercomHardwareBridge> { hardwareBridge }
 
     viewModelOf(::HomeViewModel)

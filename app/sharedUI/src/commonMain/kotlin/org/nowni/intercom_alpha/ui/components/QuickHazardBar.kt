@@ -1,7 +1,7 @@
 package org.nowni.intercom_alpha.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -9,10 +9,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.nowni.intercom_alpha.text.CannedMessageCode
 
+/**
+ * 1-Tap Tactical Hazard Macro Bar for motorcycle cockpits.
+ * Single-row 4-column layout guaranteeing 52dp minimum touch envelopes for gloved hands.
+ */
 @Composable
 fun QuickHazardBar(
     unreadCount: Int,
@@ -28,124 +33,118 @@ fun QuickHazardBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Quick Hazard & Messages",
-                style = MaterialTheme.typography.titleSmall,
+                text = "TACTICAL HAZARD MACROS",
+                fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                letterSpacing = 0.5.sp,
+                color = Color(0xFFFA5C22)
             )
 
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                // Messages Button with Unread Badge
-                FilledTonalButton(
-                    onClick = onOpenMessages,
-                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        text = if (unreadCount > 0) "💬 Messages ($unreadCount)" else "💬 Messages",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-
-                // Dedicated SOS Button
-                Button(
-                    onClick = onTriggerSos,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFD32F2F),
-                        contentColor = Color.White
-                    ),
-                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        text = "🚨 SOS",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Black
-                    )
-                }
+            // Direct link to chat / custom messages drawer
+            TextButton(
+                onClick = onOpenMessages,
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
+            ) {
+                Text(
+                    text = if (unreadCount > 0) "💬 Messages ($unreadCount)" else "💬 Log",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF00E5FF)
+                )
             }
         }
 
-        Spacer(modifier = Modifier.height(6.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(horizontal = 2.dp)
+        // 4-Column Glove-Friendly Action Row (52dp height)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            item {
-                HazardPill(
-                    icon = "⛽",
-                    label = "Fuel Low",
-                    onClick = { onSendHazard(CannedMessageCode.FUEL_LOW) },
-                    containerColor = Color(0xFFFFF3E0),
-                    contentColor = Color(0xFFE65100)
-                )
-            }
-            item {
-                HazardPill(
-                    icon = "⚠️",
-                    label = "Road Hazard",
-                    onClick = { onSendHazard(CannedMessageCode.HAZARD_ROAD) },
-                    containerColor = Color(0xFFFFFDE7),
-                    contentColor = Color(0xFFF57F17)
-                )
-            }
-            item {
-                HazardPill(
-                    icon = "🛑",
-                    label = "Stop Immediate",
-                    onClick = { onSendHazard(CannedMessageCode.STOP_IMMEDIATE) },
-                    containerColor = Color(0xFFFFEBEE),
-                    contentColor = Color(0xFFC62828)
-                )
-            }
-            item {
-                HazardPill(
-                    icon = "🔧",
-                    label = "Bike Issue",
-                    onClick = { onSendHazard(CannedMessageCode.MECHANICAL_ISSUE) },
-                    containerColor = Color(0xFFEDE7F6),
-                    contentColor = Color(0xFF4527A0)
-                )
-            }
-            item {
-                HazardPill(
-                    icon = "🔄",
-                    label = "Regroup",
-                    onClick = { onSendHazard(CannedMessageCode.REGROUP) },
-                    containerColor = Color(0xFFE8F5E9),
-                    contentColor = Color(0xFF2E7D32)
-                )
-            }
+            // 1. Road Hazard
+            HazardMacroButton(
+                icon = "⚠️",
+                title = "HAZARD",
+                subtext = "Debris",
+                borderColor = Color(0xFFFA5C22),
+                modifier = Modifier.weight(1f),
+                onClick = { onSendHazard(CannedMessageCode.HAZARD_ROAD) }
+            )
+
+            // 2. Low Fuel
+            HazardMacroButton(
+                icon = "⛽",
+                title = "FUEL",
+                subtext = "Pitstop",
+                borderColor = Color(0xFF00E5FF),
+                modifier = Modifier.weight(1f),
+                onClick = { onSendHazard(CannedMessageCode.FUEL_LOW) }
+            )
+
+            // 3. Stop Immediate
+            HazardMacroButton(
+                icon = "🛑",
+                title = "STOP",
+                subtext = "Regroup",
+                borderColor = Color(0xFFFF5252),
+                containerColor = Color(0xFF4A1010),
+                modifier = Modifier.weight(1f),
+                onClick = { onSendHazard(CannedMessageCode.STOP_IMMEDIATE) }
+            )
+
+            // 4. Bike Mechanical
+            HazardMacroButton(
+                icon = "🔧",
+                title = "BIKE",
+                subtext = "Repair",
+                borderColor = Color(0xFF00E676),
+                modifier = Modifier.weight(1f),
+                onClick = { onSendHazard(CannedMessageCode.MECHANICAL_ISSUE) }
+            )
         }
     }
 }
 
 @Composable
-private fun HazardPill(
+private fun HazardMacroButton(
     icon: String,
-    label: String,
-    onClick: () -> Unit,
-    containerColor: Color,
-    contentColor: Color
+    title: String,
+    subtext: String,
+    borderColor: Color,
+    modifier: Modifier = Modifier,
+    containerColor: Color = Color(0xFF1D2023),
+    onClick: () -> Unit
 ) {
     Surface(
         onClick = onClick,
+        modifier = modifier.height(52.dp),
         shape = RoundedCornerShape(8.dp),
-        color = containerColor
+        color = containerColor,
+        border = BorderStroke(1.dp, borderColor.copy(alpha = 0.6f))
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxSize().padding(horizontal = 2.dp)
         ) {
-            Text(text = icon, fontSize = 12.sp)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(text = icon, fontSize = 13.sp)
+                Text(
+                    text = title,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Black,
+                    color = Color.White
+                )
+            }
             Text(
-                text = label,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                color = contentColor
+                text = subtext,
+                fontSize = 8.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFFB0B8C1),
+                textAlign = TextAlign.Center
             )
         }
     }
