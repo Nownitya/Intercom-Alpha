@@ -806,5 +806,20 @@
   - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 25s (Rule 6).
   - `./gradlew :app:androidApp:assembleDebug`: BUILD SUCCESSFUL in 8s (Rule 6).
   - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+### [2026-10-06] - ICA-1601: Audio DSP Hardening: Pure KMP Automatic Gain Control & Dynamic Range Compression
+- **Branch**: `feature/ICA-1601-audio-dsp-agc-drc`
+- **Objective**: Implement pure Kotlin Multiplatform Automatic Gain Control (`AutomaticGainControl.kt`) and Dynamic Range Compression (`DynamicRangeCompressor.kt`) for helmet intercom audio: dynamic RMS speech normalization across whispering and screaming, soft-knee compression curve, anti-pumping envelope follower, and lookahead peak limiter with zero Java/C dependencies.
+- **Implementation**:
+  - `AutomaticGainControl.kt`: Pure KMP DSP normalizing speech to target level (-18.0 dBFS) across dynamic range. Features anti-pumping envelope follower below -50.0 dBFS (suspending gain boosts during silence/noise), asymmetric attack (80ms) and release (300ms) slew-rate filtering, and sample-by-sample linear gain interpolation to prevent clicks/zipper noise.
+  - `DynamicRangeCompressor.kt`: Pure KMP soft-knee dynamic range compressor (threshold: -12.0 dBFS, ratio: 4:1, knee width: 6.0 dB, attack: 5ms, release: 60ms) and lookahead brickwall peak limiter (lookahead: 1.5ms, ceiling: -0.5 dBFS). Smoothly compresses loud syllables and guarantees zero clipping at 32767 with peak output strictly <= -0.5 dBFS.
+  - `AudioEngine.kt`: Added `enableAgc: Boolean = true`, `agcTargetDb: Float = -18f`, `enableDrc: Boolean = true` to `AudioEngineConfig`. Wired `AutomaticGainControl`, `DynamicRangeCompressor`, and playout limiter into full duplex `AudioPipelineSession` (`processOutgoingMicrophone` and `pullPlayoutFrame`).
+  - `AutomaticGainControlTest.kt`: Created unit tests in `commonTest` testing whisper normalization to -18 dBFS target within 150ms, anti-pumping silence suppression, shout attenuation, soft-knee 4:1 curve calculation, lookahead limiter zero-clipping guarantee (peak <= -0.5 dBFS), and full duplex pipeline integration.
+- **Verification**:
+  - `./gradlew test`: 100% test suite pass across all modules (Rule 6).
+  - `./gradlew :app:sharedLogic:jvmTest :app:sharedUI:jvmTest`: Passed cleanly.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 24s (Rule 6).
+  - `./gradlew :app:androidApp:assembleDebug`: BUILD SUCCESSFUL in 24s (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+  - `graphify update .`: AST updated with 2337 nodes, 4648 edges.
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
 ---

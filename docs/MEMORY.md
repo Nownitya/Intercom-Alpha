@@ -381,6 +381,19 @@
   - Circular vector radar display: concentric distance rings (100m, 500m, 1.5km), heading chevron, crosshairs, and dynamically plotted color-coded rider dots (Green < 100m, Cyan < 500m, Amber $\ge$ 500m) with live telemetry callout.
   - End-to-end hardware telemetry wiring: Cardo/Sena GATT battery level and PTT events (`HelmetAccessoryManager`), Perfect Forward Secrecy session ratchet (`MeshKeyRatchet`), and multi-cluster cloud bridge status (`CloudRelayBridge`) integrated across `HomeViewModel`, `AndroidPlatformBridge`, and native iOS `IntercomBridge` / `IntercomViewModel`.
 
+### 2.44 Pure KMP Automatic Gain Control (AGC) & Dynamic Range Compression (DRC) (`AutomaticGainControl.kt`, `DynamicRangeCompressor.kt`)
+- **Challenge**: Motorcycle helmet microphones operate in extreme acoustic dynamic ranges: quiet whispers at stoplights vs. yelling over 100+ km/h wind roar. Uncontrolled gain either causes severe clipping distortion or amplifies background road rumble during speech pauses.
+- **Solution**:
+  - Implemented `AutomaticGainControl.kt` in pure Kotlin Multiplatform:
+    - Normalizes speech energy to target RMS (-18.0 dBFS) across dynamic range.
+    - Anti-pumping envelope follower below -50.0 dBFS suspends gain boosts during pauses, gently decaying toward unity gain to prevent amplifying ambient engine or road rumble.
+    - Slew-rate filtering with asymmetric attack (80ms) and release (300ms) plus sample-by-sample linear gain interpolation completely eliminates clicks and zipper noise.
+  - Implemented `DynamicRangeCompressor.kt` with pure KMP soft-knee compression and lookahead peak limiter:
+    - Smooth soft-knee compression curve (threshold: -12.0 dBFS, ratio: 4:1, knee width: 6.0 dB) transitions gradually from linear into compressed behavior without harsh harmonic artifacts.
+    - Low-latency lookahead circular buffer (1.5ms) detects transients ahead of time and applies gain attenuation before peaks exit the delay line.
+    - Brickwall peak limiter strictly bounds output peak to `ceilingDb` (-0.5 dBFS), guaranteeing zero clipping at 32767 and protecting ADPCM encoder buffers and helmet earpieces.
+  - Integrated both processors into `AudioPipelineSession` (`AudioEngine.kt`) on both outgoing microphone and incoming playout paths.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

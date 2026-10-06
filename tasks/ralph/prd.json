@@ -22,7 +22,7 @@
         "DRC applies soft-knee compression (ratio 4:1) and hard-limiting ceiling at -0.5 dBFS preventing clipping",
         "100% test pass on JVM and compileKotlinIosSimulatorArm64 (Rule 6)"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-1602",
