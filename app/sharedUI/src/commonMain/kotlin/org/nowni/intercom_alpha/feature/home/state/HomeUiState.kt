@@ -4,6 +4,8 @@ import org.nowni.intercom_alpha.audio.PriorityLevel
 import org.nowni.intercom_alpha.channel.ChannelState
 import org.nowni.intercom_alpha.common.AudioProfile
 import org.nowni.intercom_alpha.headset.HelmetAccessoryState
+import org.nowni.intercom_alpha.map.RadarRangeZoom
+import org.nowni.intercom_alpha.map.TrailMapSnapshot
 import org.nowni.intercom_alpha.mesh.Peer
 import org.nowni.intercom_alpha.mesh.RadarSnapshot
 import org.nowni.intercom_alpha.telemetry.ConvoyTelemetrySnapshot
@@ -44,7 +46,11 @@ data class HomeUiState(
     // Sprint 17 Basecamp Repeater HUD Telemetry (ICA-1704)
     val latestRepeaterBeacon: org.nowni.intercom_alpha.mesh.RepeaterBeaconPayload? = null,
     val repeaterPingLatencyMs: Long? = null,
-    val isPingingRepeater: Boolean = false
+    val isPingingRepeater: Boolean = false,
+
+    // Sprint 18 Offline Vector Terrain & Trail Map State (ICA-1802)
+    val trailMapSnapshot: TrailMapSnapshot = TrailMapSnapshot(),
+    val showTrailSheet: Boolean = false
 )
 
 sealed interface HomeUiAction {
@@ -69,6 +75,13 @@ sealed interface HomeUiAction {
     data class ToggleMessagesDialog(val show: Boolean) : HomeUiAction
     data object ToggleVoxLock : HomeUiAction
     data object TriggerRepeaterPing : HomeUiAction
+
+    // Sprint 18 Trail Map Actions
+    data object CycleRadarZoom : HomeUiAction
+    data class SetRadarZoom(val zoom: RadarRangeZoom) : HomeUiAction
+    data class ToggleTrailOverlay(val enabled: Boolean) : HomeUiAction
+    data class ToggleTrailSheet(val show: Boolean) : HomeUiAction
+    data object LoadSampleTrail : HomeUiAction
 }
 
 sealed interface HomeUiEvent {

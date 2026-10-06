@@ -18,6 +18,8 @@ import org.nowni.intercom_alpha.audio.EmergencyBlackboxRecorder
 import org.nowni.intercom_alpha.channel.ChannelManager
 import org.nowni.intercom_alpha.headset.HelmetAccessoryManager
 import org.nowni.intercom_alpha.headset.HelmetAccessoryState
+import org.nowni.intercom_alpha.map.TrailMapManager
+import org.nowni.intercom_alpha.map.TrailMapSnapshot
 import org.nowni.intercom_alpha.mesh.ControlType
 import org.nowni.intercom_alpha.mesh.MeshPacket
 import org.nowni.intercom_alpha.mesh.MeshRepeaterService
@@ -83,6 +85,9 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
     private val _incomingRepeaterBeacons = MutableSharedFlow<RepeaterBeaconPayload>(extraBufferCapacity = 16)
     override val incomingRepeaterBeacons: SharedFlow<RepeaterBeaconPayload> = _incomingRepeaterBeacons.asSharedFlow()
 
+    private val _trailMapSnapshot = MutableStateFlow(TrailMapSnapshot())
+    override val trailMapSnapshot: StateFlow<TrailMapSnapshot> = _trailMapSnapshot.asStateFlow()
+
     var channelManager: ChannelManager? = null
         private set
     var blackboxRecorder: EmergencyBlackboxRecorder? = null
@@ -90,6 +95,8 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
     var helmetAccessoryManager: HelmetAccessoryManager? = null
         private set
     var repeaterService: MeshRepeaterService? = null
+        private set
+    var trailMapManager: TrailMapManager? = null
         private set
 
     private var boundService: IntercomForegroundService? = null
@@ -103,12 +110,14 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         channelManager: ChannelManager,
         blackboxRecorder: EmergencyBlackboxRecorder,
         helmetAccessoryManager: HelmetAccessoryManager?,
-        repeaterService: MeshRepeaterService?
+        repeaterService: MeshRepeaterService?,
+        trailMapManager: TrailMapManager?
     ) {
         this.channelManager = channelManager
         this.blackboxRecorder = blackboxRecorder
         this.helmetAccessoryManager = helmetAccessoryManager
         this.repeaterService = repeaterService
+        this.trailMapManager = trailMapManager
 
         helmetAccessoryManager?.let { accessoryMgr ->
             scope.launch {
@@ -117,6 +126,18 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
                 }
             }
         }
+
+        trailMapManager?.let { mapMgr ->
+            scope.launch {
+                mapMgr.snapshot.collect { snap ->
+                    _trailMapSnapshot.value = snap
+                }
+            }
+        }
+    }
+
+    override fun updateTrailMapSnapshot(snapshot: TrailMapSnapshot) {
+        _trailMapSnapshot.value = snapshot
     }
 
     fun bindService(service: IntercomForegroundService) {
