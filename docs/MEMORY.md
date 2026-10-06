@@ -467,6 +467,65 @@
   - `HomeScreen.kt`: Embedded compact Basecamp Beacon telemetry strip in the Top Avionics Bar displaying repeater name, battery %, solar status, round-trip latency, and 1-tap `PING` button. Zero layout shift and adheres to zero-scroll contract.
   - `ContentView.swift`: Integrated Basecamp Beacon badge with RTT latency reflection and 1-tap ping into `TacticalAvionicsBar`.
 
+### 2.50 Pure KMP Offline Vector Trail & Terrain Geometry Engine (Sprint 18 - ICA-1801)
+- **Challenge**: Off-grid adventure convoys in deep backcountry operate with zero internet or cellular data. Rendering topographic elevation contours, trail tracks, and GPS breadcrumbs on the handlebar tactical radar requires pure KMP math with zero heavy SDKs (e.g. Mapbox / Google Play Services) to preserve multiplatform compatibility (Android, iOS Native, JVM, Wasm).
+- **Solution**:
+  - Implemented `VectorMapModels.kt`:
+    - Immutable data models: `GeoPoint`, `TrailWaypoint`, `TrailPolyline`, `ContourLine`, `ProjectedRadarPoint`, `RadarRangeZoom` (500m, 1.5km, 5km), and `TrailMapSnapshot`.
+  - Implemented `TrailMapEngine.kt`:
+    - Haversine distance and forward azimuth calculation in pure Kotlin.
+    - Normalized polar-to-Cartesian radar projection relative to observer heading: Ahead ($0^\circ$) mapped to $-Y$, Starboard ($+90^\circ$) mapped to $+X$, Port ($-90^\circ$) mapped to $-X$, Aft ($180^\circ$) mapped to $+Y$.
+    - Pure KMP GeoJSON FeatureCollection parser mapping `LineString` to `TrailPolyline` and `Point` to `TrailWaypoint`.
+    - Procedural alpine mountain pass generator (`createSampleAlpineTrail`) with contour loops and tactical waypoints.
+  - Implemented `TrailMapManager.kt`:
+    - Thread-safe `Mutex` coordinator exposing reactive `StateFlow<TrailMapSnapshot>`.
+    - Sliding-window breadcrumbs per rider (up to 100 points, filtered by $\ge 10$m delta to conserve memory).
+    - Dynamic projection recalculation upon observer movement, vehicle heading change, or radar range zoom cycling.
+
+### 2.51 Subsystem Bridge Wiring & Reactive Presentation Integration (Sprint 18 - ICA-1802)
+- **Challenge**: Seamlessly binding offline vector map geometry and radar projections across multiplatform presentation layers (`HomeViewModel.kt`, Android services, and Native iOS SwiftUI `IntercomViewModel`) while maintaining reactive state flows, zero memory leaks, and clean life-cycle subscriptions.
+- **Solution**:
+  - `IntercomHardwareBridge.kt`: Added `trailMapSnapshot: StateFlow<TrailMapSnapshot>`, `updateTrailMapSnapshot()`, and `trailMapManager` injection in `attachSubsystems()`.
+  - `AndroidPlatformBridge.kt`: Connected `trailMapManager.snapshot` to bridge state flow and exposed for background navigation routing.
+  - `IntercomBridge.kt` (`iosMain`): Exposed `observeTrailMapSnapshot` callback returning `CancellationHandle` for SwiftUI view lifecycle safety (Rule 1), alongside radar zoom cycling (`cycleRadarZoom()`, `setRadarZoom()`) and sample trail loader.
+  - `HomeUiState.kt` / `HomeViewModel.kt`: Centralized `trailMapSnapshot` into `uiState`, automatically streaming local Android/iOS GPS coordinates and incoming over-the-air peer GPS frames to `trailMapManager` for real-time relative radar projection.
+### 2.52 Compose Multiplatform Radar Topo Contour & Vector Trail Overlay (Sprint 18 - ICA-1803)
+- **Challenge**: Rendering offline vector paths, contour lines, waypoints, and peer breadcrumbs directly on top of the Proximity Radar canvas in Compose Multiplatform without degrading rendering performance, causing frame drops during active voice streaming, or breaking the strict single-viewport zero-scroll mobile handlebar layout constraint.
+- **Solution**:
+  - `ProximityRadarView.kt`:
+    - Layered vector canvas drawing underneath concentric radar rings:
+      - Topographic elevation contours: Subtle dashed lines with elevation label pills (30% opacity).
+      - Neon trail tracks: Cyan glow polyline with directional segments and path vertices.
+      - Rider breadcrumb dots: Rolling 100-point history per peer rendered with color accents and fading tails.
+      - Tactical waypoints: Projected symbols for Water, Summit, Camp, Hazard, and Waypoint with distance/bearing labels.
+    - Interactive tactile range zoom badge: Upper right corner button cycling `500m` -> `1.5km` -> `5.0km` ranges.
+  - `OfflineTrailCockpitSheet.kt`:
+    - Full-featured tactical dark sheet modal with elevation metrics (max, min, current, total ascent), active trail polyline stats, distance, and nearest waypoint distance/bearing.
+    - Radar zoom switcher chips, vector overlay toggle, and sample trail loader.
+    - Scrollable waypoint roster with type icons, elevation badges, and coordinates.
+  - `HomeScreen.kt`:
+    - Wired `trailMapSnapshot`, `onCycleZoom`, and `onOpenTrailSheet` into `ProximityRadarView`.
+    - Added quick "Trail" toggle/launcher button in the Top Quick Actions row next to "Relay".
+### 2.53 Native iOS SwiftUI Radar Topographic Overlay & Offline Trail Cockpit Sheet (Sprint 18 - ICA-1804)
+- **Challenge**: Delivering identical vector trail map capabilities on iOS while maintaining 100% native SwiftUI without any Compose Multiplatform code or external mapping SDKs (Rule 1), rendering vector contours and paths efficiently using SwiftUI `Path`, and providing seamless cockpit integration with `IntercomViewModel`.
+- **Solution**:
+  - `IntercomViewModel.swift`:
+    - Exposed `@Published var trailMapSnapshot: TrailMapSnapshot?` and `@Published var showTrailSheet: Bool`.
+    - Bound `bridge.observeTrailMapSnapshot` callback safely to `@MainActor` with `CancellationHandle` registered in lifecycle deinit array.
+    - Added Swift controls: `cycleRadarZoom()`, `setRadarZoom()`, `setTrailOverlayEnabled()`, `loadSampleAlpineTrail()`, `toggleTrailSheet()`.
+    - Fed live GPS fixes into `bridge.updateTrailLocalGps` for dynamic vector recalculations.
+  - `OfflineTrailCockpitSheet.swift`:
+    - 100% Native SwiftUI modal (`#14181D` dark tactical theme) compliant with Rule 1.
+    - Elevation metrics grid (Current Alt, Lead Rider Delta, Total Distance, Total Ascent).
+    - 3-segment radar range zoom buttons (`500m`, `1.5km`, `5.0km`) and vector overlay toggle.
+    - Next waypoint guidance banner with distance callout, bearing orientation, and type icon.
+    - Scrollable tactical waypoint roster with custom icons (💧 Water, ⛺ Camp, ⚠️ Hazard, 🏔️ Summit, 📍 Marker), elevations, and descriptions.
+  - `ContentView.swift`:
+    - Upgraded `TacticalVectorRadarView` with SwiftUI `Path` rendering of topographic contours (dashed strokes) and neon cyan trail polyline segments.
+    - Plotted rider breadcrumb dots and waypoint pins.
+    - Embedded tactile zoom range switcher badge in the radar corner.
+    - Integrated "Trail" launcher button in `TacticalAvionicsBar`.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

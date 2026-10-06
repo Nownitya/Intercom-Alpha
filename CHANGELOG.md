@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.5.0] - 2026-10-07 — Sprint 18: Offline Vector Terrain & Trail Map Overlay
+
+### Added
+- **Pure KMP Offline Vector Trail & Terrain Geometry Engine (`VectorMapModels.kt`, `TrailMapEngine.kt`, `TrailMapManager.kt`)**: Implemented immutable data models (`GeoPoint`, `TrailWaypoint`, `TrailPolyline`, `ContourLine`, `ProjectedRadarPoint`, `RadarRangeZoom`, `TrailMapSnapshot`), Great-Circle Haversine distance, forward azimuth, relative vehicle bearing normalization ($-180^\circ..+180^\circ$), polar-to-Cartesian normalized radar projection, GeoJSON parser, and procedural alpine trail generator with zero Java or external map SDK dependencies (Rules 2 & 3).
+- **Subsystem Bridge Wiring & Reactive Presentation Integration (`IntercomHardwareBridge.kt`, `AndroidPlatformBridge.kt`, `IntercomBridge.kt`, `HomeViewModel.kt`, `AppModule.kt`)**: Injected `TrailMapManager` into Koin DI, hardware bridges, and platform engines. Exposed `StateFlow<TrailMapSnapshot>` and Swift-friendly `observeTrailMapSnapshot` callback returning `CancellationHandle` (Rule 1). Automatically streams local Android/iOS GPS coordinates and incoming over-the-air peer GPS telemetry frames directly to `TrailMapManager` for real-time relative radar projection.
+- **Compose Multiplatform Radar Topo Contour & Vector Trail Overlay (`ProximityRadarView.kt`, `OfflineTrailCockpitSheet.kt`, `HomeScreen.kt`)**: Upgraded circular proximity radar to render topographic elevation contours with subtle dashed strokes, neon cyan vector trail tracks, and rider breadcrumb dots. Added interactive radar range zoom button (`500m` / `1.5km` / `5.0km`), quick "Trail" cockpit launcher button in top avionics header, and tactical `OfflineTrailCockpitSheet` modal dialog displaying elevation metrics, ascent, distance, and nearest waypoint navigation without violating the handlebar zero-scroll layout constraint.
+- **100% Native iOS SwiftUI Radar Topographic Overlay & Offline Trail Cockpit Sheet (`ContentView.swift`, `OfflineTrailCockpitSheet.swift`, `IntercomViewModel.swift`)**: Built pure SwiftUI implementation adhering to Rule 1 with zero Compose imports. Draws vector trail paths and contour arcs using SwiftUI `Path` on `TacticalVectorRadarView`, plots rider breadcrumbs and tactical waypoint pins, provides tactile radar range switcher badge, and presents full-featured `OfflineTrailCockpitSheet` modal with nearest waypoint guidance and waypoint roster.
+
+---
+
 ## [2.4.0] - 2026-10-06 — Sprint 17: Basecamp Stationary Repeater UI & Dedicated Low-Power Cockpit Mode
 
 ### Added

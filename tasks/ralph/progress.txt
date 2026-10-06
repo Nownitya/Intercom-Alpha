@@ -970,6 +970,114 @@
   - `ICA-1704: Remote Repeater Telemetry & Diagnostic Ping Cockpit HUD Integration` [PASSED]
 - **Milestone Outcome**: 100% Definition of Done (DoD) achieved for Phase 15. Stationary repeater nodes operate with pure black OLED power conservation, zero audio buffer allocations, automated duty cycles, StandBy landscape layouts, and real-time remote cockpit telemetry with 1-tap diagnostic pings across both Android (Compose) and iOS (100% Native SwiftUI).
 ---
+### [2026-10-07] - ICA-1801: Pure KMP Offline Vector Trail & Terrain Geometry Engine
+- **Branch**: `feature/ICA-1801-kmp-vector-map-engine`
+- **Objective**: Implement pure KMP domain models (`VectorMapModels.kt`), local projection math, trail/waypoint parsers (`TrailMapEngine.kt`), and reactive state coordinator (`TrailMapManager.kt`) in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/map/`.
+- **Implementation**:
+  - `VectorMapModels.kt`: Defined `GeoPoint`, `TrailWaypoint`, `WaypointType`, `TrailPolyline`, `TrailDifficulty`, `ContourLine`, `ProjectedRadarPoint`, `ProjectedWaypoint`, `ProjectedTrailSegment`, `ProjectedContour`, `RadarRangeZoom` (500m, 1.5km, 5km), and `TrailMapSnapshot`.
+  - `TrailMapEngine.kt`:
+    - Haversine Great-Circle distance and forward azimuth calculation in pure Kotlin.
+    - Relative vehicle bearing normalization to $[-180.0^\circ, +180.0^\circ]$.
+    - Radar projection mapping $(x, y)$ polar vectors into normalized $[-1.0, 1.0]$ circular radar coordinates relative to user vehicle heading.
+    - Pure KMP GeoJSON `FeatureCollection` parser for offline `LineString` tracks and `Point` waypoints.
+    - Out-of-the-box alpine trail generator (`createSampleAlpineTrail`) with contour loops and tactical waypoints.
+  - `TrailMapManager.kt`:
+    - Thread-safe state coordinator with `Mutex` emitting `StateFlow<TrailMapSnapshot>`.
+    - Sliding-window breadcrumb recorder for local rider and mesh convoy peers bounded to 100 entries with minimum movement thresholds.
+    - Dynamic projection recalculation upon observer movement, vehicle heading change, or radar range zoom cycling.
+  - `TrailMapManagerTest.kt`: 6 unit tests covering Haversine distance, azimuth, radar projection orientation, trail metrics, GeoJSON parsing, and lifecycle state flows.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
+### [2026-10-07] - ICA-1802: Subsystem Bridge Wiring & Reactive Presentation Integration
+- **Branch**: `feature/ICA-1802-subsystem-bridge-wiring`
+- **Objective**: Wire `TrailMapManager` into Koin DI, `IntercomHardwareBridge`, `AndroidPlatformBridge`, and `IntercomBridge` (`iosMain`) with typed `CancellationHandle` observers. Integrate into `HomeUiState.kt` and `HomeViewModel.kt`, managing trail snapshot, selectable radar zoom ranges (500m, 1.5km, 5km), trail overlay toggles, and waypoint creation.
+- **Implementation**:
+  - `IntercomHardwareBridge.kt`:
+    - Added `trailMapSnapshot: StateFlow<TrailMapSnapshot>` and `updateTrailMapSnapshot(snapshot)`.
+    - Added `trailMapManager: TrailMapManager? = null` parameter to `attachSubsystems(...)`.
+    - Extended `NoOpIntercomHardwareBridge` with `_trailMapSnapshot` and `simulateTrailMapSnapshot`.
+  - `AndroidPlatformBridge.kt`:
+    - Exposed `trailMapSnapshot: StateFlow<TrailMapSnapshot>` and implemented `attachSubsystems` collecting `trailMapManager.snapshot`.
+  - `IntercomBridge.kt` (`iosMain`):
+    - Instantiated `val trailMapManager: TrailMapManager = TrailMapManager()`.
+    - Added Swift-friendly observers with `CancellationHandle`: `observeTrailMapSnapshot`.
+    - Added control functions for Swift: `cycleRadarZoom()`, `setRadarZoom()`, `setTrailOverlayEnabled()`, `loadSampleAlpineTrail()`, `updateTrailLocalGps()`.
+  - `HomeUiState.kt`:
+    - Added `trailMapSnapshot: TrailMapSnapshot` and `showTrailSheet: Boolean`.
+    - Added actions: `CycleRadarZoom`, `SetRadarZoom`, `ToggleTrailOverlay`, `ToggleTrailSheet`, `LoadSampleTrail`.
+  - `HomeViewModel.kt`:
+    - Injected `val trailMapManager: TrailMapManager` into constructor.
+    - Attached to `hardwareBridge.attachSubsystems`.
+    - Synchronized `trailMapManager.snapshot` into `_uiState`.
+    - Fed live local GPS fixes and incoming over-the-air peer GPS telemetry frames directly to `trailMapManager` for real-time relative vector projection.
+    - Handled `CycleRadarZoom`, `SetRadarZoom`, `ToggleTrailOverlay`, `ToggleTrailSheet`, and `LoadSampleTrail`.
+  - `AppModule.kt` & `AppModuleTest.kt`: Registered `single { TrailMapManager() }` in Koin DI and verified resolution.
+  - `HomeViewModelTest.kt`: Added `testTrailMapSnapshotCoordinationAndActions` verifying full reactive cycle and actions.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
+
+### [2026-10-07] - ICA-1803: Compose Multiplatform Radar Topo Contour & Vector Trail Overlay
+- **Branch**: `feature/ICA-1803-compose-radar-topo-overlay`
+- **Objective**: Upgrade `ProximityRadarView.kt` in `app/sharedUI` to render subtle topographic contour lines, neon trail polylines, peer breadcrumbs, and waypoint icons directly beneath the radar rings. Add radar range toggle button (0.5k / 1.5k / 5k) and an expandable `OfflineTrailCockpitSheet.kt` displaying trail profile, elevation stats, and waypoint roster.
+- **Implementation**:
+  - `ProximityRadarView.kt`:
+    - Embedded vector trail map projection rendering on the radar canvas underneath the tactical range rings and bearing markers.
+    - Topographic contours rendered with elevation labels and subtle dashes (30% opacity).
+    - Alpine trail track rendered with neon cyan glow and directional path segments.
+    - Breadcrumb track dots drawn for both local rider and mesh peers.
+    - Tactical waypoints (Waypoints, Hazards, Camps, Water, Summits) projected with distinct color accents and badges.
+    - Added interactive tactical zoom badge button in upper right corner displaying active range (`500m`, `1.5km`, `5.0km`).
+  - `OfflineTrailCockpitSheet.kt`:
+    - Full-featured tactical dark sheet modal with elevation metrics (max, min, current, total ascent), active trail polyline stats, distance, and nearest waypoint distance/bearing.
+    - Radar zoom switcher chips, vector overlay toggle, and sample trail loader.
+    - Scrollable waypoint roster with type icons, elevation badges, and coordinates.
+  - `HomeScreen.kt`:
+    - Wired `trailMapSnapshot`, `onCycleZoom`, and `onOpenTrailSheet` into `ProximityRadarView`.
+    - Added quick "Trail" toggle/launcher button in the Top Quick Actions row next to "Relay".
+    - Added `OfflineTrailCockpitSheet` in the dialogs section governed by `uiState.showTrailSheet`.
+- **Verification**:
+  - `./gradlew test`: BUILD SUCCESSFUL (91 actionable tasks passed cleanly).
+  - `./gradlew :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (95 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
+
+### [2026-10-07] - ICA-1804: Native iOS SwiftUI Radar Topographic Overlay & Offline Trail Cockpit Sheet
+- **Branch**: `feature/ICA-1804-swiftui-radar-topo-overlay`
+- **Objective**: Implement 100% native SwiftUI radar topographic contours and vector trail overlay in `TacticalVectorRadarView` (`ContentView.swift`) and `OfflineTrailCockpitSheet.swift` in `app/iosApp` (Rule 1). Wire `IntercomViewModel` observers with `CancellationHandle`, supporting radar range zoom, elevation difference badges, and offline waypoint list.
+- **Implementation**:
+  - `IntercomViewModel.swift`:
+    - Exposed `@Published var trailMapSnapshot: TrailMapSnapshot?` and `@Published var showTrailSheet: Bool`.
+    - Added reactive observation of `bridge.observeTrailMapSnapshot` with `CancellationHandle` registered in `cancellables`.
+    - Added Swift-friendly controls: `cycleRadarZoom()`, `setRadarZoom()`, `setTrailOverlayEnabled()`, `loadSampleAlpineTrail()`, `toggleTrailSheet()`.
+    - Connected `updateLocation` to update `bridge.updateTrailLocalGps` for live dynamic radar projection.
+  - `OfflineTrailCockpitSheet.swift`:
+    - 100% native SwiftUI sheet modal adhering strictly to Rule 1 (zero Compose Multiplatform imports).
+    - Elevation metrics card with current altitude, lead rider delta, total trail distance, and total ascent.
+    - Radar range zoom switcher (500m / 1.5km / 5.0km) and vector overlay toggle switch.
+    - Next waypoint guidance card with distance in meters, relative bearing, and waypoint type icon.
+    - Tactical waypoint roster with custom icons (💧 Water, ⛺ Camp, ⚠️ Hazard, 🏔️ Summit, 📍 Marker), elevation badges, and coordinates.
+    - One-tap "Reload Sample Alpine Trail & Topo" demo actuator.
+  - `ContentView.swift`:
+    - Upgraded `TacticalVectorRadarView`:
+      - Drawn topographic contours using SwiftUI `Path` with subtle dashed strokes (`[3, 3]`).
+      - Drawn neon cyan vector trail track using SwiftUI `Path` with rounded line joins.
+      - Drawn local rider rolling breadcrumbs and color-coded tactical waypoints.
+      - Integrated interactive radar zoom badge in upper-right corner cycling ranges.
+      - Compact bottom telemetry strip with active trail name and distance to next waypoint.
+    - Added "Map / Trail" cockpit button in `TacticalAvionicsBar`.
+    - Bound `.sheet(isPresented: $vm.showTrailSheet) { OfflineTrailCockpitSheet(vm: vm) }`.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
 
 
 

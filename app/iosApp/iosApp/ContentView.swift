@@ -44,7 +44,10 @@ struct ContentView: View {
                 TacticalVectorRadarView(
                     radarSnapshot: vm.radarSnapshot,
                     convoySnapshot: vm.convoySnapshot,
-                    peersCount: vm.peers.count
+                    trailMapSnapshot: vm.trailMapSnapshot,
+                    peersCount: vm.peers.count,
+                    onCycleZoom: { vm.cycleRadarZoom() },
+                    onOpenTrailCockpit: { vm.showTrailSheet = true }
                 )
                 .padding(.horizontal, 14)
 
@@ -140,6 +143,9 @@ struct ContentView: View {
         }
         .sheet(isPresented: $vm.showRepeaterSheet) {
             BasecampRepeaterView(vm: vm)
+        }
+        .sheet(isPresented: $vm.showTrailSheet) {
+            OfflineTrailCockpitSheet(vm: vm)
         }
         .alert("Intercom Alert", isPresented: Binding(
             get: { vm.errorMessage != nil },
@@ -426,6 +432,20 @@ struct TacticalAvionicsBar: View {
                 }
             }
 
+            // Offline Trail Cockpit Button (Sprint 18 / ICA-1804)
+            Button(action: {
+                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                vm.showTrailSheet = true
+            }) {
+                Image(systemName: "map.fill")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(vm.trailMapSnapshot?.isOverlayEnabled == true ? .cyan : .white)
+                    .padding(8)
+                    .background(vm.trailMapSnapshot?.isOverlayEnabled == true ? Color.cyan.opacity(0.2) : Color.white.opacity(0.12))
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(vm.trailMapSnapshot?.isOverlayEnabled == true ? Color.cyan.opacity(0.6) : Color.clear, lineWidth: 1.5))
+            }
+
             // QR Share Button
             Button(action: { vm.showQrShare = true }) {
                 Image(systemName: "qrcode")
@@ -454,7 +474,10 @@ struct TacticalAvionicsBar: View {
 struct TacticalVectorRadarView: View {
     let radarSnapshot: RadarSnapshot?
     let convoySnapshot: ConvoyTelemetrySnapshot?
+    let trailMapSnapshot: TrailMapSnapshot?
     let peersCount: Int
+    let onCycleZoom: () -> Void
+    let onOpenTrailCockpit: () -> Void
 
     var body: some View {
         VStack(spacing: 4) {
@@ -464,6 +487,72 @@ struct TacticalVectorRadarView: View {
                     .fill(Color(red: 0.04, green: 0.08, blue: 0.12))
                     .frame(width: 170, height: 170)
                     .overlay(Circle().stroke(Color.cyan.opacity(0.3), lineWidth: 1.5))
+
+                // Topographic Contours (Subtle Dashes)
+                if let trails = trailMapSnapshot, trails.isOverlayEnabled {
+                    ForEach(trails.projectedContours, id: \.elevationMeters) { contour in
+                        Path { path in
+                            var isFirst = true
+                            for pt in contour.points {
+                                let x = 85.0 + CGFloat(pt.normalizedX) * 75.0
+                                let y = 85.0 + CGFloat(pt.normalizedY) * 75.0
+                                if isFirst {
+                                    path.move(to: CGPoint(x: x, y: y))
+                                    isFirst = false
+                                } else {
+                                    path.addLine(to: CGPoint(x: x, y: y))
+                                }
+                            }
+                        }
+                        .stroke(Color.gray.opacity(0.35), style: StrokeStyle(lineWidth: 0.8, dash: [3, 3]))
+                        .frame(width: 170, height: 170)
+                    }
+
+                    // Vector Trail Tracks (Neon Cyan)
+                    ForEach(trails.projectedTrails, id: \.trailId) { seg in
+                        Path { path in
+                            var isFirst = true
+                            for pt in seg.points {
+                                let x = 85.0 + CGFloat(pt.normalizedX) * 75.0
+                                let y = 85.0 + CGFloat(pt.normalizedY) * 75.0
+                                if isFirst {
+                                    path.move(to: CGPoint(x: x, y: y))
+                                    isFirst = false
+                                } else {
+                                    path.addLine(to: CGPoint(x: x, y: y))
+                                }
+                            }
+                        }
+                        .stroke(Color(red: 0.0, green: 0.9, blue: 1.0).opacity(0.85), style: StrokeStyle(lineWidth: 2.0, lineCap: .round, lineJoin: .round))
+                        .frame(width: 170, height: 170)
+                    }
+
+                    // Local Rider Breadcrumbs
+                    ForEach(0..<trails.localBreadcrumbs.count, id: \.self) { idx in
+                        let pt = trails.localBreadcrumbs[idx]
+                        let x = CGFloat(pt.normalizedX) * 75.0
+                        let y = CGFloat(pt.normalizedY) * 75.0
+                        Circle()
+                            .fill(Color.cyan.opacity(0.45))
+                            .frame(width: 3, height: 3)
+                            .offset(x: x, y: y)
+                    }
+
+                    // Waypoints
+                    ForEach(trails.projectedWaypoints, id: \.waypoint.id) { pw in
+                        let x = CGFloat(pw.projectedPoint.normalizedX) * 75.0
+                        let y = CGFloat(pw.projectedPoint.normalizedY) * 75.0
+                        ZStack {
+                            Circle()
+                                .fill(waypointColor(for: pw.waypoint.type))
+                                .frame(width: 6, height: 6)
+                            Circle()
+                                .stroke(Color.white, lineWidth: 1)
+                                .frame(width: 6, height: 6)
+                        }
+                        .offset(x: x, y: y)
+                    }
+                }
 
                 // Distance concentric rings
                 Circle()
@@ -483,15 +572,11 @@ struct TacticalVectorRadarView: View {
                     .frame(width: 170, height: 1)
 
                 // Range Labels
-                Text("1.5km")
+                let rangeLabel = trailMapSnapshot?.activeRangeZoom.label ?? "1.5km"
+                Text(rangeLabel)
                     .font(.system(size: 7, weight: .bold, design: .monospaced))
-                    .foregroundColor(.cyan.opacity(0.5))
+                    .foregroundColor(.cyan.opacity(0.6))
                     .offset(y: -75)
-
-                Text("500m")
-                    .font(.system(size: 7, weight: .bold, design: .monospaced))
-                    .foregroundColor(.cyan.opacity(0.4))
-                    .offset(y: -50)
 
                 // Heading North Chevron
                 Image(systemName: "chevron.up")
@@ -509,8 +594,9 @@ struct TacticalVectorRadarView: View {
                 // Plotted convoy riders
                 if let riders = convoySnapshot?.riders {
                     ForEach(riders, id: \.peerId) { rider in
-                        let dist = min(max(rider.distanceMeters, 10.0), 1500.0)
-                        let normalized = CGFloat(dist / 1500.0)
+                        let maxDist = trailMapSnapshot?.activeRangeZoom.maxDistanceMeters ?? 1500.0
+                        let dist = min(max(rider.distanceMeters, 10.0), maxDist)
+                        let normalized = CGFloat(dist / maxDist)
                         let rad = CGFloat(rider.relativeBearingDegrees * .pi / 180.0)
                         let r = normalized * 75.0
                         let x = r * sin(rad)
@@ -525,12 +611,55 @@ struct TacticalVectorRadarView: View {
                             .offset(x: x, y: y)
                     }
                 }
+
+                // Interactive Radar Zoom Badge (Upper Right)
+                VStack {
+                    HStack {
+                        Spacer()
+                        Button(action: {
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            onCycleZoom()
+                        }) {
+                            Text(trailMapSnapshot?.activeRangeZoom.label ?? "1.5km")
+                                .font(.system(size: 8, weight: .black, design: .monospaced))
+                                .foregroundColor(.cyan)
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 2)
+                                .background(Color.black.opacity(0.6))
+                                .cornerRadius(4)
+                                .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color.cyan.opacity(0.4), lineWidth: 0.8))
+                        }
+                        .padding(6)
+                    }
+                    Spacer()
+                }
             }
             .frame(width: 170, height: 170)
+            .clipShape(Circle())
 
-            // Compact Telemetry Info Strip Under Radar
+            // Compact Telemetry Info Strip Under Radar with Trail Launcher
             HStack(spacing: 8) {
-                if let closest = convoySnapshot?.closestRider {
+                if let trail = trailMapSnapshot?.activeTrail {
+                    Button(action: {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        onOpenTrailCockpit()
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "point.topleft.down.to.point.bottomright.curvepath")
+                                .font(.system(size: 9))
+                                .foregroundColor(.cyan)
+                            Text(trail.name)
+                                .font(.system(size: 9, weight: .bold, design: .monospaced))
+                                .foregroundColor(.cyan)
+                                .lineLimit(1)
+                            if let wpDist = trailMapSnapshot?.nearestWaypointDistanceMeters {
+                                Text("• Next: \(Int(truncating: wpDist))m")
+                                    .font(.system(size: 8, weight: .bold, design: .monospaced))
+                                    .foregroundColor(.white)
+                            }
+                        }
+                    }
+                } else if let closest = convoySnapshot?.closestRider {
                     HStack(spacing: 4) {
                         Image(systemName: "location.north.line.fill")
                             .font(.system(size: 9))
@@ -552,6 +681,17 @@ struct TacticalVectorRadarView: View {
             .padding(.vertical, 3)
             .background(Color.black.opacity(0.2))
             .cornerRadius(6)
+        }
+    }
+
+    private func waypointColor(for type: WaypointType?) -> Color {
+        guard let type = type else { return .cyan }
+        switch type {
+        case .waterSource: return .blue
+        case .camp: return .green
+        case .hazard: return .red
+        case .summit: return Color(red: 1.0, green: 0.7, blue: 0.0)
+        default: return .cyan
         }
     }
 }

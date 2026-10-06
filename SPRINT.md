@@ -1,28 +1,29 @@
-# Current Status: Sprint 17 Completed (`v2.4.0`) — Ready for Sprint 18
+# Current Status: Sprint 18 (Phase 16: Offline Vector Terrain & Trail Map Overlay)
 
 > **Active Sprint Reference:** [TASKS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/TASKS.md) & [prd.json](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/tasks/ralph/prd.json)  
-> **Sprint Branch:** `sprint/sprint-17-basecamp-repeater-ui`  
+> **Sprint Branch:** `sprint/sprint-18-offline-vector-terrain-map`  
 > **Sprint Governance Rules:** [SPRINT-RULES.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/SPRINT-RULES.md)  
 > **Engineering Contract:** [AGENTS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/AGENTS.md)  
 > **Knowledge Base:** [MEMORY.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/MEMORY.md)  
 
 ---
 
-## 🏆 Completed Sprint: Sprint 17 (Phase 15: Basecamp Stationary Repeater UI & Low-Power Cockpit Mode)
-**Goal:** Deliver dedicated stationary basecamp mesh repeater UI and low-power standby modes across Compose Multiplatform (`sharedUI`) and 100% Native iOS SwiftUI (`iosApp`), wiring `MeshRepeaterService` into platform bridges, presentation models, and live telemetry badges on the main Cockpit HUD.  
-- **Sprint Branch:** `sprint/sprint-17-basecamp-repeater-ui` (Merged into `develop` & `main`)  
-- **Production Release:** `v2.4.0`  
+## 🚀 Active Sprint: Sprint 18 (Phase 16: Offline Vector Terrain & Trail Map Overlay)
+**Goal:** Deliver an offline vector terrain and trail map overlay subsystem across KMP shared logic, Compose Multiplatform (`sharedUI`), and 100% Native iOS SwiftUI (`iosApp`), rendering pre-cached topographical contours, trail tracks, waypoint markers, and breadcrumbs beneath the tactical vector radar without cellular data.  
+- **Sprint Branch:** `sprint/sprint-18-offline-vector-terrain-map`  
+- **Target Release:** `v2.5.0`  
 
 | Task ID | Item | Owner | Target Files | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **ICA-1701** | Basecamp Repeater State Management & Platform Bridge Wiring | Ralph | `RepeaterUiState.kt`, `RepeaterViewModel.kt`, `IntercomBridge.kt`, `AndroidPlatformBridge.kt` | ✅ Completed |
-| **ICA-1702** | Compose Multiplatform Basecamp Repeater Screen & OLED Dark Standby | Ralph | `BasecampRepeaterScreen.kt`, `AppNavGraph.kt`, `AppModule.kt` | ✅ Completed |
-| **ICA-1703** | Native iOS SwiftUI Basecamp Repeater Cockpit & StandBy Display | Ralph | `BasecampRepeaterView.swift`, `ContentView.swift`, `IntercomViewModel.swift` | ✅ Completed |
-| **ICA-1704** | Remote Repeater Telemetry & Diagnostic Ping Cockpit HUD Integration | Ralph | `HomeScreen.kt`, `HomeViewModel.kt`, `ContentView.swift` | ✅ Completed |
+| **ICA-1801** | Pure KMP Offline Vector Trail & Terrain Geometry Engine | Ralph | `VectorMapModels.kt`, `TrailMapEngine.kt`, `TrailMapManager.kt` | ✅ Completed |
+| **ICA-1802** | Subsystem Bridge Wiring & Reactive Presentation Integration | Ralph | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `HomeViewModel.kt` | ✅ Completed |
+| **ICA-1803** | Compose Multiplatform Radar Topo Contour & Vector Trail Overlay | Ralph | `ProximityRadarView.kt`, `OfflineTrailCockpitSheet.kt`, `HomeScreen.kt` | ✅ Completed |
+| **ICA-1804** | Native iOS SwiftUI Radar Topographic Overlay & Offline Trail Cockpit Sheet | Ralph | `ContentView.swift`, `OfflineTrailCockpitSheet.swift`, `IntercomViewModel.swift` | ✅ Completed |
 
 ---
 
 ## 📦 Historical Sprint Archive
+- ✅ **Sprint 17: Basecamp Stationary Repeater UI & Low-Power Cockpit Mode**: Completed 2026-10-06 (100% DoD, v2.4.0 Released).
 - ✅ **Sprint 16: Mesh Repeater, Audio DSP & Convoy Simulation**: Completed 2026-10-06 (100% DoD, Merged to `develop`).
 - ✅ **Sprint 15: Zero-Scroll Tactical Cockpit HUD & Hardware Telemetry Integration**: Completed 2026-10-06 (100% DoD, v2.2.0 Released).
 - ✅ **Sprint 14: Advanced Convoy Mesh, Forward-Secret Key Ratchet & Live Activity**: Completed 2026-10-04 (100% DoD, v2.1.0 Released).

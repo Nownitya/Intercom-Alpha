@@ -59,6 +59,10 @@ final class IntercomViewModel: ObservableObject {
     @Published var repeaterDutyCycle: RepeaterDutyCycleMode = .continuous
     @Published var showRepeaterSheet: Bool = false
 
+    // --- Offline Vector Terrain & Trail Map Subsystem (Sprint 18 / ICA-1804) ---
+    @Published var trailMapSnapshot: TrailMapSnapshot? = nil
+    @Published var showTrailSheet: Bool = false
+
     private let bridge = IntercomBridge(localPeerId: "ios-lead", localPeerName: "iOS Lead")
     private var cancellables: [CancellationHandle] = []
     private var activeActivity: Activity<IntercomActivityAttributes>? = nil
@@ -164,6 +168,7 @@ final class IntercomViewModel: ObservableObject {
             speedKmh: speedKmh,
             headingDegrees: heading
         )
+        bridge.updateTrailLocalGps(lat: latitude, lon: longitude, alt: 0.0, heading: heading)
     }
 
     // --- Text Messaging & Canned Alerts ---
@@ -253,6 +258,28 @@ final class IntercomViewModel: ObservableObject {
 
     func emitRepeaterBeacon() {
         bridge.emitRepeaterBeacon()
+    }
+
+    // --- Trail Map Controls (Sprint 18 / ICA-1804) ---
+
+    func cycleRadarZoom() {
+        bridge.cycleRadarZoom()
+    }
+
+    func setRadarZoom(_ zoom: RadarRangeZoom) {
+        bridge.setRadarZoom(zoom: zoom)
+    }
+
+    func setTrailOverlayEnabled(_ enabled: Bool) {
+        bridge.setTrailOverlayEnabled(enabled: enabled)
+    }
+
+    func loadSampleAlpineTrail() {
+        bridge.loadSampleAlpineTrail(lat: 37.7749, lon: -122.4194, alt: 2500.0)
+    }
+
+    func toggleTrailSheet() {
+        showTrailSheet.toggle()
     }
 
     // --- Reactive Observers Setup ---
@@ -434,6 +461,13 @@ final class IntercomViewModel: ObservableObject {
             }
         }
         cancellables.append(beaconSub)
+
+        let trailMapSub = bridge.observeTrailMapSnapshot { [weak self] snapshot in
+            Task { @MainActor in
+                self?.trailMapSnapshot = snapshot
+            }
+        }
+        cancellables.append(trailMapSub)
 
         isPfsRatchetActive = bridge.isPfsRatchetActive()
     }
