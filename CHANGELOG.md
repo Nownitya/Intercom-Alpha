@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.3.0] - 2026-10-06 — Sprint 16: Mesh Repeater, Audio DSP & Convoy Simulation
+
+### Added
+- **Pure KMP Automatic Gain Control & Dynamic Range Compression (`AutomaticGainControl.kt` & `DynamicRangeCompressor.kt`)**: Normalizes speech levels to $-18.0\text{ dBFS}$ target within $150\text{ ms}$ with anti-pumping protection below $-50\text{ dBFS}$. Implements soft-knee $4:1$ dynamic range compression and lookahead brickwall peak limiting with guaranteed peak ceiling $\le -0.5\text{ dBFS}$ without Java/C dependencies.
+- **Autonomous Stationary Basecamp Mesh Repeater (`MeshRepeaterService.kt`)**: Implemented dedicated low-power packet relay mode bypassing local audio engines, delivering sub-$15\text{ ms}$ multi-hop forwarding, sliding-window deduplication loop suppression, 60s active neighbor table tracking, and periodic `REPEATER_BEACON` telemetry broadcasts.
+- **Automated Multi-Node Convoy Mesh Simulation Harness (`ConvoyMeshSimulationHarness.kt`)**: Automated 8-node virtual convoy simulation with distance-bounded RF path loss, $25\%$ stochastic packet drop, and shuffled out-of-order delivery, verifying $100\%$ `MeshKeyRatchet` decryption recovery and `AdaptiveJitterBuffer` playout under 5 seconds.
+- **Over-The-Air Dynamic Epoch Migration & Group Re-Keying (`GroupEpochManager.kt`)**: Implemented decentralized key rotation via RFC 5869 HKDF-SHA256, leader-authenticated `EPOCH_ROLLOVER` signed with RFC 2104 HMAC-SHA256, dual-epoch concurrent decryption across a $30\text{-second}$ window with zero packet drops during active speech, and memory zeroization of expired keys.
+
+---
+
 ## [2.2.0] - 2026-10-06 — Sprint 15: Zero-Scroll Tactical Cockpit HUD & Telemetry Integration
 
 ### Added

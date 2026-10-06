@@ -1,28 +1,30 @@
-# Current Status: Sprint 15 (Phase 13: Zero-Scroll Tactical Cockpit HUD & Hardware Telemetry Integration)
+# Current Status: Sprint 16 (Phase 14: Mesh Repeater, Audio DSP & Convoy Simulation)
 
 > **Active Sprint Reference:** [TASKS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/TASKS.md) & [prd.json](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/tasks/ralph/prd.json)  
-> **Sprint Branch:** `sprint/sprint-15-cockpit-hud-integration`  
+> **Sprint Branch:** `sprint/sprint-16-repeater-dsp-simulation` $\rightarrow$ `develop`  
 > **Sprint Governance Rules:** [SPRINT-RULES.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/SPRINT-RULES.md)  
 > **Engineering Contract:** [AGENTS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/AGENTS.md)  
 > **Knowledge Base:** [MEMORY.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/MEMORY.md)  
 
 ---
 
-## 🚀 Active Sprint: Sprint 15 (Phase 13: Zero-Scroll Tactical Cockpit HUD & Hardware Telemetry Integration)
-**Goal:** Deliver end-to-end integration of Sprint 14 subsystems (`HelmetAccessoryManager`, `MeshKeyRatchet`, `CloudRelayBridge`) into `HomeViewModel` and platform bridges, and deploy the Zero-Scroll Tactical Cockpit HUD (zero vertical scrolling on motorcycle RAM mounts, 140dp circular PTT with hot-mic pulse, single-row 4-hazard macro strip, compact circular vector radar, and emergency preemption) across Compose Multiplatform (`sharedUI`) and 100% Native iOS SwiftUI (`iosApp`).  
-- **Sprint Branch:** `sprint/sprint-15-cockpit-hud-integration`  
-- **Target Release:** `v2.2.0-rc1`  
+## 🚀 Sprint 16: Mesh Repeater, Audio DSP & Convoy Simulation (Phase 14)
+**Goal:** Deliver pure KMP audio speech normalization (AGC & DRC), autonomous stationary basecamp mesh repeater mode (`MeshRepeaterService.kt`), automated 8-node virtual convoy simulation harness (`ConvoyMeshSimulationHarness.kt`), and seamless over-the-air cryptographic epoch migration (`GroupEpochManager.kt`).  
+- **Sprint Branch:** `sprint/sprint-16-repeater-dsp-simulation`  
+- **Status:** 100% Completed & Merged into `develop`  
 
 | Task ID | Item | Owner | Target Files | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **ICA-1501** | Subsystem Telemetry Wiring (Accessory, PFS Ratchet, SFU Cloud) | Ralph | `IntercomHardwareBridge.kt`, `AndroidPlatformBridge.kt`, `IntercomBridge.kt`, `HomeViewModel.kt`, `HomeUiState.kt` | ✅ Completed |
-| **ICA-1502** | Compose Multiplatform Zero-Scroll Cockpit HUD | Ralph | `HomeScreen.kt`, `PttButton.kt`, `QuickHazardBar.kt`, `ProximityRadarView.kt` | ✅ Completed |
-| **ICA-1503** | Native iOS SwiftUI Tactical Cockpit HUD | Ralph | `ContentView.swift`, `IntercomViewModel.swift` | ✅ Completed |
-| **ICA-1504** | Multiplatform Verification Gates & Presentation Regression Tests | Ralph | `HomeViewModelTest.kt`, Gradle automated tests, OpenCodeReview | ✅ Completed |
+| **ICA-1601** | Pure KMP Automatic Gain Control & Dynamic Range Compression | Ralph | `AutomaticGainControl.kt`, `DynamicRangeCompressor.kt`, `AudioEngine.kt` | ✅ Completed |
+| **ICA-1602** | Autonomous Mesh Repeater & Basecamp Beacon Mode | Ralph | `MeshRepeaterService.kt`, `MeshTransport.kt` | ✅ Completed |
+| **ICA-1603** | Automated Multi-Node Mesh Field Simulation Harness | Ralph | `ConvoyMeshSimulationHarness.kt` | ✅ Completed |
+| **ICA-1604** | Seamless Mesh OTA Group Re-Keying & Dynamic Epoch Migration | Ralph | `GroupEpochManager.kt`, `GroupManager.kt` | ✅ Completed |
 
 ---
 
 ## 📦 Historical Sprint Archive
+- ✅ **Sprint 16: Mesh Repeater, Audio DSP & Convoy Simulation**: Completed 2026-10-06 (100% DoD, Merged to `develop`).
+- ✅ **Sprint 15: Zero-Scroll Tactical Cockpit HUD & Hardware Telemetry Integration**: Completed 2026-10-06 (100% DoD, v2.2.0 Released).
 - ✅ **Sprint 14: Advanced Convoy Mesh, Forward-Secret Key Ratchet & Live Activity**: Completed 2026-10-04 (100% DoD, v2.1.0 Released).
 - ✅ **Sprint 13: v2.0 Production Release & Hardening (v2.0.0 Release Tag)**: Completed 2026-10-04 (100% DoD).
 - ✅ **Sprint 12: Multiplatform Cockpit UI & Bridge Integration**: Completed 2026-10-01 (100% DoD).

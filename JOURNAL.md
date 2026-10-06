@@ -3,6 +3,46 @@
 > **Obsidian Source:** `D:\ObsidianVault\Vault1\ObsidianVault\Android\Projects\Intercom-Alpha\10-Daily-Notes\`  
 > **MemPalace Integration:** Wing `intercom_alpha` (2,426 drawers)
 
+## 📅 2026-10-06: Sprint 16 — Mesh Repeater, Audio DSP & Convoy Simulation (Phase 14)
+
+### Summary
+1. **Audio DSP Hardening: Pure KMP AGC & Dynamic Range Compression (`AutomaticGainControl.kt`, `DynamicRangeCompressor.kt`)**:
+   - Normalizes speech levels to $-18.0\text{ dBFS}$ target within $150\text{ ms}$ with anti-pumping protection below $-50\text{ dBFS}$.
+   - Soft-knee $4:1$ compressor with $6.0\text{ dB}$ transition width and lookahead brickwall peak limiter ($\le -0.5\text{ dBFS}$) preventing audio clipping without Java/C dependencies.
+2. **Autonomous Stationary Basecamp Mesh Repeater (`MeshRepeaterService.kt`)**:
+   - Dedicated low-power relay service operating with zero audio hardware buffer allocations.
+   - Sub-$15\text{ ms}$ multi-hop forwarding latency, loop suppression via `PacketDeduplicator`, and 60-second active neighbor table tracking.
+   - Periodic `REPEATER_BEACON` broadcasts with battery percentage, solar status, and diagnostic ping/pong responses.
+3. **Automated Multi-Node Convoy Mesh Simulation Harness (`ConvoyMeshSimulationHarness.kt`)**:
+   - 8-node virtual convoy simulation with distance-bounded RF path loss, TTL decrements, loop suppression, and $25\%$ stochastic packet loss.
+   - Validates that `MeshKeyRatchet` skipped-key caching decrypts $100\%$ of out-of-order received packets.
+   - High-throughput simulation execution completing in $<5\text{ seconds}$.
+4. **Over-The-Air Dynamic Epoch Migration & Group Re-Keying (`GroupEpochManager.kt`)**:
+   - RFC 5869 HKDF-SHA256 key derivation with salt and domain separation.
+   - Leader-authenticated `EPOCH_ROLLOVER` control frame signed via RFC 2104 HMAC-SHA256.
+   - Dual-epoch concurrent decryption across a $30\text{-second}$ window ensuring zero voice packet drops during active speech migration.
+   - Consensus `EPOCH_BEACON` telemetry broadcasting and memory zeroization of expired keys.
+5. **Verification**:
+   - Multiplatform tests: `./gradlew :app:sharedLogic:jvmTest` (100% test pass).
+   - Platform compilation: `:app:sharedLogic:compileKotlinIosSimulatorArm64` and `:app:androidApp:assembleDebug` passed.
+   - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+   - Merged cleanly into `develop`.
+
+---
+
+## 📅 2026-10-06: Sprint 15 — Zero-Scroll Tactical Cockpit HUD & Telemetry Integration (Phase 13)
+
+### Summary
+1. **Zero-Scroll Tactical Cockpit HUD (`HomeScreen.kt` & `ContentView.swift`)**:
+   - Enforced zero-vertical-scroll layout contract on mobile RAM mounts across Compose Multiplatform (`sharedUI`) and Native iOS SwiftUI (`iosApp`).
+   - Integrated 140dp circular tactile PTT actuator, 4-hazard macro strip, circular vector radar, and emergency SOS bar.
+2. **Subsystem Telemetry Wiring**:
+   - Connected `HelmetAccessoryManager`, `MeshKeyRatchet`, and `CloudRelayBridge` to presentation view models.
+3. **v2.2.0 Production Release**:
+   - Tagged production release `v2.2.0` with full test and platform verification pass.
+
+---
+
 ## 📅 2026-10-04: Sprint 14 — Advanced Convoy Mesh, Forward-Secret Key Ratchet & Live Activity (Phase 12)
 
 ### Summary

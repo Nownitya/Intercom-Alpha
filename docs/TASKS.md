@@ -187,3 +187,18 @@
 | **ICA-1503** | Native iOS SwiftUI Tactical Cockpit HUD | `ContentView.swift`, `IntercomViewModel.swift` | ✅ Completed |
 | **ICA-1504** | Multiplatform Verification Gates & Presentation Regression Tests | `HomeViewModelTest.kt`, Gradle automated tests, OpenCodeReview | ✅ Completed |
 
+---
+
+### ✅ Sprint 16: Mesh Repeater, Audio DSP & Convoy Simulation (Phase 14 - v2.3 Roadmap)
+- **Sprint Goal**: Implement pure KMP speech dynamic range normalizers (AGC/DRC), autonomous stationary basecamp mesh repeater mode, automated 8-node convoy simulation harness, and over-the-air cryptographic epoch migration.
+- **Sprint Branch**: `sprint/sprint-16-repeater-dsp-simulation` $\rightarrow$ `develop`
+- **Status**: ✅ 100% Complete (All 4 Stories Passed & Merged to develop)
+
+| Task ID | Item | Target Files | Status |
+| :--- | :--- | :--- | :--- |
+| **ICA-1601** | Pure KMP Automatic Gain Control (AGC) & Dynamic Range Compression (DRC) | `AutomaticGainControl.kt`, `DynamicRangeCompressor.kt`, `AudioEngine.kt` | ✅ Completed |
+| **ICA-1602** | Autonomous Mesh Repeater & Basecamp Beacon Mode | `MeshRepeaterService.kt`, `MeshTransport.kt` | ✅ Completed |
+| **ICA-1603** | Automated Multi-Node Mesh Field Simulation Harness | `ConvoyMeshSimulationHarness.kt` | ✅ Completed |
+| **ICA-1604** | Seamless Mesh OTA Group Re-Keying & Dynamic Epoch Migration | `GroupEpochManager.kt`, `GroupManager.kt` | ✅ Completed |
+
+
