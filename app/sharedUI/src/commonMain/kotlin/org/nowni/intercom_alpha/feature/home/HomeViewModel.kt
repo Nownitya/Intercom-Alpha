@@ -17,6 +17,8 @@ import org.nowni.intercom_alpha.bridge.NoOpIntercomHardwareBridge
 import org.nowni.intercom_alpha.channel.ChannelManager
 import org.nowni.intercom_alpha.feature.home.state.HomeUiAction
 import org.nowni.intercom_alpha.feature.home.state.HomeUiState
+import org.nowni.intercom_alpha.headset.HelmetAccessoryManager
+import org.nowni.intercom_alpha.headset.RemotePttAction
 import org.nowni.intercom_alpha.mesh.ProximityRadar
 import org.nowni.intercom_alpha.telemetry.ConvoyGpsTracker
 import org.nowni.intercom_alpha.text.MeshTextManager
@@ -29,6 +31,7 @@ class HomeViewModel(
     val priorityManager: PriorityBroadcastManager = PriorityBroadcastManager(),
     val blackboxRecorder: EmergencyBlackboxRecorder = EmergencyBlackboxRecorder(),
     val bitrateController: AdaptiveBitrateController = AdaptiveBitrateController(),
+    val helmetAccessoryManager: HelmetAccessoryManager = HelmetAccessoryManager(),
     val hardwareBridge: IntercomHardwareBridge = NoOpIntercomHardwareBridge()
 ) : ViewModel() {
 
@@ -43,7 +46,7 @@ class HomeViewModel(
 
     init {
         // 1. Attach shared logic subsystems to platform hardware bridge
-        hardwareBridge.attachSubsystems(channelManager, blackboxRecorder)
+        hardwareBridge.attachSubsystems(channelManager, blackboxRecorder, helmetAccessoryManager)
 
         // 2. Synchronize shared logic subsystem flows
         viewModelScope.launch {
@@ -114,6 +117,29 @@ class HomeViewModel(
         viewModelScope.launch {
             hardwareBridge.outputLevel.collect { level ->
                 _uiState.update { it.copy(outputLevel = level) }
+            }
+        }
+        viewModelScope.launch {
+            hardwareBridge.helmetAccessoryState.collect { accessory ->
+                _uiState.update { it.copy(accessoryState = accessory) }
+            }
+        }
+        viewModelScope.launch {
+            hardwareBridge.isCloudBridgeConnected.collect { connected ->
+                _uiState.update { it.copy(isCloudBridgeConnected = connected) }
+            }
+        }
+        viewModelScope.launch {
+            helmetAccessoryManager.remotePttEvents.collect { event ->
+                when (event.action) {
+                    RemotePttAction.PRESSED -> onAction(HomeUiAction.StartTransmitting)
+                    RemotePttAction.RELEASED -> onAction(HomeUiAction.StopTransmitting)
+                    RemotePttAction.CLICK -> {
+                        if (_uiState.value.isTransmitting) onAction(HomeUiAction.StopTransmitting)
+                        else onAction(HomeUiAction.StartTransmitting)
+                    }
+                    else -> {}
+                }
             }
         }
 
@@ -284,6 +310,16 @@ class HomeViewModel(
                     }
                 }
                 _uiState.update { it.copy(showMessagesDialog = action.show) }
+            }
+
+            HomeUiAction.ToggleVoxLock -> {
+                val newLocked = !_uiState.value.isVoxLocked
+                _uiState.update { it.copy(isVoxLocked = newLocked) }
+                if (newLocked) {
+                    onAction(HomeUiAction.StartTransmitting)
+                } else {
+                    onAction(HomeUiAction.StopTransmitting)
+                }
             }
         }
     }

@@ -4,14 +4,20 @@ import CoreImage.CIFilterBuiltins
 
 struct ContentView: View {
     @StateObject private var vm = IntercomViewModel()
-    @State private var quickTextDraft: String = ""
+    @State private var showPeersSheet: Bool = false
 
     var body: some View {
         ZStack {
-            Color(UIColor.systemBackground).ignoresSafeArea()
+            // High-contrast tactical cockpit background
+            Color(UIColor { traitCollection in
+                traitCollection.userInterfaceStyle == .dark
+                    ? UIColor(red: 0.05, green: 0.07, blue: 0.1, alpha: 1.0)
+                    : UIColor(red: 0.94, green: 0.95, blue: 0.97, alpha: 1.0)
+            })
+            .ignoresSafeArea()
 
-            VStack(spacing: 12) {
-                // Emergency Priority Banner
+            VStack(spacing: 8) {
+                // 1. Emergency Preemption Banner
                 if vm.isEmergencyActive {
                     EmergencySosBanner(
                         blackboxCount: vm.blackboxBufferedCount,
@@ -19,96 +25,11 @@ struct ContentView: View {
                     )
                 }
 
-                // Top Action Bar
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(vm.groupName)
-                            .font(.system(size: 20, weight: .bold))
-                            .lineLimit(1)
-                        HStack(spacing: 6) {
-                            Circle()
-                                .fill(vm.isConnected ? Color.green : Color.orange)
-                                .frame(width: 8, height: 8)
-                            Text(vm.isConnected ? "MESH ONLINE (\(vm.peers.count))" : "SCANNING MESH")
-                                .font(.system(size: 11, weight: .bold))
-                                .foregroundColor(.secondary)
-                        }
-                    }
+                // 2. Top Avionics Bar
+                TacticalAvionicsBar(vm: vm, onShowPeers: { showPeersSheet = true })
+                    .padding(.horizontal, 14)
 
-                    Spacer()
-
-                    // Cockpit Action Buttons
-                    HStack(spacing: 8) {
-                        // Text Messages Drawer Button with Unread Badge
-                        Button(action: { vm.showMessageDrawer = true }) {
-                            ZStack(alignment: .topTrailing) {
-                                Image(systemName: "bubble.left.and.exclamationmark.bubble.right.fill")
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundColor(.primary)
-                                    .padding(8)
-                                    .background(Color(UIColor.secondarySystemBackground))
-                                    .clipShape(Circle())
-
-                                if vm.unreadCount > 0 {
-                                    Text("\(vm.unreadCount)")
-                                        .font(.system(size: 9, weight: .black))
-                                        .foregroundColor(.white)
-                                        .padding(4)
-                                        .background(Color.red)
-                                        .clipShape(Circle())
-                                        .offset(x: 4, y: -4)
-                                }
-                            }
-                        }
-
-                        // VOX Toggle
-                        Button(action: { vm.toggleVox() }) {
-                            Image(systemName: vm.voxEnabled ? "waveform.badge.mic" : "mic.slash")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(vm.voxEnabled ? .green : .secondary)
-                                .padding(8)
-                                .background(Color(UIColor.secondarySystemBackground))
-                                .clipShape(Circle())
-                        }
-
-                        // QR Share
-                        Button(action: { vm.showQrShare = true }) {
-                            Image(systemName: "qrcode")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(.primary)
-                                .padding(8)
-                                .background(Color(UIColor.secondarySystemBackground))
-                                .clipShape(Circle())
-                        }
-
-                        // QR Scanner
-                        Button(action: { vm.showQrScanner = true }) {
-                            Image(systemName: "qrcode.viewfinder")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(.primary)
-                                .padding(8)
-                                .background(Color(UIColor.secondarySystemBackground))
-                                .clipShape(Circle())
-                        }
-
-                        // Emergency SOS Button
-                        Button(action: {
-                            UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
-                            vm.triggerEmergencySos()
-                        }) {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .font(.system(size: 14, weight: .bold))
-                                .foregroundColor(.white)
-                                .padding(8)
-                                .background(Color.red)
-                                .clipShape(Circle())
-                        }
-                    }
-                }
-                .padding(.horizontal)
-                .padding(.top, 4)
-
-                // Sub-Channel Dial Selector
+                // 3. Sub-Channel Bar
                 ChannelDialView(
                     activeChannelId: vm.activeChannelId,
                     monitoredChannelIds: vm.monitoredChannelIds,
@@ -117,112 +38,91 @@ struct ContentView: View {
                     onToggleDualWatch: { id in vm.toggleDualWatch(channelId: id) },
                     onToggleScan: { vm.toggleScanMode() }
                 )
-                .padding(.horizontal)
+                .padding(.horizontal, 14)
 
-                // Convoy Radar & GPS Bearings Strip
-                if let convoy = vm.convoySnapshot, !convoy.riders.isEmpty {
-                    ConvoyRadarStripView(convoySnapshot: convoy)
-                        .padding(.horizontal)
+                // 4. Tactical Vector Radar
+                TacticalVectorRadarView(
+                    radarSnapshot: vm.radarSnapshot,
+                    convoySnapshot: vm.convoySnapshot,
+                    peersCount: vm.peers.count
+                )
+                .padding(.horizontal, 14)
+
+                Spacer(minLength: 4)
+
+                // 5. Tactical Center PTT with Flanking Controls (Volume & VOX Lock)
+                HStack(alignment: .center, spacing: 18) {
+                    // Left: Volume Cycle Button (58pt touch target)
+                    Button(action: {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        vm.cycleVolume()
+                    }) {
+                        VStack(spacing: 2) {
+                            Image(systemName: volumeIcon(for: vm.speakerVolume))
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundColor(.white)
+                            Text("\(Int(vm.speakerVolume * 100))%")
+                                .font(.system(size: 10, weight: .black, design: .monospaced))
+                                .foregroundColor(.white.opacity(0.85))
+                        }
+                        .frame(width: 58, height: 58)
+                        .background(Color.white.opacity(0.12))
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(Color.white.opacity(0.2), lineWidth: 1.5))
+                    }
+
+                    // Center: 140pt PTT Actuator
+                    TacticalPttButton(
+                        isTransmitting: vm.isTransmitting,
+                        isVoxLocked: vm.isVoxLocked,
+                        onPress: { vm.startPtt() },
+                        onRelease: { vm.stopPtt() }
+                    )
+
+                    // Right: VOX Lock Button (58pt touch target)
+                    Button(action: {
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        vm.toggleVoxLock()
+                    }) {
+                        VStack(spacing: 2) {
+                            Image(systemName: vm.isVoxLocked ? "lock.fill" : "lock.open.fill")
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundColor(vm.isVoxLocked ? .orange : .white)
+                            Text(vm.isVoxLocked ? "LOCKED" : "VOX")
+                                .font(.system(size: 10, weight: .black, design: .monospaced))
+                                .foregroundColor(vm.isVoxLocked ? .orange : .white.opacity(0.85))
+                        }
+                        .frame(width: 58, height: 58)
+                        .background(vm.isVoxLocked ? Color.orange.opacity(0.2) : Color.white.opacity(0.12))
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(vm.isVoxLocked ? Color.orange : Color.white.opacity(0.2), lineWidth: 1.5))
+                    }
                 }
 
-                // Canned Hazard Quick Bar
-                QuickHazardBar(onSelectCanned: { code in
-                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                Spacer(minLength: 4)
+
+                // 6. Single-Row 4-Column Hazard Macro Strip
+                TacticalQuickHazardBar(onSelectCanned: { code in
+                    UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
                     vm.sendCannedMessage(code)
                 })
-                .padding(.horizontal)
+                .padding(.horizontal, 14)
 
-                // Audio Status & VU Meters
-                VStack(spacing: 6) {
-                    HStack {
-                        HStack(spacing: 6) {
-                            Image(systemName: "headphones")
-                                .font(.system(size: 11))
-                            Text(vm.audioRoute)
-                                .font(.system(size: 10, weight: .medium))
-                        }
-                        .foregroundColor(.secondary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color(UIColor.secondarySystemBackground))
-                        .cornerRadius(10)
-
-                        Spacer()
-
-                        // Adaptive Bitrate Profile Chip
-                        Text("PROFILE: \(vm.currentAudioProfile.name)")
-                            .font(.system(size: 10, weight: .bold, design: .monospaced))
-                            .foregroundColor(.blue)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Color.blue.opacity(0.12))
-                            .cornerRadius(8)
+                // 7. Emergency SOS Bar
+                TacticalSosBar(
+                    isEmergencyActive: vm.isEmergencyActive,
+                    bufferedFrames: vm.blackboxBufferedCount,
+                    onTriggerSos: {
+                        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+                        vm.triggerEmergencySos()
                     }
-
-                    AudioMeterView(label: "Mic", level: vm.inputLevel, activeColor: .blue)
-                    AudioMeterView(label: "Out", level: vm.outputLevel, activeColor: .green)
-                }
-                .padding(.horizontal)
-
-                Spacer(minLength: 4)
-
-                // Central Push-To-Talk Button
-                PttButtonView(
-                    isTransmitting: vm.isTransmitting,
-                    onPress: { vm.startPtt() },
-                    onRelease: { vm.stopPtt() }
                 )
-
-                Spacer(minLength: 4)
-
-                // Connected Peers Section
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack {
-                        Text("Active Mesh Riders (\(vm.peers.count))")
-                            .font(.system(size: 13, weight: .bold))
-                        Spacer()
-                        if vm.isKeepAliveActive {
-                            HStack(spacing: 4) {
-                                Circle().fill(Color.green).frame(width: 6, height: 6)
-                                Text("SCREEN-OFF SAFE")
-                                    .font(.system(size: 9, weight: .bold))
-                                    .foregroundColor(.green)
-                            }
-                        }
-                    }
-                    .padding(.horizontal)
-
-                    if vm.peers.isEmpty {
-                        HStack {
-                            Spacer()
-                            Text("No nearby riders detected. Share QR or scan invite.")
-                                .font(.system(size: 11))
-                                .foregroundColor(.secondary)
-                                .padding(.vertical, 12)
-                            Spacer()
-                        }
-                        .background(Color(UIColor.secondarySystemBackground))
-                        .cornerRadius(10)
-                        .padding(.horizontal)
-                    } else {
-                        ScrollView {
-                            VStack(spacing: 6) {
-                                ForEach(vm.peers, id: \.id) { peer in
-                                    PeerRowView(peer: peer)
-                                }
-                            }
-                            .padding(.horizontal)
-                        }
-                        .frame(maxHeight: 120)
-                    }
-                }
+                .padding(.horizontal, 14)
                 .padding(.bottom, 6)
             }
         }
         .sheet(isPresented: $vm.showQrScanner) {
-            QrScannerView { scannedCode in
-                vm.joinGroup(inviteCode: scannedCode)
-            }
+            QrScannerView { scannedCode in vm.joinGroup(inviteCode: scannedCode) }
         }
         .sheet(isPresented: $vm.showQrShare) {
             QrShareView(groupName: vm.groupName, inviteCode: vm.inviteCode)
@@ -235,6 +135,9 @@ struct ContentView: View {
                 onClearHistory: { vm.clearMessageHistory() }
             )
         }
+        .sheet(isPresented: $showPeersSheet) {
+            PeersSheetView(peers: vm.peers, isKeepAliveActive: vm.isKeepAliveActive)
+        }
         .alert("Intercom Alert", isPresented: Binding(
             get: { vm.errorMessage != nil },
             set: { if !$0 { vm.errorMessage = nil } }
@@ -243,6 +146,12 @@ struct ContentView: View {
         } message: {
             Text(vm.errorMessage ?? "")
         }
+    }
+
+    private func volumeIcon(for volume: Float) -> String {
+        if volume > 0.6 { return "speaker.wave.3.fill" }
+        if volume > 0.2 { return "speaker.wave.2.fill" }
+        return "speaker.wave.1.fill"
     }
 }
 
@@ -371,190 +280,410 @@ struct ChannelDialView: View {
     }
 }
 
-// --- Convoy Radar & GPS Bearing Strip ---
+// --- Top Avionics Bar ---
 
-struct ConvoyRadarStripView: View {
-    let convoySnapshot: ConvoyTelemetrySnapshot
+struct TacticalAvionicsBar: View {
+    @ObservedObject var vm: IntercomViewModel
+    let onShowPeers: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text("Convoy Radar (\(convoySnapshot.riders.count))")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundColor(.secondary)
-                Spacer()
-                if let closest = convoySnapshot.closestRider {
-                    Text("Closest: \(closest.peerName.ifBlank { closest.peerId }) • \(Int(closest.distanceMeters))m")
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundColor(.blue)
+        HStack(alignment: .center, spacing: 8) {
+            // Group & Mesh Status
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 5) {
+                    Text(vm.groupName)
+                        .font(.system(size: 15, weight: .heavy))
+                        .lineLimit(1)
+
+                    if vm.isPfsRatchetActive {
+                        Image(systemName: "lock.shield.fill")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.green)
+                    }
+                }
+
+                HStack(spacing: 5) {
+                    Circle()
+                        .fill(vm.isConnected ? Color.green : Color.orange)
+                        .frame(width: 7, height: 7)
+
+                    Text(vm.isConnected ? "MESH ONLINE (\(vm.peers.count))" : "SCANNING MESH")
+                        .font(.system(size: 9, weight: .black, design: .monospaced))
+                        .foregroundColor(.secondary)
                 }
             }
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    ForEach(convoySnapshot.riders, id: \.peerId) { rider in
-                        HStack(spacing: 6) {
-                            // Bearing direction arrow
-                            Image(systemName: bearingArrow(for: rider.relativeBearingDegrees))
-                                .font(.system(size: 11, weight: .bold))
-                                .foregroundColor(.blue)
+            Spacer()
 
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(rider.peerName.ifBlank { rider.peerId })
-                                    .font(.system(size: 11, weight: .semibold))
-                                    .lineLimit(1)
-                                Text("\(Int(rider.distanceMeters))m • \(Int(rider.relativeBearingDegrees))°")
-                                    .font(.system(size: 9))
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 5)
-                        .background(Color(UIColor.secondarySystemBackground))
-                        .cornerRadius(8)
+            // Helmet Accessory / Audio Route Badge
+            if let acc = vm.accessoryState, acc.isConnected {
+                HStack(spacing: 4) {
+                    Image(systemName: "headphones")
+                        .font(.system(size: 10, weight: .bold))
+                    let batt = acc.batteryLevel?.intValue ?? 100
+                    Text("\(acc.brand.name) \(batt)%")
+                        .font(.system(size: 9, weight: .bold, design: .monospaced))
+                }
+                .foregroundColor(.cyan)
+                .padding(.horizontal, 7)
+                .padding(.vertical, 4)
+                .background(Color.cyan.opacity(0.15))
+                .cornerRadius(6)
+            } else {
+                HStack(spacing: 4) {
+                    Image(systemName: "speaker.wave.2")
+                        .font(.system(size: 10))
+                    Text("SPEAKER")
+                        .font(.system(size: 9, weight: .bold, design: .monospaced))
+                }
+                .foregroundColor(.secondary)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 4)
+                .background(Color.white.opacity(0.08))
+                .cornerRadius(6)
+            }
+
+            // Peers Sheet Button
+            Button(action: onShowPeers) {
+                Image(systemName: "person.2.fill")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(.white)
+                    .padding(8)
+                    .background(Color.white.opacity(0.12))
+                    .clipShape(Circle())
+            }
+
+            // Text Messages Drawer Button with Unread Badge
+            Button(action: { vm.showMessageDrawer = true }) {
+                ZStack(alignment: .topTrailing) {
+                    Image(systemName: "bubble.left.and.exclamationmark.bubble.right.fill")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(8)
+                        .background(Color.white.opacity(0.12))
+                        .clipShape(Circle())
+
+                    if vm.unreadCount > 0 {
+                        Text("\(vm.unreadCount)")
+                            .font(.system(size: 8, weight: .black))
+                            .foregroundColor(.white)
+                            .padding(3)
+                            .background(Color.red)
+                            .clipShape(Circle())
+                            .offset(x: 3, y: -3)
                     }
                 }
             }
-        }
-    }
 
-    private func bearingArrow(for bearing: Double) -> String {
-        switch bearing {
-        case -22.5...22.5: return "arrow.up"
-        case 22.5...67.5: return "arrow.up.right"
-        case 67.5...112.5: return "arrow.right"
-        case 112.5...157.5: return "arrow.down.right"
-        case -67.5 ... -22.5: return "arrow.up.left"
-        case -112.5 ... -67.5: return "arrow.left"
-        case -157.5 ... -112.5: return "arrow.down.left"
-        default: return "arrow.down"
+            // QR Share Button
+            Button(action: { vm.showQrShare = true }) {
+                Image(systemName: "qrcode")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(.white)
+                    .padding(8)
+                    .background(Color.white.opacity(0.12))
+                    .clipShape(Circle())
+            }
+
+            // QR Scanner Button
+            Button(action: { vm.showQrScanner = true }) {
+                Image(systemName: "qrcode.viewfinder")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(.white)
+                    .padding(8)
+                    .background(Color.white.opacity(0.12))
+                    .clipShape(Circle())
+            }
         }
     }
 }
 
-// --- Quick Canned Hazard Bar ---
+// --- Tactical Vector Radar View ---
 
-struct QuickHazardBar: View {
-    let onSelectCanned: (CannedMessageCode) -> Void
-
-    private let hazards: [(code: CannedMessageCode, icon: String, label: String, color: Color)] = [
-        (.fuelLow, "fuelpump.fill", "Fuel Low", .orange),
-        (.hazardRoad, "exclamationmark.triangle.fill", "Road Hazard", .yellow),
-        (.stopImmediate, "hand.raised.fill", "Stop", .red),
-        (.mechanicalIssue, "wrench.and.screwdriver.fill", "Bike Issue", .orange),
-        (.turnAround, "arrow.uturn.left", "Turn Around", .blue),
-        (.regroup, "person.3.fill", "Regroup", .green)
-    ]
+struct TacticalVectorRadarView: View {
+    let radarSnapshot: RadarSnapshot?
+    let convoySnapshot: ConvoyTelemetrySnapshot?
+    let peersCount: Int
 
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
+        VStack(spacing: 4) {
+            ZStack {
+                // Outer circle background
+                Circle()
+                    .fill(Color(red: 0.04, green: 0.08, blue: 0.12))
+                    .frame(width: 170, height: 170)
+                    .overlay(Circle().stroke(Color.cyan.opacity(0.3), lineWidth: 1.5))
+
+                // Distance concentric rings
+                Circle()
+                    .stroke(Color.cyan.opacity(0.15), lineWidth: 1)
+                    .frame(width: 120, height: 120)
+
+                Circle()
+                    .stroke(Color.cyan.opacity(0.12), lineWidth: 1)
+                    .frame(width: 65, height: 65)
+
+                // Crosshairs
+                Rectangle()
+                    .fill(Color.cyan.opacity(0.15))
+                    .frame(width: 1, height: 170)
+                Rectangle()
+                    .fill(Color.cyan.opacity(0.15))
+                    .frame(width: 170, height: 1)
+
+                // Range Labels
+                Text("1.5km")
+                    .font(.system(size: 7, weight: .bold, design: .monospaced))
+                    .foregroundColor(.cyan.opacity(0.5))
+                    .offset(y: -75)
+
+                Text("500m")
+                    .font(.system(size: 7, weight: .bold, design: .monospaced))
+                    .foregroundColor(.cyan.opacity(0.4))
+                    .offset(y: -50)
+
+                // Heading North Chevron
+                Image(systemName: "chevron.up")
+                    .font(.system(size: 9, weight: .black))
+                    .foregroundColor(.cyan)
+                    .offset(y: -78)
+
+                // Center local rider dot
+                Circle()
+                    .fill(Color.blue)
+                    .frame(width: 10, height: 10)
+                    .overlay(Circle().stroke(Color.white, lineWidth: 1.5))
+                    .shadow(color: .blue, radius: 4)
+
+                // Plotted convoy riders
+                if let riders = convoySnapshot?.riders {
+                    ForEach(riders, id: \.peerId) { rider in
+                        let dist = min(max(rider.distanceMeters, 10.0), 1500.0)
+                        let normalized = CGFloat(dist / 1500.0)
+                        let rad = CGFloat(rider.relativeBearingDegrees * .pi / 180.0)
+                        let r = normalized * 75.0
+                        let x = r * sin(rad)
+                        let y = -r * cos(rad)
+
+                        let dotColor: Color = rider.distanceMeters < 100 ? .green : (rider.distanceMeters < 500 ? .cyan : .orange)
+
+                        Circle()
+                            .fill(dotColor)
+                            .frame(width: 8, height: 8)
+                            .overlay(Circle().stroke(Color.black, lineWidth: 1))
+                            .offset(x: x, y: y)
+                    }
+                }
+            }
+            .frame(width: 170, height: 170)
+
+            // Compact Telemetry Info Strip Under Radar
             HStack(spacing: 8) {
-                ForEach(hazards, id: \.label) { h in
-                    Button(action: { onSelectCanned(h.code) }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: h.icon)
-                                .font(.system(size: 10))
-                            Text(h.label)
-                                .font(.system(size: 10, weight: .semibold))
-                        }
-                        .foregroundColor(h.color)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(h.color.opacity(0.12))
-                        .cornerRadius(8)
+                if let closest = convoySnapshot?.closestRider {
+                    HStack(spacing: 4) {
+                        Image(systemName: "location.north.line.fill")
+                            .font(.system(size: 9))
+                            .foregroundColor(.cyan)
+                        Text("\(closest.peerName.ifBlank { closest.peerId }): \(Int(closest.distanceMeters))m")
+                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                            .foregroundColor(.cyan)
+                    }
+                } else {
+                    HStack(spacing: 4) {
+                        Circle().fill(Color.green).frame(width: 5, height: 5)
+                        Text("RADAR SCANNING • \(peersCount) RIDERS")
+                            .font(.system(size: 9, weight: .bold, design: .monospaced))
+                            .foregroundColor(.secondary)
                     }
                 }
             }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 3)
+            .background(Color.black.opacity(0.2))
+            .cornerRadius(6)
         }
     }
 }
 
-// --- Audio Level Meter ---
+// --- Tactical Push-To-Talk Button ---
 
-struct AudioMeterView: View {
-    let label: String
-    let level: Float
-    let activeColor: Color
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            HStack {
-                Text(label)
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundColor(.secondary)
-                Spacer()
-                Text("\(Int(level * 100))%")
-                    .font(.system(size: 10, weight: .semibold, design: .monospaced))
-                    .foregroundColor(.secondary)
-            }
-
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 3)
-                        .fill(Color(UIColor.secondarySystemBackground))
-                        .frame(height: 5)
-
-                    RoundedRectangle(cornerRadius: 3)
-                        .fill(activeColor)
-                        .frame(width: max(0, min(geometry.size.width * CGFloat(level), geometry.size.width)), height: 5)
-                        .animation(.linear(duration: 0.1), value: level)
-                }
-            }
-            .frame(height: 5)
-        }
-    }
-}
-
-// --- Push-To-Talk Button ---
-
-struct PttButtonView: View {
+struct TacticalPttButton: View {
     let isTransmitting: Bool
+    let isVoxLocked: Bool
     let onPress: () -> Void
     let onRelease: () -> Void
 
     var body: some View {
         ZStack {
-            Circle()
-                .fill(isTransmitting ? Color.red.opacity(0.25) : Color.blue.opacity(0.12))
-                .frame(width: 170, height: 170)
-                .scaleEffect(isTransmitting ? 1.15 : 1.0)
-                .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: isTransmitting)
+            // Ripple wave when transmitting
+            if isTransmitting {
+                Circle()
+                    .stroke(Color.red.opacity(0.4), lineWidth: 6)
+                    .frame(width: 168, height: 168)
+                    .scaleEffect(1.15)
+                    .animation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true), value: isTransmitting)
+            }
 
+            // Outer Glow ring
+            Circle()
+                .fill(isTransmitting ? Color.red.opacity(0.2) : Color.blue.opacity(0.1))
+                .frame(width: 154, height: 154)
+
+            // Main 140pt tactile button
             Circle()
                 .fill(
                     LinearGradient(
-                        gradient: Gradient(colors: isTransmitting ? [Color(red: 0.95, green: 0.25, blue: 0.25), Color(red: 0.8, green: 0.1, blue: 0.1)] : [Color(red: 0.15, green: 0.5, blue: 0.95), Color(red: 0.1, green: 0.35, blue: 0.85)]),
+                        colors: isTransmitting
+                            ? [Color(red: 0.95, green: 0.2, blue: 0.2), Color(red: 0.7, green: 0.05, blue: 0.05)]
+                            : [Color(red: 0.15, green: 0.5, blue: 0.95), Color(red: 0.08, green: 0.28, blue: 0.7)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
                 )
-                .frame(width: 135, height: 135)
-                .shadow(color: isTransmitting ? Color.red.opacity(0.4) : Color.blue.opacity(0.3), radius: isTransmitting ? 16 : 8, y: 4)
+                .frame(width: 138, height: 138)
+                .overlay(
+                    Circle().stroke(isTransmitting ? Color.white.opacity(0.8) : Color.cyan.opacity(0.6), lineWidth: 2)
+                )
+                .shadow(color: isTransmitting ? Color.red.opacity(0.6) : Color.blue.opacity(0.4), radius: isTransmitting ? 18 : 10, y: 4)
 
             VStack(spacing: 4) {
                 Image(systemName: isTransmitting ? "waveform" : "mic.fill")
-                    .font(.system(size: 28, weight: .bold))
+                    .font(.system(size: 32, weight: .black))
                     .foregroundColor(.white)
 
-                Text(isTransmitting ? "TRANSMITTING" : "PUSH TO TALK")
-                    .font(.system(size: 11, weight: .heavy))
+                Text(isTransmitting ? "HOT MIC" : "PUSH TO TALK")
+                    .font(.system(size: 11, weight: .heavy, design: .monospaced))
                     .foregroundColor(.white)
-                    .tracking(1.0)
+                    .tracking(1.2)
             }
         }
         .gesture(
             DragGesture(minimumDistance: 0)
                 .onChanged { _ in
-                    if !isTransmitting {
-                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                    if !isTransmitting && !isVoxLocked {
+                        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
                         onPress()
                     }
                 }
                 .onEnded { _ in
-                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    onRelease()
+                    if isTransmitting {
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        onRelease()
+                    }
                 }
         )
+    }
+}
+
+// --- Tactical Quick Hazard Bar ---
+
+struct TacticalQuickHazardBar: View {
+    let onSelectCanned: (CannedMessageCode) -> Void
+
+    private let hazards: [(code: CannedMessageCode, icon: String, label: String, color: Color)] = [
+        (.hazardRoad, "exclamationmark.triangle.fill", "HAZARD", Color(red: 1.0, green: 0.8, blue: 0.1)),
+        (.fuelLow, "fuelpump.fill", "FUEL", Color(red: 1.0, green: 0.55, blue: 0.1)),
+        (.stopImmediate, "hand.raised.fill", "STOP", Color(red: 0.95, green: 0.2, blue: 0.2)),
+        (.mechanicalIssue, "wrench.and.screwdriver.fill", "BIKE", Color(red: 0.2, green: 0.65, blue: 1.0))
+    ]
+
+    var body: some View {
+        HStack(spacing: 8) {
+            ForEach(hazards, id: \.label) { h in
+                Button(action: { onSelectCanned(h.code) }) {
+                    VStack(spacing: 3) {
+                        Image(systemName: h.icon)
+                            .font(.system(size: 18, weight: .bold))
+                        Text(h.label)
+                            .font(.system(size: 11, weight: .black, design: .monospaced))
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 52)
+                    .foregroundColor(h.color)
+                    .background(h.color.opacity(0.16))
+                    .cornerRadius(10)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(h.color.opacity(0.4), lineWidth: 1.2)
+                    )
+                }
+            }
+        }
+    }
+}
+
+// --- Tactical SOS Bar ---
+
+struct TacticalSosBar: View {
+    let isEmergencyActive: Bool
+    let bufferedFrames: Int
+    let onTriggerSos: () -> Void
+
+    var body: some View {
+        Button(action: onTriggerSos) {
+            HStack(spacing: 8) {
+                Image(systemName: "exclamationmark.octagon.fill")
+                    .font(.system(size: 16, weight: .black))
+                    .foregroundColor(.white)
+
+                Text(isEmergencyActive ? "EMERGENCY PREEMPTION ACTIVE" : "EMERGENCY SOS BROADCAST")
+                    .font(.system(size: 11, weight: .black, design: .monospaced))
+                    .foregroundColor(.white)
+
+                Spacer()
+
+                Text("BLACKBOX ~60s")
+                    .font(.system(size: 9, weight: .bold, design: .monospaced))
+                    .foregroundColor(.white.opacity(0.8))
+            }
+            .padding(.horizontal, 14)
+            .frame(height: 44)
+            .background(Color.red)
+            .cornerRadius(8)
+            .shadow(color: Color.red.opacity(0.4), radius: 6, y: 2)
+        }
+    }
+}
+
+// --- Peers Sheet View ---
+
+struct PeersSheetView: View {
+    let peers: [Peer]
+    let isKeepAliveActive: Bool
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 12) {
+                if peers.isEmpty {
+                    Spacer()
+                    VStack(spacing: 8) {
+                        Image(systemName: "person.2.slash")
+                            .font(.system(size: 40))
+                            .foregroundColor(.secondary)
+                        Text("No Mesh Peers Connected")
+                            .font(.system(size: 15, weight: .bold))
+                        Text("Other riders running Intercom-Alpha will appear here via BLE mesh automatically.")
+                            .font(.system(size: 12))
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 24)
+                    }
+                    Spacer()
+                } else {
+                    List(peers, id: \.id) { peer in
+                        PeerRowView(peer: peer)
+                    }
+                    .listStyle(.plain)
+                }
+            }
+            .navigationTitle("Connected Riders (\(peers.count))")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
     }
 }
 
@@ -738,5 +867,13 @@ struct QrShareView: View {
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
+    }
+}
+
+// --- String Convenience Extension ---
+
+extension String {
+    func ifBlank(_ fallback: () -> String) -> String {
+        self.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? fallback() : self
     }
 }

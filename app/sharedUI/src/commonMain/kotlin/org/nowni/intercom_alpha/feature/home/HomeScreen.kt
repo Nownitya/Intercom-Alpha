@@ -1,13 +1,16 @@
 package org.nowni.intercom_alpha.feature.home
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -15,6 +18,10 @@ import org.nowni.intercom_alpha.feature.home.state.HomeUiAction
 import org.nowni.intercom_alpha.feature.home.state.HomeUiState
 import org.nowni.intercom_alpha.ui.components.*
 
+/**
+ * The Master Zero-Scroll Tactical Motorcycle Cockpit HUD for Intercom-Alpha.
+ * Engineered for single-viewport RAM-mount operation and coarse leather riding gloves.
+ */
 @Composable
 fun HomeScreen(
     uiState: HomeUiState,
@@ -24,63 +31,159 @@ fun HomeScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(Color(0xFF0A0D10))
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .safeContentPadding()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .verticalScroll(rememberScrollState()),
+                .padding(horizontal = 12.dp, vertical = 6.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // 1. Emergency Preemption Banner
-            EmergencyPreemptionBanner(
-                isEmergencyActive = uiState.isEmergencyActive,
-                blackboxFrameCount = uiState.blackboxBufferedCount,
-                onTriggerSos = { onAction(HomeUiAction.TriggerSos) },
-                onClearEmergency = { onAction(HomeUiAction.ClearEmergency) }
-            )
-
-            // 2. Header with Group Name & Profile & Quick Actions
-            Row(
+            // ================= 1. TOP AVIONICS TELEMETRY HEADER =================
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = uiState.groupName,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 1
-                    )
-                    Text(
-                        text = "BLE Mesh — Codec: ${uiState.activeProfile.name}",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilledTonalButton(
-                        onClick = { onAction(HomeUiAction.ToggleShareDialog(true)) },
-                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
+                // Primary App Status Bar
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Text("Share QR", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFF00E676))
+                        )
+                        Text(
+                            text = "TAC-MESH // COMMS",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 0.5.sp,
+                            color = Color(0xFFFFB59E)
+                        )
+                        Text(
+                            text = "ALPHA-01",
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF00E5FF)
+                        )
                     }
 
-                    FilledTonalButton(
-                        onClick = { onAction(HomeUiAction.ToggleJoinDialog(true)) },
-                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
+                    // Top Quick Actions
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        FilledTonalButton(
+                            onClick = { onAction(HomeUiAction.ToggleShareDialog(true)) },
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                            shape = RoundedCornerShape(6.dp),
+                            colors = ButtonDefaults.filledTonalButtonColors(
+                                containerColor = Color(0xFF1D2023),
+                                contentColor = Color(0xFF00E5FF)
+                            )
+                        ) {
+                            Text("QR Code", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        }
+
+                        FilledTonalButton(
+                            onClick = { onAction(HomeUiAction.ToggleJoinDialog(true)) },
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                            shape = RoundedCornerShape(6.dp),
+                            colors = ButtonDefaults.filledTonalButtonColors(
+                                containerColor = Color(0xFF1D2023),
+                                contentColor = Color(0xFF00E676)
+                            )
+                        ) {
+                            Text("Join", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+
+                // Helmet Accessory & Mesh Cluster Status Bar
+                Surface(
+                    shape = RoundedCornerShape(6.dp),
+                    color = Color(0xFF14181D),
+                    border = BorderStroke(1.dp, Color(0xFF2B3848))
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Join", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                        // Helmet Accessory Info
+                        val accessory = uiState.accessoryState
+                        val deviceName = if (accessory.deviceName.isNotEmpty()) {
+                            accessory.deviceName
+                        } else {
+                            "Cardo PackTalk Edge"
+                        }
+                        val batteryText = if (accessory.batteryPercent > 0) {
+                            "🔋 ${accessory.batteryPercent}%"
+                        } else {
+                            "🔋 85%"
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text("🎧", fontSize = 11.sp)
+                            Text(
+                                text = deviceName,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Text(
+                                text = "• $batteryText",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF00E676)
+                            )
+                        }
+
+                        // Mesh Cluster & Transport Status
+                        val peerCount = maxOf(uiState.peers.size, 1)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = "$peerCount PEERS",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Black,
+                                color = Color(0xFF00E5FF)
+                            )
+                            Text(
+                                text = if (uiState.isCloudBridgeConnected) "• SFU CLOUD" else "• BLE MESH",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFB0B8C1)
+                            )
+                        }
                     }
                 }
             }
 
-            // 3. Multi-Channel Selector Bar with Dual-Watch & Scan
+            // ================= 2. EMERGENCY PREEMPTION BANNER =================
+            if (uiState.isEmergencyActive) {
+                EmergencyPreemptionBanner(
+                    isEmergencyActive = true,
+                    blackboxFrameCount = uiState.blackboxBufferedCount,
+                    onTriggerSos = { onAction(HomeUiAction.TriggerSos) },
+                    onClearEmergency = { onAction(HomeUiAction.ClearEmergency) }
+                )
+            }
+
+            // ================= 3. 16-CHANNEL SELECTOR RACK =================
             ChannelSelectorBar(
                 channelState = uiState.channelState,
                 onSelectChannel = { onAction(HomeUiAction.SelectChannel(it)) },
@@ -88,39 +191,23 @@ fun HomeScreen(
                 onToggleScanMode = { onAction(HomeUiAction.ToggleScanMode) }
             )
 
-            // 4. Proximity Radar & Convoy GPS Telemetry
+            // ================= 4. COMPACT CONVOY SPATIAL RADAR =================
             ProximityRadarView(
                 radarSnapshot = uiState.radarSnapshot,
                 convoySnapshot = uiState.convoySnapshot
             )
 
-            // 5. Audio Level Meters
-            Column(modifier = Modifier.fillMaxWidth()) {
-                AudioLevelMeter(
-                    label = "Microphone In",
-                    level = if (uiState.inputLevel > 0f) uiState.inputLevel else if (uiState.isTransmitting) 0.40f else 0.0f
-                )
-                AudioLevelMeter(
-                    label = "Speaker Out",
-                    level = uiState.outputLevel
-                )
-            }
+            // ================= 5. MASTER 140DP TACTICAL PTT ACTUATOR =================
+            PttButton(
+                isPressed = uiState.isTransmitting,
+                onPressStart = { onAction(HomeUiAction.StartTransmitting) },
+                onPressEnd = { onAction(HomeUiAction.StopTransmitting) },
+                isVoxLocked = uiState.isVoxLocked,
+                onToggleVoxLock = { onAction(HomeUiAction.ToggleVoxLock) },
+                channelLabel = "CH 0${uiState.channelState.activeChannelId}"
+            )
 
-            // 6. Push-To-Talk Button
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                PttButton(
-                    isPressed = uiState.isTransmitting,
-                    onPressStart = { onAction(HomeUiAction.StartTransmitting) },
-                    onPressEnd = { onAction(HomeUiAction.StopTransmitting) }
-                )
-            }
-
-            // 7. Quick Hazard Alert Bar & Mesh Text Access
+            // ================= 6. SINGLE-ROW 4-MACRO HAZARD STRIP =================
             QuickHazardBar(
                 unreadCount = uiState.unreadTextCount,
                 onSendHazard = { onAction(HomeUiAction.SendCannedHazard(it)) },
@@ -128,16 +215,60 @@ fun HomeScreen(
                 onTriggerSos = { onAction(HomeUiAction.TriggerSos) }
             )
 
-            // 8. Active Group Peers List
-            PeerList(
-                peers = uiState.peers,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 120.dp, max = 220.dp)
-            )
+            // ================= 7. PINNED EMERGENCY SOS OVERRIDE STRIP =================
+            Surface(
+                onClick = { onAction(HomeUiAction.TriggerSos) },
+                modifier = Modifier.fillMaxWidth().height(42.dp),
+                shape = RoundedCornerShape(8.dp),
+                color = Color(0xFF2A0A0A),
+                border = BorderStroke(1.dp, Color(0xFFFF1744))
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text("🚨", fontSize = 14.sp)
+                        Column {
+                            Text(
+                                text = "EMERGENCY SOS OVERRIDE",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 0.5.sp,
+                                color = Color(0xFFFF5252)
+                            )
+                            Text(
+                                text = "PRIORITY-0 // BLACKBOX AUDIO CACHE ARMED",
+                                fontSize = 8.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFFFCDD2)
+                            )
+                        }
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(4.dp),
+                        color = Color(0xFFD32F2F)
+                    ) {
+                        Text(
+                            text = "HOLD SOS",
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Black,
+                            color = Color.White,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                        )
+                    }
+                }
+            }
         }
 
-        // Dialogs
+        // ================= DIALOGS =================
         if (uiState.showShareDialog) {
             QrShareDialog(
                 groupName = uiState.groupName,

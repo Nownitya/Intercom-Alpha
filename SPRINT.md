@@ -1,29 +1,29 @@
-# Current Status: Sprint 14 (Phase 12: Advanced Convoy Mesh, Forward-Secret Key Ratchet & Live Activity)
+# Current Status: Sprint 15 (Phase 13: Zero-Scroll Tactical Cockpit HUD & Hardware Telemetry Integration)
 
 > **Active Sprint Reference:** [TASKS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/TASKS.md) & [prd.json](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/tasks/ralph/prd.json)  
-> **Sprint Branch:** `sprint/sprint-14-advanced-convoy-mesh`  
+> **Sprint Branch:** `sprint/sprint-15-cockpit-hud-integration`  
 > **Sprint Governance Rules:** [SPRINT-RULES.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/SPRINT-RULES.md)  
 > **Engineering Contract:** [AGENTS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/AGENTS.md)  
 > **Knowledge Base:** [MEMORY.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/MEMORY.md)  
 
 ---
 
-## 🚀 Active Sprint: Sprint 14 (Phase 12: Advanced Convoy Mesh, Forward-Secret Key Ratchet & Live Activity)
-**Goal:** Deliver pure KMP Perfect Forward Secrecy (PFS) session key ratcheting, direct helmet Bluetooth GATT accessory integration (Cardo/Sena/EJEAS), native iOS 18+ Live Activity / Dynamic Island PTT widget, and multi-cluster cloud cross-mesh SFU bridging.  
-- **Sprint Branch:** `sprint/sprint-14-advanced-convoy-mesh`  
-- **Target Release:** `v2.1.0`  
+## 🚀 Active Sprint: Sprint 15 (Phase 13: Zero-Scroll Tactical Cockpit HUD & Hardware Telemetry Integration)
+**Goal:** Deliver end-to-end integration of Sprint 14 subsystems (`HelmetAccessoryManager`, `MeshKeyRatchet`, `CloudRelayBridge`) into `HomeViewModel` and platform bridges, and deploy the Zero-Scroll Tactical Cockpit HUD (zero vertical scrolling on motorcycle RAM mounts, 140dp circular PTT with hot-mic pulse, single-row 4-hazard macro strip, compact circular vector radar, and emergency preemption) across Compose Multiplatform (`sharedUI`) and 100% Native iOS SwiftUI (`iosApp`).  
+- **Sprint Branch:** `sprint/sprint-15-cockpit-hud-integration`  
+- **Target Release:** `v2.2.0-rc1`  
 
 | Task ID | Item | Owner | Target Files | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **ICA-1401** | Pure KMP Perfect Forward Secrecy (PFS) & Ephemeral Key Ratchet Engine | Ralph | `MeshKeyRatchet.kt`, `PacketCipher.kt`, `MeshKeyRatchetTest.kt` | ✅ Completed |
-| **ICA-1402** | Direct Helmet Intercom Bluetooth GATT Accessory Profile (Cardo / Sena / EJEAS) | Ralph | `HelmetAccessoryManager.kt`, `HeadsetManager.kt`, `HelmetAccessoryManagerTest.kt` | ✅ Completed |
-| **ICA-1403** | iOS 18+ Live Activity & Dynamic Island Hands-Free PTT Widget | Ralph | `IntercomActivityAttributes.swift`, `IntercomActivityWidget.swift`, `IntercomViewModel.swift`, `IntercomBridge.kt` | ✅ Completed |
-| **ICA-1404** | Multi-Cluster Cloud Cross-Mesh SFU Signaling & Audio Bridging | Ralph | `SignalingProtocol.kt`, `SignalingServerManager.kt`, `CloudRelayBridge.kt`, `MultiClusterBridgeTest.kt` | ✅ Completed |
+| **ICA-1501** | Subsystem Telemetry Wiring (Accessory, PFS Ratchet, SFU Cloud) | Ralph | `IntercomHardwareBridge.kt`, `AndroidPlatformBridge.kt`, `IntercomBridge.kt`, `HomeViewModel.kt`, `HomeUiState.kt` | ✅ Completed |
+| **ICA-1502** | Compose Multiplatform Zero-Scroll Cockpit HUD | Ralph | `HomeScreen.kt`, `PttButton.kt`, `QuickHazardBar.kt`, `ProximityRadarView.kt` | ✅ Completed |
+| **ICA-1503** | Native iOS SwiftUI Tactical Cockpit HUD | Ralph | `ContentView.swift`, `IntercomViewModel.swift` | ✅ Completed |
+| **ICA-1504** | Multiplatform Verification Gates & Presentation Regression Tests | Ralph | `HomeViewModelTest.kt`, Gradle automated tests, OpenCodeReview | ✅ Completed |
 
 ---
 
 ## 📦 Historical Sprint Archive
-- ✅ **Sprint 14: Advanced Convoy Mesh, Forward-Secret Key Ratchet & Live Activity**: Completed 2026-10-04 (100% DoD).
+- ✅ **Sprint 14: Advanced Convoy Mesh, Forward-Secret Key Ratchet & Live Activity**: Completed 2026-10-04 (100% DoD, v2.1.0 Released).
 - ✅ **Sprint 13: v2.0 Production Release & Hardening (v2.0.0 Release Tag)**: Completed 2026-10-04 (100% DoD).
 - ✅ **Sprint 12: Multiplatform Cockpit UI & Bridge Integration**: Completed 2026-10-01 (100% DoD).
 - ✅ **Sprint 11: Convoy Situational Awareness, GPS Mesh Telemetry & Blackbox Voice Cache**: Completed 2026-10-01 (100% DoD).

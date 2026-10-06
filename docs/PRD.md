@@ -1,8 +1,8 @@
 # Product Requirements Document (PRD) — Intercom-Alpha
 
-> **Document Version:** 2.1  
-> **Status:** Production Release Tagged (`v2.1.0`)  
-> **Last Updated:** 2026-10-05  
+> **Document Version:** 2.2  
+> **Status:** Production Release Tagged (`v2.2.0`)  
+> **Last Updated:** 2026-10-06  
 > **Repository:** `Intercom-Alpha`  
 > **Obsidian Reference:** `03_Specifications/` & `PROJECT-SPEC.md`
 
@@ -98,6 +98,8 @@ Rider opens app ➔ Creates or scans QR code ➔ Pairs Bluetooth helmet headset 
 - **Rolling Emergency Voice Blackbox**: Encrypted in-memory rolling circular audio buffer with pure KMP ChaCha20-Poly1305 and LZ77 compression (Sprint 11).
 - **Cockpit UI & Multiplatform Bridge**: 100% native SwiftUI cockpit on iOS and Compose Multiplatform cockpit on Android/Desktop (Sprint 12).
 - **Hardware-to-Cockpit Service Bridge & R8 Hardening**: Wired live BLE mesh audio/PTT/meters, R8 minification (3.17 MB APK), and 4-hour battery/WakeLock validation (Sprint 13).
+- **Advanced Convoy Mesh, Forward-Secret Key Ratchet & Live Activity**: Pure KMP RFC 5869 HKDF Perfect Forward Secrecy session ratchet, Cardo/Sena Bluetooth GATT battery/PTT accessory manager, native iOS 18+ Live Activity / Dynamic Island widget, and multi-cluster cross-mesh SFU bridging (Sprint 14).
+- **Zero-Scroll Tactical Cockpit HUD & Telemetry Integration**: Zero-vertical-scroll mobile handlebar layout, 140dp tactile PTT with hot-mic pulse, 58dp volume/VOX-lock flanking actuators, single-row 4-hazard macro strip, and vector radar with polar-to-cartesian rider dots across Compose and SwiftUI (Sprint 15).
 
 ---
 

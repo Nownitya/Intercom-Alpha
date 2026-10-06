@@ -3,6 +3,7 @@ package org.nowni.intercom_alpha.feature.home.state
 import org.nowni.intercom_alpha.audio.PriorityLevel
 import org.nowni.intercom_alpha.channel.ChannelState
 import org.nowni.intercom_alpha.common.AudioProfile
+import org.nowni.intercom_alpha.headset.HelmetAccessoryState
 import org.nowni.intercom_alpha.mesh.Peer
 import org.nowni.intercom_alpha.mesh.RadarSnapshot
 import org.nowni.intercom_alpha.telemetry.ConvoyTelemetrySnapshot
@@ -32,7 +33,13 @@ data class HomeUiState(
     val isEmergencyActive: Boolean = false,
     val activePriorityLevel: PriorityLevel = PriorityLevel.NORMAL,
     val blackboxBufferedCount: Int = 0,
-    val showMessagesDialog: Boolean = false
+    val showMessagesDialog: Boolean = false,
+
+    // Sprint 14 Advanced Mesh & Telemetry State
+    val accessoryState: HelmetAccessoryState = HelmetAccessoryState(),
+    val isCloudBridgeConnected: Boolean = false,
+    val isPfsRatchetActive: Boolean = true,
+    val isVoxLocked: Boolean = false
 )
 
 sealed interface HomeUiAction {
@@ -55,6 +62,7 @@ sealed interface HomeUiAction {
     data object TriggerSos : HomeUiAction
     data object ClearEmergency : HomeUiAction
     data class ToggleMessagesDialog(val show: Boolean) : HomeUiAction
+    data object ToggleVoxLock : HomeUiAction
 }
 
 sealed interface HomeUiEvent {
