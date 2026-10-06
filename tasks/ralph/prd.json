@@ -42,7 +42,7 @@
         "Registered in Navigation 3 AppNavGraph under polymorphic NavKey routing (Gotcha 1)",
         "Full build passes without lint or compilation errors"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-1703",
