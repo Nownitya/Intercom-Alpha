@@ -31,7 +31,10 @@ data class AudioEngineConfig(
     val enableDtx: Boolean = true,
     val enableFec: Boolean = true,
     val enableVox: Boolean = false,
-    val voxThresholdDb: Float = -40f
+    val voxThresholdDb: Float = -40f,
+    val enableAgc: Boolean = true,
+    val agcTargetDb: Float = -18f,
+    val enableDrc: Boolean = true
 )
 
 interface AudioRecorder {
@@ -49,8 +52,10 @@ interface AudioPlayer {
 /**
  * End-to-end full duplex audio processing pipeline session.
  * Integrates:
- * - Outgoing path: [NoiseGate] (acoustic noise suppression & VOX) -> [AudioCodec] (multi-rate compression).
- * - Incoming path: [AdaptiveJitterBuffer] (RFC 3550 playout sequencing) -> [AudioCodec] (decoding) -> [PacketLossConcealment] (waveform extrapolation & crossfading).
+ * - Outgoing path: [NoiseGate] (acoustic noise suppression & VOX) -> [AutomaticGainControl] (speech normalization)
+ *   -> [DynamicRangeCompressor] (soft-knee compression & -0.5 dBFS peak limiter) -> [AudioCodec] (multi-rate compression).
+ * - Incoming path: [AdaptiveJitterBuffer] (RFC 3550 playout sequencing) -> [AudioCodec] (decoding)
+ *   -> [PacketLossConcealment] (waveform extrapolation & crossfading) -> [DynamicRangeCompressor] (acoustic protection).
  */
 class AudioPipelineSession(
     val profile: AudioProfile = AudioProfile.MEDIUM,
@@ -59,7 +64,10 @@ class AudioPipelineSession(
     val jitterBuffer: AdaptiveJitterBuffer = AdaptiveJitterBuffer(frameDurationMs = profile.frameSizeMs.toLong()),
     val plc: PacketLossConcealment = PacketLossConcealment(sampleRate = sampleRate),
     val noiseGate: NoiseGate = NoiseGate(sampleRate = sampleRate),
-    val codec: AudioCodec = AudioCodec(defaultProfile = profile)
+    val codec: AudioCodec = AudioCodec(defaultProfile = profile),
+    val agc: AutomaticGainControl = AutomaticGainControl(sampleRate = sampleRate),
+    val drc: DynamicRangeCompressor = DynamicRangeCompressor(sampleRate = sampleRate),
+    val playoutLimiter: DynamicRangeCompressor = DynamicRangeCompressor(sampleRate = sampleRate)
 ) {
     /**
      * Processes raw microphone input. Returns compressed byte packet, or null if gated by VOX/DTX.
@@ -69,7 +77,9 @@ class AudioPipelineSession(
         if (!noiseGate.isOpen && noiseGate.currentEnvelopeDb < -55.0f) {
             return null // Discontinuous Transmission (DTX) suppresses background silence packets
         }
-        return codec.encode(gated, profile)
+        val leveled = agc.process(gated)
+        val compressed = drc.process(leveled)
+        return codec.encode(compressed, profile)
     }
 
     /**
@@ -84,7 +94,7 @@ class AudioPipelineSession(
      */
     suspend fun pullPlayoutFrame(currentTimeMs: Long): ShortArray {
         val frame = jitterBuffer.pull(currentTimeMs)
-        return when (frame) {
+        val rawPlayout = when (frame) {
             is PlayoutFrame.Available -> {
                 val payload = frame.data
                 val decoded = if (payload.isNotEmpty() && payload[0] == AudioCodec.MAGIC_BYTE) {
@@ -101,6 +111,7 @@ class AudioPipelineSession(
                 ShortArray(frameSizeSamples)
             }
         }
+        return playoutLimiter.process(rawPlayout)
     }
 
     private fun decodeLegacyPcm(payload: ByteArray): ShortArray {
