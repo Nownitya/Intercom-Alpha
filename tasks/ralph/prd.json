@@ -1,81 +1,86 @@
 {
   "project": "Intercom-Alpha",
-  "branchName": "sprint/sprint-16-repeater-dsp-simulation",
-  "phase": "Phase 14: Mesh Repeater, Audio DSP & Convoy Simulation",
-  "sprint": "Sprint 16",
-  "updatedAt": "2026-10-06T20:30:00Z",
+  "branchName": "sprint/sprint-17-basecamp-repeater-ui",
+  "phase": "Phase 15: Basecamp Stationary Repeater UI & Dedicated Low-Power Cockpit Mode",
+  "sprint": "Sprint 17",
+  "updatedAt": "2026-10-06T23:08:00Z",
   "stories": [
     {
-      "id": "ICA-1601",
+      "id": "ICA-1701",
       "priority": 1,
-      "title": "Audio DSP Hardening: Pure KMP Automatic Gain Control (AGC) & Dynamic Range Compression (DRC)",
-      "description": "Implement pure Kotlin multiplatform Automatic Gain Control (AutomaticGainControl.kt) and Dynamic Range Compression (DynamicRangeCompressor.kt) for helmet intercom audio: dynamic RMS speech normalization across whispering and screaming, soft-knee compression curve, anti-pumping envelope follower, and lookahead peak limiter with zero Java/C dependencies.",
+      "title": "Basecamp Repeater State Management & Platform Bridge Wiring",
+      "description": "Implement RepeaterUiState.kt and RepeaterViewModel.kt in app/sharedUI, wiring MeshRepeaterService into Koin DI and IntercomHardwareBridge/AndroidPlatformBridge/IntercomBridge. Manage stationary node state: battery percentage, solar charging indicator, active neighbor count, forwarded packet counters, and remote diagnostic ping triggers.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/AutomaticGainControl.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/DynamicRangeCompressor.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/AudioEngine.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/AutomaticGainControlTest.kt"
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/repeater/RepeaterUiState.kt",
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/repeater/RepeaterViewModel.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomHardwareBridge.kt",
+        "app/sharedLogic/src/androidMain/kotlin/org/nowni/intercom_alpha/bridge/AndroidPlatformBridge.kt",
+        "app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomBridge.kt",
+        "app/sharedUI/src/commonTest/kotlin/org/nowni/intercom_alpha/ui/repeater/RepeaterViewModelTest.kt"
       ],
       "acceptanceCriteria": [
-        "Pure Kotlin Multiplatform with zero Java (java.security.*) or C/JNI dependencies (Rule 3)",
-        "AGC normalizes speech level to target RMS (-18 dBFS) within 150ms without noise floor pumping",
-        "DRC applies soft-knee compression (ratio 4:1) and hard-limiting ceiling at -0.5 dBFS preventing clipping",
-        "100% test pass on JVM and compileKotlinIosSimulatorArm64 (Rule 6)"
+        "Exposes reactive StateFlow<RepeaterUiState> with active neighbor table, forwarded packet count, and beacon rate",
+        "Toggles MeshRepeaterService active state, releasing microphone/speaker pipelines during repeater mode",
+        "Supports remote diagnostic ping triggering with round-trip latency reflection",
+        "100% test pass on JVM and platform compilation"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-1602",
+      "id": "ICA-1702",
       "priority": 2,
-      "title": "Autonomous Mesh Repeater & Basecamp Beacon Mode",
-      "description": "Implement specialized low-power stationary mesh repeater service (MeshRepeaterService.kt) and node manager: bypass local mic/speaker pipelines to save CPU/battery, prioritize BLE GATT packet flooding relay with dynamic power-saving duty cycle, advertise stationary basecamp beacon telemetry, and support remote repeater diagnostic ping.",
+      "title": "Compose Multiplatform Basecamp Repeater Screen & OLED Dark Standby",
+      "description": "Implement dedicated Compose Multiplatform BasecampRepeaterScreen.kt in app/sharedUI: high-contrast OLED black theme for low power consumption, live solar/battery telemetry gauges, animated RF relay wave, active neighbor radar list, and full-screen low-brightness night standby lock.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/MeshRepeaterService.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/MeshTransport.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/MeshRepeaterServiceTest.kt"
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/repeater/BasecampRepeaterScreen.kt",
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/navigation/AppNavGraph.kt",
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/di/AppModule.kt"
       ],
       "acceptanceCriteria": [
-        "Zero microphone/speaker buffer allocations when repeater mode is active",
-        "Multi-hop packet forwarding latency < 15ms per hop on stationary node",
-        "Broadcasts periodic low-overhead REPEATER_BEACON with battery percentage and active neighbor count",
-        "Full unit test suite verifying packet forwarding and beacon emission"
+        "Zero-allocation rendering loop in standby with OLED power-saving pure black background (#000000)",
+        "Live telemetry displays: battery percentage, solar status, forwarded packets, and heard rider callsigns",
+        "Registered in Navigation 3 AppNavGraph under polymorphic NavKey routing (Gotcha 1)",
+        "Full build passes without lint or compilation errors"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-1603",
+      "id": "ICA-1703",
       "priority": 3,
-      "title": "Automated Multi-Node Mesh Field Simulation Harness",
-      "description": "Implement automated 8-node virtual mesh convoy simulation harness (ConvoyMeshSimulationHarness.kt): simulate moving convoy line formation with realistic path loss, dynamic RF dropouts (canyon pass scenarios), out-of-order packet arrival, and verify 100% PFS session ratchet recovery and audio jitter playout.",
+      "title": "Native iOS SwiftUI Basecamp Repeater Cockpit & StandBy Display",
+      "description": "Implement 100% native SwiftUI BasecampRepeaterView.swift in app/iosApp (Rule 1): pure native SwiftUI layout, low-power display brightness reduction, Live Activity / StandBy mode banner, and seamless CancellationHandle bridge subscription.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/ConvoyMeshSimulationHarness.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/ConvoyMeshSimulationHarnessTest.kt"
+        "app/iosApp/iosApp/BasecampRepeaterView.swift",
+        "app/iosApp/iosApp/ContentView.swift",
+        "app/iosApp/iosApp/IntercomViewModel.swift"
       ],
       "acceptanceCriteria": [
-        "Simulates 8 distinct virtual peers communicating over virtual RF propagation matrix",
-        "Validates multi-hop TTL decrement and loop suppression across 3 hops in real time",
-        "Tests 25% packet drop and verify MeshKeyRatchet skipped-key recovery handles out-of-order frames",
-        "Full automated test suite executing under 5 seconds with zero flaky timings"
+        "100% native SwiftUI with zero Compose Multiplatform imports (Rule 1)",
+        "Subscribes cleanly to IntercomBridge.kt repeater state with CancellationHandle lifecycle",
+        "Supports iOS 17+ StandBy landscape cockpit display for stationary phone placement in basecamp/tent",
+        "Compiles cleanly without Swift or KMP linking errors"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-1604",
+      "id": "ICA-1704",
       "priority": 4,
-      "title": "Seamless Mesh OTA Group Re-Keying & Dynamic Epoch Migration",
-      "description": "Implement decentralized Over-The-Air (OTA) group re-keying and epoch migration manager (GroupEpochManager.kt): dual-epoch overlapping transition window allowing old and new cryptographic keys to coexist for 30 seconds, consensus epoch beaconing, and zero drop of active voice streams during key rotation.",
+      "title": "Remote Repeater Telemetry & Diagnostic Ping Cockpit HUD Integration",
+      "description": "Integrate remote basecamp repeater health status into the main cockpit HUD (HomeScreen.kt and ContentView.swift): top avionics bar repeater beacon badge (showing nearest basecamp distance, battery %, and link quality), and 1-tap diagnostic ping triggering.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/group/GroupEpochManager.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/group/GroupManager.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/group/GroupEpochManagerTest.kt"
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/home/HomeScreen.kt",
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/home/HomeViewModel.kt",
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/home/HomeUiState.kt",
+        "app/iosApp/iosApp/ContentView.swift",
+        "app/sharedUI/src/commonTest/kotlin/org/nowni/intercom_alpha/ui/home/HomeViewModelTest.kt"
       ],
       "acceptanceCriteria": [
-        "Supports dual-epoch concurrent decryption during transition window",
-        "Leader initiates EPOCH_ROLLOVER frame; peers verify leader signature and derive new master secret",
-        "Zero packet drops or audio interruption during active speech when epoch rolls over",
-        "Full unit test suite verifying multi-peer epoch migration"
+        "Cockpit HUD displays basecamp beacon status badge when a repeater is heard within 3 hops",
+        "Diagnostic ping trigger measures round-trip latency and displays reflection time on HUD",
+        "Maintains zero-scroll tactical cockpit layout constraint on mobile handlebars",
+        "Full automated multiplatform verification gates pass cleanly"
       ],
-      "passes": true
+      "passes": false
     }
   ]
 }
