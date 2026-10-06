@@ -138,6 +138,9 @@ struct ContentView: View {
         .sheet(isPresented: $showPeersSheet) {
             PeersSheetView(peers: vm.peers, isKeepAliveActive: vm.isKeepAliveActive)
         }
+        .sheet(isPresented: $vm.showRepeaterSheet) {
+            BasecampRepeaterView(vm: vm)
+        }
         .alert("Intercom Alert", isPresented: Binding(
             get: { vm.errorMessage != nil },
             set: { if !$0 { vm.errorMessage = nil } }
@@ -371,6 +374,29 @@ struct TacticalAvionicsBar: View {
                             .background(Color.red)
                             .clipShape(Circle())
                             .offset(x: 3, y: -3)
+                    }
+                }
+            }
+
+            // Basecamp Repeater Cockpit Button (Phase 15 / ICA-1703)
+            Button(action: {
+                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                vm.showRepeaterSheet = true
+            }) {
+                ZStack(alignment: .topTrailing) {
+                    Image(systemName: "antenna.radiowaves.left.and.right")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(vm.isRepeaterModeActive ? .green : .white)
+                        .padding(8)
+                        .background(vm.isRepeaterModeActive ? Color.green.opacity(0.2) : Color.white.opacity(0.12))
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(vm.isRepeaterModeActive ? Color.green.opacity(0.6) : Color.clear, lineWidth: 1.5))
+
+                    if vm.isRepeaterModeActive {
+                        Circle()
+                            .fill(Color.green)
+                            .frame(width: 6, height: 6)
+                            .offset(x: 2, y: -2)
                     }
                 }
             }
