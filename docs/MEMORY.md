@@ -459,6 +459,14 @@
   - Wired into `IntercomViewModel.swift` with reactive `CancellationHandle` observers tied to `@MainActor` lifecycle.
   - Added Basecamp Repeater button to `TacticalAvionicsBar` and sheet presentation in `ContentView.swift`.
 
+### 2.49 Remote Repeater Telemetry & Diagnostic Ping Cockpit HUD Integration (Sprint 17 - ICA-1704)
+- **Challenge**: Mobile riders riding along trails need to know whether stationary basecamp repeaters are within RF relay reach without navigating away from the tactical zero-scroll cockpit HUD.
+- **Solution**:
+  - `HomeUiState.kt` / `HomeViewModel.kt`: Exposed `latestRepeaterBeacon`, `repeaterPingLatencyMs`, and `isPingingRepeater`.
+  - Ingested `hardwareBridge.incomingRepeaterBeacons` and `incomingRepeaterPongs`. Emits `MeshRepeaterService.createDiagnosticPing` upon `HomeUiAction.TriggerRepeaterPing`.
+  - `HomeScreen.kt`: Embedded compact Basecamp Beacon telemetry strip in the Top Avionics Bar displaying repeater name, battery %, solar status, round-trip latency, and 1-tap `PING` button. Zero layout shift and adheres to zero-scroll contract.
+  - `ContentView.swift`: Integrated Basecamp Beacon badge with RTT latency reflection and 1-tap ping into `TacticalAvionicsBar`.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

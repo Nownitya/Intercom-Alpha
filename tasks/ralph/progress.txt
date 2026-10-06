@@ -943,7 +943,32 @@
   - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (100% passing).
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
   - Graphify knowledge sync (`graphify update .`): Rebuilt AST graph (2,542 nodes, 5,182 edges, 181 communities).
+### [2026-10-06] - ICA-1704: Remote Repeater Telemetry & Diagnostic Ping Cockpit HUD Integration
+- **Branch**: `feature/ICA-1704-hud-repeater-integration`
+- **Objective**: Integrate remote basecamp repeater health status into the main cockpit HUD (`HomeScreen.kt` and `ContentView.swift`): top avionics bar repeater beacon badge (showing nearest basecamp distance, battery %, and link quality), and 1-tap diagnostic ping triggering.
+- **Implementation**:
+  - `HomeUiState.kt`: Added `latestRepeaterBeacon`, `repeaterPingLatencyMs`, and `isPingingRepeater`. Added `HomeUiAction.TriggerRepeaterPing`.
+  - `HomeViewModel.kt`: Added collectors for `hardwareBridge.incomingRepeaterBeacons` and `incomingRepeaterPongs`. Added `TriggerRepeaterPing` handler emitting `MeshRepeaterService.createDiagnosticPing` through `hardwareBridge.sendRepeaterPacket`.
+  - `HomeScreen.kt`: Integrated Basecamp Stationary Repeater Beacon Strip into top avionics telemetry header:
+    - Displays heard repeater name, battery %, solar charging indicator, and round-trip ping latency.
+    - 1-tap `PING` actuator button measuring reflection latency directly from the mobile HUD.
+    - Strictly preserves single-viewport zero-scroll contract on motorcycle handlebars.
+  - `ContentView.swift`: Added 1-tap Basecamp Beacon badge with RTT latency reflection to `TacticalAvionicsBar`.
+  - `HomeViewModelTest.kt`: Added `testRepeaterBeaconIngestionAndDiagnosticPingFlow` verifying beacon updates, ping dispatch, and pong latency calculation.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (100% passing).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+  - Graphify knowledge sync (`graphify update .`): Rebuilt AST graph (2,546 nodes, 5,200 edges, 204 communities).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
+
+## 🏆 Sprint 17 Completion Summary: Phase 15 Basecamp Stationary Repeater UI & Dedicated Low-Power Cockpit Mode
+- **All 4 Sprint 17 stories PASSED**:
+  - `ICA-1701: Basecamp Repeater State Management & Platform Bridge Wiring` [PASSED]
+  - `ICA-1702: Compose Multiplatform Basecamp Repeater Screen & OLED Dark Standby` [PASSED]
+  - `ICA-1703: Native iOS SwiftUI Basecamp Repeater Cockpit & StandBy Display` [PASSED]
+  - `ICA-1704: Remote Repeater Telemetry & Diagnostic Ping Cockpit HUD Integration` [PASSED]
+- **Milestone Outcome**: 100% Definition of Done (DoD) achieved for Phase 15. Stationary repeater nodes operate with pure black OLED power conservation, zero audio buffer allocations, automated duty cycles, StandBy landscape layouts, and real-time remote cockpit telemetry with 1-tap diagnostic pings across both Android (Compose) and iOS (100% Native SwiftUI).
 ---
 
 
