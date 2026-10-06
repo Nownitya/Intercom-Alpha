@@ -970,6 +970,27 @@
   - `ICA-1704: Remote Repeater Telemetry & Diagnostic Ping Cockpit HUD Integration` [PASSED]
 - **Milestone Outcome**: 100% Definition of Done (DoD) achieved for Phase 15. Stationary repeater nodes operate with pure black OLED power conservation, zero audio buffer allocations, automated duty cycles, StandBy landscape layouts, and real-time remote cockpit telemetry with 1-tap diagnostic pings across both Android (Compose) and iOS (100% Native SwiftUI).
 ---
+### [2026-10-07] - ICA-1801: Pure KMP Offline Vector Trail & Terrain Geometry Engine
+- **Branch**: `feature/ICA-1801-kmp-vector-map-engine`
+- **Objective**: Implement pure KMP domain models (`VectorMapModels.kt`), local projection math, trail/waypoint parsers (`TrailMapEngine.kt`), and reactive state coordinator (`TrailMapManager.kt`) in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/map/`.
+- **Implementation**:
+  - `VectorMapModels.kt`: Defined `GeoPoint`, `TrailWaypoint`, `WaypointType`, `TrailPolyline`, `TrailDifficulty`, `ContourLine`, `ProjectedRadarPoint`, `ProjectedWaypoint`, `ProjectedTrailSegment`, `ProjectedContour`, `RadarRangeZoom` (500m, 1.5km, 5km), and `TrailMapSnapshot`.
+  - `TrailMapEngine.kt`:
+    - Haversine Great-Circle distance and forward azimuth calculation in pure Kotlin.
+    - Relative vehicle bearing normalization to $[-180.0^\circ, +180.0^\circ]$.
+    - Radar projection mapping $(x, y)$ polar vectors into normalized $[-1.0, 1.0]$ circular radar coordinates relative to user vehicle heading.
+    - Pure KMP GeoJSON `FeatureCollection` parser for offline `LineString` tracks and `Point` waypoints.
+    - Out-of-the-box alpine trail generator (`createSampleAlpineTrail`) with contour loops and tactical waypoints.
+  - `TrailMapManager.kt`:
+    - Thread-safe state coordinator with `Mutex` emitting `StateFlow<TrailMapSnapshot>`.
+    - Sliding-window breadcrumb recorder for local rider and mesh convoy peers bounded to 100 entries with minimum movement thresholds.
+    - Dynamic projection recalculation upon observer movement, vehicle heading change, or radar range zoom cycling.
+  - `TrailMapManagerTest.kt`: 6 unit tests covering Haversine distance, azimuth, radar projection orientation, trail metrics, GeoJSON parsing, and lifecycle state flows.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
 
 
 

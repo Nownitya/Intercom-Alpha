@@ -23,7 +23,7 @@
         "Maintains rolling breadcrumb trails for local rider and mesh convoy peers",
         "100% unit test pass on JVM and iOS Simulator targets"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-1802",

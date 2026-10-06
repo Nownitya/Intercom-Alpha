@@ -467,6 +467,21 @@
   - `HomeScreen.kt`: Embedded compact Basecamp Beacon telemetry strip in the Top Avionics Bar displaying repeater name, battery %, solar status, round-trip latency, and 1-tap `PING` button. Zero layout shift and adheres to zero-scroll contract.
   - `ContentView.swift`: Integrated Basecamp Beacon badge with RTT latency reflection and 1-tap ping into `TacticalAvionicsBar`.
 
+### 2.50 Pure KMP Offline Vector Trail & Terrain Geometry Engine (Sprint 18 - ICA-1801)
+- **Challenge**: Off-grid adventure convoys in deep backcountry operate with zero internet or cellular data. Rendering topographic elevation contours, trail tracks, and GPS breadcrumbs on the handlebar tactical radar requires pure KMP math with zero heavy SDKs (e.g. Mapbox / Google Play Services) to preserve multiplatform compatibility (Android, iOS Native, JVM, Wasm).
+- **Solution**:
+  - Implemented `VectorMapModels.kt`:
+    - Immutable data models: `GeoPoint`, `TrailWaypoint`, `TrailPolyline`, `ContourLine`, `ProjectedRadarPoint`, `RadarRangeZoom` (500m, 1.5km, 5km), and `TrailMapSnapshot`.
+  - Implemented `TrailMapEngine.kt`:
+    - Haversine distance and forward azimuth calculation in pure Kotlin.
+    - Normalized polar-to-Cartesian radar projection relative to observer heading: Ahead ($0^\circ$) mapped to $-Y$, Starboard ($+90^\circ$) mapped to $+X$, Port ($-90^\circ$) mapped to $-X$, Aft ($180^\circ$) mapped to $+Y$.
+    - Pure KMP GeoJSON FeatureCollection parser mapping `LineString` to `TrailPolyline` and `Point` to `TrailWaypoint`.
+    - Procedural alpine mountain pass generator (`createSampleAlpineTrail`) with contour loops and tactical waypoints.
+  - Implemented `TrailMapManager.kt`:
+    - Thread-safe `Mutex` coordinator exposing reactive `StateFlow<TrailMapSnapshot>`.
+    - Sliding-window breadcrumbs per rider (up to 100 points, filtered by $\ge 10$m delta to conserve memory).
+    - Dynamic projection recalculation upon observer movement, vehicle heading change, or radar range zoom cycling.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index
