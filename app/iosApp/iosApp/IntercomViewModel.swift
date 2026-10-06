@@ -51,6 +51,14 @@ final class IntercomViewModel: ObservableObject {
     @Published var isVoxLocked: Bool = false
     @Published var speakerVolume: Float = 0.8
 
+    // --- Basecamp Stationary Repeater Subsystem (Phase 15 / ICA-1703) ---
+    @Published var isRepeaterModeActive: Bool = false
+    @Published var repeaterTelemetry: RepeaterTelemetry? = nil
+    @Published var lastPingLatencyMs: Int64? = nil
+    @Published var latestBeacon: RepeaterBeaconPayload? = nil
+    @Published var repeaterDutyCycle: RepeaterDutyCycleMode = .continuous
+    @Published var showRepeaterSheet: Bool = false
+
     private let bridge = IntercomBridge(localPeerId: "ios-lead", localPeerName: "iOS Lead")
     private var cancellables: [CancellationHandle] = []
     private var activeActivity: Activity<IntercomActivityAttributes>? = nil
@@ -223,6 +231,30 @@ final class IntercomViewModel: ObservableObject {
         }
     }
 
+    // --- Basecamp Repeater Controls (Phase 15 / ICA-1703) ---
+
+    func setRepeaterActive(_ active: Bool) {
+        isRepeaterModeActive = active
+        bridge.setRepeaterModeActive(active: active)
+    }
+
+    func toggleRepeaterMode() {
+        setRepeaterActive(!isRepeaterModeActive)
+    }
+
+    func setRepeaterDutyCycle(_ mode: RepeaterDutyCycleMode) {
+        repeaterDutyCycle = mode
+        bridge.setRepeaterDutyCycle(mode: mode)
+    }
+
+    func triggerDiagnosticPing() {
+        bridge.triggerDiagnosticPing()
+    }
+
+    func emitRepeaterBeacon() {
+        bridge.emitRepeaterBeacon()
+    }
+
     // --- Reactive Observers Setup ---
 
     private func setupObservers() {
@@ -369,6 +401,39 @@ final class IntercomViewModel: ObservableObject {
             }
         }
         cancellables.append(accessorySub)
+
+        // --- Basecamp Repeater Observers (Phase 15 / ICA-1703) ---
+        let repeaterActiveSub = bridge.observeRepeaterModeActive { [weak self] active in
+            Task { @MainActor in
+                self?.isRepeaterModeActive = active.boolValue
+            }
+        }
+        cancellables.append(repeaterActiveSub)
+
+        let repeaterTelemetrySub = bridge.observeRepeaterTelemetry { [weak self] tele in
+            Task { @MainActor in
+                self?.repeaterTelemetry = tele
+            }
+        }
+        cancellables.append(repeaterTelemetrySub)
+
+        let pingLatencySub = bridge.observeLastPingLatency { [weak self] latency in
+            Task { @MainActor in
+                if let latency = latency {
+                    self?.lastPingLatencyMs = latency.int64Value
+                } else {
+                    self?.lastPingLatencyMs = nil
+                }
+            }
+        }
+        cancellables.append(pingLatencySub)
+
+        let beaconSub = bridge.observeLatestBeacon { [weak self] beacon in
+            Task { @MainActor in
+                self?.latestBeacon = beacon
+            }
+        }
+        cancellables.append(beaconSub)
 
         isPfsRatchetActive = bridge.isPfsRatchetActive()
     }
