@@ -215,5 +215,20 @@
 | **ICA-1703** | Native iOS SwiftUI Basecamp Repeater Cockpit & StandBy Display | `BasecampRepeaterView.swift`, `ContentView.swift`, `IntercomViewModel.swift` | ✅ Completed |
 | **ICA-1704** | Remote Repeater Telemetry & Diagnostic Ping Cockpit HUD Integration | `HomeScreen.kt`, `HomeViewModel.kt`, `HomeUiState.kt`, `ContentView.swift`, `HomeViewModelTest.kt` | ✅ Completed |
 
+---
+
+### 🚀 Sprint 18: Offline Vector Terrain & Trail Map Overlay (Phase 16 - v2.5 Roadmap)
+- **Sprint Goal**: Implement pure KMP offline vector geometry projection, trail tracks, elevation contours, waypoint breadcrumbs, and seamless radar integration across Compose Multiplatform (`sharedUI`) and 100% Native iOS SwiftUI (`iosApp`).
+- **Sprint Branch**: `sprint/sprint-18-offline-vector-terrain-map`
+- **Status**: 🟡 In Progress (Story 1 Queued)
+
+| Task ID | Item | Target Files | Status |
+| :--- | :--- | :--- | :--- |
+| **ICA-1801** | Pure KMP Offline Vector Trail & Terrain Geometry Engine | `VectorMapModels.kt`, `TrailMapEngine.kt`, `TrailMapManager.kt`, `TrailMapManagerTest.kt` | 🟡 Ready for Dev |
+| **ICA-1802** | Subsystem Bridge Wiring & Reactive Presentation Integration | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `HomeViewModel.kt`, `HomeViewModelTest.kt` | ⚪ Queued |
+| **ICA-1803** | Compose Multiplatform Radar Topo Contour & Vector Trail Overlay | `ProximityRadarView.kt`, `OfflineTrailCockpitSheet.kt`, `HomeScreen.kt` | ⚪ Queued |
+| **ICA-1804** | Native iOS SwiftUI Radar Topographic Overlay & Offline Trail Cockpit Sheet | `ContentView.swift`, `OfflineTrailCockpitSheet.swift`, `IntercomViewModel.swift` | ⚪ Queued |
+
+
 
 
