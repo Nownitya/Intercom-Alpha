@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.0] - 2026-10-06 — Sprint 15: Zero-Scroll Tactical Cockpit HUD & Telemetry Integration
+
+### Added
+- **Zero-Scroll Tactical Cockpit HUD (`HomeScreen.kt` & `ContentView.swift`)**: Enforced a zero-vertical-scroll layout contract on mobile handlebar RAM mounts across both Compose Multiplatform (`sharedUI`) and 100% Native iOS SwiftUI (`iosApp`). Top avionics bar, channel dial, vector radar, 140dp PTT, hazard macros, and emergency SOS bar remain permanently visible on mobile screens ($H \le 844$dp).
+- **140dp Circular Tactile PTT Actuator (`PttButton.kt` & `TacticalPttButton`)**: High-contrast circular tactile actuator with hot-mic pulsing crimson wave, haptic feedback on touch-down and touch-up, and flanking 58dp touch targets for speaker volume cycling (30% $\to$ 60% $\to$ 100%) and safety VOX locking.
+- **Circular Tactical Vector Radar (`ProximityRadarView.kt` & `TacticalVectorRadarView`)**: Circular radar with concentric range rings (100m, 500m, 1.5km), crosshairs, north heading chevron, and dynamically plotted color-coded rider dots (Green < 100m, Cyan < 500m, Amber $\ge$ 500m) with live telemetry callout.
+- **Single-Row 4-Column Hazard Macro Strip (`QuickHazardBar.kt` & `TacticalQuickHazardBar`)**: Glove-optimized macro buttons (`⚠️ HAZARD`, `⛽ FUEL`, `🛑 STOP`, `🔧 BIKE`) with $\ge 52$dp touch targets and immediate mesh text transmission.
+- **Sprint 14 Hardware Telemetry End-to-End Integration**: Wired `HelmetAccessoryManager` (Cardo/Sena Bluetooth GATT battery level and remote PTT click/press events), `MeshKeyRatchet` (Perfect Forward Secrecy session indicator), and `CloudRelayBridge` (multi-cluster cross-mesh SFU indicator) into `HomeViewModel`, `AndroidPlatformBridge`, and native iOS `IntercomBridge` / `IntercomViewModel`.
+
+---
+
 ## [2.1.0] - 2026-10-04 — Sprint 14: Advanced Convoy Mesh, Forward-Secret Key Ratchet & Live Activity
 
 ### Added
