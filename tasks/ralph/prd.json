@@ -1,81 +1,79 @@
 {
   "project": "Intercom-Alpha",
-  "branchName": "sprint/sprint-14-advanced-convoy-mesh",
-  "phase": "Phase 12: Advanced Convoy Mesh, Forward-Secret Key Ratchet & Live Activity",
-  "sprint": "Sprint 14",
-  "updatedAt": "2026-10-04T15:55:00Z",
+  "branchName": "sprint/sprint-16-repeater-dsp-simulation",
+  "phase": "Phase 14: Mesh Repeater, Audio DSP & Convoy Simulation",
+  "sprint": "Sprint 16",
+  "updatedAt": "2026-10-06T20:30:00Z",
   "stories": [
     {
-      "id": "ICA-1401",
+      "id": "ICA-1601",
       "priority": 1,
-      "title": "Pure KMP Perfect Forward Secrecy (PFS) & Ephemeral Key Ratchet Engine",
-      "description": "Implement pure Kotlin multiplatform Double-Ratchet / Ephemeral Key Rotation engine (MeshKeyRatchet.kt) for mesh channels: derive rolling ephemeral session keys from master group secret using pure Kotlin HKDF-SHA256, maintain out-of-order packet decryption key cache with replay protection, and support out-of-band RATCHET_ADVANCE control frames.",
+      "title": "Audio DSP Hardening: Pure KMP Automatic Gain Control (AGC) & Dynamic Range Compression (DRC)",
+      "description": "Implement pure Kotlin multiplatform Automatic Gain Control (AutomaticGainControl.kt) and Dynamic Range Compression (DynamicRangeCompressor.kt) for helmet intercom audio: dynamic RMS speech normalization across whispering and screaming, soft-knee compression curve, anti-pumping envelope follower, and lookahead peak limiter with zero Java/C dependencies.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/crypto/MeshKeyRatchet.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/PacketCipher.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/crypto/MeshKeyRatchetTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/AutomaticGainControl.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/DynamicRangeCompressor.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/AudioEngine.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/AutomaticGainControlTest.kt"
       ],
       "acceptanceCriteria": [
         "Pure Kotlin Multiplatform with zero Java (java.security.*) or C/JNI dependencies (Rule 3)",
-        "Key ratchet advances automatically every N packets or time window while supporting out-of-order packet arrival",
-        "Previous session keys are securely cleared from memory guaranteeing forward secrecy",
+        "AGC normalizes speech level to target RMS (-18 dBFS) within 150ms without noise floor pumping",
+        "DRC applies soft-knee compression (ratio 4:1) and hard-limiting ceiling at -0.5 dBFS preventing clipping",
         "100% test pass on JVM and compileKotlinIosSimulatorArm64 (Rule 6)"
       ],
       "passes": true
     },
     {
-      "id": "ICA-1402",
+      "id": "ICA-1602",
       "priority": 2,
-      "title": "Direct Helmet Intercom Bluetooth GATT Accessory Profile (Cardo / Sena / EJEAS)",
-      "description": "Implement specialized Bluetooth Low Energy GATT client profile (HelmetAccessoryManager.kt) for direct motorcycle helmet intercom communication: Cardo, Sena, and EJEAS handlebar remote PTT button listening, battery level telemetry reporting, and SCO/A2DP audio link fallback management.",
+      "title": "Autonomous Mesh Repeater & Basecamp Beacon Mode",
+      "description": "Implement specialized low-power stationary mesh repeater service (MeshRepeaterService.kt) and node manager: bypass local mic/speaker pipelines to save CPU/battery, prioritize BLE GATT packet flooding relay with dynamic power-saving duty cycle, advertise stationary basecamp beacon telemetry, and support remote repeater diagnostic ping.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/headset/HelmetAccessoryManager.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/headset/HeadsetManager.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/headset/HelmetAccessoryManagerTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/MeshRepeaterService.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/MeshTransport.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/MeshRepeaterServiceTest.kt"
       ],
       "acceptanceCriteria": [
-        "Pure KMP contract with platform-agnostic GATT characteristic UUID definitions",
-        "Detects and parses remote PTT click/press/release events from handlebar remotes and helmet dials",
-        "Streams accessory battery percentage and connection status to HomeUiState and IntercomViewModel",
-        "Full unit test suite verifying accessory discovery, event dispatch, and disconnect handling"
+        "Zero microphone/speaker buffer allocations when repeater mode is active",
+        "Multi-hop packet forwarding latency < 15ms per hop on stationary node",
+        "Broadcasts periodic low-overhead REPEATER_BEACON with battery percentage and active neighbor count",
+        "Full unit test suite verifying packet forwarding and beacon emission"
       ],
       "passes": true
     },
     {
-      "id": "ICA-1403",
+      "id": "ICA-1603",
       "priority": 3,
-      "title": "iOS 18+ Live Activity & Dynamic Island Hands-Free PTT Widget",
-      "description": "Implement 100% native iOS Live Activity and Dynamic Island interactive cockpit widget (IntercomActivityWidget.swift) using ActivityKit and WidgetKit: compact leading/trailing indicators, expanded view with large hands-on PTT touch trigger, active rider radar bearing, and emergency alert card.",
+      "title": "Automated Multi-Node Mesh Field Simulation Harness",
+      "description": "Implement automated 8-node virtual mesh convoy simulation harness (ConvoyMeshSimulationHarness.kt): simulate moving convoy line formation with realistic path loss, dynamic RF dropouts (canyon pass scenarios), out-of-order packet arrival, and verify 100% PFS session ratchet recovery and audio jitter playout.",
       "targetFiles": [
-        "app/iosApp/iosApp/IntercomActivityAttributes.swift",
-        "app/iosApp/iosApp/IntercomActivityWidget.swift",
-        "app/iosApp/iosApp/IntercomViewModel.swift",
-        "app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomBridge.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/ConvoyMeshSimulationHarness.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/ConvoyMeshSimulationHarnessTest.kt"
       ],
       "acceptanceCriteria": [
-        "100% Native SwiftUI / WidgetKit implementation adhering to Rule 1 (zero shared Compose on iOS)",
-        "Dynamic Island displays real-time active channel, transmitting rider, and RF link margin",
-        "Lock Screen Live Activity provides instant 1-tap channel switch and SOS trigger",
-        "ActivityKit lifecycle tied cleanly to active intercom session via IntercomBridge"
+        "Simulates 8 distinct virtual peers communicating over virtual RF propagation matrix",
+        "Validates multi-hop TTL decrement and loop suppression across 3 hops in real time",
+        "Tests 25% packet drop and verify MeshKeyRatchet skipped-key recovery handles out-of-order frames",
+        "Full automated test suite executing under 5 seconds with zero flaky timings"
       ],
       "passes": true
     },
     {
-      "id": "ICA-1404",
+      "id": "ICA-1604",
       "priority": 4,
-      "title": "Multi-Cluster Cloud Cross-Mesh SFU Signaling & Audio Bridging",
-      "description": "Extend :core signaling protocol and :server Ktor SFU audio bridge to interconnect multiple independent BLE mesh clusters: SignalingMessage.ClusterBridge, transcode-free routing of 4-bit ADPCM packets with jitter smoothing, and multi-cluster peer presence aggregation.",
+      "title": "Seamless Mesh OTA Group Re-Keying & Dynamic Epoch Migration",
+      "description": "Implement decentralized Over-The-Air (OTA) group re-keying and epoch migration manager (GroupEpochManager.kt): dual-epoch overlapping transition window allowing old and new cryptographic keys to coexist for 30 seconds, consensus epoch beaconing, and zero drop of active voice streams during key rotation.",
       "targetFiles": [
-        "core/src/commonMain/kotlin/org/nowni/intercom_alpha/protocol/SignalingProtocol.kt",
-        "server/src/main/kotlin/org/nowni/intercom_alpha/server/signaling/SignalingServerManager.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/CloudRelayBridge.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/MultiClusterBridgeTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/group/GroupEpochManager.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/group/GroupManager.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/group/GroupEpochManagerTest.kt"
       ],
       "acceptanceCriteria": [
-        "SignalingProtocol registers ClusterBridge polymorphic message type with #type discriminator",
-        "SignalingServerManager routes audio frames across rooms without audio transcoding or latency penalty",
-        "CloudRelayBridge aggregates cross-cluster peer presence and prevents routing loops",
-        "100% test pass across :core, :server, and :app:sharedLogic"
+        "Supports dual-epoch concurrent decryption during transition window",
+        "Leader initiates EPOCH_ROLLOVER frame; peers verify leader signature and derive new master secret",
+        "Zero packet drops or audio interruption during active speech when epoch rolls over",
+        "Full unit test suite verifying multi-peer epoch migration"
       ],
       "passes": true
     }

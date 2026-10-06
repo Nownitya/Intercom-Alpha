@@ -806,5 +806,76 @@
   - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 25s (Rule 6).
   - `./gradlew :app:androidApp:assembleDebug`: BUILD SUCCESSFUL in 8s (Rule 6).
   - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+### [2026-10-06] - ICA-1601: Audio DSP Hardening: Pure KMP Automatic Gain Control & Dynamic Range Compression
+- **Branch**: `feature/ICA-1601-audio-dsp-agc-drc`
+- **Objective**: Implement pure Kotlin Multiplatform Automatic Gain Control (`AutomaticGainControl.kt`) and Dynamic Range Compression (`DynamicRangeCompressor.kt`) for helmet intercom audio: dynamic RMS speech normalization across whispering and screaming, soft-knee compression curve, anti-pumping envelope follower, and lookahead peak limiter with zero Java/C dependencies.
+- **Implementation**:
+  - `AutomaticGainControl.kt`: Pure KMP DSP normalizing speech to target level (-18.0 dBFS) across dynamic range. Features anti-pumping envelope follower below -50.0 dBFS (suspending gain boosts during silence/noise), asymmetric attack (80ms) and release (300ms) slew-rate filtering, and sample-by-sample linear gain interpolation to prevent clicks/zipper noise.
+  - `DynamicRangeCompressor.kt`: Pure KMP soft-knee dynamic range compressor (threshold: -12.0 dBFS, ratio: 4:1, knee width: 6.0 dB, attack: 5ms, release: 60ms) and lookahead brickwall peak limiter (lookahead: 1.5ms, ceiling: -0.5 dBFS). Smoothly compresses loud syllables and guarantees zero clipping at 32767 with peak output strictly <= -0.5 dBFS.
+  - `AudioEngine.kt`: Added `enableAgc: Boolean = true`, `agcTargetDb: Float = -18f`, `enableDrc: Boolean = true` to `AudioEngineConfig`. Wired `AutomaticGainControl`, `DynamicRangeCompressor`, and playout limiter into full duplex `AudioPipelineSession` (`processOutgoingMicrophone` and `pullPlayoutFrame`).
+  - `AutomaticGainControlTest.kt`: Created unit tests in `commonTest` testing whisper normalization to -18 dBFS target within 150ms, anti-pumping silence suppression, shout attenuation, soft-knee 4:1 curve calculation, lookahead limiter zero-clipping guarantee (peak <= -0.5 dBFS), and full duplex pipeline integration.
+- **Verification**:
+  - `./gradlew test`: 100% test suite pass across all modules (Rule 6).
+  - `./gradlew :app:sharedLogic:jvmTest :app:sharedUI:jvmTest`: Passed cleanly.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 24s (Rule 6).
+  - `./gradlew :app:androidApp:assembleDebug`: BUILD SUCCESSFUL in 24s (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+  - `graphify update .`: AST updated with 2337 nodes, 4648 edges.
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
 ---
+### [2026-10-06] - ICA-1602: Autonomous Mesh Repeater & Basecamp Beacon Mode
+- **Branch**: `feature/ICA-1602-mesh-repeater-beacon`
+- **Objective**: Implement specialized low-power stationary mesh repeater service (`MeshRepeaterService.kt`) and node manager: bypass local mic/speaker pipelines to save CPU/battery, prioritize BLE GATT packet flooding relay with dynamic power-saving duty cycle, advertise stationary basecamp beacon telemetry, and support remote repeater diagnostic ping.
+- **Implementation**:
+  - `MeshTransport.kt`: Added `REPEATER_BEACON`, `REPEATER_PING`, `REPEATER_PONG` to `ControlType` enum.
+  - `MeshRepeaterService.kt`: Created autonomous relay service with zero audio buffer allocations, sub-15ms multi-hop relay forwarding, loop suppression via `PacketDeduplicator`, TTL decrement, self-origin rejection, 60s active neighbor tracking table with automatic stale pruning, periodic `RepeaterBeaconPayload` broadcasts, and diagnostic ping/pong telemetry responses.
+  - `MeshRepeaterServiceTest.kt`: Created unit tests in `commonTest` testing multi-hop relay encapsulation, TTL decrement/drop, loop suppression duplicate dropping, self-origin rejection, forwarding latency (< 15ms), periodic beacon emission and decoding, diagnostic ping/pong, and active neighbor tracking/pruning.
+- **Verification**:
+  - `./gradlew test`: 100% test pass across all modules (Rule 6).
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 19s (Rule 6).
+  - `./gradlew :app:androidApp:assembleDebug`: BUILD SUCCESSFUL in 19s (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+  - `graphify update .`: AST updated with 2373 nodes, 4731 edges.
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+### [2026-10-06] - ICA-1603: Automated Multi-Node Mesh Field Simulation Harness
+- **Branch**: `feature/ICA-1603-convoy-mesh-simulation`
+- **Objective**: Implement automated 8-node virtual mesh convoy simulation harness (`ConvoyMeshSimulationHarness.kt`): simulate moving convoy line formation with realistic path loss, dynamic RF dropouts (canyon pass scenarios), out-of-order packet arrival, and verify 100% PFS session ratchet recovery and audio jitter playout.
+- **Implementation**:
+  - `ConvoyMeshSimulationHarness.kt`: Implemented `ConvoySimulationConfig`, `ConvoyBenchmarkMetrics`, `VirtualConvoyNode`, and `ConvoyMeshSimulationHarness`. Simulates 8 distinct virtual peers in linear convoy formation with distance-bounded RF propagation, dynamic multi-hop forwarding (`MeshPacket.Relay`), bounded TTL decrements (dropping expired packets at TTL <= 1), loop suppression via `PacketDeduplicator`, stochastic packet loss (25%), in-flight queue shuffling (out-of-order arrival), and end-to-end `MeshKeyRatchet` decryption & `AdaptiveJitterBuffer` playout.
+  - `ConvoyMeshSimulationHarnessTest.kt`: Created comprehensive test suite in `commonTest`:
+    - `testEightNodeConvoyBenchmarkMultiHopAndLoopSuppression`: Validates 8-node convoy line, multi-hop propagation to tail node (index 7), loop suppression drops, TTL expiration drops, and benchmark completion in under 5 seconds.
+    - `testTwentyFivePercentDropAndOutOfOrderRatchetRecovery`: Validates skipped-key ratchet recovery across 25% stochastic loss and out-of-order arrival, ensuring 100% of received out-of-order packets are decrypted without corruption.
+    - `testJitterBufferPlayoutOnVirtualNodes`: Validates intermediate node jitter buffer playout with non-zero audible frame extraction.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: 100% test pass across all unit tests in 51s (Rule 6).
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly in 34s (Rule 6).
+  - `./gradlew :app:androidApp:assembleDebug`: BUILD SUCCESSFUL in 11s (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+---
+### [2026-10-06] - ICA-1604: Seamless Mesh OTA Group Re-Keying & Dynamic Epoch Migration
+- **Branch**: `feature/ICA-1604-group-epoch-migration`
+- **Objective**: Implement decentralized Over-The-Air (OTA) group re-keying and epoch migration manager (`GroupEpochManager.kt`): dual-epoch overlapping transition window allowing old and new cryptographic keys to coexist for 30 seconds, consensus epoch beaconing, and zero drop of active voice streams during key rotation.
+- **Implementation**:
+  - `MeshTransport.kt`: Added `EPOCH_ROLLOVER` and `EPOCH_BEACON` to `ControlType` enum.
+  - `GroupEpochManager.kt`: Implemented complete decentralized epoch lifecycle manager:
+    - Pure Kotlin RFC 5869 HKDF-SHA256 master key derivation with salt and group domain separation.
+    - Leader-authenticated `EPOCH_ROLLOVER` control frame signed using RFC 2104 HMAC-SHA256.
+    - Dual-epoch concurrent decryption (`GroupEpochManager.decrypt(...)`) supporting tagged (8-byte big-endian epoch prefix) and raw fallback frames during configurable 30,000ms transition window.
+    - Consensus `EPOCH_BEACON` telemetry broadcasting for peer synchronization.
+    - Memory zeroization (`masterSecret.fill(0)`) and clearing of expired epoch keys after deadline.
+  - `GroupManager.kt` & `GroupManagerImpl.kt`: Wired `epochManager` lifecycle into group creation, join, and leave flows.
+  - `GroupEpochManagerTest.kt`: Created 6 comprehensive tests in `commonTest` verifying:
+    - Leader rollover initiation and peer signature verification/HKDF derivation.
+    - Dual-epoch concurrent decryption during 30s transition window.
+    - Zero packet drops during continuous active voice stream migration (40/40 frames delivered seamlessly + concurrent lagging peer frames).
+    - Timed pruning and memory zeroization of expired epoch keys.
+    - Rejection of non-leader rollovers, forged signatures, and outdated epoch numbers.
+    - Epoch consensus beaconing.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: 100% test pass across all unit tests in 3s (Rule 6).
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly in 18s (Rule 6).
+  - `./gradlew :app:androidApp:assembleDebug`: BUILD SUCCESSFUL in 28s (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
+
