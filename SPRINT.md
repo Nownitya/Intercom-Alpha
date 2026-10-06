@@ -1,4 +1,4 @@
-# Current Status: Sprint 17 (Phase 15: Basecamp Stationary Repeater UI & Low-Power Cockpit Mode)
+# Current Status: Sprint 17 Completed (`v2.4.0`) — Ready for Sprint 18
 
 > **Active Sprint Reference:** [TASKS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/TASKS.md) & [prd.json](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/tasks/ralph/prd.json)  
 > **Sprint Branch:** `sprint/sprint-17-basecamp-repeater-ui`  
@@ -8,17 +8,17 @@
 
 ---
 
-## 🚀 Active Sprint: Sprint 17 (Phase 15: Basecamp Stationary Repeater UI & Low-Power Cockpit Mode)
+## 🏆 Completed Sprint: Sprint 17 (Phase 15: Basecamp Stationary Repeater UI & Low-Power Cockpit Mode)
 **Goal:** Deliver dedicated stationary basecamp mesh repeater UI and low-power standby modes across Compose Multiplatform (`sharedUI`) and 100% Native iOS SwiftUI (`iosApp`), wiring `MeshRepeaterService` into platform bridges, presentation models, and live telemetry badges on the main Cockpit HUD.  
-- **Sprint Branch:** `sprint/sprint-17-basecamp-repeater-ui`  
-- **Target Release:** `v2.3.0-rc1`  
+- **Sprint Branch:** `sprint/sprint-17-basecamp-repeater-ui` (Merged into `develop` & `main`)  
+- **Production Release:** `v2.4.0`  
 
 | Task ID | Item | Owner | Target Files | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **ICA-1701** | Basecamp Repeater State Management & Platform Bridge Wiring | Ralph | `RepeaterUiState.kt`, `RepeaterViewModel.kt`, `IntercomBridge.kt`, `AndroidPlatformBridge.kt` | 🟡 Ready for Dev |
-| **ICA-1702** | Compose Multiplatform Basecamp Repeater Screen & OLED Dark Standby | Ralph | `BasecampRepeaterScreen.kt`, `AppNavGraph.kt`, `AppModule.kt` | ⚪ Queued |
-| **ICA-1703** | Native iOS SwiftUI Basecamp Repeater Cockpit & StandBy Display | Ralph | `BasecampRepeaterView.swift`, `ContentView.swift`, `IntercomViewModel.swift` | ⚪ Queued |
-| **ICA-1704** | Remote Repeater Telemetry & Diagnostic Ping Cockpit HUD Integration | Ralph | `HomeScreen.kt`, `HomeViewModel.kt`, `ContentView.swift` | ⚪ Queued |
+| **ICA-1701** | Basecamp Repeater State Management & Platform Bridge Wiring | Ralph | `RepeaterUiState.kt`, `RepeaterViewModel.kt`, `IntercomBridge.kt`, `AndroidPlatformBridge.kt` | ✅ Completed |
+| **ICA-1702** | Compose Multiplatform Basecamp Repeater Screen & OLED Dark Standby | Ralph | `BasecampRepeaterScreen.kt`, `AppNavGraph.kt`, `AppModule.kt` | ✅ Completed |
+| **ICA-1703** | Native iOS SwiftUI Basecamp Repeater Cockpit & StandBy Display | Ralph | `BasecampRepeaterView.swift`, `ContentView.swift`, `IntercomViewModel.swift` | ✅ Completed |
+| **ICA-1704** | Remote Repeater Telemetry & Diagnostic Ping Cockpit HUD Integration | Ralph | `HomeScreen.kt`, `HomeViewModel.kt`, `ContentView.swift` | ✅ Completed |
 
 ---
 
