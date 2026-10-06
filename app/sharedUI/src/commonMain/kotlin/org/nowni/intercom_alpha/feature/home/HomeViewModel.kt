@@ -15,10 +15,12 @@ import org.nowni.intercom_alpha.bridge.ControlPayloadTag
 import org.nowni.intercom_alpha.bridge.IntercomHardwareBridge
 import org.nowni.intercom_alpha.bridge.NoOpIntercomHardwareBridge
 import org.nowni.intercom_alpha.channel.ChannelManager
+import org.nowni.intercom_alpha.currentTimeMillis
 import org.nowni.intercom_alpha.feature.home.state.HomeUiAction
 import org.nowni.intercom_alpha.feature.home.state.HomeUiState
 import org.nowni.intercom_alpha.headset.HelmetAccessoryManager
 import org.nowni.intercom_alpha.headset.RemotePttAction
+import org.nowni.intercom_alpha.mesh.MeshRepeaterService
 import org.nowni.intercom_alpha.mesh.ProximityRadar
 import org.nowni.intercom_alpha.telemetry.ConvoyGpsTracker
 import org.nowni.intercom_alpha.text.MeshTextManager
@@ -190,6 +192,25 @@ class HomeViewModel(
                 }
             }
         }
+
+        // 8. Ingest incoming Repeater Beacons and Pongs from hardware bridge (ICA-1704)
+        viewModelScope.launch {
+            hardwareBridge.incomingRepeaterBeacons.collect { beacon ->
+                _uiState.update { it.copy(latestRepeaterBeacon = beacon) }
+            }
+        }
+        viewModelScope.launch {
+            hardwareBridge.incomingRepeaterPongs.collect { pong ->
+                val now = currentTimeMillis()
+                val latency = (now - pong.pingTimestampMs).coerceAtLeast(0L)
+                _uiState.update {
+                    it.copy(
+                        repeaterPingLatencyMs = latency,
+                        isPingingRepeater = false
+                    )
+                }
+            }
+        }
     }
 
     fun onAction(action: HomeUiAction) {
@@ -320,6 +341,12 @@ class HomeViewModel(
                 } else {
                     onAction(HomeUiAction.StopTransmitting)
                 }
+            }
+
+            HomeUiAction.TriggerRepeaterPing -> {
+                _uiState.update { it.copy(isPingingRepeater = true) }
+                val pingPacket = MeshRepeaterService.createDiagnosticPing(senderId = "local-rider")
+                hardwareBridge.sendRepeaterPacket(pingPacket)
             }
         }
     }
