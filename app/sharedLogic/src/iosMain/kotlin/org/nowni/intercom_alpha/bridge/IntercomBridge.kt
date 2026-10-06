@@ -2,6 +2,9 @@ package org.nowni.intercom_alpha.bridge
 
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import org.nowni.intercom_alpha.audio.*
 import org.nowni.intercom_alpha.channel.ChannelManager
 import org.nowni.intercom_alpha.channel.ChannelState
@@ -19,12 +22,7 @@ import org.nowni.intercom_alpha.headset.HeadsetManagerImpl
 import org.nowni.intercom_alpha.headset.HelmetAccessoryManager
 import org.nowni.intercom_alpha.headset.HelmetAccessoryState
 import org.nowni.intercom_alpha.headset.RemotePttAction
-import org.nowni.intercom_alpha.mesh.ConnectionState
-import org.nowni.intercom_alpha.mesh.MeshConfig
-import org.nowni.intercom_alpha.mesh.MeshTransport
-import org.nowni.intercom_alpha.mesh.MeshTransportImpl
-import org.nowni.intercom_alpha.mesh.Peer
-import org.nowni.intercom_alpha.mesh.ProximityRadar
+import org.nowni.intercom_alpha.mesh.*
 import org.nowni.intercom_alpha.mesh.RadarSnapshot
 import org.nowni.intercom_alpha.power.BackgroundKeepAlive
 import org.nowni.intercom_alpha.telemetry.ConvoyGpsTracker
@@ -61,11 +59,32 @@ class IntercomBridge(
         localNodeId = localPeerId,
         masterSecret = "intercom-mesh-master-salt-default".encodeToByteArray()
     )
+    val repeaterService: MeshRepeaterService = MeshRepeaterService(
+        repeaterId = "$localPeerId-repeater",
+        repeaterName = "$localPeerName Basecamp",
+        packetOutbox = { packet ->
+            scope.launch(Dispatchers.Default) {
+                if (packet is MeshPacket.Control) {
+                    meshTransport.sendControl(packet.type, packet.payload)
+                }
+            }
+        }
+    )
+
+    private val _isRepeaterModeActive = MutableStateFlow(false)
+    val isRepeaterModeActive: StateFlow<Boolean> = _isRepeaterModeActive.asStateFlow()
+
+    private val _lastPingLatencyMs = MutableStateFlow<Long?>(null)
+    val lastPingLatencyMs: StateFlow<Long?> = _lastPingLatencyMs.asStateFlow()
+
+    private val _latestBeacon = MutableStateFlow<RepeaterBeaconPayload?>(null)
+    val latestBeacon: StateFlow<RepeaterBeaconPayload?> = _latestBeacon.asStateFlow()
 
     private var audioRxJob: Job? = null
     private var audioTxJob: Job? = null
     private var headsetEventsJob: Job? = null
     private var bitrateSyncJob: Job? = null
+    private var repeaterControlJob: Job? = null
 
     private var isPttActive: Boolean = false
     private var currentAudioProfile: AudioProfile = AudioProfile.default
@@ -90,41 +109,8 @@ class IntercomBridge(
                 )
             )
 
-            // 4. Pipe incoming Mesh audio packets directly into AudioEngine player
-            audioRxJob?.cancel()
-            audioRxJob = scope.launch(Dispatchers.Default) {
-                for (packet in meshTransport.incomingAudio) {
-                    keepAlive.withKeepAlive("IntercomAudioRxBurst") {
-                        val pcmShorts = audioEngine.decode(packet.data, packet.profile)
-                        audioEngine.playAudio(pcmShorts)
-
-                        // Record to rolling blackbox buffer
-                        blackboxRecorder.recordFrame(
-                            BlackboxAudioFrame(
-                                timestampMs = currentTimeMillis(),
-                                sequence = packet.sequence,
-                                speakerId = packet.senderId,
-                                speakerName = "",
-                                priority = PriorityLevel.NORMAL,
-                                adpcmData = packet.data
-                            )
-                        )
-                    }
-                }
-            }
-
-            // 5. Pipe recorded AudioEngine microphone audio directly to MeshTransport
-            audioTxJob?.cancel()
-            audioTxJob = scope.launch(Dispatchers.Default) {
-                for (pcmShorts in audioEngine.recordedAudio) {
-                    if (isPttActive) {
-                        keepAlive.withKeepAlive("IntercomAudioTxBurst") {
-                            val encoded = audioEngine.encode(pcmShorts, currentAudioProfile)
-                            meshTransport.sendAudio(encoded, currentAudioProfile)
-                        }
-                    }
-                }
-            }
+            // 4 & 5. Pipe incoming and outgoing Mesh audio pipelines
+            startAudioStreamingPipelines()
 
             // 6. Intercept physical headset buttons and remote BLE accessory PTT
             headsetEventsJob?.cancel()
@@ -161,6 +147,65 @@ class IntercomBridge(
                     currentAudioProfile = profile
                 }
             }
+
+            // 8. Monitor incoming Repeater control packets (Diagnostic Pongs and Basecamp Beacons)
+            repeaterControlJob?.cancel()
+            repeaterControlJob = scope.launch(Dispatchers.Default) {
+                for (packet in meshTransport.incomingControl) {
+                    when (packet.type) {
+                        ControlType.REPEATER_PONG -> {
+                            val pong = MeshRepeaterService.decodePongPayload(packet)
+                            if (pong != null && pong.pingSenderId == localPeerId) {
+                                val latency = (currentTimeMillis() - pong.pingTimestampMs).coerceAtLeast(0L)
+                                _lastPingLatencyMs.value = latency
+                            }
+                        }
+                        ControlType.REPEATER_BEACON -> {
+                            val beacon = MeshRepeaterService.decodeBeaconPayload(packet)
+                            if (beacon != null) {
+                                _latestBeacon.value = beacon
+                            }
+                        }
+                        else -> {}
+                    }
+                }
+            }
+        }
+    }
+
+    private fun startAudioStreamingPipelines() {
+        audioRxJob?.cancel()
+        audioRxJob = scope.launch(Dispatchers.Default) {
+            for (packet in meshTransport.incomingAudio) {
+                keepAlive.withKeepAlive("IntercomAudioRxBurst") {
+                    val pcmShorts = audioEngine.decode(packet.data, packet.profile)
+                    audioEngine.playAudio(pcmShorts)
+
+                    // Record to rolling blackbox buffer
+                    blackboxRecorder.recordFrame(
+                        BlackboxAudioFrame(
+                            timestampMs = currentTimeMillis(),
+                            sequence = packet.sequence,
+                            speakerId = packet.senderId,
+                            speakerName = "",
+                            priority = PriorityLevel.NORMAL,
+                            adpcmData = packet.data
+                        )
+                    )
+                }
+            }
+        }
+
+        audioTxJob?.cancel()
+        audioTxJob = scope.launch(Dispatchers.Default) {
+            for (pcmShorts in audioEngine.recordedAudio) {
+                if (isPttActive) {
+                    keepAlive.withKeepAlive("IntercomAudioTxBurst") {
+                        val encoded = audioEngine.encode(pcmShorts, currentAudioProfile)
+                        meshTransport.sendAudio(encoded, currentAudioProfile)
+                    }
+                }
+            }
         }
     }
 
@@ -169,6 +214,9 @@ class IntercomBridge(
         audioTxJob?.cancel()
         headsetEventsJob?.cancel()
         bitrateSyncJob?.cancel()
+        repeaterControlJob?.cancel()
+        repeaterService.stop()
+        _isRepeaterModeActive.value = false
         keepAlive.endAssertion()
 
         scope.launch {
@@ -554,4 +602,80 @@ class IntercomBridge(
     }
 
     fun isPfsRatchetActive(): Boolean = !keyRatchet.isWiped
+
+    // --- Basecamp Repeater & Stationary Cockpit Mode ---
+
+    fun setRepeaterModeActive(active: Boolean) {
+        _isRepeaterModeActive.value = active
+        if (active) {
+            repeaterService.start()
+            // Release audio recording and playout pipelines to save battery and dedicate RF to relay
+            audioRxJob?.cancel()
+            audioRxJob = null
+            audioTxJob?.cancel()
+            audioTxJob = null
+            scope.launch {
+                audioEngine.stop()
+            }
+        } else {
+            repeaterService.stop()
+            scope.launch {
+                audioEngine.start(AudioEngineConfig())
+                startAudioStreamingPipelines()
+            }
+        }
+    }
+
+    fun setRepeaterDutyCycle(mode: RepeaterDutyCycleMode) {
+        repeaterService.setDutyCycle(mode)
+    }
+
+    fun triggerDiagnosticPing() {
+        val ping = repeaterService.createDiagnosticPing(senderId = localPeerId)
+        scope.launch(Dispatchers.Default) {
+            meshTransport.sendControl(ping.type, ping.payload)
+        }
+    }
+
+    fun emitRepeaterBeacon() {
+        repeaterService.emitBeaconPacket()
+    }
+
+    // --- Swift-Friendly Repeater Observers ---
+
+    fun observeRepeaterTelemetry(onTelemetry: (RepeaterTelemetry) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            repeaterService.telemetry.collect { tele ->
+                onTelemetry(tele)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun observeRepeaterModeActive(onActive: (Boolean) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            _isRepeaterModeActive.collect { active ->
+                onActive(active)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun observeLastPingLatency(onLatency: (Long?) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            _lastPingLatencyMs.collect { latency ->
+                onLatency(latency)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun observeLatestBeacon(onBeacon: (RepeaterBeaconPayload?) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            _latestBeacon.collect { beacon ->
+                onBeacon(beacon)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
 }

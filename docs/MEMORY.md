@@ -421,6 +421,52 @@
     - Explicit memory zeroization (`masterSecret.fill(0)`) and cleanup of superseded epoch keys.
     - Wired into `GroupManager.kt` and `GroupManagerImpl.kt`.
 
+### 2.46 Basecamp Repeater State Management & Platform Bridge Wiring (Sprint 17 - ICA-1701)
+- **Challenge**: Stationing a mobile phone as an autonomous basecamp repeater requires decoupling audio hardware resources (mic/speaker pipelines) to conserve power and airtime while keeping the BLE transport flooding active. In addition, mobile riders need to query basecamp link quality via diagnostic pings.
+- **Solution**:
+  - Implemented `RepeaterUiState.kt` and `RepeaterViewModel.kt` in `app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/repeater/`:
+    - Reactive `StateFlow<RepeaterUiState>` exposing active neighbor callsigns, battery percentage, solar status, duty cycle modes (`CONTINUOUS`, `POWER_SAVER`, `EXTREME_SURVIVAL`), packet counters, and remote diagnostic ping latency.
+    - Standby screen lock toggle for OLED power preservation.
+  - Extended `IntercomHardwareBridge.kt` and `AndroidPlatformBridge.kt`:
+    - `isRepeaterModeActive`, `repeaterTelemetry`, `incomingRepeaterPongs`, `incomingRepeaterBeacons`.
+    - When repeater mode is enabled, `IntercomForegroundService.kt` safely releases microphone recording and audio playback pipelines (`audioEngine.stop()`), eliminating unnecessary CPU wakeups and dedicating 100% of RF airtime to relaying mesh packets.
+  - Extended `IntercomBridge.kt` (`iosMain`):
+    - Wired `MeshRepeaterService` with reactive Swift-friendly `CancellationHandle` observers (`observeRepeaterTelemetry`, `observeRepeaterModeActive`, `observeLastPingLatency`, `observeLatestBeacon`).
+    - Safe audio pipeline pause/resume upon entering/exiting repeater mode.
+  - Registered `MeshRepeaterService` and `RepeaterViewModel` in Koin `AppModule.kt`.
+
+### 2.47 Compose Multiplatform Basecamp Repeater Screen & OLED Dark Standby (Sprint 17 - ICA-1702)
+- **Challenge**: Operating a phone as a basecamp repeater continuously drains battery if UI rendering consumes display power or CPU cycles.
+- **Solution**:
+  - Implemented `BasecampRepeaterScreen.kt` in `app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/repeater/`:
+    - Pure OLED `#000000` power-saving color theme with ultra-dim amber/green phosphors.
+    - Full-screen `NightStandbyScreen` lock mode with tap-to-wake gesture for unattended overnight tent/ridge operation.
+    - Station status bar with dynamic duty cycle mode cycling (`CONTINUOUS` -> `POWER_SAVER` -> `EXTREME_SURVIVAL`).
+    - Live solar/battery gauges, RF metrics grid, active heard neighbor list, and 1-tap diagnostic ping/beacon buttons.
+  - Registered polymorphic `RepeaterRoute` under `NavKey` with `SavedStateConfiguration` in `AppNavGraph.kt`.
+  - Added "Relay" launcher in `HomeScreen.kt`.
+
+### 2.48 Native iOS SwiftUI Basecamp Repeater Cockpit & StandBy Display (Sprint 17 - ICA-1703)
+- **Challenge**: Stationing an iOS device on a tent or ridge dock requires 100% native SwiftUI (Rule 1) with zero Compose Multiplatform imports, seamless `CancellationHandle` bridge observation, and adaptive widescreen layout for iOS 17+ StandBy mode.
+- **Solution**:
+  - Implemented `BasecampRepeaterView.swift` in `app/iosApp/iosApp/`:
+    - Pure native SwiftUI with zero Compose Multiplatform imports.
+    - Pure OLED `#000000` black background with high-contrast tactical gauges.
+    - Full-screen `NightStandbyOverlayView` with time display, minimal amber phosphor status, and tap-to-wake gesture.
+    - Responsive landscape adaptation (`LandscapeStandbyCockpitView`) for iOS 17+ StandBy horizontal bedside/tent docks.
+    - Master relay activation card with animated RF wave, audio engine suspension banner, battery & solar status, and duty cycle picker.
+    - 4-card RF telemetry grid, remote diagnostic ping trigger card with live RTT latency reflection, and active heard neighbors roster.
+  - Wired into `IntercomViewModel.swift` with reactive `CancellationHandle` observers tied to `@MainActor` lifecycle.
+  - Added Basecamp Repeater button to `TacticalAvionicsBar` and sheet presentation in `ContentView.swift`.
+
+### 2.49 Remote Repeater Telemetry & Diagnostic Ping Cockpit HUD Integration (Sprint 17 - ICA-1704)
+- **Challenge**: Mobile riders riding along trails need to know whether stationary basecamp repeaters are within RF relay reach without navigating away from the tactical zero-scroll cockpit HUD.
+- **Solution**:
+  - `HomeUiState.kt` / `HomeViewModel.kt`: Exposed `latestRepeaterBeacon`, `repeaterPingLatencyMs`, and `isPingingRepeater`.
+  - Ingested `hardwareBridge.incomingRepeaterBeacons` and `incomingRepeaterPongs`. Emits `MeshRepeaterService.createDiagnosticPing` upon `HomeUiAction.TriggerRepeaterPing`.
+  - `HomeScreen.kt`: Embedded compact Basecamp Beacon telemetry strip in the Top Avionics Bar displaying repeater name, battery %, solar status, round-trip latency, and 1-tap `PING` button. Zero layout shift and adheres to zero-scroll contract.
+  - `ContentView.swift`: Integrated Basecamp Beacon badge with RTT latency reflection and 1-tap ping into `TacticalAvionicsBar`.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

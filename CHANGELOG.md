@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.4.0] - 2026-10-06 — Sprint 17: Basecamp Stationary Repeater UI & Dedicated Low-Power Cockpit Mode
+
+### Added
+- **Basecamp Stationary Repeater State Management & Platform Bridge Wiring (`MeshRepeaterService.kt`, `RepeaterViewModel.kt`, `IntercomHardwareBridge.kt`, `AndroidPlatformBridge.kt`, `IntercomBridge.kt`)**: Decoupled microphone and speaker pipelines during repeater operation to dedicate 100% of airtime and battery to relaying. Added duty cycle switcher (`CONTINUOUS`, `POWER_SAVER`, `EXTREME_SURVIVAL`), companion ping/pong helpers, and Swift-friendly `CancellationHandle` observers.
+- **Compose Multiplatform Basecamp Repeater Screen (`BasecampRepeaterScreen.kt`)**: Dedicated tactical stationary cockpit screen with pure OLED `#000000` power-saving theme, animated RF relay wave, solar/battery telemetry gauges, active neighbor roster, and full-screen `NightStandbyScreen` lock mode with tap-to-wake gesture. Registered in Navigation 3 `AppNavGraph.kt`.
+- **100% Native iOS SwiftUI Basecamp Repeater Cockpit (`BasecampRepeaterView.swift`)**: Built pure SwiftUI view complying with Rule 1 with zero Compose imports. Implemented pure OLED black background, responsive landscape cockpit adaptation (`LandscapeStandbyCockpitView`) for iOS 17+ StandBy tent/ridge docks, ultra-dim `NightStandbyOverlayView`, live RF telemetry grid, and diagnostic link ping actuators.
+- **Remote Repeater Telemetry & Diagnostic Ping Cockpit HUD Integration (`HomeScreen.kt` & `ContentView.swift`)**: Embedded compact Basecamp Beacon telemetry strip in top avionics header displaying heard repeater name, battery %, solar status, round-trip ping latency, and 1-tap diagnostic ping button directly from the mobile HUD without breaking the single-viewport zero-scroll contract.
+
+---
+
 ## [2.3.0] - 2026-10-06 — Sprint 16: Mesh Repeater, Audio DSP & Convoy Simulation
 
 ### Added

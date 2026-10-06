@@ -878,4 +878,98 @@
   - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
 ---
+### [2026-10-06] - ICA-1701: Basecamp Repeater State Management & Platform Bridge Wiring
+- **Branch**: `feature/ICA-1701-repeater-viewmodel-wiring`
+- **Objective**: Implement `RepeaterUiState.kt` and `RepeaterViewModel.kt` in `app/sharedUI`, wiring `MeshRepeaterService` into Koin DI and `IntercomHardwareBridge`/`AndroidPlatformBridge`/`IntercomBridge`. Manage stationary node state: battery percentage, solar charging indicator, active neighbor count, forwarded packet counters, and remote diagnostic ping triggers.
+- **Implementation**:
+  - `MeshRepeaterService.kt`: Added `activeNeighbors` field to `RepeaterTelemetry`, exposed `setDutyCycle(mode)`, added companion ping/pong helpers (`createDiagnosticPing`, `decodePongPayload`, `decodeBeaconPayload`).
+  - `IntercomHardwareBridge.kt`: Added `isRepeaterModeActive`, `repeaterTelemetry`, `incomingRepeaterPongs`, `incomingRepeaterBeacons`, `setRepeaterModeActive`, `updateRepeaterTelemetry`, `sendRepeaterPacket`, and updated `attachSubsystems` and `NoOpIntercomHardwareBridge`.
+  - `AndroidPlatformBridge.kt`: Implemented hardware bridge repeater contracts, bound service repeater mode toggling, and incoming ping/pong/beacon dispatching.
+  - `IntercomForegroundService.kt`: Added `setRepeaterMode(active)` to release microphone capture & speaker playback pipelines during stationary repeater operation, and updated `controlRxJob` to decode and route `REPEATER_PONG` and `REPEATER_BEACON`.
+  - `IntercomBridge.kt` (`iosMain`): Wired `MeshRepeaterService` with Swift-friendly reactive `CancellationHandle` observers (`observeRepeaterTelemetry`, `observeRepeaterModeActive`, `observeLastPingLatency`, `observeLatestBeacon`). Audio capture/playback is safely paused in repeater mode.
+  - `RepeaterUiState.kt` & `RepeaterViewModel.kt`: Created reactive presentation model in `app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/repeater/` managing duty cycles, active neighbor list, ping latency calculation, and standby lock.
+  - `AppModule.kt`: Registered `MeshRepeaterService` and `RepeaterViewModel` in shared UI Koin dependency injection module.
+  - `RepeaterViewModelTest.kt`: Created 8 comprehensive multiplatform unit tests validating state defaults, audio pipeline bypass activation, duty cycle selection, beacon broadcasts, diagnostic ping/pong round-trip latency reflection, standby lock, and hardware bridge sync.
+- **Verification**:
+  - `./gradlew :app:sharedUI:jvmTest :app:sharedLogic:jvmTest`: 100% test pass in 27s (Rule 6).
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly (Rule 6).
+  - `./gradlew :app:androidApp:assembleDebug`: BUILD SUCCESSFUL in 5s (Rule 6).
+  - `./gradlew test`: 100% test pass across all project test suites in 9s (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
+### [2026-10-06] - ICA-1702: Compose Multiplatform Basecamp Repeater Screen & OLED Dark Standby
+- **Branch**: `feature/ICA-1702-compose-repeater-screen`
+- **Objective**: Implement dedicated Compose Multiplatform `BasecampRepeaterScreen.kt` in `app/sharedUI`: high-contrast OLED black theme for low power consumption, live solar/battery telemetry gauges, animated RF relay wave, active neighbor radar list, and full-screen low-brightness night standby lock.
+- **Implementation**:
+  - `BasecampRepeaterScreen.kt`: Implemented full tactical stationary cockpit view in pure OLED `#000000`:
+    - Full-screen `NightStandbyScreen` lock mode with minimal power draw and tap-to-unlock gesture.
+    - Top station status bar with dynamic duty cycle mode cycling (`CONTINUOUS` -> `POWER_SAVER` -> `EXTREME_SURVIVAL`) and 1-tap night standby trigger.
+    - Power & solar telemetry cards displaying live battery percentage, power source status, and mount mode.
+    - RF relay metrics grid displaying forwarded packets, suppressed duplicates, TTL drops, and relay latency.
+    - Active convoy neighbors roster displaying heard rider callsigns.
+    - Diagnostic ping and manual beacon broadcast action buttons.
+    - Master relay switch button with tactile color state (Emerald when engaging, Crimson when active) and audio pipeline bypass indicator.
+  - `AppNavGraph.kt`: Registered polymorphic `RepeaterRoute` under `NavKey` with `SavedStateConfiguration` and `SerializersModule` (Gotcha 1).
+  - `HomeScreen.kt`: Added `onNavigateToRepeater` navigation callback and quick "Relay" launcher button in the Top Quick Actions row.
+- **Verification**:
+  - `./gradlew :app:sharedUI:jvmTest :app:sharedLogic:jvmTest`: 100% test pass in 46s (Rule 6).
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly (Rule 6).
+  - `./gradlew :app:androidApp:assembleDebug`: BUILD SUCCESSFUL in 40s (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
+### [2026-10-06] - ICA-1703: Native iOS SwiftUI Basecamp Repeater Cockpit & StandBy Display
+- **Branch**: `feature/ICA-1703-swiftui-repeater-view`
+- **Objective**: Implement 100% native SwiftUI `BasecampRepeaterView.swift` in `app/iosApp` (Rule 1): pure native SwiftUI layout, low-power display brightness reduction, Live Activity / StandBy mode banner, and seamless `CancellationHandle` bridge subscription.
+- **Implementation**:
+  - `BasecampRepeaterView.swift`: Implemented 100% native SwiftUI view in `app/iosApp/iosApp/` with zero Compose imports (Rule 1):
+    - Pure OLED `#000000` dark theme for low-power operation on stationary installations.
+    - Full-screen `NightStandbyOverlayView` with ultra-dim amber/green phosphors, time clock, battery status, and tap-to-wake gesture.
+    - Responsive landscape adaptation (`LandscapeStandbyCockpitView`) for iOS 17+ StandBy horizontal bedside/tent docks.
+    - Master relay activation card with animated RF wave and audio bypass banner.
+    - Power & solar status gauge, duty cycle selector (`.continuous`, `.powerSaver`, `.extremeSurvival`).
+    - 4-card RF telemetry grid (packets forwarded, loop duplicates dropped, last hop latency ms, beacons emitted).
+    - Diagnostic link verification card with 1-tap "PING RELAY" and "EMIT BEACON" triggers, reflecting round-trip latency.
+    - Active heard neighbors roster displaying heard rider callsigns with forwarding badges.
+  - `IntercomViewModel.swift`:
+    - Added `@Published` state: `isRepeaterModeActive`, `repeaterTelemetry`, `lastPingLatencyMs`, `latestBeacon`, `repeaterDutyCycle`, `showRepeaterSheet`.
+    - Added control methods: `setRepeaterActive`, `toggleRepeaterMode`, `setRepeaterDutyCycle`, `triggerDiagnosticPing`, `emitRepeaterBeacon`.
+    - Wired reactive `CancellationHandle` observers in `setupObservers()` dispatching to `@MainActor`: `observeRepeaterModeActive`, `observeRepeaterTelemetry`, `observeLastPingLatency`, `observeLatestBeacon`.
+  - `ContentView.swift`:
+    - Added Basecamp Repeater Cockpit button in `TacticalAvionicsBar` with green relay activity indicator.
+    - Added `.sheet(isPresented: $vm.showRepeaterSheet) { BasecampRepeaterView(vm: vm) }`.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (100% passing).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+  - Graphify knowledge sync (`graphify update .`): Rebuilt AST graph (2,542 nodes, 5,182 edges, 181 communities).
+### [2026-10-06] - ICA-1704: Remote Repeater Telemetry & Diagnostic Ping Cockpit HUD Integration
+- **Branch**: `feature/ICA-1704-hud-repeater-integration`
+- **Objective**: Integrate remote basecamp repeater health status into the main cockpit HUD (`HomeScreen.kt` and `ContentView.swift`): top avionics bar repeater beacon badge (showing nearest basecamp distance, battery %, and link quality), and 1-tap diagnostic ping triggering.
+- **Implementation**:
+  - `HomeUiState.kt`: Added `latestRepeaterBeacon`, `repeaterPingLatencyMs`, and `isPingingRepeater`. Added `HomeUiAction.TriggerRepeaterPing`.
+  - `HomeViewModel.kt`: Added collectors for `hardwareBridge.incomingRepeaterBeacons` and `incomingRepeaterPongs`. Added `TriggerRepeaterPing` handler emitting `MeshRepeaterService.createDiagnosticPing` through `hardwareBridge.sendRepeaterPacket`.
+  - `HomeScreen.kt`: Integrated Basecamp Stationary Repeater Beacon Strip into top avionics telemetry header:
+    - Displays heard repeater name, battery %, solar charging indicator, and round-trip ping latency.
+    - 1-tap `PING` actuator button measuring reflection latency directly from the mobile HUD.
+    - Strictly preserves single-viewport zero-scroll contract on motorcycle handlebars.
+  - `ContentView.swift`: Added 1-tap Basecamp Beacon badge with RTT latency reflection to `TacticalAvionicsBar`.
+  - `HomeViewModelTest.kt`: Added `testRepeaterBeaconIngestionAndDiagnosticPingFlow` verifying beacon updates, ping dispatch, and pong latency calculation.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (100% passing).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+  - Graphify knowledge sync (`graphify update .`): Rebuilt AST graph (2,546 nodes, 5,200 edges, 204 communities).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
+
+## 🏆 Sprint 17 Completion Summary: Phase 15 Basecamp Stationary Repeater UI & Dedicated Low-Power Cockpit Mode
+- **All 4 Sprint 17 stories PASSED**:
+  - `ICA-1701: Basecamp Repeater State Management & Platform Bridge Wiring` [PASSED]
+  - `ICA-1702: Compose Multiplatform Basecamp Repeater Screen & OLED Dark Standby` [PASSED]
+  - `ICA-1703: Native iOS SwiftUI Basecamp Repeater Cockpit & StandBy Display` [PASSED]
+  - `ICA-1704: Remote Repeater Telemetry & Diagnostic Ping Cockpit HUD Integration` [PASSED]
+- **Milestone Outcome**: 100% Definition of Done (DoD) achieved for Phase 15. Stationary repeater nodes operate with pure black OLED power conservation, zero audio buffer allocations, automated duty cycles, StandBy landscape layouts, and real-time remote cockpit telemetry with 1-tap diagnostic pings across both Android (Compose) and iOS (100% Native SwiftUI).
+---
+
+
 

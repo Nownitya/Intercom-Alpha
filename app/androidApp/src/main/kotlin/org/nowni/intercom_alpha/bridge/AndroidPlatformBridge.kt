@@ -19,7 +19,12 @@ import org.nowni.intercom_alpha.channel.ChannelManager
 import org.nowni.intercom_alpha.headset.HelmetAccessoryManager
 import org.nowni.intercom_alpha.headset.HelmetAccessoryState
 import org.nowni.intercom_alpha.mesh.ControlType
+import org.nowni.intercom_alpha.mesh.MeshPacket
+import org.nowni.intercom_alpha.mesh.MeshRepeaterService
 import org.nowni.intercom_alpha.mesh.Peer
+import org.nowni.intercom_alpha.mesh.RepeaterBeaconPayload
+import org.nowni.intercom_alpha.mesh.RepeaterPongPayload
+import org.nowni.intercom_alpha.mesh.RepeaterTelemetry
 import org.nowni.intercom_alpha.service.IntercomForegroundService
 import org.nowni.intercom_alpha.telemetry.ConvoyTelemetryFrame
 import org.nowni.intercom_alpha.telemetry.GpsCoordinate
@@ -29,7 +34,7 @@ import org.nowni.intercom_alpha.text.MeshTextWireFrame
  * Concrete Android implementation of [IntercomHardwareBridge].
  *
  * Coordinates live Bluetooth LE mesh hardware, AudioEngine mic/speaker I/O,
- * and physical headset button triggers with Compose UI presentation models.
+ * physical headset button triggers, and stationary basecamp repeater relay mode.
  */
 class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
 
@@ -66,11 +71,25 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
     private val _isCloudBridgeConnected = MutableStateFlow(false)
     override val isCloudBridgeConnected: StateFlow<Boolean> = _isCloudBridgeConnected.asStateFlow()
 
+    private val _isRepeaterModeActive = MutableStateFlow(false)
+    override val isRepeaterModeActive: StateFlow<Boolean> = _isRepeaterModeActive.asStateFlow()
+
+    private val _repeaterTelemetry = MutableStateFlow<RepeaterTelemetry?>(null)
+    override val repeaterTelemetry: StateFlow<RepeaterTelemetry?> = _repeaterTelemetry.asStateFlow()
+
+    private val _incomingRepeaterPongs = MutableSharedFlow<RepeaterPongPayload>(extraBufferCapacity = 16)
+    override val incomingRepeaterPongs: SharedFlow<RepeaterPongPayload> = _incomingRepeaterPongs.asSharedFlow()
+
+    private val _incomingRepeaterBeacons = MutableSharedFlow<RepeaterBeaconPayload>(extraBufferCapacity = 16)
+    override val incomingRepeaterBeacons: SharedFlow<RepeaterBeaconPayload> = _incomingRepeaterBeacons.asSharedFlow()
+
     var channelManager: ChannelManager? = null
         private set
     var blackboxRecorder: EmergencyBlackboxRecorder? = null
         private set
     var helmetAccessoryManager: HelmetAccessoryManager? = null
+        private set
+    var repeaterService: MeshRepeaterService? = null
         private set
 
     private var boundService: IntercomForegroundService? = null
@@ -83,11 +102,13 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
     override fun attachSubsystems(
         channelManager: ChannelManager,
         blackboxRecorder: EmergencyBlackboxRecorder,
-        helmetAccessoryManager: HelmetAccessoryManager?
+        helmetAccessoryManager: HelmetAccessoryManager?,
+        repeaterService: MeshRepeaterService?
     ) {
         this.channelManager = channelManager
         this.blackboxRecorder = blackboxRecorder
         this.helmetAccessoryManager = helmetAccessoryManager
+        this.repeaterService = repeaterService
 
         helmetAccessoryManager?.let { accessoryMgr ->
             scope.launch {
@@ -160,6 +181,31 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         boundService?.setTransmitting(active)
     }
 
+    override fun setRepeaterModeActive(active: Boolean) {
+        Log.d(TAG, "setRepeaterModeActive($active) requested from UI")
+        _isRepeaterModeActive.value = active
+        boundService?.setRepeaterMode(active)
+    }
+
+    override fun updateRepeaterTelemetry(telemetry: RepeaterTelemetry?) {
+        _repeaterTelemetry.value = telemetry
+    }
+
+    override fun sendRepeaterPacket(packet: MeshPacket.Control) {
+        scope.launch(Dispatchers.IO) {
+            val service = boundService
+            if (service == null) {
+                Log.w(TAG, "Cannot sendRepeaterPacket: No service bound")
+                return@launch
+            }
+            try {
+                service.meshTransport.sendControl(packet.type, packet.payload)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error broadcasting repeater packet (${packet.type})", e)
+            }
+        }
+    }
+
     override fun sendControlPayload(tag: Byte, payload: ByteArray) {
         scope.launch(Dispatchers.IO) {
             val service = boundService
@@ -192,5 +238,13 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
 
     fun postLocalGps(coord: GpsCoordinate) {
         _localGpsCoordinate.value = coord
+    }
+
+    fun postIncomingRepeaterPong(pong: RepeaterPongPayload) {
+        _incomingRepeaterPongs.tryEmit(pong)
+    }
+
+    fun postIncomingRepeaterBeacon(beacon: RepeaterBeaconPayload) {
+        _incomingRepeaterBeacons.tryEmit(beacon)
     }
 }

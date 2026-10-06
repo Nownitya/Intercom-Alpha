@@ -1,24 +1,24 @@
-# Current Status: Sprint 16 (Phase 14: Mesh Repeater, Audio DSP & Convoy Simulation)
+# Current Status: Sprint 17 (Phase 15: Basecamp Stationary Repeater UI & Low-Power Cockpit Mode)
 
 > **Active Sprint Reference:** [TASKS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/TASKS.md) & [prd.json](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/tasks/ralph/prd.json)  
-> **Sprint Branch:** `sprint/sprint-16-repeater-dsp-simulation` $\rightarrow$ `develop`  
+> **Sprint Branch:** `sprint/sprint-17-basecamp-repeater-ui`  
 > **Sprint Governance Rules:** [SPRINT-RULES.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/SPRINT-RULES.md)  
 > **Engineering Contract:** [AGENTS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/AGENTS.md)  
 > **Knowledge Base:** [MEMORY.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/MEMORY.md)  
 
 ---
 
-## 🚀 Sprint 16: Mesh Repeater, Audio DSP & Convoy Simulation (Phase 14)
-**Goal:** Deliver pure KMP audio speech normalization (AGC & DRC), autonomous stationary basecamp mesh repeater mode (`MeshRepeaterService.kt`), automated 8-node virtual convoy simulation harness (`ConvoyMeshSimulationHarness.kt`), and seamless over-the-air cryptographic epoch migration (`GroupEpochManager.kt`).  
-- **Sprint Branch:** `sprint/sprint-16-repeater-dsp-simulation`  
-- **Status:** 100% Completed & Merged into `develop`  
+## 🚀 Active Sprint: Sprint 17 (Phase 15: Basecamp Stationary Repeater UI & Low-Power Cockpit Mode)
+**Goal:** Deliver dedicated stationary basecamp mesh repeater UI and low-power standby modes across Compose Multiplatform (`sharedUI`) and 100% Native iOS SwiftUI (`iosApp`), wiring `MeshRepeaterService` into platform bridges, presentation models, and live telemetry badges on the main Cockpit HUD.  
+- **Sprint Branch:** `sprint/sprint-17-basecamp-repeater-ui`  
+- **Target Release:** `v2.3.0-rc1`  
 
 | Task ID | Item | Owner | Target Files | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **ICA-1601** | Pure KMP Automatic Gain Control & Dynamic Range Compression | Ralph | `AutomaticGainControl.kt`, `DynamicRangeCompressor.kt`, `AudioEngine.kt` | ✅ Completed |
-| **ICA-1602** | Autonomous Mesh Repeater & Basecamp Beacon Mode | Ralph | `MeshRepeaterService.kt`, `MeshTransport.kt` | ✅ Completed |
-| **ICA-1603** | Automated Multi-Node Mesh Field Simulation Harness | Ralph | `ConvoyMeshSimulationHarness.kt` | ✅ Completed |
-| **ICA-1604** | Seamless Mesh OTA Group Re-Keying & Dynamic Epoch Migration | Ralph | `GroupEpochManager.kt`, `GroupManager.kt` | ✅ Completed |
+| **ICA-1701** | Basecamp Repeater State Management & Platform Bridge Wiring | Ralph | `RepeaterUiState.kt`, `RepeaterViewModel.kt`, `IntercomBridge.kt`, `AndroidPlatformBridge.kt` | 🟡 Ready for Dev |
+| **ICA-1702** | Compose Multiplatform Basecamp Repeater Screen & OLED Dark Standby | Ralph | `BasecampRepeaterScreen.kt`, `AppNavGraph.kt`, `AppModule.kt` | ⚪ Queued |
+| **ICA-1703** | Native iOS SwiftUI Basecamp Repeater Cockpit & StandBy Display | Ralph | `BasecampRepeaterView.swift`, `ContentView.swift`, `IntercomViewModel.swift` | ⚪ Queued |
+| **ICA-1704** | Remote Repeater Telemetry & Diagnostic Ping Cockpit HUD Integration | Ralph | `HomeScreen.kt`, `HomeViewModel.kt`, `ContentView.swift` | ⚪ Queued |
 
 ---
 

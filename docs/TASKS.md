@@ -201,4 +201,19 @@
 | **ICA-1603** | Automated Multi-Node Mesh Field Simulation Harness | `ConvoyMeshSimulationHarness.kt` | ✅ Completed |
 | **ICA-1604** | Seamless Mesh OTA Group Re-Keying & Dynamic Epoch Migration | `GroupEpochManager.kt`, `GroupManager.kt` | ✅ Completed |
 
+---
+
+### ✅ Sprint 17: Basecamp Stationary Repeater UI & Low-Power Cockpit Mode (Phase 15 - v2.3 Roadmap)
+- **Sprint Goal**: Implement dedicated Basecamp Stationary Repeater UI, high-contrast OLED power-saving screens, 100% native SwiftUI StandBy landscape cockpit, and live remote basecamp telemetry with 1-tap diagnostic pings on the main cockpit HUD.
+- **Sprint Branch**: `sprint/sprint-17-basecamp-repeater-ui` $\rightarrow$ `develop`
+- **Status**: ✅ 100% Complete (All 4 Stories Passed & Verified)
+
+| Task ID | Item | Target Files | Status |
+| :--- | :--- | :--- | :--- |
+| **ICA-1701** | Basecamp Repeater State Management & Platform Bridge Wiring | `RepeaterViewModel.kt`, `RepeaterUiState.kt`, `IntercomHardwareBridge.kt`, `AndroidPlatformBridge.kt`, `IntercomBridge.kt` | ✅ Completed |
+| **ICA-1702** | Compose Multiplatform Basecamp Repeater Screen & OLED Dark Standby | `BasecampRepeaterScreen.kt`, `AppNavGraph.kt`, `HomeScreen.kt` | ✅ Completed |
+| **ICA-1703** | Native iOS SwiftUI Basecamp Repeater Cockpit & StandBy Display | `BasecampRepeaterView.swift`, `ContentView.swift`, `IntercomViewModel.swift` | ✅ Completed |
+| **ICA-1704** | Remote Repeater Telemetry & Diagnostic Ping Cockpit HUD Integration | `HomeScreen.kt`, `HomeViewModel.kt`, `HomeUiState.kt`, `ContentView.swift`, `HomeViewModelTest.kt` | ✅ Completed |
+
+
 
