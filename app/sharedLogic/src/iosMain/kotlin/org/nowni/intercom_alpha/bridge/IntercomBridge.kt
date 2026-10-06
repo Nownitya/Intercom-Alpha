@@ -22,6 +22,12 @@ import org.nowni.intercom_alpha.headset.HeadsetManagerImpl
 import org.nowni.intercom_alpha.headset.HelmetAccessoryManager
 import org.nowni.intercom_alpha.headset.HelmetAccessoryState
 import org.nowni.intercom_alpha.headset.RemotePttAction
+import org.nowni.intercom_alpha.map.GeoPoint
+import org.nowni.intercom_alpha.map.RadarRangeZoom
+import org.nowni.intercom_alpha.map.TrailMapManager
+import org.nowni.intercom_alpha.map.TrailMapSnapshot
+import org.nowni.intercom_alpha.map.TrailWaypoint
+import org.nowni.intercom_alpha.map.WaypointType
 import org.nowni.intercom_alpha.mesh.*
 import org.nowni.intercom_alpha.mesh.RadarSnapshot
 import org.nowni.intercom_alpha.power.BackgroundKeepAlive
@@ -70,6 +76,7 @@ class IntercomBridge(
             }
         }
     )
+    val trailMapManager: TrailMapManager = TrailMapManager()
 
     private val _isRepeaterModeActive = MutableStateFlow(false)
     val isRepeaterModeActive: StateFlow<Boolean> = _isRepeaterModeActive.asStateFlow()
@@ -677,5 +684,46 @@ class IntercomBridge(
             }
         }
         return CancellationHandle { job.cancel() }
+    }
+
+    // --- Swift-Friendly Trail Map Observers & Controls (Sprint 18 / ICA-1802) ---
+
+    fun observeTrailMapSnapshot(onSnapshot: (TrailMapSnapshot) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            trailMapManager.snapshot.collect { snap ->
+                onSnapshot(snap)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun cycleRadarZoom() {
+        scope.launch {
+            trailMapManager.cycleRangeZoom()
+        }
+    }
+
+    fun setRadarZoom(zoom: RadarRangeZoom) {
+        scope.launch {
+            trailMapManager.setRangeZoom(zoom)
+        }
+    }
+
+    fun setTrailOverlayEnabled(enabled: Boolean) {
+        scope.launch {
+            trailMapManager.setOverlayEnabled(enabled)
+        }
+    }
+
+    fun loadSampleAlpineTrail(lat: Double = 37.7749, lon: Double = -122.4194, alt: Double = 2500.0) {
+        scope.launch {
+            trailMapManager.loadSampleAlpineTrail(GeoPoint(lat, lon, alt))
+        }
+    }
+
+    fun updateTrailLocalGps(lat: Double, lon: Double, alt: Double, heading: Float) {
+        scope.launch {
+            trailMapManager.updateLocalPosition(lat, lon, alt, heading)
+        }
     }
 }

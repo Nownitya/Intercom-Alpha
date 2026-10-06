@@ -1,8 +1,10 @@
 package org.nowni.intercom_alpha.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,23 +15,31 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.nowni.intercom_alpha.map.RadarRangeZoom
+import org.nowni.intercom_alpha.map.TrailMapSnapshot
+import org.nowni.intercom_alpha.map.WaypointType
 import org.nowni.intercom_alpha.mesh.RadarSnapshot
 import org.nowni.intercom_alpha.telemetry.ConvoyTelemetrySnapshot
 import kotlin.math.cos
 import kotlin.math.sin
 
 /**
- * Compact Tactical Spatial Radar & Convoy Telemetry View for motorcycle cockpits.
- * Combines a circular range-ring radar display with live rider vector tags in a single 130dp envelope.
+ * Compact Tactical Spatial Radar & Convoy Telemetry View with Offline Vector Terrain & Trail Overlay.
+ * Combines a circular range-ring radar display with topo contours, neon trail tracks, and live rider vectors.
  */
 @Composable
 fun ProximityRadarView(
     radarSnapshot: RadarSnapshot,
     convoySnapshot: ConvoyTelemetrySnapshot,
+    trailMapSnapshot: TrailMapSnapshot = TrailMapSnapshot(),
+    onCycleZoom: () -> Unit = {},
+    onOpenTrailSheet: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -39,7 +49,7 @@ fun ProximityRadarView(
             containerColor = Color(0xFF14181D)
         ),
         border = CardDefaults.outlinedCardBorder().copy(
-            brush = androidx.compose.ui.graphics.SolidColor(Color(0xFF2B3848))
+            brush = SolidColor(Color(0xFF2B3848))
         )
     ) {
         Row(
@@ -57,8 +67,93 @@ fun ProximityRadarView(
                 Canvas(modifier = Modifier.size(104.dp)) {
                     val center = Offset(size.width / 2f, size.height / 2f)
                     val maxRadius = size.width / 2f - 4f
+                    val maxRadarRange = trailMapSnapshot.activeRangeZoom.maxDistanceMeters
 
-                    // Concentric Range Rings (100m, 500m, 1.5km)
+                    // ================= A. OFFLINE TOPO CONTOURS & TRAIL OVERLAY =================
+                    if (trailMapSnapshot.isOverlayEnabled) {
+                        // 1. Topographic Elevation Contours
+                        for (contour in trailMapSnapshot.projectedContours) {
+                            val contourPath = Path()
+                            var started = false
+                            for (pt in contour.points) {
+                                val px = center.x + (pt.normalizedX * maxRadius)
+                                val py = center.y + (pt.normalizedY * maxRadius)
+                                if (!started) {
+                                    contourPath.moveTo(px, py)
+                                    started = true
+                                } else {
+                                    contourPath.lineTo(px, py)
+                                }
+                            }
+                            drawPath(
+                                path = contourPath,
+                                color = Color(0xFF2A394A).copy(alpha = 0.7f),
+                                style = Stroke(
+                                    width = 0.8.dp.toPx(),
+                                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(5f, 4f))
+                                )
+                            )
+                        }
+
+                        // 2. Active Vector Trail Polyline
+                        for (trail in trailMapSnapshot.projectedTrails) {
+                            val trailPath = Path()
+                            var started = false
+                            for (pt in trail.points) {
+                                val px = center.x + (pt.normalizedX * maxRadius)
+                                val py = center.y + (pt.normalizedY * maxRadius)
+                                if (!started) {
+                                    trailPath.moveTo(px, py)
+                                    started = true
+                                } else {
+                                    trailPath.lineTo(px, py)
+                                }
+                            }
+                            drawPath(
+                                path = trailPath,
+                                color = Color(0xFF00E5FF).copy(alpha = 0.75f),
+                                style = Stroke(width = 1.6.dp.toPx())
+                            )
+                        }
+
+                        // 3. Peer Convoy Breadcrumb Trails
+                        for ((_, points) in trailMapSnapshot.peerBreadcrumbs) {
+                            for (pt in points) {
+                                if (pt.isVisibleOnRadar) {
+                                    val px = center.x + (pt.normalizedX * maxRadius)
+                                    val py = center.y + (pt.normalizedY * maxRadius)
+                                    drawCircle(
+                                        color = Color(0xFF00E676).copy(alpha = 0.35f),
+                                        radius = 1.5.dp.toPx(),
+                                        center = Offset(px, py)
+                                    )
+                                }
+                            }
+                        }
+
+                        // 4. Tactical Waypoint Pins
+                        for (pw in trailMapSnapshot.projectedWaypoints) {
+                            val pt = pw.projectedPoint
+                            if (pt.isVisibleOnRadar) {
+                                val px = center.x + (pt.normalizedX * maxRadius)
+                                val py = center.y + (pt.normalizedY * maxRadius)
+                                val wpColor = when (pw.waypoint.type) {
+                                    WaypointType.BASECAMP -> Color(0xFF00E676)
+                                    WaypointType.OBSTACLE_HAZARD -> Color(0xFFFF5252)
+                                    WaypointType.MOUNTAIN_PASS -> Color(0xFFFFB300)
+                                    else -> Color(0xFF00E5FF)
+                                }
+                                drawCircle(
+                                    color = wpColor,
+                                    radius = 2.5.dp.toPx(),
+                                    center = Offset(px, py)
+                                )
+                            }
+                        }
+                    }
+
+                    // ================= B. RADAR RANGE RINGS & RETICLE =================
+                    // Concentric Range Rings (Outer, Mid 66%, Inner 33%)
                     drawCircle(
                         color = Color(0xFF2B3848),
                         radius = maxRadius,
@@ -102,11 +197,11 @@ fun ProximityRadarView(
                     }
                     drawPath(chevronPath, color = Color(0xFF00E5FF))
 
-                    // Plot Convoy Riders
+                    // ================= C. CONVOY RIDERS BLIPS =================
                     val riders = convoySnapshot.riders
                     for (rider in riders) {
                         val bearingRad = (rider.relativeBearingDegrees - 90.0) * (kotlin.math.PI / 180.0)
-                        val normDist = (rider.distanceMeters / 1500.0).coerceIn(0.1, 1.0)
+                        val normDist = (rider.distanceMeters / maxRadarRange).coerceIn(0.1, 1.0)
                         val r = (normDist * maxRadius).toFloat()
 
                         val px = center.x + (r * cos(bearingRad)).toFloat()
@@ -142,21 +237,29 @@ fun ProximityRadarView(
                     }
                 }
 
-                // Range Label
-                Text(
-                    text = "1.5km",
-                    fontSize = 8.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF7A8B9E),
+                // Interactive Radar Range Zoom Badge
+                Surface(
+                    shape = RoundedCornerShape(4.dp),
+                    color = Color(0xFF1D2023),
+                    border = BorderStroke(1.dp, Color(0xFF00E5FF).copy(alpha = 0.5f)),
+                    onClick = onCycleZoom,
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .padding(end = 4.dp, bottom = 2.dp)
-                )
+                ) {
+                    Text(
+                        text = trailMapSnapshot.activeRangeZoom.label,
+                        fontSize = 8.sp,
+                        fontWeight = FontWeight.Black,
+                        color = Color(0xFF00E5FF),
+                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.width(10.dp))
 
-            // 2. Right Side: Glanceable Live Rider Telemetry Strip
+            // 2. Right Side: Glanceable Live Rider & Trail Telemetry Strip
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -183,6 +286,73 @@ fun ProximityRadarView(
                     )
                 }
 
+                // Trail & Nearest Waypoint Strip (Clickable to open Trail Sheet)
+                Surface(
+                    shape = RoundedCornerShape(6.dp),
+                    color = Color(0xFF1D2023),
+                    border = BorderStroke(1.dp, Color(0xFF2B3848)),
+                    onClick = onOpenTrailSheet
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        val nearest = trailMapSnapshot.nearestWaypoint
+                        if (nearest != null) {
+                            val distMeters = trailMapSnapshot.nearestWaypointDistanceMeters?.toInt() ?: 0
+                            val distLabel = if (distMeters < 1000) "${distMeters}m" else "${distMeters / 1000}km"
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Text("📍", fontSize = 11.sp)
+                                Column {
+                                    Text(
+                                        text = nearest.name,
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                    Text(
+                                        text = "ALT ${nearest.point.altitudeMeters.toInt()}m",
+                                        fontSize = 8.sp,
+                                        color = Color(0xFF7A8B9E)
+                                    )
+                                }
+                            }
+                            Text(
+                                text = distLabel,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Black,
+                                color = Color(0xFF00E5FF)
+                            )
+                        } else {
+                            val trailName = trailMapSnapshot.activeTrail?.name ?: "OFFLINE MAP"
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text("🗺️", fontSize = 11.sp)
+                                Text(
+                                    text = trailName,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF00E5FF)
+                                )
+                            }
+                            Text(
+                                text = "OPEN",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF7A8B9E)
+                            )
+                        }
+                    }
+                }
+
                 val closest = convoySnapshot.closestRider
                 if (closest != null) {
                     val arrow = getBearingArrow(closest.relativeBearingDegrees)
@@ -195,12 +365,12 @@ fun ProximityRadarView(
                     Surface(
                         shape = RoundedCornerShape(6.dp),
                         color = Color(0xFF1D2023),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2B3848))
+                        border = BorderStroke(1.dp, Color(0xFF2B3848))
                     ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                                .padding(horizontal = 8.dp, vertical = 3.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -210,19 +380,19 @@ fun ProximityRadarView(
                             ) {
                                 Text(
                                     text = arrow.first,
-                                    fontSize = 14.sp,
+                                    fontSize = 13.sp,
                                     color = Color(0xFF00E676)
                                 )
                                 Column {
                                     Text(
                                         text = closest.peerName,
-                                        fontSize = 11.sp,
+                                        fontSize = 10.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = Color.White
                                     )
                                     Text(
                                         text = arrow.second,
-                                        fontSize = 8.sp,
+                                        fontSize = 7.sp,
                                         color = Color(0xFFB0B8C1)
                                     )
                                 }
@@ -230,18 +400,12 @@ fun ProximityRadarView(
 
                             Text(
                                 text = distText,
-                                fontSize = 12.sp,
+                                fontSize = 11.sp,
                                 fontWeight = FontWeight.Black,
                                 color = Color(0xFF00E5FF)
                             )
                         }
                     }
-                } else {
-                    Text(
-                        text = "10Hz GNSS • Scanning formation vectors...",
-                        fontSize = 10.sp,
-                        color = Color(0xFF7A8B9E)
-                    )
                 }
 
                 // Sub-Metrics Bar
@@ -250,16 +414,16 @@ fun ProximityRadarView(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "0% LOSS · 18ms",
+                        text = "ALT ${trailMapSnapshot.currentElevationMeters.toInt()}m",
                         fontSize = 8.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF00E676)
                     )
                     Text(
-                        text = "BLE DIRECT [ACTIVE]",
+                        text = if (trailMapSnapshot.isOverlayEnabled) "TOPO [ON]" else "TOPO [OFF]",
                         fontSize = 8.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF00E5FF)
+                        color = if (trailMapSnapshot.isOverlayEnabled) Color(0xFF00E5FF) else Color(0xFF7A8B9E)
                     )
                 }
             }

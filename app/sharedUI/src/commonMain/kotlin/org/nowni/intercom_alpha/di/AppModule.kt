@@ -27,6 +27,7 @@ fun createSharedUiModule(
     single { AdaptiveBitrateController() }
     single { org.nowni.intercom_alpha.headset.HelmetAccessoryManager() }
     single { MeshRepeaterService(repeaterId = "basecamp-relay-1", repeaterName = "Basecamp Relay Alpha") }
+    single { org.nowni.intercom_alpha.map.TrailMapManager() }
     single<IntercomHardwareBridge> { hardwareBridge }
 
     viewModelOf(::HomeViewModel)
