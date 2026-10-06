@@ -26,6 +26,7 @@ import org.nowni.intercom_alpha.ui.components.*
 fun HomeScreen(
     uiState: HomeUiState,
     onAction: (HomeUiAction) -> Unit,
+    onNavigateToRepeater: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -79,6 +80,18 @@ fun HomeScreen(
 
                     // Top Quick Actions
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        FilledTonalButton(
+                            onClick = onNavigateToRepeater,
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                            shape = RoundedCornerShape(6.dp),
+                            colors = ButtonDefaults.filledTonalButtonColors(
+                                containerColor = Color(0xFF1D2023),
+                                contentColor = Color(0xFFFFB300)
+                            )
+                        ) {
+                            Text("Relay", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        }
+
                         FilledTonalButton(
                             onClick = { onAction(HomeUiAction.ToggleShareDialog(true)) },
                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
@@ -168,6 +181,78 @@ fun HomeScreen(
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFFB0B8C1)
                             )
+                        }
+                    }
+                }
+
+                // Basecamp Stationary Repeater Beacon Strip (Sprint 17 - ICA-1704)
+                if (uiState.latestRepeaterBeacon != null) {
+                    val beacon = uiState.latestRepeaterBeacon
+                    Surface(
+                        onClick = { onAction(HomeUiAction.TriggerRepeaterPing) },
+                        shape = RoundedCornerShape(6.dp),
+                        color = Color(0xFF141C16),
+                        border = BorderStroke(1.dp, Color(0xFF1B5E20))
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp, vertical = 3.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text("⛺", fontSize = 11.sp)
+                                Text(
+                                    text = beacon.repeaterName.ifBlank { "BASECAMP" },
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                                Text(
+                                    text = "• 🔋 ${beacon.batteryPercent}%",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF00E676)
+                                )
+                                if (beacon.isSolarPowered) {
+                                    Text(
+                                        text = "• ☀️ SOLAR",
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFFFFB300)
+                                    )
+                                }
+                            }
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                if (uiState.repeaterPingLatencyMs != null) {
+                                    Text(
+                                        text = "RTT ${uiState.repeaterPingLatencyMs}ms",
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = Color(0xFF00E676)
+                                    )
+                                }
+                                Surface(
+                                    shape = RoundedCornerShape(4.dp),
+                                    color = if (uiState.isPingingRepeater) Color(0xFF00E5FF) else Color(0xFF2E7D32)
+                                ) {
+                                    Text(
+                                        text = if (uiState.isPingingRepeater) "PINGING..." else "PING",
+                                        fontSize = 8.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = Color.White,
+                                        modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                                    )
+                                }
+                            }
                         }
                     }
                 }

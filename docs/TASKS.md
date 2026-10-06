@@ -187,3 +187,33 @@
 | **ICA-1503** | Native iOS SwiftUI Tactical Cockpit HUD | `ContentView.swift`, `IntercomViewModel.swift` | ✅ Completed |
 | **ICA-1504** | Multiplatform Verification Gates & Presentation Regression Tests | `HomeViewModelTest.kt`, Gradle automated tests, OpenCodeReview | ✅ Completed |
 
+---
+
+### ✅ Sprint 16: Mesh Repeater, Audio DSP & Convoy Simulation (Phase 14 - v2.3 Roadmap)
+- **Sprint Goal**: Implement pure KMP speech dynamic range normalizers (AGC/DRC), autonomous stationary basecamp mesh repeater mode, automated 8-node convoy simulation harness, and over-the-air cryptographic epoch migration.
+- **Sprint Branch**: `sprint/sprint-16-repeater-dsp-simulation` $\rightarrow$ `develop`
+- **Status**: ✅ 100% Complete (All 4 Stories Passed & Merged to develop)
+
+| Task ID | Item | Target Files | Status |
+| :--- | :--- | :--- | :--- |
+| **ICA-1601** | Pure KMP Automatic Gain Control (AGC) & Dynamic Range Compression (DRC) | `AutomaticGainControl.kt`, `DynamicRangeCompressor.kt`, `AudioEngine.kt` | ✅ Completed |
+| **ICA-1602** | Autonomous Mesh Repeater & Basecamp Beacon Mode | `MeshRepeaterService.kt`, `MeshTransport.kt` | ✅ Completed |
+| **ICA-1603** | Automated Multi-Node Mesh Field Simulation Harness | `ConvoyMeshSimulationHarness.kt` | ✅ Completed |
+| **ICA-1604** | Seamless Mesh OTA Group Re-Keying & Dynamic Epoch Migration | `GroupEpochManager.kt`, `GroupManager.kt` | ✅ Completed |
+
+---
+
+### ✅ Sprint 17: Basecamp Stationary Repeater UI & Low-Power Cockpit Mode (Phase 15 - v2.3 Roadmap)
+- **Sprint Goal**: Implement dedicated Basecamp Stationary Repeater UI, high-contrast OLED power-saving screens, 100% native SwiftUI StandBy landscape cockpit, and live remote basecamp telemetry with 1-tap diagnostic pings on the main cockpit HUD.
+- **Sprint Branch**: `sprint/sprint-17-basecamp-repeater-ui` $\rightarrow$ `develop`
+- **Status**: ✅ 100% Complete (All 4 Stories Passed & Verified)
+
+| Task ID | Item | Target Files | Status |
+| :--- | :--- | :--- | :--- |
+| **ICA-1701** | Basecamp Repeater State Management & Platform Bridge Wiring | `RepeaterViewModel.kt`, `RepeaterUiState.kt`, `IntercomHardwareBridge.kt`, `AndroidPlatformBridge.kt`, `IntercomBridge.kt` | ✅ Completed |
+| **ICA-1702** | Compose Multiplatform Basecamp Repeater Screen & OLED Dark Standby | `BasecampRepeaterScreen.kt`, `AppNavGraph.kt`, `HomeScreen.kt` | ✅ Completed |
+| **ICA-1703** | Native iOS SwiftUI Basecamp Repeater Cockpit & StandBy Display | `BasecampRepeaterView.swift`, `ContentView.swift`, `IntercomViewModel.swift` | ✅ Completed |
+| **ICA-1704** | Remote Repeater Telemetry & Diagnostic Ping Cockpit HUD Integration | `HomeScreen.kt`, `HomeViewModel.kt`, `HomeUiState.kt`, `ContentView.swift`, `HomeViewModelTest.kt` | ✅ Completed |
+
+
+

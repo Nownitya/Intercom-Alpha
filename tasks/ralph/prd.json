@@ -1,81 +1,84 @@
 {
   "project": "Intercom-Alpha",
-  "branchName": "sprint/sprint-14-advanced-convoy-mesh",
-  "phase": "Phase 12: Advanced Convoy Mesh, Forward-Secret Key Ratchet & Live Activity",
-  "sprint": "Sprint 14",
-  "updatedAt": "2026-10-04T15:55:00Z",
+  "branchName": "sprint/sprint-17-basecamp-repeater-ui",
+  "phase": "Phase 15: Basecamp Stationary Repeater UI & Dedicated Low-Power Cockpit Mode",
+  "sprint": "Sprint 17",
+  "updatedAt": "2026-10-06T23:08:00Z",
   "stories": [
     {
-      "id": "ICA-1401",
+      "id": "ICA-1701",
       "priority": 1,
-      "title": "Pure KMP Perfect Forward Secrecy (PFS) & Ephemeral Key Ratchet Engine",
-      "description": "Implement pure Kotlin multiplatform Double-Ratchet / Ephemeral Key Rotation engine (MeshKeyRatchet.kt) for mesh channels: derive rolling ephemeral session keys from master group secret using pure Kotlin HKDF-SHA256, maintain out-of-order packet decryption key cache with replay protection, and support out-of-band RATCHET_ADVANCE control frames.",
+      "title": "Basecamp Repeater State Management & Platform Bridge Wiring",
+      "description": "Implement RepeaterUiState.kt and RepeaterViewModel.kt in app/sharedUI, wiring MeshRepeaterService into Koin DI and IntercomHardwareBridge/AndroidPlatformBridge/IntercomBridge. Manage stationary node state: battery percentage, solar charging indicator, active neighbor count, forwarded packet counters, and remote diagnostic ping triggers.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/crypto/MeshKeyRatchet.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/PacketCipher.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/crypto/MeshKeyRatchetTest.kt"
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/repeater/RepeaterUiState.kt",
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/repeater/RepeaterViewModel.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomHardwareBridge.kt",
+        "app/sharedLogic/src/androidMain/kotlin/org/nowni/intercom_alpha/bridge/AndroidPlatformBridge.kt",
+        "app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomBridge.kt",
+        "app/sharedUI/src/commonTest/kotlin/org/nowni/intercom_alpha/ui/repeater/RepeaterViewModelTest.kt"
       ],
       "acceptanceCriteria": [
-        "Pure Kotlin Multiplatform with zero Java (java.security.*) or C/JNI dependencies (Rule 3)",
-        "Key ratchet advances automatically every N packets or time window while supporting out-of-order packet arrival",
-        "Previous session keys are securely cleared from memory guaranteeing forward secrecy",
-        "100% test pass on JVM and compileKotlinIosSimulatorArm64 (Rule 6)"
+        "Exposes reactive StateFlow<RepeaterUiState> with active neighbor table, forwarded packet count, and beacon rate",
+        "Toggles MeshRepeaterService active state, releasing microphone/speaker pipelines during repeater mode",
+        "Supports remote diagnostic ping triggering with round-trip latency reflection",
+        "100% test pass on JVM and platform compilation"
       ],
       "passes": true
     },
     {
-      "id": "ICA-1402",
+      "id": "ICA-1702",
       "priority": 2,
-      "title": "Direct Helmet Intercom Bluetooth GATT Accessory Profile (Cardo / Sena / EJEAS)",
-      "description": "Implement specialized Bluetooth Low Energy GATT client profile (HelmetAccessoryManager.kt) for direct motorcycle helmet intercom communication: Cardo, Sena, and EJEAS handlebar remote PTT button listening, battery level telemetry reporting, and SCO/A2DP audio link fallback management.",
+      "title": "Compose Multiplatform Basecamp Repeater Screen & OLED Dark Standby",
+      "description": "Implement dedicated Compose Multiplatform BasecampRepeaterScreen.kt in app/sharedUI: high-contrast OLED black theme for low power consumption, live solar/battery telemetry gauges, animated RF relay wave, active neighbor radar list, and full-screen low-brightness night standby lock.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/headset/HelmetAccessoryManager.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/headset/HeadsetManager.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/headset/HelmetAccessoryManagerTest.kt"
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/repeater/BasecampRepeaterScreen.kt",
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/navigation/AppNavGraph.kt",
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/di/AppModule.kt"
       ],
       "acceptanceCriteria": [
-        "Pure KMP contract with platform-agnostic GATT characteristic UUID definitions",
-        "Detects and parses remote PTT click/press/release events from handlebar remotes and helmet dials",
-        "Streams accessory battery percentage and connection status to HomeUiState and IntercomViewModel",
-        "Full unit test suite verifying accessory discovery, event dispatch, and disconnect handling"
+        "Zero-allocation rendering loop in standby with OLED power-saving pure black background (#000000)",
+        "Live telemetry displays: battery percentage, solar status, forwarded packets, and heard rider callsigns",
+        "Registered in Navigation 3 AppNavGraph under polymorphic NavKey routing (Gotcha 1)",
+        "Full build passes without lint or compilation errors"
       ],
       "passes": true
     },
     {
-      "id": "ICA-1403",
+      "id": "ICA-1703",
       "priority": 3,
-      "title": "iOS 18+ Live Activity & Dynamic Island Hands-Free PTT Widget",
-      "description": "Implement 100% native iOS Live Activity and Dynamic Island interactive cockpit widget (IntercomActivityWidget.swift) using ActivityKit and WidgetKit: compact leading/trailing indicators, expanded view with large hands-on PTT touch trigger, active rider radar bearing, and emergency alert card.",
+      "title": "Native iOS SwiftUI Basecamp Repeater Cockpit & StandBy Display",
+      "description": "Implement 100% native SwiftUI BasecampRepeaterView.swift in app/iosApp (Rule 1): pure native SwiftUI layout, low-power display brightness reduction, Live Activity / StandBy mode banner, and seamless CancellationHandle bridge subscription.",
       "targetFiles": [
-        "app/iosApp/iosApp/IntercomActivityAttributes.swift",
-        "app/iosApp/iosApp/IntercomActivityWidget.swift",
-        "app/iosApp/iosApp/IntercomViewModel.swift",
-        "app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomBridge.kt"
+        "app/iosApp/iosApp/BasecampRepeaterView.swift",
+        "app/iosApp/iosApp/ContentView.swift",
+        "app/iosApp/iosApp/IntercomViewModel.swift"
       ],
       "acceptanceCriteria": [
-        "100% Native SwiftUI / WidgetKit implementation adhering to Rule 1 (zero shared Compose on iOS)",
-        "Dynamic Island displays real-time active channel, transmitting rider, and RF link margin",
-        "Lock Screen Live Activity provides instant 1-tap channel switch and SOS trigger",
-        "ActivityKit lifecycle tied cleanly to active intercom session via IntercomBridge"
+        "100% native SwiftUI with zero Compose Multiplatform imports (Rule 1)",
+        "Subscribes cleanly to IntercomBridge.kt repeater state with CancellationHandle lifecycle",
+        "Supports iOS 17+ StandBy landscape cockpit display for stationary phone placement in basecamp/tent",
+        "Compiles cleanly without Swift or KMP linking errors"
       ],
       "passes": true
     },
     {
-      "id": "ICA-1404",
+      "id": "ICA-1704",
       "priority": 4,
-      "title": "Multi-Cluster Cloud Cross-Mesh SFU Signaling & Audio Bridging",
-      "description": "Extend :core signaling protocol and :server Ktor SFU audio bridge to interconnect multiple independent BLE mesh clusters: SignalingMessage.ClusterBridge, transcode-free routing of 4-bit ADPCM packets with jitter smoothing, and multi-cluster peer presence aggregation.",
+      "title": "Remote Repeater Telemetry & Diagnostic Ping Cockpit HUD Integration",
+      "description": "Integrate remote basecamp repeater health status into the main cockpit HUD (HomeScreen.kt and ContentView.swift): top avionics bar repeater beacon badge (showing nearest basecamp distance, battery %, and link quality), and 1-tap diagnostic ping triggering.",
       "targetFiles": [
-        "core/src/commonMain/kotlin/org/nowni/intercom_alpha/protocol/SignalingProtocol.kt",
-        "server/src/main/kotlin/org/nowni/intercom_alpha/server/signaling/SignalingServerManager.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/CloudRelayBridge.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/MultiClusterBridgeTest.kt"
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/home/HomeScreen.kt",
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/home/HomeViewModel.kt",
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/home/HomeUiState.kt",
+        "app/iosApp/iosApp/ContentView.swift",
+        "app/sharedUI/src/commonTest/kotlin/org/nowni/intercom_alpha/ui/home/HomeViewModelTest.kt"
       ],
       "acceptanceCriteria": [
-        "SignalingProtocol registers ClusterBridge polymorphic message type with #type discriminator",
-        "SignalingServerManager routes audio frames across rooms without audio transcoding or latency penalty",
-        "CloudRelayBridge aggregates cross-cluster peer presence and prevents routing loops",
-        "100% test pass across :core, :server, and :app:sharedLogic"
+        "Cockpit HUD displays basecamp beacon status badge when a repeater is heard within 3 hops",
+        "Diagnostic ping trigger measures round-trip latency and displays reflection time on HUD",
+        "Maintains zero-scroll tactical cockpit layout constraint on mobile handlebars",
+        "Full automated multiplatform verification gates pass cleanly"
       ],
       "passes": true
     }

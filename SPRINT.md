@@ -1,28 +1,30 @@
-# Current Status: Sprint 15 (Phase 13: Zero-Scroll Tactical Cockpit HUD & Hardware Telemetry Integration)
+# Current Status: Sprint 17 (Phase 15: Basecamp Stationary Repeater UI & Low-Power Cockpit Mode)
 
 > **Active Sprint Reference:** [TASKS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/TASKS.md) & [prd.json](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/tasks/ralph/prd.json)  
-> **Sprint Branch:** `sprint/sprint-15-cockpit-hud-integration`  
+> **Sprint Branch:** `sprint/sprint-17-basecamp-repeater-ui`  
 > **Sprint Governance Rules:** [SPRINT-RULES.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/SPRINT-RULES.md)  
 > **Engineering Contract:** [AGENTS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/AGENTS.md)  
 > **Knowledge Base:** [MEMORY.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/MEMORY.md)  
 
 ---
 
-## 🚀 Active Sprint: Sprint 15 (Phase 13: Zero-Scroll Tactical Cockpit HUD & Hardware Telemetry Integration)
-**Goal:** Deliver end-to-end integration of Sprint 14 subsystems (`HelmetAccessoryManager`, `MeshKeyRatchet`, `CloudRelayBridge`) into `HomeViewModel` and platform bridges, and deploy the Zero-Scroll Tactical Cockpit HUD (zero vertical scrolling on motorcycle RAM mounts, 140dp circular PTT with hot-mic pulse, single-row 4-hazard macro strip, compact circular vector radar, and emergency preemption) across Compose Multiplatform (`sharedUI`) and 100% Native iOS SwiftUI (`iosApp`).  
-- **Sprint Branch:** `sprint/sprint-15-cockpit-hud-integration`  
-- **Target Release:** `v2.2.0-rc1`  
+## 🚀 Active Sprint: Sprint 17 (Phase 15: Basecamp Stationary Repeater UI & Low-Power Cockpit Mode)
+**Goal:** Deliver dedicated stationary basecamp mesh repeater UI and low-power standby modes across Compose Multiplatform (`sharedUI`) and 100% Native iOS SwiftUI (`iosApp`), wiring `MeshRepeaterService` into platform bridges, presentation models, and live telemetry badges on the main Cockpit HUD.  
+- **Sprint Branch:** `sprint/sprint-17-basecamp-repeater-ui`  
+- **Target Release:** `v2.3.0-rc1`  
 
 | Task ID | Item | Owner | Target Files | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **ICA-1501** | Subsystem Telemetry Wiring (Accessory, PFS Ratchet, SFU Cloud) | Ralph | `IntercomHardwareBridge.kt`, `AndroidPlatformBridge.kt`, `IntercomBridge.kt`, `HomeViewModel.kt`, `HomeUiState.kt` | ✅ Completed |
-| **ICA-1502** | Compose Multiplatform Zero-Scroll Cockpit HUD | Ralph | `HomeScreen.kt`, `PttButton.kt`, `QuickHazardBar.kt`, `ProximityRadarView.kt` | ✅ Completed |
-| **ICA-1503** | Native iOS SwiftUI Tactical Cockpit HUD | Ralph | `ContentView.swift`, `IntercomViewModel.swift` | ✅ Completed |
-| **ICA-1504** | Multiplatform Verification Gates & Presentation Regression Tests | Ralph | `HomeViewModelTest.kt`, Gradle automated tests, OpenCodeReview | ✅ Completed |
+| **ICA-1701** | Basecamp Repeater State Management & Platform Bridge Wiring | Ralph | `RepeaterUiState.kt`, `RepeaterViewModel.kt`, `IntercomBridge.kt`, `AndroidPlatformBridge.kt` | 🟡 Ready for Dev |
+| **ICA-1702** | Compose Multiplatform Basecamp Repeater Screen & OLED Dark Standby | Ralph | `BasecampRepeaterScreen.kt`, `AppNavGraph.kt`, `AppModule.kt` | ⚪ Queued |
+| **ICA-1703** | Native iOS SwiftUI Basecamp Repeater Cockpit & StandBy Display | Ralph | `BasecampRepeaterView.swift`, `ContentView.swift`, `IntercomViewModel.swift` | ⚪ Queued |
+| **ICA-1704** | Remote Repeater Telemetry & Diagnostic Ping Cockpit HUD Integration | Ralph | `HomeScreen.kt`, `HomeViewModel.kt`, `ContentView.swift` | ⚪ Queued |
 
 ---
 
 ## 📦 Historical Sprint Archive
+- ✅ **Sprint 16: Mesh Repeater, Audio DSP & Convoy Simulation**: Completed 2026-10-06 (100% DoD, Merged to `develop`).
+- ✅ **Sprint 15: Zero-Scroll Tactical Cockpit HUD & Hardware Telemetry Integration**: Completed 2026-10-06 (100% DoD, v2.2.0 Released).
 - ✅ **Sprint 14: Advanced Convoy Mesh, Forward-Secret Key Ratchet & Live Activity**: Completed 2026-10-04 (100% DoD, v2.1.0 Released).
 - ✅ **Sprint 13: v2.0 Production Release & Hardening (v2.0.0 Release Tag)**: Completed 2026-10-04 (100% DoD).
 - ✅ **Sprint 12: Multiplatform Cockpit UI & Bridge Integration**: Completed 2026-10-01 (100% DoD).

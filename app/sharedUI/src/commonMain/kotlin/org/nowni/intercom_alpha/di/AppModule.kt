@@ -9,9 +9,11 @@ import org.nowni.intercom_alpha.bridge.IntercomHardwareBridge
 import org.nowni.intercom_alpha.bridge.NoOpIntercomHardwareBridge
 import org.nowni.intercom_alpha.channel.ChannelManager
 import org.nowni.intercom_alpha.feature.home.HomeViewModel
+import org.nowni.intercom_alpha.mesh.MeshRepeaterService
 import org.nowni.intercom_alpha.mesh.ProximityRadar
 import org.nowni.intercom_alpha.telemetry.ConvoyGpsTracker
 import org.nowni.intercom_alpha.text.MeshTextManager
+import org.nowni.intercom_alpha.ui.repeater.RepeaterViewModel
 
 fun createSharedUiModule(
     hardwareBridge: IntercomHardwareBridge = NoOpIntercomHardwareBridge()
@@ -24,9 +26,11 @@ fun createSharedUiModule(
     single { EmergencyBlackboxRecorder() }
     single { AdaptiveBitrateController() }
     single { org.nowni.intercom_alpha.headset.HelmetAccessoryManager() }
+    single { MeshRepeaterService(repeaterId = "basecamp-relay-1", repeaterName = "Basecamp Relay Alpha") }
     single<IntercomHardwareBridge> { hardwareBridge }
 
     viewModelOf(::HomeViewModel)
+    viewModelOf(::RepeaterViewModel)
 }
 
 val sharedUiModule = createSharedUiModule()

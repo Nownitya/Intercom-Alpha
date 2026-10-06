@@ -1,7 +1,7 @@
 # Product Requirements Document (PRD) — Intercom-Alpha
 
-> **Document Version:** 2.2  
-> **Status:** Production Release Tagged (`v2.2.0`)  
+> **Document Version:** 2.3  
+> **Status:** Production Release Tagged (`v2.3.0`)  
 > **Last Updated:** 2026-10-06  
 > **Repository:** `Intercom-Alpha`  
 > **Obsidian Reference:** `03_Specifications/` & `PROJECT-SPEC.md`
@@ -100,6 +100,8 @@ Rider opens app ➔ Creates or scans QR code ➔ Pairs Bluetooth helmet headset 
 - **Hardware-to-Cockpit Service Bridge & R8 Hardening**: Wired live BLE mesh audio/PTT/meters, R8 minification (3.17 MB APK), and 4-hour battery/WakeLock validation (Sprint 13).
 - **Advanced Convoy Mesh, Forward-Secret Key Ratchet & Live Activity**: Pure KMP RFC 5869 HKDF Perfect Forward Secrecy session ratchet, Cardo/Sena Bluetooth GATT battery/PTT accessory manager, native iOS 18+ Live Activity / Dynamic Island widget, and multi-cluster cross-mesh SFU bridging (Sprint 14).
 - **Zero-Scroll Tactical Cockpit HUD & Telemetry Integration**: Zero-vertical-scroll mobile handlebar layout, 140dp tactile PTT with hot-mic pulse, 58dp volume/VOX-lock flanking actuators, single-row 4-hazard macro strip, and vector radar with polar-to-cartesian rider dots across Compose and SwiftUI (Sprint 15).
+- **Mesh Repeater, Audio DSP & Convoy Simulation**: Pure KMP AGC & DRC speech normalization, autonomous stationary basecamp mesh repeater mode (`MeshRepeaterService.kt`), automated 8-node virtual convoy RF simulation harness (`ConvoyMeshSimulationHarness.kt`), and decentralized OTA group re-keying & dynamic epoch migration (`GroupEpochManager.kt`) (Sprint 16).
+- **Basecamp Stationary Repeater UI & Dedicated Low-Power Cockpit Mode**: Dedicated `BasecampRepeaterScreen.kt` in pure OLED `#000000` dark standby, 100% native SwiftUI [`BasecampRepeaterView.swift`](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/app/iosApp/iosApp/BasecampRepeaterView.swift) with iOS 17+ StandBy landscape support, and remote basecamp beacon telemetry with 1-tap diagnostic pings on the main cockpit HUD (Sprint 17).
 
 ---
 

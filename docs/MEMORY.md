@@ -381,6 +381,92 @@
   - Circular vector radar display: concentric distance rings (100m, 500m, 1.5km), heading chevron, crosshairs, and dynamically plotted color-coded rider dots (Green < 100m, Cyan < 500m, Amber $\ge$ 500m) with live telemetry callout.
   - End-to-end hardware telemetry wiring: Cardo/Sena GATT battery level and PTT events (`HelmetAccessoryManager`), Perfect Forward Secrecy session ratchet (`MeshKeyRatchet`), and multi-cluster cloud bridge status (`CloudRelayBridge`) integrated across `HomeViewModel`, `AndroidPlatformBridge`, and native iOS `IntercomBridge` / `IntercomViewModel`.
 
+### 2.44 Pure KMP Automatic Gain Control (AGC) & Dynamic Range Compression (DRC) (`AutomaticGainControl.kt`, `DynamicRangeCompressor.kt`)
+- **Challenge**: Motorcycle helmet microphones operate in extreme acoustic dynamic ranges: quiet whispers at stoplights vs. yelling over 100+ km/h wind roar. Uncontrolled gain either causes severe clipping distortion or amplifies background road rumble during speech pauses.
+- **Solution**:
+  - Implemented `AutomaticGainControl.kt` in pure Kotlin Multiplatform:
+    - Normalizes speech energy to target RMS (-18.0 dBFS) across dynamic range.
+    - Anti-pumping envelope follower below -50.0 dBFS suspends gain boosts during pauses, gently decaying toward unity gain to prevent amplifying ambient engine or road rumble.
+    - Slew-rate filtering with asymmetric attack (80ms) and release (300ms) plus sample-by-sample linear gain interpolation completely eliminates clicks and zipper noise.
+  - Implemented `DynamicRangeCompressor.kt` with pure KMP soft-knee compression and lookahead peak limiter:
+    - Smooth soft-knee compression curve (threshold: -12.0 dBFS, ratio: 4:1, knee width: 6.0 dB) transitions gradually from linear into compressed behavior without harsh harmonic artifacts.
+    - Low-latency lookahead circular buffer (1.5ms) detects transients ahead of time and applies gain attenuation before peaks exit the delay line.
+    - Brickwall peak limiter strictly bounds output peak to `ceilingDb` (-0.5 dBFS), guaranteeing zero clipping at 32767 and protecting ADPCM encoder buffers and helmet earpieces.
+  - Integrated both processors into `AudioPipelineSession` (`AudioEngine.kt`) on both outgoing microphone and incoming playout paths.
+
+### 2.45 Autonomous Low-Power Mesh Repeater & Basecamp Beacon Service (`MeshRepeaterService.kt`)
+- **Challenge**: Convoy riders separated by mountain ridges, switchbacks, or canyons lose direct line-of-sight BLE connectivity. Stationary nodes (basecamp stations or parked trailheads) need to relay mesh packets without wasting battery on unused microphone/speaker pipelines.
+- **Solution**:
+  - Implemented `MeshRepeaterService.kt` in `commonMain`:
+    - Zero audio hardware buffer allocations: Completely bypasses microphone capture and audio playout pipelines, dedicating 100% of CPU and radio airtime to low-latency flooding relay.
+    - Sub-15ms multi-hop relay forwarding: Wraps raw packets into `MeshPacket.Relay`, decrements TTL, drops expired frames (TTL <= 1), and rejects self-origin packets.
+    - Sliding-window loop suppression: Evaluates incoming packets with `PacketDeduplicator` to eliminate broadcast storm echo loops.
+    - Periodic Basecamp Beaconing: Broadcasts low-overhead `RepeaterBeaconPayload` via `ControlType.REPEATER_BEACON` carrying battery level, solar status, uptime, and active neighbor counts.
+    - Remote Diagnostic Ping/Pong: Supports `ControlType.REPEATER_PING` and responds with `ControlType.REPEATER_PONG` carrying ping reflection timestamps, battery health, and forwarded packet statistics.
+    - Active neighbor table tracks heard rider IDs with 60-second stale pruning.
+
+- **ICA-1603: Automated Multi-Node Mesh Field Simulation Harness (Sprint 16)**:
+  - Implemented `ConvoyMeshSimulationHarness.kt` in `commonMain`:
+    - Simulates 8-node virtual motorcycle convoy moving in linear formation under stochastic RF conditions.
+    - Models distance-bounded direct hop limits (`maxDirectHopDistance`), multi-hop flood forwarding via `MeshPacket.Relay`, bounded TTL drops, and broadcast storm suppression via `PacketDeduplicator`.
+    - Simulates 25% stochastic packet drop and out-of-order in-flight delivery.
+    - Validates 100% successful decryption recovery of received out-of-order frames via `MeshKeyRatchet` skipped-key caching and jitter playout via `AdaptiveJitterBuffer`.
+    - Benchmarking executes in under 5 seconds with zero flaky timings.
+
+- **ICA-1604: Seamless Mesh OTA Group Re-Keying & Dynamic Epoch Migration (Sprint 16)**:
+  - Implemented `GroupEpochManager.kt` in `commonMain`:
+    - Pure multiplatform RFC 5869 HKDF-SHA256 epoch master key derivation and RFC 2104 HMAC-SHA256 leader signature validation for `EPOCH_ROLLOVER`.
+    - Dual-epoch concurrent decryption window (default: 30 seconds) ensuring zero frame drops or audio stutter during active voice transmissions.
+    - Consensus epoch telemetry beaconing (`EPOCH_BEACON`).
+    - Explicit memory zeroization (`masterSecret.fill(0)`) and cleanup of superseded epoch keys.
+    - Wired into `GroupManager.kt` and `GroupManagerImpl.kt`.
+
+### 2.46 Basecamp Repeater State Management & Platform Bridge Wiring (Sprint 17 - ICA-1701)
+- **Challenge**: Stationing a mobile phone as an autonomous basecamp repeater requires decoupling audio hardware resources (mic/speaker pipelines) to conserve power and airtime while keeping the BLE transport flooding active. In addition, mobile riders need to query basecamp link quality via diagnostic pings.
+- **Solution**:
+  - Implemented `RepeaterUiState.kt` and `RepeaterViewModel.kt` in `app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/repeater/`:
+    - Reactive `StateFlow<RepeaterUiState>` exposing active neighbor callsigns, battery percentage, solar status, duty cycle modes (`CONTINUOUS`, `POWER_SAVER`, `EXTREME_SURVIVAL`), packet counters, and remote diagnostic ping latency.
+    - Standby screen lock toggle for OLED power preservation.
+  - Extended `IntercomHardwareBridge.kt` and `AndroidPlatformBridge.kt`:
+    - `isRepeaterModeActive`, `repeaterTelemetry`, `incomingRepeaterPongs`, `incomingRepeaterBeacons`.
+    - When repeater mode is enabled, `IntercomForegroundService.kt` safely releases microphone recording and audio playback pipelines (`audioEngine.stop()`), eliminating unnecessary CPU wakeups and dedicating 100% of RF airtime to relaying mesh packets.
+  - Extended `IntercomBridge.kt` (`iosMain`):
+    - Wired `MeshRepeaterService` with reactive Swift-friendly `CancellationHandle` observers (`observeRepeaterTelemetry`, `observeRepeaterModeActive`, `observeLastPingLatency`, `observeLatestBeacon`).
+    - Safe audio pipeline pause/resume upon entering/exiting repeater mode.
+  - Registered `MeshRepeaterService` and `RepeaterViewModel` in Koin `AppModule.kt`.
+
+### 2.47 Compose Multiplatform Basecamp Repeater Screen & OLED Dark Standby (Sprint 17 - ICA-1702)
+- **Challenge**: Operating a phone as a basecamp repeater continuously drains battery if UI rendering consumes display power or CPU cycles.
+- **Solution**:
+  - Implemented `BasecampRepeaterScreen.kt` in `app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/repeater/`:
+    - Pure OLED `#000000` power-saving color theme with ultra-dim amber/green phosphors.
+    - Full-screen `NightStandbyScreen` lock mode with tap-to-wake gesture for unattended overnight tent/ridge operation.
+    - Station status bar with dynamic duty cycle mode cycling (`CONTINUOUS` -> `POWER_SAVER` -> `EXTREME_SURVIVAL`).
+    - Live solar/battery gauges, RF metrics grid, active heard neighbor list, and 1-tap diagnostic ping/beacon buttons.
+  - Registered polymorphic `RepeaterRoute` under `NavKey` with `SavedStateConfiguration` in `AppNavGraph.kt`.
+  - Added "Relay" launcher in `HomeScreen.kt`.
+
+### 2.48 Native iOS SwiftUI Basecamp Repeater Cockpit & StandBy Display (Sprint 17 - ICA-1703)
+- **Challenge**: Stationing an iOS device on a tent or ridge dock requires 100% native SwiftUI (Rule 1) with zero Compose Multiplatform imports, seamless `CancellationHandle` bridge observation, and adaptive widescreen layout for iOS 17+ StandBy mode.
+- **Solution**:
+  - Implemented `BasecampRepeaterView.swift` in `app/iosApp/iosApp/`:
+    - Pure native SwiftUI with zero Compose Multiplatform imports.
+    - Pure OLED `#000000` black background with high-contrast tactical gauges.
+    - Full-screen `NightStandbyOverlayView` with time display, minimal amber phosphor status, and tap-to-wake gesture.
+    - Responsive landscape adaptation (`LandscapeStandbyCockpitView`) for iOS 17+ StandBy horizontal bedside/tent docks.
+    - Master relay activation card with animated RF wave, audio engine suspension banner, battery & solar status, and duty cycle picker.
+    - 4-card RF telemetry grid, remote diagnostic ping trigger card with live RTT latency reflection, and active heard neighbors roster.
+  - Wired into `IntercomViewModel.swift` with reactive `CancellationHandle` observers tied to `@MainActor` lifecycle.
+  - Added Basecamp Repeater button to `TacticalAvionicsBar` and sheet presentation in `ContentView.swift`.
+
+### 2.49 Remote Repeater Telemetry & Diagnostic Ping Cockpit HUD Integration (Sprint 17 - ICA-1704)
+- **Challenge**: Mobile riders riding along trails need to know whether stationary basecamp repeaters are within RF relay reach without navigating away from the tactical zero-scroll cockpit HUD.
+- **Solution**:
+  - `HomeUiState.kt` / `HomeViewModel.kt`: Exposed `latestRepeaterBeacon`, `repeaterPingLatencyMs`, and `isPingingRepeater`.
+  - Ingested `hardwareBridge.incomingRepeaterBeacons` and `incomingRepeaterPongs`. Emits `MeshRepeaterService.createDiagnosticPing` upon `HomeUiAction.TriggerRepeaterPing`.
+  - `HomeScreen.kt`: Embedded compact Basecamp Beacon telemetry strip in the Top Avionics Bar displaying repeater name, battery %, solar status, round-trip latency, and 1-tap `PING` button. Zero layout shift and adheres to zero-scroll contract.
+  - `ContentView.swift`: Integrated Basecamp Beacon badge with RTT latency reflection and 1-tap ping into `TacticalAvionicsBar`.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

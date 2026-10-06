@@ -806,5 +806,170 @@
   - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 25s (Rule 6).
   - `./gradlew :app:androidApp:assembleDebug`: BUILD SUCCESSFUL in 8s (Rule 6).
   - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+### [2026-10-06] - ICA-1601: Audio DSP Hardening: Pure KMP Automatic Gain Control & Dynamic Range Compression
+- **Branch**: `feature/ICA-1601-audio-dsp-agc-drc`
+- **Objective**: Implement pure Kotlin Multiplatform Automatic Gain Control (`AutomaticGainControl.kt`) and Dynamic Range Compression (`DynamicRangeCompressor.kt`) for helmet intercom audio: dynamic RMS speech normalization across whispering and screaming, soft-knee compression curve, anti-pumping envelope follower, and lookahead peak limiter with zero Java/C dependencies.
+- **Implementation**:
+  - `AutomaticGainControl.kt`: Pure KMP DSP normalizing speech to target level (-18.0 dBFS) across dynamic range. Features anti-pumping envelope follower below -50.0 dBFS (suspending gain boosts during silence/noise), asymmetric attack (80ms) and release (300ms) slew-rate filtering, and sample-by-sample linear gain interpolation to prevent clicks/zipper noise.
+  - `DynamicRangeCompressor.kt`: Pure KMP soft-knee dynamic range compressor (threshold: -12.0 dBFS, ratio: 4:1, knee width: 6.0 dB, attack: 5ms, release: 60ms) and lookahead brickwall peak limiter (lookahead: 1.5ms, ceiling: -0.5 dBFS). Smoothly compresses loud syllables and guarantees zero clipping at 32767 with peak output strictly <= -0.5 dBFS.
+  - `AudioEngine.kt`: Added `enableAgc: Boolean = true`, `agcTargetDb: Float = -18f`, `enableDrc: Boolean = true` to `AudioEngineConfig`. Wired `AutomaticGainControl`, `DynamicRangeCompressor`, and playout limiter into full duplex `AudioPipelineSession` (`processOutgoingMicrophone` and `pullPlayoutFrame`).
+  - `AutomaticGainControlTest.kt`: Created unit tests in `commonTest` testing whisper normalization to -18 dBFS target within 150ms, anti-pumping silence suppression, shout attenuation, soft-knee 4:1 curve calculation, lookahead limiter zero-clipping guarantee (peak <= -0.5 dBFS), and full duplex pipeline integration.
+- **Verification**:
+  - `./gradlew test`: 100% test suite pass across all modules (Rule 6).
+  - `./gradlew :app:sharedLogic:jvmTest :app:sharedUI:jvmTest`: Passed cleanly.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 24s (Rule 6).
+  - `./gradlew :app:androidApp:assembleDebug`: BUILD SUCCESSFUL in 24s (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+  - `graphify update .`: AST updated with 2337 nodes, 4648 edges.
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
 ---
+### [2026-10-06] - ICA-1602: Autonomous Mesh Repeater & Basecamp Beacon Mode
+- **Branch**: `feature/ICA-1602-mesh-repeater-beacon`
+- **Objective**: Implement specialized low-power stationary mesh repeater service (`MeshRepeaterService.kt`) and node manager: bypass local mic/speaker pipelines to save CPU/battery, prioritize BLE GATT packet flooding relay with dynamic power-saving duty cycle, advertise stationary basecamp beacon telemetry, and support remote repeater diagnostic ping.
+- **Implementation**:
+  - `MeshTransport.kt`: Added `REPEATER_BEACON`, `REPEATER_PING`, `REPEATER_PONG` to `ControlType` enum.
+  - `MeshRepeaterService.kt`: Created autonomous relay service with zero audio buffer allocations, sub-15ms multi-hop relay forwarding, loop suppression via `PacketDeduplicator`, TTL decrement, self-origin rejection, 60s active neighbor tracking table with automatic stale pruning, periodic `RepeaterBeaconPayload` broadcasts, and diagnostic ping/pong telemetry responses.
+  - `MeshRepeaterServiceTest.kt`: Created unit tests in `commonTest` testing multi-hop relay encapsulation, TTL decrement/drop, loop suppression duplicate dropping, self-origin rejection, forwarding latency (< 15ms), periodic beacon emission and decoding, diagnostic ping/pong, and active neighbor tracking/pruning.
+- **Verification**:
+  - `./gradlew test`: 100% test pass across all modules (Rule 6).
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed in 19s (Rule 6).
+  - `./gradlew :app:androidApp:assembleDebug`: BUILD SUCCESSFUL in 19s (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+  - `graphify update .`: AST updated with 2373 nodes, 4731 edges.
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+### [2026-10-06] - ICA-1603: Automated Multi-Node Mesh Field Simulation Harness
+- **Branch**: `feature/ICA-1603-convoy-mesh-simulation`
+- **Objective**: Implement automated 8-node virtual mesh convoy simulation harness (`ConvoyMeshSimulationHarness.kt`): simulate moving convoy line formation with realistic path loss, dynamic RF dropouts (canyon pass scenarios), out-of-order packet arrival, and verify 100% PFS session ratchet recovery and audio jitter playout.
+- **Implementation**:
+  - `ConvoyMeshSimulationHarness.kt`: Implemented `ConvoySimulationConfig`, `ConvoyBenchmarkMetrics`, `VirtualConvoyNode`, and `ConvoyMeshSimulationHarness`. Simulates 8 distinct virtual peers in linear convoy formation with distance-bounded RF propagation, dynamic multi-hop forwarding (`MeshPacket.Relay`), bounded TTL decrements (dropping expired packets at TTL <= 1), loop suppression via `PacketDeduplicator`, stochastic packet loss (25%), in-flight queue shuffling (out-of-order arrival), and end-to-end `MeshKeyRatchet` decryption & `AdaptiveJitterBuffer` playout.
+  - `ConvoyMeshSimulationHarnessTest.kt`: Created comprehensive test suite in `commonTest`:
+    - `testEightNodeConvoyBenchmarkMultiHopAndLoopSuppression`: Validates 8-node convoy line, multi-hop propagation to tail node (index 7), loop suppression drops, TTL expiration drops, and benchmark completion in under 5 seconds.
+    - `testTwentyFivePercentDropAndOutOfOrderRatchetRecovery`: Validates skipped-key ratchet recovery across 25% stochastic loss and out-of-order arrival, ensuring 100% of received out-of-order packets are decrypted without corruption.
+    - `testJitterBufferPlayoutOnVirtualNodes`: Validates intermediate node jitter buffer playout with non-zero audible frame extraction.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: 100% test pass across all unit tests in 51s (Rule 6).
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly in 34s (Rule 6).
+  - `./gradlew :app:androidApp:assembleDebug`: BUILD SUCCESSFUL in 11s (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+---
+### [2026-10-06] - ICA-1604: Seamless Mesh OTA Group Re-Keying & Dynamic Epoch Migration
+- **Branch**: `feature/ICA-1604-group-epoch-migration`
+- **Objective**: Implement decentralized Over-The-Air (OTA) group re-keying and epoch migration manager (`GroupEpochManager.kt`): dual-epoch overlapping transition window allowing old and new cryptographic keys to coexist for 30 seconds, consensus epoch beaconing, and zero drop of active voice streams during key rotation.
+- **Implementation**:
+  - `MeshTransport.kt`: Added `EPOCH_ROLLOVER` and `EPOCH_BEACON` to `ControlType` enum.
+  - `GroupEpochManager.kt`: Implemented complete decentralized epoch lifecycle manager:
+    - Pure Kotlin RFC 5869 HKDF-SHA256 master key derivation with salt and group domain separation.
+    - Leader-authenticated `EPOCH_ROLLOVER` control frame signed using RFC 2104 HMAC-SHA256.
+    - Dual-epoch concurrent decryption (`GroupEpochManager.decrypt(...)`) supporting tagged (8-byte big-endian epoch prefix) and raw fallback frames during configurable 30,000ms transition window.
+    - Consensus `EPOCH_BEACON` telemetry broadcasting for peer synchronization.
+    - Memory zeroization (`masterSecret.fill(0)`) and clearing of expired epoch keys after deadline.
+  - `GroupManager.kt` & `GroupManagerImpl.kt`: Wired `epochManager` lifecycle into group creation, join, and leave flows.
+  - `GroupEpochManagerTest.kt`: Created 6 comprehensive tests in `commonTest` verifying:
+    - Leader rollover initiation and peer signature verification/HKDF derivation.
+    - Dual-epoch concurrent decryption during 30s transition window.
+    - Zero packet drops during continuous active voice stream migration (40/40 frames delivered seamlessly + concurrent lagging peer frames).
+    - Timed pruning and memory zeroization of expired epoch keys.
+    - Rejection of non-leader rollovers, forged signatures, and outdated epoch numbers.
+    - Epoch consensus beaconing.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: 100% test pass across all unit tests in 3s (Rule 6).
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly in 18s (Rule 6).
+  - `./gradlew :app:androidApp:assembleDebug`: BUILD SUCCESSFUL in 28s (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
+### [2026-10-06] - ICA-1701: Basecamp Repeater State Management & Platform Bridge Wiring
+- **Branch**: `feature/ICA-1701-repeater-viewmodel-wiring`
+- **Objective**: Implement `RepeaterUiState.kt` and `RepeaterViewModel.kt` in `app/sharedUI`, wiring `MeshRepeaterService` into Koin DI and `IntercomHardwareBridge`/`AndroidPlatformBridge`/`IntercomBridge`. Manage stationary node state: battery percentage, solar charging indicator, active neighbor count, forwarded packet counters, and remote diagnostic ping triggers.
+- **Implementation**:
+  - `MeshRepeaterService.kt`: Added `activeNeighbors` field to `RepeaterTelemetry`, exposed `setDutyCycle(mode)`, added companion ping/pong helpers (`createDiagnosticPing`, `decodePongPayload`, `decodeBeaconPayload`).
+  - `IntercomHardwareBridge.kt`: Added `isRepeaterModeActive`, `repeaterTelemetry`, `incomingRepeaterPongs`, `incomingRepeaterBeacons`, `setRepeaterModeActive`, `updateRepeaterTelemetry`, `sendRepeaterPacket`, and updated `attachSubsystems` and `NoOpIntercomHardwareBridge`.
+  - `AndroidPlatformBridge.kt`: Implemented hardware bridge repeater contracts, bound service repeater mode toggling, and incoming ping/pong/beacon dispatching.
+  - `IntercomForegroundService.kt`: Added `setRepeaterMode(active)` to release microphone capture & speaker playback pipelines during stationary repeater operation, and updated `controlRxJob` to decode and route `REPEATER_PONG` and `REPEATER_BEACON`.
+  - `IntercomBridge.kt` (`iosMain`): Wired `MeshRepeaterService` with Swift-friendly reactive `CancellationHandle` observers (`observeRepeaterTelemetry`, `observeRepeaterModeActive`, `observeLastPingLatency`, `observeLatestBeacon`). Audio capture/playback is safely paused in repeater mode.
+  - `RepeaterUiState.kt` & `RepeaterViewModel.kt`: Created reactive presentation model in `app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/repeater/` managing duty cycles, active neighbor list, ping latency calculation, and standby lock.
+  - `AppModule.kt`: Registered `MeshRepeaterService` and `RepeaterViewModel` in shared UI Koin dependency injection module.
+  - `RepeaterViewModelTest.kt`: Created 8 comprehensive multiplatform unit tests validating state defaults, audio pipeline bypass activation, duty cycle selection, beacon broadcasts, diagnostic ping/pong round-trip latency reflection, standby lock, and hardware bridge sync.
+- **Verification**:
+  - `./gradlew :app:sharedUI:jvmTest :app:sharedLogic:jvmTest`: 100% test pass in 27s (Rule 6).
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly (Rule 6).
+  - `./gradlew :app:androidApp:assembleDebug`: BUILD SUCCESSFUL in 5s (Rule 6).
+  - `./gradlew test`: 100% test pass across all project test suites in 9s (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
+### [2026-10-06] - ICA-1702: Compose Multiplatform Basecamp Repeater Screen & OLED Dark Standby
+- **Branch**: `feature/ICA-1702-compose-repeater-screen`
+- **Objective**: Implement dedicated Compose Multiplatform `BasecampRepeaterScreen.kt` in `app/sharedUI`: high-contrast OLED black theme for low power consumption, live solar/battery telemetry gauges, animated RF relay wave, active neighbor radar list, and full-screen low-brightness night standby lock.
+- **Implementation**:
+  - `BasecampRepeaterScreen.kt`: Implemented full tactical stationary cockpit view in pure OLED `#000000`:
+    - Full-screen `NightStandbyScreen` lock mode with minimal power draw and tap-to-unlock gesture.
+    - Top station status bar with dynamic duty cycle mode cycling (`CONTINUOUS` -> `POWER_SAVER` -> `EXTREME_SURVIVAL`) and 1-tap night standby trigger.
+    - Power & solar telemetry cards displaying live battery percentage, power source status, and mount mode.
+    - RF relay metrics grid displaying forwarded packets, suppressed duplicates, TTL drops, and relay latency.
+    - Active convoy neighbors roster displaying heard rider callsigns.
+    - Diagnostic ping and manual beacon broadcast action buttons.
+    - Master relay switch button with tactile color state (Emerald when engaging, Crimson when active) and audio pipeline bypass indicator.
+  - `AppNavGraph.kt`: Registered polymorphic `RepeaterRoute` under `NavKey` with `SavedStateConfiguration` and `SerializersModule` (Gotcha 1).
+  - `HomeScreen.kt`: Added `onNavigateToRepeater` navigation callback and quick "Relay" launcher button in the Top Quick Actions row.
+- **Verification**:
+  - `./gradlew :app:sharedUI:jvmTest :app:sharedLogic:jvmTest`: 100% test pass in 46s (Rule 6).
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly (Rule 6).
+  - `./gradlew :app:androidApp:assembleDebug`: BUILD SUCCESSFUL in 40s (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
+### [2026-10-06] - ICA-1703: Native iOS SwiftUI Basecamp Repeater Cockpit & StandBy Display
+- **Branch**: `feature/ICA-1703-swiftui-repeater-view`
+- **Objective**: Implement 100% native SwiftUI `BasecampRepeaterView.swift` in `app/iosApp` (Rule 1): pure native SwiftUI layout, low-power display brightness reduction, Live Activity / StandBy mode banner, and seamless `CancellationHandle` bridge subscription.
+- **Implementation**:
+  - `BasecampRepeaterView.swift`: Implemented 100% native SwiftUI view in `app/iosApp/iosApp/` with zero Compose imports (Rule 1):
+    - Pure OLED `#000000` dark theme for low-power operation on stationary installations.
+    - Full-screen `NightStandbyOverlayView` with ultra-dim amber/green phosphors, time clock, battery status, and tap-to-wake gesture.
+    - Responsive landscape adaptation (`LandscapeStandbyCockpitView`) for iOS 17+ StandBy horizontal bedside/tent docks.
+    - Master relay activation card with animated RF wave and audio bypass banner.
+    - Power & solar status gauge, duty cycle selector (`.continuous`, `.powerSaver`, `.extremeSurvival`).
+    - 4-card RF telemetry grid (packets forwarded, loop duplicates dropped, last hop latency ms, beacons emitted).
+    - Diagnostic link verification card with 1-tap "PING RELAY" and "EMIT BEACON" triggers, reflecting round-trip latency.
+    - Active heard neighbors roster displaying heard rider callsigns with forwarding badges.
+  - `IntercomViewModel.swift`:
+    - Added `@Published` state: `isRepeaterModeActive`, `repeaterTelemetry`, `lastPingLatencyMs`, `latestBeacon`, `repeaterDutyCycle`, `showRepeaterSheet`.
+    - Added control methods: `setRepeaterActive`, `toggleRepeaterMode`, `setRepeaterDutyCycle`, `triggerDiagnosticPing`, `emitRepeaterBeacon`.
+    - Wired reactive `CancellationHandle` observers in `setupObservers()` dispatching to `@MainActor`: `observeRepeaterModeActive`, `observeRepeaterTelemetry`, `observeLastPingLatency`, `observeLatestBeacon`.
+  - `ContentView.swift`:
+    - Added Basecamp Repeater Cockpit button in `TacticalAvionicsBar` with green relay activity indicator.
+    - Added `.sheet(isPresented: $vm.showRepeaterSheet) { BasecampRepeaterView(vm: vm) }`.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (100% passing).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+  - Graphify knowledge sync (`graphify update .`): Rebuilt AST graph (2,542 nodes, 5,182 edges, 181 communities).
+### [2026-10-06] - ICA-1704: Remote Repeater Telemetry & Diagnostic Ping Cockpit HUD Integration
+- **Branch**: `feature/ICA-1704-hud-repeater-integration`
+- **Objective**: Integrate remote basecamp repeater health status into the main cockpit HUD (`HomeScreen.kt` and `ContentView.swift`): top avionics bar repeater beacon badge (showing nearest basecamp distance, battery %, and link quality), and 1-tap diagnostic ping triggering.
+- **Implementation**:
+  - `HomeUiState.kt`: Added `latestRepeaterBeacon`, `repeaterPingLatencyMs`, and `isPingingRepeater`. Added `HomeUiAction.TriggerRepeaterPing`.
+  - `HomeViewModel.kt`: Added collectors for `hardwareBridge.incomingRepeaterBeacons` and `incomingRepeaterPongs`. Added `TriggerRepeaterPing` handler emitting `MeshRepeaterService.createDiagnosticPing` through `hardwareBridge.sendRepeaterPacket`.
+  - `HomeScreen.kt`: Integrated Basecamp Stationary Repeater Beacon Strip into top avionics telemetry header:
+    - Displays heard repeater name, battery %, solar charging indicator, and round-trip ping latency.
+    - 1-tap `PING` actuator button measuring reflection latency directly from the mobile HUD.
+    - Strictly preserves single-viewport zero-scroll contract on motorcycle handlebars.
+  - `ContentView.swift`: Added 1-tap Basecamp Beacon badge with RTT latency reflection to `TacticalAvionicsBar`.
+  - `HomeViewModelTest.kt`: Added `testRepeaterBeaconIngestionAndDiagnosticPingFlow` verifying beacon updates, ping dispatch, and pong latency calculation.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (100% passing).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+  - Graphify knowledge sync (`graphify update .`): Rebuilt AST graph (2,546 nodes, 5,200 edges, 204 communities).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
+
+## 🏆 Sprint 17 Completion Summary: Phase 15 Basecamp Stationary Repeater UI & Dedicated Low-Power Cockpit Mode
+- **All 4 Sprint 17 stories PASSED**:
+  - `ICA-1701: Basecamp Repeater State Management & Platform Bridge Wiring` [PASSED]
+  - `ICA-1702: Compose Multiplatform Basecamp Repeater Screen & OLED Dark Standby` [PASSED]
+  - `ICA-1703: Native iOS SwiftUI Basecamp Repeater Cockpit & StandBy Display` [PASSED]
+  - `ICA-1704: Remote Repeater Telemetry & Diagnostic Ping Cockpit HUD Integration` [PASSED]
+- **Milestone Outcome**: 100% Definition of Done (DoD) achieved for Phase 15. Stationary repeater nodes operate with pure black OLED power conservation, zero audio buffer allocations, automated duty cycles, StandBy landscape layouts, and real-time remote cockpit telemetry with 1-tap diagnostic pings across both Android (Compose) and iOS (100% Native SwiftUI).
+---
+
+
+
