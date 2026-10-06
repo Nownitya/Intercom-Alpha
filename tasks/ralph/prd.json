@@ -40,7 +40,7 @@
         "Broadcasts periodic low-overhead REPEATER_BEACON with battery percentage and active neighbor count",
         "Full unit test suite verifying packet forwarding and beacon emission"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-1603",

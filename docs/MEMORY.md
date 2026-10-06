@@ -394,6 +394,17 @@
     - Brickwall peak limiter strictly bounds output peak to `ceilingDb` (-0.5 dBFS), guaranteeing zero clipping at 32767 and protecting ADPCM encoder buffers and helmet earpieces.
   - Integrated both processors into `AudioPipelineSession` (`AudioEngine.kt`) on both outgoing microphone and incoming playout paths.
 
+### 2.45 Autonomous Low-Power Mesh Repeater & Basecamp Beacon Service (`MeshRepeaterService.kt`)
+- **Challenge**: Convoy riders separated by mountain ridges, switchbacks, or canyons lose direct line-of-sight BLE connectivity. Stationary nodes (basecamp stations or parked trailheads) need to relay mesh packets without wasting battery on unused microphone/speaker pipelines.
+- **Solution**:
+  - Implemented `MeshRepeaterService.kt` in `commonMain`:
+    - Zero audio hardware buffer allocations: Completely bypasses microphone capture and audio playout pipelines, dedicating 100% of CPU and radio airtime to low-latency flooding relay.
+    - Sub-15ms multi-hop relay forwarding: Wraps raw packets into `MeshPacket.Relay`, decrements TTL, drops expired frames (TTL <= 1), and rejects self-origin packets.
+    - Sliding-window loop suppression: Evaluates incoming packets with `PacketDeduplicator` to eliminate broadcast storm echo loops.
+    - Periodic Basecamp Beaconing: Broadcasts low-overhead `RepeaterBeaconPayload` via `ControlType.REPEATER_BEACON` carrying battery level, solar status, uptime, and active neighbor counts.
+    - Remote Diagnostic Ping/Pong: Supports `ControlType.REPEATER_PING` and responds with `ControlType.REPEATER_PONG` carrying ping reflection timestamps, battery health, and forwarded packet statistics.
+    - Active neighbor table tracks heard rider IDs with 60-second stale pruning.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index
