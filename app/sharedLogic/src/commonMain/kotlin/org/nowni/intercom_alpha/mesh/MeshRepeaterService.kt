@@ -81,7 +81,8 @@ data class RepeaterTelemetry(
     val lastForwardLatencyMs: Long,
     val beaconEmissionCount: Long,
     val batteryPercent: Int,
-    val isRunning: Boolean
+    val isRunning: Boolean,
+    val activeNeighbors: List<String> = emptyList()
 )
 
 /**
@@ -253,16 +254,30 @@ class MeshRepeaterService(
         return beaconPacket
     }
 
+    fun setDutyCycle(mode: RepeaterDutyCycleMode) {
+        dutyCycleMode = mode
+        updateTelemetry()
+    }
+
+    /**
+     * Creates a diagnostic ping packet directed across the mesh to interrogate repeater latency.
+     */
+    fun createDiagnosticPing(senderId: String = repeaterId, sequence: Long = 0L): MeshPacket.Control {
+        return Companion.createDiagnosticPing(senderId, sequence, timeProvider())
+    }
+
+    /**
+     * Decodes an incoming diagnostic pong packet.
+     */
+    fun decodePongPayload(packet: MeshPacket.Control): RepeaterPongPayload? {
+        return Companion.decodePongPayload(packet)
+    }
+
     /**
      * Decodes an incoming beacon payload.
      */
     fun decodeBeaconPayload(packet: MeshPacket.Control): RepeaterBeaconPayload? {
-        if (packet.type != ControlType.REPEATER_BEACON || packet.payload.isEmpty()) return null
-        return try {
-            json.decodeFromString<RepeaterBeaconPayload>(packet.payload.decodeToString())
-        } catch (_: Exception) {
-            null
-        }
+        return Companion.decodeBeaconPayload(packet)
     }
 
     private fun handleDiagnosticPing(packet: MeshPacket.Control, now: Long) {
@@ -331,7 +346,51 @@ class MeshRepeaterService(
             lastForwardLatencyMs = lastForwardLatencyMs,
             beaconEmissionCount = beaconEmissionCount,
             batteryPercent = batteryPercentProvider(),
-            isRunning = isRunning
+            isRunning = isRunning,
+            activeNeighbors = activeNeighbors.keys.toList()
         )
+    }
+
+    companion object {
+        private val helperJson = Json {
+            classDiscriminator = "#type"
+            ignoreUnknownKeys = true
+        }
+
+        fun createDiagnosticPing(
+            senderId: String,
+            sequence: Long = 0L,
+            timestampMs: Long = currentTimeMillis()
+        ): MeshPacket.Control {
+            val payload = RepeaterPingPayload(
+                senderId = senderId,
+                timestampMs = timestampMs,
+                sequence = sequence
+            )
+            val encoded = helperJson.encodeToString(payload).encodeToByteArray()
+            return MeshPacket.Control(
+                senderId = senderId,
+                type = ControlType.REPEATER_PING,
+                payload = encoded
+            )
+        }
+
+        fun decodePongPayload(packet: MeshPacket.Control): RepeaterPongPayload? {
+            if (packet.type != ControlType.REPEATER_PONG || packet.payload.isEmpty()) return null
+            return try {
+                helperJson.decodeFromString<RepeaterPongPayload>(packet.payload.decodeToString())
+            } catch (_: Exception) {
+                null
+            }
+        }
+
+        fun decodeBeaconPayload(packet: MeshPacket.Control): RepeaterBeaconPayload? {
+            if (packet.type != ControlType.REPEATER_BEACON || packet.payload.isEmpty()) return null
+            return try {
+                helperJson.decodeFromString<RepeaterBeaconPayload>(packet.payload.decodeToString())
+            } catch (_: Exception) {
+                null
+            }
+        }
     }
 }

@@ -24,7 +24,7 @@
         "Supports remote diagnostic ping triggering with round-trip latency reflection",
         "100% test pass on JVM and platform compilation"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-1702",
