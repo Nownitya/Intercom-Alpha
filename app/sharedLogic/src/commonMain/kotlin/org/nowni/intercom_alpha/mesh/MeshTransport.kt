@@ -47,7 +47,10 @@ enum class ControlType {
     PING,
     PONG,
     SYNC_REQUEST,
-    SYNC_RESPONSE
+    SYNC_RESPONSE,
+    REPEATER_BEACON,
+    REPEATER_PING,
+    REPEATER_PONG
 }
 
 @Serializable
