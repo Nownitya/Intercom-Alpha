@@ -413,6 +413,14 @@
     - Validates 100% successful decryption recovery of received out-of-order frames via `MeshKeyRatchet` skipped-key caching and jitter playout via `AdaptiveJitterBuffer`.
     - Benchmarking executes in under 5 seconds with zero flaky timings.
 
+- **ICA-1604: Seamless Mesh OTA Group Re-Keying & Dynamic Epoch Migration (Sprint 16)**:
+  - Implemented `GroupEpochManager.kt` in `commonMain`:
+    - Pure multiplatform RFC 5869 HKDF-SHA256 epoch master key derivation and RFC 2104 HMAC-SHA256 leader signature validation for `EPOCH_ROLLOVER`.
+    - Dual-epoch concurrent decryption window (default: 30 seconds) ensuring zero frame drops or audio stutter during active voice transmissions.
+    - Consensus epoch telemetry beaconing (`EPOCH_BEACON`).
+    - Explicit memory zeroization (`masterSecret.fill(0)`) and cleanup of superseded epoch keys.
+    - Wired into `GroupManager.kt` and `GroupManagerImpl.kt`.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

@@ -75,7 +75,7 @@
         "Zero packet drops or audio interruption during active speech when epoch rolls over",
         "Full unit test suite verifying multi-peer epoch migration"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }

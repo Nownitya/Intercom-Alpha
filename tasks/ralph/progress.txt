@@ -851,5 +851,31 @@
   - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly in 34s (Rule 6).
   - `./gradlew :app:androidApp:assembleDebug`: BUILD SUCCESSFUL in 11s (Rule 6).
   - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+---
+### [2026-10-06] - ICA-1604: Seamless Mesh OTA Group Re-Keying & Dynamic Epoch Migration
+- **Branch**: `feature/ICA-1604-group-epoch-migration`
+- **Objective**: Implement decentralized Over-The-Air (OTA) group re-keying and epoch migration manager (`GroupEpochManager.kt`): dual-epoch overlapping transition window allowing old and new cryptographic keys to coexist for 30 seconds, consensus epoch beaconing, and zero drop of active voice streams during key rotation.
+- **Implementation**:
+  - `MeshTransport.kt`: Added `EPOCH_ROLLOVER` and `EPOCH_BEACON` to `ControlType` enum.
+  - `GroupEpochManager.kt`: Implemented complete decentralized epoch lifecycle manager:
+    - Pure Kotlin RFC 5869 HKDF-SHA256 master key derivation with salt and group domain separation.
+    - Leader-authenticated `EPOCH_ROLLOVER` control frame signed using RFC 2104 HMAC-SHA256.
+    - Dual-epoch concurrent decryption (`GroupEpochManager.decrypt(...)`) supporting tagged (8-byte big-endian epoch prefix) and raw fallback frames during configurable 30,000ms transition window.
+    - Consensus `EPOCH_BEACON` telemetry broadcasting for peer synchronization.
+    - Memory zeroization (`masterSecret.fill(0)`) and clearing of expired epoch keys after deadline.
+  - `GroupManager.kt` & `GroupManagerImpl.kt`: Wired `epochManager` lifecycle into group creation, join, and leave flows.
+  - `GroupEpochManagerTest.kt`: Created 6 comprehensive tests in `commonTest` verifying:
+    - Leader rollover initiation and peer signature verification/HKDF derivation.
+    - Dual-epoch concurrent decryption during 30s transition window.
+    - Zero packet drops during continuous active voice stream migration (40/40 frames delivered seamlessly + concurrent lagging peer frames).
+    - Timed pruning and memory zeroization of expired epoch keys.
+    - Rejection of non-leader rollovers, forged signatures, and outdated epoch numbers.
+    - Epoch consensus beaconing.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: 100% test pass across all unit tests in 3s (Rule 6).
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly in 18s (Rule 6).
+  - `./gradlew :app:androidApp:assembleDebug`: BUILD SUCCESSFUL in 28s (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
 ---
+
