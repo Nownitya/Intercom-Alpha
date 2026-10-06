@@ -506,7 +506,25 @@
   - `HomeScreen.kt`:
     - Wired `trailMapSnapshot`, `onCycleZoom`, and `onOpenTrailSheet` into `ProximityRadarView`.
     - Added quick "Trail" toggle/launcher button in the Top Quick Actions row next to "Relay".
-    - Added `OfflineTrailCockpitSheet` in the dialogs section governed by `uiState.showTrailSheet`.
+### 2.53 Native iOS SwiftUI Radar Topographic Overlay & Offline Trail Cockpit Sheet (Sprint 18 - ICA-1804)
+- **Challenge**: Delivering identical vector trail map capabilities on iOS while maintaining 100% native SwiftUI without any Compose Multiplatform code or external mapping SDKs (Rule 1), rendering vector contours and paths efficiently using SwiftUI `Path`, and providing seamless cockpit integration with `IntercomViewModel`.
+- **Solution**:
+  - `IntercomViewModel.swift`:
+    - Exposed `@Published var trailMapSnapshot: TrailMapSnapshot?` and `@Published var showTrailSheet: Bool`.
+    - Bound `bridge.observeTrailMapSnapshot` callback safely to `@MainActor` with `CancellationHandle` registered in lifecycle deinit array.
+    - Added Swift controls: `cycleRadarZoom()`, `setRadarZoom()`, `setTrailOverlayEnabled()`, `loadSampleAlpineTrail()`, `toggleTrailSheet()`.
+    - Fed live GPS fixes into `bridge.updateTrailLocalGps` for dynamic vector recalculations.
+  - `OfflineTrailCockpitSheet.swift`:
+    - 100% Native SwiftUI modal (`#14181D` dark tactical theme) compliant with Rule 1.
+    - Elevation metrics grid (Current Alt, Lead Rider Delta, Total Distance, Total Ascent).
+    - 3-segment radar range zoom buttons (`500m`, `1.5km`, `5.0km`) and vector overlay toggle.
+    - Next waypoint guidance banner with distance callout, bearing orientation, and type icon.
+    - Scrollable tactical waypoint roster with custom icons (💧 Water, ⛺ Camp, ⚠️ Hazard, 🏔️ Summit, 📍 Marker), elevations, and descriptions.
+  - `ContentView.swift`:
+    - Upgraded `TacticalVectorRadarView` with SwiftUI `Path` rendering of topographic contours (dashed strokes) and neon cyan trail polyline segments.
+    - Plotted rider breadcrumb dots and waypoint pins.
+    - Embedded tactile zoom range switcher badge in the radar corner.
+    - Integrated "Trail" launcher button in `TacticalAvionicsBar`.
 
 ---
 

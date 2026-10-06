@@ -81,7 +81,7 @@
         "Adds OfflineTrailCockpitSheet with elevation profile and nearest waypoint navigation",
         "Full compilation and automated verification pass across all targets"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }

@@ -1048,5 +1048,36 @@
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
 ---
 
+### [2026-10-07] - ICA-1804: Native iOS SwiftUI Radar Topographic Overlay & Offline Trail Cockpit Sheet
+- **Branch**: `feature/ICA-1804-swiftui-radar-topo-overlay`
+- **Objective**: Implement 100% native SwiftUI radar topographic contours and vector trail overlay in `TacticalVectorRadarView` (`ContentView.swift`) and `OfflineTrailCockpitSheet.swift` in `app/iosApp` (Rule 1). Wire `IntercomViewModel` observers with `CancellationHandle`, supporting radar range zoom, elevation difference badges, and offline waypoint list.
+- **Implementation**:
+  - `IntercomViewModel.swift`:
+    - Exposed `@Published var trailMapSnapshot: TrailMapSnapshot?` and `@Published var showTrailSheet: Bool`.
+    - Added reactive observation of `bridge.observeTrailMapSnapshot` with `CancellationHandle` registered in `cancellables`.
+    - Added Swift-friendly controls: `cycleRadarZoom()`, `setRadarZoom()`, `setTrailOverlayEnabled()`, `loadSampleAlpineTrail()`, `toggleTrailSheet()`.
+    - Connected `updateLocation` to update `bridge.updateTrailLocalGps` for live dynamic radar projection.
+  - `OfflineTrailCockpitSheet.swift`:
+    - 100% native SwiftUI sheet modal adhering strictly to Rule 1 (zero Compose Multiplatform imports).
+    - Elevation metrics card with current altitude, lead rider delta, total trail distance, and total ascent.
+    - Radar range zoom switcher (500m / 1.5km / 5.0km) and vector overlay toggle switch.
+    - Next waypoint guidance card with distance in meters, relative bearing, and waypoint type icon.
+    - Tactical waypoint roster with custom icons (💧 Water, ⛺ Camp, ⚠️ Hazard, 🏔️ Summit, 📍 Marker), elevation badges, and coordinates.
+    - One-tap "Reload Sample Alpine Trail & Topo" demo actuator.
+  - `ContentView.swift`:
+    - Upgraded `TacticalVectorRadarView`:
+      - Drawn topographic contours using SwiftUI `Path` with subtle dashed strokes (`[3, 3]`).
+      - Drawn neon cyan vector trail track using SwiftUI `Path` with rounded line joins.
+      - Drawn local rider rolling breadcrumbs and color-coded tactical waypoints.
+      - Integrated interactive radar zoom badge in upper-right corner cycling ranges.
+      - Compact bottom telemetry strip with active trail name and distance to next waypoint.
+    - Added "Map / Trail" cockpit button in `TacticalAvionicsBar`.
+    - Bound `.sheet(isPresented: $vm.showTrailSheet) { OfflineTrailCockpitSheet(vm: vm) }`.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
+
 
 

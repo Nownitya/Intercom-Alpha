@@ -18,7 +18,7 @@
 | **ICA-1801** | Pure KMP Offline Vector Trail & Terrain Geometry Engine | Ralph | `VectorMapModels.kt`, `TrailMapEngine.kt`, `TrailMapManager.kt` | ✅ Completed |
 | **ICA-1802** | Subsystem Bridge Wiring & Reactive Presentation Integration | Ralph | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `HomeViewModel.kt` | ✅ Completed |
 | **ICA-1803** | Compose Multiplatform Radar Topo Contour & Vector Trail Overlay | Ralph | `ProximityRadarView.kt`, `OfflineTrailCockpitSheet.kt`, `HomeScreen.kt` | ✅ Completed |
-| **ICA-1804** | Native iOS SwiftUI Radar Topographic Overlay & Offline Trail Cockpit Sheet | Ralph | `ContentView.swift`, `OfflineTrailCockpitSheet.swift`, `IntercomViewModel.swift` | 🟡 Ready for Dev |
+| **ICA-1804** | Native iOS SwiftUI Radar Topographic Overlay & Offline Trail Cockpit Sheet | Ralph | `ContentView.swift`, `OfflineTrailCockpitSheet.swift`, `IntercomViewModel.swift` | ✅ Completed |
 
 ---
 
