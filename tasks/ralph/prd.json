@@ -60,7 +60,7 @@
         "Supports iOS 17+ StandBy landscape cockpit display for stationary phone placement in basecamp/tent",
         "Compiles cleanly without Swift or KMP linking errors"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-1704",

@@ -435,6 +435,30 @@
     - Safe audio pipeline pause/resume upon entering/exiting repeater mode.
   - Registered `MeshRepeaterService` and `RepeaterViewModel` in Koin `AppModule.kt`.
 
+### 2.47 Compose Multiplatform Basecamp Repeater Screen & OLED Dark Standby (Sprint 17 - ICA-1702)
+- **Challenge**: Operating a phone as a basecamp repeater continuously drains battery if UI rendering consumes display power or CPU cycles.
+- **Solution**:
+  - Implemented `BasecampRepeaterScreen.kt` in `app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/repeater/`:
+    - Pure OLED `#000000` power-saving color theme with ultra-dim amber/green phosphors.
+    - Full-screen `NightStandbyScreen` lock mode with tap-to-wake gesture for unattended overnight tent/ridge operation.
+    - Station status bar with dynamic duty cycle mode cycling (`CONTINUOUS` -> `POWER_SAVER` -> `EXTREME_SURVIVAL`).
+    - Live solar/battery gauges, RF metrics grid, active heard neighbor list, and 1-tap diagnostic ping/beacon buttons.
+  - Registered polymorphic `RepeaterRoute` under `NavKey` with `SavedStateConfiguration` in `AppNavGraph.kt`.
+  - Added "Relay" launcher in `HomeScreen.kt`.
+
+### 2.48 Native iOS SwiftUI Basecamp Repeater Cockpit & StandBy Display (Sprint 17 - ICA-1703)
+- **Challenge**: Stationing an iOS device on a tent or ridge dock requires 100% native SwiftUI (Rule 1) with zero Compose Multiplatform imports, seamless `CancellationHandle` bridge observation, and adaptive widescreen layout for iOS 17+ StandBy mode.
+- **Solution**:
+  - Implemented `BasecampRepeaterView.swift` in `app/iosApp/iosApp/`:
+    - Pure native SwiftUI with zero Compose Multiplatform imports.
+    - Pure OLED `#000000` black background with high-contrast tactical gauges.
+    - Full-screen `NightStandbyOverlayView` with time display, minimal amber phosphor status, and tap-to-wake gesture.
+    - Responsive landscape adaptation (`LandscapeStandbyCockpitView`) for iOS 17+ StandBy horizontal bedside/tent docks.
+    - Master relay activation card with animated RF wave, audio engine suspension banner, battery & solar status, and duty cycle picker.
+    - 4-card RF telemetry grid, remote diagnostic ping trigger card with live RTT latency reflection, and active heard neighbors roster.
+  - Wired into `IntercomViewModel.swift` with reactive `CancellationHandle` observers tied to `@MainActor` lifecycle.
+  - Added Basecamp Repeater button to `TacticalAvionicsBar` and sheet presentation in `ContentView.swift`.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index
