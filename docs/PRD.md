@@ -100,6 +100,7 @@ Rider opens app ➔ Creates or scans QR code ➔ Pairs Bluetooth helmet headset 
 - **Hardware-to-Cockpit Service Bridge & R8 Hardening**: Wired live BLE mesh audio/PTT/meters, R8 minification (3.17 MB APK), and 4-hour battery/WakeLock validation (Sprint 13).
 - **Advanced Convoy Mesh, Forward-Secret Key Ratchet & Live Activity**: Pure KMP RFC 5869 HKDF Perfect Forward Secrecy session ratchet, Cardo/Sena Bluetooth GATT battery/PTT accessory manager, native iOS 18+ Live Activity / Dynamic Island widget, and multi-cluster cross-mesh SFU bridging (Sprint 14).
 - **Zero-Scroll Tactical Cockpit HUD & Telemetry Integration**: Zero-vertical-scroll mobile handlebar layout, 140dp tactile PTT with hot-mic pulse, 58dp volume/VOX-lock flanking actuators, single-row 4-hazard macro strip, and vector radar with polar-to-cartesian rider dots across Compose and SwiftUI (Sprint 15).
+- **Mesh Repeater, Audio DSP & Convoy Simulation**: Pure KMP AGC & DRC speech normalization, autonomous stationary basecamp mesh repeater mode (`MeshRepeaterService.kt`), automated 8-node virtual convoy RF simulation harness (`ConvoyMeshSimulationHarness.kt`), and decentralized OTA group re-keying & dynamic epoch migration (`GroupEpochManager.kt`) (Sprint 16).
 
 ---
 
