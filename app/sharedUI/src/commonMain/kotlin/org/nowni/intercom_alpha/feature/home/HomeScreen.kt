@@ -81,6 +81,18 @@ fun HomeScreen(
                     // Top Quick Actions
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         FilledTonalButton(
+                            onClick = { onAction(HomeUiAction.ToggleTrailSheet(true)) },
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                            shape = RoundedCornerShape(6.dp),
+                            colors = ButtonDefaults.filledTonalButtonColors(
+                                containerColor = if (uiState.trailMapSnapshot.isOverlayEnabled) Color(0xFF1B3B32) else Color(0xFF1D2023),
+                                contentColor = if (uiState.trailMapSnapshot.isOverlayEnabled) Color(0xFF00E5FF) else Color(0xFFB0B8C1)
+                            )
+                        ) {
+                            Text("Trail", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        }
+
+                        FilledTonalButton(
                             onClick = onNavigateToRepeater,
                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
                             shape = RoundedCornerShape(6.dp),
@@ -279,7 +291,10 @@ fun HomeScreen(
             // ================= 4. COMPACT CONVOY SPATIAL RADAR =================
             ProximityRadarView(
                 radarSnapshot = uiState.radarSnapshot,
-                convoySnapshot = uiState.convoySnapshot
+                convoySnapshot = uiState.convoySnapshot,
+                trailMapSnapshot = uiState.trailMapSnapshot,
+                onCycleZoom = { onAction(HomeUiAction.CycleRadarZoom) },
+                onOpenTrailSheet = { onAction(HomeUiAction.ToggleTrailSheet(true)) }
             )
 
             // ================= 5. MASTER 140DP TACTICAL PTT ACTUATOR =================
@@ -374,6 +389,16 @@ fun HomeScreen(
                 messages = uiState.messages,
                 onSendCustomText = { onAction(HomeUiAction.SendCustomText(it)) },
                 onDismiss = { onAction(HomeUiAction.ToggleMessagesDialog(false)) }
+            )
+        }
+
+        if (uiState.showTrailSheet) {
+            OfflineTrailCockpitSheet(
+                trailMapSnapshot = uiState.trailMapSnapshot,
+                onCycleZoom = { onAction(HomeUiAction.CycleRadarZoom) },
+                onToggleOverlay = { onAction(HomeUiAction.ToggleTrailOverlay(it)) },
+                onLoadSampleTrail = { onAction(HomeUiAction.LoadSampleTrail) },
+                onDismiss = { onAction(HomeUiAction.ToggleTrailSheet(false)) }
             )
         }
     }
