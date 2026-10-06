@@ -405,6 +405,14 @@
     - Remote Diagnostic Ping/Pong: Supports `ControlType.REPEATER_PING` and responds with `ControlType.REPEATER_PONG` carrying ping reflection timestamps, battery health, and forwarded packet statistics.
     - Active neighbor table tracks heard rider IDs with 60-second stale pruning.
 
+- **ICA-1603: Automated Multi-Node Mesh Field Simulation Harness (Sprint 16)**:
+  - Implemented `ConvoyMeshSimulationHarness.kt` in `commonMain`:
+    - Simulates 8-node virtual motorcycle convoy moving in linear formation under stochastic RF conditions.
+    - Models distance-bounded direct hop limits (`maxDirectHopDistance`), multi-hop flood forwarding via `MeshPacket.Relay`, bounded TTL drops, and broadcast storm suppression via `PacketDeduplicator`.
+    - Simulates 25% stochastic packet drop and out-of-order in-flight delivery.
+    - Validates 100% successful decryption recovery of received out-of-order frames via `MeshKeyRatchet` skipped-key caching and jitter playout via `AdaptiveJitterBuffer`.
+    - Benchmarking executes in under 5 seconds with zero flaky timings.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

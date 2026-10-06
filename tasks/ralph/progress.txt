@@ -837,5 +837,19 @@
   - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
   - `graphify update .`: AST updated with 2373 nodes, 4731 edges.
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+### [2026-10-06] - ICA-1603: Automated Multi-Node Mesh Field Simulation Harness
+- **Branch**: `feature/ICA-1603-convoy-mesh-simulation`
+- **Objective**: Implement automated 8-node virtual mesh convoy simulation harness (`ConvoyMeshSimulationHarness.kt`): simulate moving convoy line formation with realistic path loss, dynamic RF dropouts (canyon pass scenarios), out-of-order packet arrival, and verify 100% PFS session ratchet recovery and audio jitter playout.
+- **Implementation**:
+  - `ConvoyMeshSimulationHarness.kt`: Implemented `ConvoySimulationConfig`, `ConvoyBenchmarkMetrics`, `VirtualConvoyNode`, and `ConvoyMeshSimulationHarness`. Simulates 8 distinct virtual peers in linear convoy formation with distance-bounded RF propagation, dynamic multi-hop forwarding (`MeshPacket.Relay`), bounded TTL decrements (dropping expired packets at TTL <= 1), loop suppression via `PacketDeduplicator`, stochastic packet loss (25%), in-flight queue shuffling (out-of-order arrival), and end-to-end `MeshKeyRatchet` decryption & `AdaptiveJitterBuffer` playout.
+  - `ConvoyMeshSimulationHarnessTest.kt`: Created comprehensive test suite in `commonTest`:
+    - `testEightNodeConvoyBenchmarkMultiHopAndLoopSuppression`: Validates 8-node convoy line, multi-hop propagation to tail node (index 7), loop suppression drops, TTL expiration drops, and benchmark completion in under 5 seconds.
+    - `testTwentyFivePercentDropAndOutOfOrderRatchetRecovery`: Validates skipped-key ratchet recovery across 25% stochastic loss and out-of-order arrival, ensuring 100% of received out-of-order packets are decrypted without corruption.
+    - `testJitterBufferPlayoutOnVirtualNodes`: Validates intermediate node jitter buffer playout with non-zero audible frame extraction.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: 100% test pass across all unit tests in 51s (Rule 6).
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly in 34s (Rule 6).
+  - `./gradlew :app:androidApp:assembleDebug`: BUILD SUCCESSFUL in 11s (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
 ---
-

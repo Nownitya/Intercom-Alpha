@@ -57,7 +57,7 @@
         "Tests 25% packet drop and verify MeshKeyRatchet skipped-key recovery handles out-of-order frames",
         "Full automated test suite executing under 5 seconds with zero flaky timings"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-1604",
