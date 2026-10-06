@@ -12,6 +12,9 @@ import org.nowni.intercom_alpha.common.AudioProfile
 import org.nowni.intercom_alpha.feature.home.state.HomeUiAction
 import org.nowni.intercom_alpha.mesh.Peer
 import org.nowni.intercom_alpha.mesh.ProximityRadar
+import org.nowni.intercom_alpha.mesh.RepeaterBeaconPayload
+import org.nowni.intercom_alpha.mesh.RepeaterDutyCycleMode
+import org.nowni.intercom_alpha.mesh.RepeaterPongPayload
 import org.nowni.intercom_alpha.telemetry.ConvoyGpsTracker
 import org.nowni.intercom_alpha.telemetry.GpsCoordinate
 import org.nowni.intercom_alpha.text.CannedMessageCode
@@ -257,5 +260,53 @@ class HomeViewModelTest {
         advanceUntilIdle()
         assertFalse(viewModel.uiState.value.isVoxLocked)
         assertFalse(viewModel.uiState.value.isTransmitting)
+    }
+
+    @Test
+    fun testRepeaterBeaconIngestionAndDiagnosticPingFlow() = runTest(testDispatcher) {
+        assertNull(viewModel.uiState.value.latestRepeaterBeacon)
+        assertNull(viewModel.uiState.value.repeaterPingLatencyMs)
+        assertFalse(viewModel.uiState.value.isPingingRepeater)
+
+        // 1. Simulate incoming basecamp beacon
+        val beacon = RepeaterBeaconPayload(
+            repeaterId = "basecamp-stationary-1",
+            repeaterName = "Basecamp Alpha",
+            batteryPercent = 94,
+            activeNeighborCount = 3,
+            packetsForwarded = 450L,
+            uptimeSeconds = 3600L,
+            dutyCycleMode = RepeaterDutyCycleMode.CONTINUOUS,
+            isSolarPowered = true
+        )
+        hardwareBridge.simulateIncomingRepeaterBeacon(beacon)
+        advanceUntilIdle()
+
+        assertNotNull(viewModel.uiState.value.latestRepeaterBeacon)
+        assertEquals("Basecamp Alpha", viewModel.uiState.value.latestRepeaterBeacon?.repeaterName)
+        assertEquals(94, viewModel.uiState.value.latestRepeaterBeacon?.batteryPercent)
+        assertTrue(viewModel.uiState.value.latestRepeaterBeacon?.isSolarPowered == true)
+
+        // 2. Trigger diagnostic ping action
+        viewModel.onAction(HomeUiAction.TriggerRepeaterPing)
+        advanceUntilIdle()
+        assertTrue(viewModel.uiState.value.isPingingRepeater)
+
+        // 3. Simulate incoming diagnostic pong response
+        val now = org.nowni.intercom_alpha.currentTimeMillis()
+        val pong = RepeaterPongPayload(
+            repeaterId = "basecamp-stationary-1",
+            pingSenderId = "local-rider",
+            pingTimestampMs = now - 15L,
+            pongTimestampMs = now - 5L,
+            batteryPercent = 94,
+            packetsForwarded = 451L
+        )
+        hardwareBridge.simulateIncomingRepeaterPong(pong)
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.isPingingRepeater)
+        assertNotNull(viewModel.uiState.value.repeaterPingLatencyMs)
+        assertTrue((viewModel.uiState.value.repeaterPingLatencyMs ?: 0L) >= 0L)
     }
 }

@@ -39,7 +39,12 @@ data class HomeUiState(
     val accessoryState: HelmetAccessoryState = HelmetAccessoryState(),
     val isCloudBridgeConnected: Boolean = false,
     val isPfsRatchetActive: Boolean = true,
-    val isVoxLocked: Boolean = false
+    val isVoxLocked: Boolean = false,
+
+    // Sprint 17 Basecamp Repeater HUD Telemetry (ICA-1704)
+    val latestRepeaterBeacon: org.nowni.intercom_alpha.mesh.RepeaterBeaconPayload? = null,
+    val repeaterPingLatencyMs: Long? = null,
+    val isPingingRepeater: Boolean = false
 )
 
 sealed interface HomeUiAction {
@@ -63,6 +68,7 @@ sealed interface HomeUiAction {
     data object ClearEmergency : HomeUiAction
     data class ToggleMessagesDialog(val show: Boolean) : HomeUiAction
     data object ToggleVoxLock : HomeUiAction
+    data object TriggerRepeaterPing : HomeUiAction
 }
 
 sealed interface HomeUiEvent {

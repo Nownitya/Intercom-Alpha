@@ -346,6 +346,31 @@ struct TacticalAvionicsBar: View {
                 .cornerRadius(6)
             }
 
+            // Basecamp Beacon Status & 1-Tap Diagnostic Ping (Sprint 17 - ICA-1704)
+            if let beacon = vm.latestBeacon {
+                Button(action: {
+                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                    vm.triggerDiagnosticPing()
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "antenna.radiowaves.left.and.right")
+                            .font(.system(size: 9, weight: .bold))
+                        Text("\(beacon.batteryPercent)%")
+                            .font(.system(size: 9, weight: .bold, design: .monospaced))
+                        if let rtt = vm.lastPingLatencyMs {
+                            Text("• \(rtt)ms")
+                                .font(.system(size: 8, weight: .heavy, design: .monospaced))
+                        }
+                    }
+                    .foregroundColor(.green)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 4)
+                    .background(Color.green.opacity(0.15))
+                    .cornerRadius(6)
+                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.green.opacity(0.35), lineWidth: 1))
+                }
+            }
+
             // Peers Sheet Button
             Button(action: onShowPeers) {
                 Image(systemName: "person.2.fill")
