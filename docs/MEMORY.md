@@ -482,6 +482,15 @@
     - Sliding-window breadcrumbs per rider (up to 100 points, filtered by $\ge 10$m delta to conserve memory).
     - Dynamic projection recalculation upon observer movement, vehicle heading change, or radar range zoom cycling.
 
+### 2.51 Subsystem Bridge Wiring & Reactive Presentation Integration (Sprint 18 - ICA-1802)
+- **Challenge**: Seamlessly binding offline vector map geometry and radar projections across multiplatform presentation layers (`HomeViewModel.kt`, Android services, and Native iOS SwiftUI `IntercomViewModel`) while maintaining reactive state flows, zero memory leaks, and clean life-cycle subscriptions.
+- **Solution**:
+  - `IntercomHardwareBridge.kt`: Added `trailMapSnapshot: StateFlow<TrailMapSnapshot>`, `updateTrailMapSnapshot()`, and `trailMapManager` injection in `attachSubsystems()`.
+  - `AndroidPlatformBridge.kt`: Connected `trailMapManager.snapshot` to bridge state flow and exposed for background navigation routing.
+  - `IntercomBridge.kt` (`iosMain`): Exposed `observeTrailMapSnapshot` callback returning `CancellationHandle` for SwiftUI view lifecycle safety (Rule 1), alongside radar zoom cycling (`cycleRadarZoom()`, `setRadarZoom()`) and sample trail loader.
+  - `HomeUiState.kt` / `HomeViewModel.kt`: Centralized `trailMapSnapshot` into `uiState`, automatically streaming local Android/iOS GPS coordinates and incoming over-the-air peer GPS frames to `trailMapManager` for real-time relative radar projection.
+  - `AppModule.kt`: Declared `single { TrailMapManager() }` in Koin multiplatform module.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

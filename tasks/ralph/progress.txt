@@ -991,6 +991,36 @@
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
 ---
+### [2026-10-07] - ICA-1802: Subsystem Bridge Wiring & Reactive Presentation Integration
+- **Branch**: `feature/ICA-1802-subsystem-bridge-wiring`
+- **Objective**: Wire `TrailMapManager` into Koin DI, `IntercomHardwareBridge`, `AndroidPlatformBridge`, and `IntercomBridge` (`iosMain`) with typed `CancellationHandle` observers. Integrate into `HomeUiState.kt` and `HomeViewModel.kt`, managing trail snapshot, selectable radar zoom ranges (500m, 1.5km, 5km), trail overlay toggles, and waypoint creation.
+- **Implementation**:
+  - `IntercomHardwareBridge.kt`:
+    - Added `trailMapSnapshot: StateFlow<TrailMapSnapshot>` and `updateTrailMapSnapshot(snapshot)`.
+    - Added `trailMapManager: TrailMapManager? = null` parameter to `attachSubsystems(...)`.
+    - Extended `NoOpIntercomHardwareBridge` with `_trailMapSnapshot` and `simulateTrailMapSnapshot`.
+  - `AndroidPlatformBridge.kt`:
+    - Exposed `trailMapSnapshot: StateFlow<TrailMapSnapshot>` and implemented `attachSubsystems` collecting `trailMapManager.snapshot`.
+  - `IntercomBridge.kt` (`iosMain`):
+    - Instantiated `val trailMapManager: TrailMapManager = TrailMapManager()`.
+    - Added Swift-friendly observers with `CancellationHandle`: `observeTrailMapSnapshot`.
+    - Added control functions for Swift: `cycleRadarZoom()`, `setRadarZoom()`, `setTrailOverlayEnabled()`, `loadSampleAlpineTrail()`, `updateTrailLocalGps()`.
+  - `HomeUiState.kt`:
+    - Added `trailMapSnapshot: TrailMapSnapshot` and `showTrailSheet: Boolean`.
+    - Added actions: `CycleRadarZoom`, `SetRadarZoom`, `ToggleTrailOverlay`, `ToggleTrailSheet`, `LoadSampleTrail`.
+  - `HomeViewModel.kt`:
+    - Injected `val trailMapManager: TrailMapManager` into constructor.
+    - Attached to `hardwareBridge.attachSubsystems`.
+    - Synchronized `trailMapManager.snapshot` into `_uiState`.
+    - Fed live local GPS fixes and incoming over-the-air peer GPS telemetry frames directly to `trailMapManager` for real-time relative vector projection.
+    - Handled `CycleRadarZoom`, `SetRadarZoom`, `ToggleTrailOverlay`, `ToggleTrailSheet`, and `LoadSampleTrail`.
+  - `AppModule.kt` & `AppModuleTest.kt`: Registered `single { TrailMapManager() }` in Koin DI and verified resolution.
+  - `HomeViewModelTest.kt`: Added `testTrailMapSnapshotCoordinationAndActions` verifying full reactive cycle and actions.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
 
 
 

@@ -45,7 +45,7 @@
         "HomeViewModel coordinates GPS location changes to TrailMapManager for dynamic projection",
         "Full test pass in sharedUI and sharedLogic modules"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-1803",
