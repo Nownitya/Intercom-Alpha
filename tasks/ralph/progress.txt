@@ -898,5 +898,27 @@
   - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
 ---
+### [2026-10-06] - ICA-1702: Compose Multiplatform Basecamp Repeater Screen & OLED Dark Standby
+- **Branch**: `feature/ICA-1702-compose-repeater-screen`
+- **Objective**: Implement dedicated Compose Multiplatform `BasecampRepeaterScreen.kt` in `app/sharedUI`: high-contrast OLED black theme for low power consumption, live solar/battery telemetry gauges, animated RF relay wave, active neighbor radar list, and full-screen low-brightness night standby lock.
+- **Implementation**:
+  - `BasecampRepeaterScreen.kt`: Implemented full tactical stationary cockpit view in pure OLED `#000000`:
+    - Full-screen `NightStandbyScreen` lock mode with minimal power draw and tap-to-unlock gesture.
+    - Top station status bar with dynamic duty cycle mode cycling (`CONTINUOUS` -> `POWER_SAVER` -> `EXTREME_SURVIVAL`) and 1-tap night standby trigger.
+    - Power & solar telemetry cards displaying live battery percentage, power source status, and mount mode.
+    - RF relay metrics grid displaying forwarded packets, suppressed duplicates, TTL drops, and relay latency.
+    - Active convoy neighbors roster displaying heard rider callsigns.
+    - Diagnostic ping and manual beacon broadcast action buttons.
+    - Master relay switch button with tactile color state (Emerald when engaging, Crimson when active) and audio pipeline bypass indicator.
+  - `AppNavGraph.kt`: Registered polymorphic `RepeaterRoute` under `NavKey` with `SavedStateConfiguration` and `SerializersModule` (Gotcha 1).
+  - `HomeScreen.kt`: Added `onNavigateToRepeater` navigation callback and quick "Relay" launcher button in the Top Quick Actions row.
+- **Verification**:
+  - `./gradlew :app:sharedUI:jvmTest :app:sharedLogic:jvmTest`: 100% test pass in 46s (Rule 6).
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly (Rule 6).
+  - `./gradlew :app:androidApp:assembleDebug`: BUILD SUCCESSFUL in 40s (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
+
 
 

@@ -26,6 +26,7 @@ import org.nowni.intercom_alpha.ui.components.*
 fun HomeScreen(
     uiState: HomeUiState,
     onAction: (HomeUiAction) -> Unit,
+    onNavigateToRepeater: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -79,6 +80,18 @@ fun HomeScreen(
 
                     // Top Quick Actions
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        FilledTonalButton(
+                            onClick = onNavigateToRepeater,
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                            shape = RoundedCornerShape(6.dp),
+                            colors = ButtonDefaults.filledTonalButtonColors(
+                                containerColor = Color(0xFF1D2023),
+                                contentColor = Color(0xFFFFB300)
+                            )
+                        ) {
+                            Text("Relay", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        }
+
                         FilledTonalButton(
                             onClick = { onAction(HomeUiAction.ToggleShareDialog(true)) },
                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
