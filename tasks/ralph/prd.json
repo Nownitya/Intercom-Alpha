@@ -63,7 +63,7 @@
         "OfflineTrailCockpitSheet displays active trail name, elevation gain, distance, and nearest waypoint",
         "Preserves single-viewport zero-scroll mobile handlebar layout constraint"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-1804",

@@ -489,7 +489,24 @@
   - `AndroidPlatformBridge.kt`: Connected `trailMapManager.snapshot` to bridge state flow and exposed for background navigation routing.
   - `IntercomBridge.kt` (`iosMain`): Exposed `observeTrailMapSnapshot` callback returning `CancellationHandle` for SwiftUI view lifecycle safety (Rule 1), alongside radar zoom cycling (`cycleRadarZoom()`, `setRadarZoom()`) and sample trail loader.
   - `HomeUiState.kt` / `HomeViewModel.kt`: Centralized `trailMapSnapshot` into `uiState`, automatically streaming local Android/iOS GPS coordinates and incoming over-the-air peer GPS frames to `trailMapManager` for real-time relative radar projection.
-  - `AppModule.kt`: Declared `single { TrailMapManager() }` in Koin multiplatform module.
+### 2.52 Compose Multiplatform Radar Topo Contour & Vector Trail Overlay (Sprint 18 - ICA-1803)
+- **Challenge**: Rendering offline vector paths, contour lines, waypoints, and peer breadcrumbs directly on top of the Proximity Radar canvas in Compose Multiplatform without degrading rendering performance, causing frame drops during active voice streaming, or breaking the strict single-viewport zero-scroll mobile handlebar layout constraint.
+- **Solution**:
+  - `ProximityRadarView.kt`:
+    - Layered vector canvas drawing underneath concentric radar rings:
+      - Topographic elevation contours: Subtle dashed lines with elevation label pills (30% opacity).
+      - Neon trail tracks: Cyan glow polyline with directional segments and path vertices.
+      - Rider breadcrumb dots: Rolling 100-point history per peer rendered with color accents and fading tails.
+      - Tactical waypoints: Projected symbols for Water, Summit, Camp, Hazard, and Waypoint with distance/bearing labels.
+    - Interactive tactile range zoom badge: Upper right corner button cycling `500m` -> `1.5km` -> `5.0km` ranges.
+  - `OfflineTrailCockpitSheet.kt`:
+    - Full-featured tactical dark sheet modal with elevation metrics (max, min, current, total ascent), active trail polyline stats, distance, and nearest waypoint distance/bearing.
+    - Radar zoom switcher chips, vector overlay toggle, and sample trail loader.
+    - Scrollable waypoint roster with type icons, elevation badges, and coordinates.
+  - `HomeScreen.kt`:
+    - Wired `trailMapSnapshot`, `onCycleZoom`, and `onOpenTrailSheet` into `ProximityRadarView`.
+    - Added quick "Trail" toggle/launcher button in the Top Quick Actions row next to "Relay".
+    - Added `OfflineTrailCockpitSheet` in the dialogs section governed by `uiState.showTrailSheet`.
 
 ---
 
