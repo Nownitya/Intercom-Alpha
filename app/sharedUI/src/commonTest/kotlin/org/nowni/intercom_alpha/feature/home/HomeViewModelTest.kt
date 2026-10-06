@@ -309,4 +309,50 @@ class HomeViewModelTest {
         assertNotNull(viewModel.uiState.value.repeaterPingLatencyMs)
         assertTrue((viewModel.uiState.value.repeaterPingLatencyMs ?: 0L) >= 0L)
     }
+
+    @Test
+    fun testTrailMapSnapshotCoordinationAndActions() = runTest(testDispatcher) {
+        val initialSnap = viewModel.uiState.value.trailMapSnapshot
+        assertNotNull(initialSnap)
+        assertEquals(org.nowni.intercom_alpha.map.RadarRangeZoom.MEDIUM, initialSnap.activeRangeZoom)
+        assertTrue(initialSnap.isOverlayEnabled)
+        assertFalse(viewModel.uiState.value.showTrailSheet)
+
+        // 1. Toggle trail sheet dialog
+        viewModel.onAction(HomeUiAction.ToggleTrailSheet(true))
+        advanceUntilIdle()
+        assertTrue(viewModel.uiState.value.showTrailSheet)
+
+        // 2. Cycle radar zoom
+        viewModel.onAction(HomeUiAction.CycleRadarZoom)
+        advanceUntilIdle()
+        assertEquals(org.nowni.intercom_alpha.map.RadarRangeZoom.WIDE, viewModel.uiState.value.trailMapSnapshot.activeRangeZoom)
+
+        // 3. Toggle overlay visibility
+        viewModel.onAction(HomeUiAction.ToggleTrailOverlay(false))
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.trailMapSnapshot.isOverlayEnabled)
+
+        // 4. Ingest local GPS coordinate
+        val loc = GpsCoordinate(
+            latitude = 45.0,
+            longitude = 10.0,
+            altitudeMeters = 800.0,
+            speedKmh = 40.0f,
+            headingDegrees = 45.0f,
+            accuracyMeters = 5.0f,
+            timestampMs = 5000L
+        )
+        hardwareBridge.simulateLocalGps(loc)
+        advanceUntilIdle()
+        assertEquals(800.0, viewModel.uiState.value.trailMapSnapshot.currentElevationMeters)
+
+        // 5. Load sample alpine trail
+        viewModel.onAction(HomeUiAction.LoadSampleTrail)
+        advanceUntilIdle()
+        val updatedSnap = viewModel.uiState.value.trailMapSnapshot
+        assertNotNull(updatedSnap.activeTrail)
+        assertEquals("Black Bear Pass Trail", updatedSnap.activeTrail?.name)
+        assertTrue(updatedSnap.projectedWaypoints.isNotEmpty())
+    }
 }

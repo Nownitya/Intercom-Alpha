@@ -20,6 +20,10 @@ import org.nowni.intercom_alpha.feature.home.state.HomeUiAction
 import org.nowni.intercom_alpha.feature.home.state.HomeUiState
 import org.nowni.intercom_alpha.headset.HelmetAccessoryManager
 import org.nowni.intercom_alpha.headset.RemotePttAction
+import org.nowni.intercom_alpha.map.GeoPoint
+import org.nowni.intercom_alpha.map.RadarRangeZoom
+import org.nowni.intercom_alpha.map.TrailMapManager
+import org.nowni.intercom_alpha.map.TrailMapSnapshot
 import org.nowni.intercom_alpha.mesh.MeshRepeaterService
 import org.nowni.intercom_alpha.mesh.ProximityRadar
 import org.nowni.intercom_alpha.telemetry.ConvoyGpsTracker
@@ -34,6 +38,7 @@ class HomeViewModel(
     val blackboxRecorder: EmergencyBlackboxRecorder = EmergencyBlackboxRecorder(),
     val bitrateController: AdaptiveBitrateController = AdaptiveBitrateController(),
     val helmetAccessoryManager: HelmetAccessoryManager = HelmetAccessoryManager(),
+    val trailMapManager: TrailMapManager = TrailMapManager(),
     val hardwareBridge: IntercomHardwareBridge = NoOpIntercomHardwareBridge()
 ) : ViewModel() {
 
@@ -48,9 +53,14 @@ class HomeViewModel(
 
     init {
         // 1. Attach shared logic subsystems to platform hardware bridge
-        hardwareBridge.attachSubsystems(channelManager, blackboxRecorder, helmetAccessoryManager)
+        hardwareBridge.attachSubsystems(channelManager, blackboxRecorder, helmetAccessoryManager, trailMapManager = trailMapManager)
 
         // 2. Synchronize shared logic subsystem flows
+        viewModelScope.launch {
+            trailMapManager.snapshot.collect { snapshot ->
+                _uiState.update { it.copy(trailMapSnapshot = snapshot) }
+            }
+        }
         viewModelScope.launch {
             channelManager.channelState.collect { state ->
                 _uiState.update { it.copy(channelState = state) }
@@ -170,6 +180,12 @@ class HomeViewModel(
         viewModelScope.launch {
             hardwareBridge.incomingGpsFrames.collect { frame ->
                 convoyGpsTracker.handleIncomingTelemetry(frame)
+                trailMapManager.updatePeerPosition(
+                    peerId = frame.peerId,
+                    latitude = frame.coordinate.latitude,
+                    longitude = frame.coordinate.longitude,
+                    altitudeMeters = frame.coordinate.altitudeMeters
+                )
             }
         }
         viewModelScope.launch {
@@ -184,11 +200,18 @@ class HomeViewModel(
             }
         }
 
-        // 7. Ingest live local GPS fixes into convoy tracker
+        // 7. Ingest live local GPS fixes into convoy tracker & trail map
         viewModelScope.launch {
             hardwareBridge.localGpsCoordinate.collect { coord ->
                 if (coord != null) {
                     convoyGpsTracker.updateLocalLocation(coord)
+                    trailMapManager.updateLocalPosition(
+                        latitude = coord.latitude,
+                        longitude = coord.longitude,
+                        altitudeMeters = coord.altitudeMeters,
+                        headingDegrees = coord.headingDegrees,
+                        timestampMs = coord.timestampMs
+                    )
                 }
             }
         }
@@ -347,6 +370,41 @@ class HomeViewModel(
                 _uiState.update { it.copy(isPingingRepeater = true) }
                 val pingPacket = MeshRepeaterService.createDiagnosticPing(senderId = "local-rider")
                 hardwareBridge.sendRepeaterPacket(pingPacket)
+            }
+
+            // Sprint 18 Trail Map Actions (ICA-1802)
+            HomeUiAction.CycleRadarZoom -> {
+                viewModelScope.launch {
+                    trailMapManager.cycleRangeZoom()
+                }
+            }
+
+            is HomeUiAction.SetRadarZoom -> {
+                viewModelScope.launch {
+                    trailMapManager.setRangeZoom(action.zoom)
+                }
+            }
+
+            is HomeUiAction.ToggleTrailOverlay -> {
+                viewModelScope.launch {
+                    trailMapManager.setOverlayEnabled(action.enabled)
+                }
+            }
+
+            is HomeUiAction.ToggleTrailSheet -> {
+                _uiState.update { it.copy(showTrailSheet = action.show) }
+            }
+
+            HomeUiAction.LoadSampleTrail -> {
+                viewModelScope.launch {
+                    val coord = _uiState.value.convoySnapshot.localCoordinate
+                    val center = if (coord != null) {
+                        GeoPoint(coord.latitude, coord.longitude, coord.altitudeMeters)
+                    } else {
+                        GeoPoint(37.7749, -122.4194, 2500.0)
+                    }
+                    trailMapManager.loadSampleAlpineTrail(center)
+                }
             }
         }
     }

@@ -10,6 +10,8 @@ import org.nowni.intercom_alpha.audio.EmergencyBlackboxRecorder
 import org.nowni.intercom_alpha.channel.ChannelManager
 import org.nowni.intercom_alpha.headset.HelmetAccessoryManager
 import org.nowni.intercom_alpha.headset.HelmetAccessoryState
+import org.nowni.intercom_alpha.map.TrailMapManager
+import org.nowni.intercom_alpha.map.TrailMapSnapshot
 import org.nowni.intercom_alpha.mesh.MeshPacket
 import org.nowni.intercom_alpha.mesh.MeshRepeaterService
 import org.nowni.intercom_alpha.mesh.Peer
@@ -55,17 +57,20 @@ interface IntercomHardwareBridge {
     val repeaterTelemetry: StateFlow<RepeaterTelemetry?>
     val incomingRepeaterPongs: SharedFlow<RepeaterPongPayload>
     val incomingRepeaterBeacons: SharedFlow<RepeaterBeaconPayload>
+    val trailMapSnapshot: StateFlow<TrailMapSnapshot>
 
     fun setPttActive(active: Boolean)
     fun setRepeaterModeActive(active: Boolean)
     fun updateRepeaterTelemetry(telemetry: RepeaterTelemetry?)
+    fun updateTrailMapSnapshot(snapshot: TrailMapSnapshot)
     fun sendRepeaterPacket(packet: MeshPacket.Control)
     fun sendControlPayload(tag: Byte, payload: ByteArray)
     fun attachSubsystems(
         channelManager: ChannelManager,
         blackboxRecorder: EmergencyBlackboxRecorder,
         helmetAccessoryManager: HelmetAccessoryManager? = null,
-        repeaterService: MeshRepeaterService? = null
+        repeaterService: MeshRepeaterService? = null,
+        trailMapManager: TrailMapManager? = null
     ) {}
 }
 
@@ -120,6 +125,9 @@ open class NoOpIntercomHardwareBridge(
     protected val _incomingRepeaterBeacons = MutableSharedFlow<RepeaterBeaconPayload>(extraBufferCapacity = 16)
     override val incomingRepeaterBeacons: SharedFlow<RepeaterBeaconPayload> = _incomingRepeaterBeacons.asSharedFlow()
 
+    protected val _trailMapSnapshot = MutableStateFlow(TrailMapSnapshot())
+    override val trailMapSnapshot: StateFlow<TrailMapSnapshot> = _trailMapSnapshot.asStateFlow()
+
     override fun setPttActive(active: Boolean) {
         _isTransmitting.value = active
     }
@@ -130,6 +138,10 @@ open class NoOpIntercomHardwareBridge(
 
     override fun updateRepeaterTelemetry(telemetry: RepeaterTelemetry?) {
         _repeaterTelemetry.value = telemetry
+    }
+
+    override fun updateTrailMapSnapshot(snapshot: TrailMapSnapshot) {
+        _trailMapSnapshot.value = snapshot
     }
 
     override fun sendRepeaterPacket(packet: MeshPacket.Control) {
@@ -175,5 +187,9 @@ open class NoOpIntercomHardwareBridge(
 
     fun simulateIncomingRepeaterBeacon(beacon: RepeaterBeaconPayload) {
         _incomingRepeaterBeacons.tryEmit(beacon)
+    }
+
+    fun simulateTrailMapSnapshot(snapshot: TrailMapSnapshot) {
+        _trailMapSnapshot.value = snapshot
     }
 }
