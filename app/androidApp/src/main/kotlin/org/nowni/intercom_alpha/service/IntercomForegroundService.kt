@@ -32,7 +32,9 @@ import org.nowni.intercom_alpha.group.GroupManagerImpl
 import org.nowni.intercom_alpha.headset.HeadsetButtonEvent
 import org.nowni.intercom_alpha.headset.HeadsetManager
 import org.nowni.intercom_alpha.headset.HeadsetManagerImpl
+import org.nowni.intercom_alpha.mesh.ControlType
 import org.nowni.intercom_alpha.mesh.MeshConfig
+import org.nowni.intercom_alpha.mesh.MeshRepeaterService
 import org.nowni.intercom_alpha.mesh.MeshTransport
 import org.nowni.intercom_alpha.mesh.MeshTransportImpl
 import org.nowni.intercom_alpha.mesh.Peer
@@ -193,6 +195,39 @@ class IntercomForegroundService : Service() {
         }
     }
 
+    private var isRepeaterMode: Boolean = false
+
+    fun setRepeaterMode(active: Boolean) {
+        Log.d(TAG, "setRepeaterMode($active)")
+        isRepeaterMode = active
+        if (active) {
+            // Release audio recording and playout pipelines to save battery and dedicate RF to relay
+            audioTxJob?.cancel()
+            audioTxJob = null
+            audioRxJob?.cancel()
+            audioRxJob = null
+            serviceScope.launch {
+                try {
+                    audioEngine.stop()
+                } catch (e: Exception) {
+                    Log.w(TAG, "Error stopping audio engine for repeater mode", e)
+                }
+            }
+        } else {
+            // Restore intercom audio pipelines if session is still active
+            if (isSessionActive) {
+                serviceScope.launch {
+                    try {
+                        audioEngine.start(AudioEngineConfig())
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error restarting audio engine after repeater mode", e)
+                    }
+                }
+            }
+        }
+        updateNotification()
+    }
+
     private fun startIntercomSession(groupId: String, peerName: String) {
         isSessionActive = true
         // Acquire CPU partial wake lock to prevent Doze mode from sleeping audio & BLE
@@ -290,33 +325,49 @@ class IntercomForegroundService : Service() {
                     }
                 }
 
-                // 8. Pipe incoming Mesh control packets (canned hazard text, GPS telemetry, emergency SOS)
+                // 8. Pipe incoming Mesh control packets (canned hazard text, GPS telemetry, emergency SOS, repeater beacons/pongs)
                 controlRxJob?.cancel()
                 controlRxJob = serviceScope.launch(Dispatchers.Default) {
                     for (controlPacket in meshTransport.incomingControl) {
-                        val payload = controlPacket.payload
-                        if (payload.isNotEmpty()) {
-                            val tag = payload[0]
-                            val content = payload.copyOfRange(1, payload.size)
-                            when (tag) {
-                                ControlPayloadTag.TAG_TEXT -> {
-                                    try {
-                                        val wireFrame = MeshTextManager.decodeWireFrame(content)
-                                        AndroidPlatformBridge.instance.postIncomingText(wireFrame)
-                                    } catch (e: Exception) {
-                                        Log.e(TAG, "Error decoding incoming text wire frame", e)
-                                    }
+                        when (controlPacket.type) {
+                            ControlType.REPEATER_PONG -> {
+                                val pong = MeshRepeaterService.decodePongPayload(controlPacket)
+                                if (pong != null) {
+                                    AndroidPlatformBridge.instance.postIncomingRepeaterPong(pong)
                                 }
-                                ControlPayloadTag.TAG_GPS -> {
-                                    try {
-                                        val frame = ConvoyGpsTracker.decodeTelemetryFrame(content)
-                                        AndroidPlatformBridge.instance.postIncomingGps(frame)
-                                    } catch (e: Exception) {
-                                        Log.e(TAG, "Error decoding incoming GPS frame", e)
-                                    }
+                            }
+                            ControlType.REPEATER_BEACON -> {
+                                val beacon = MeshRepeaterService.decodeBeaconPayload(controlPacket)
+                                if (beacon != null) {
+                                    AndroidPlatformBridge.instance.postIncomingRepeaterBeacon(beacon)
                                 }
-                                ControlPayloadTag.TAG_EMERGENCY -> {
-                                    AndroidPlatformBridge.instance.postEmergencyAlert()
+                            }
+                            else -> {
+                                val payload = controlPacket.payload
+                                if (payload.isNotEmpty()) {
+                                    val tag = payload[0]
+                                    val content = payload.copyOfRange(1, payload.size)
+                                    when (tag) {
+                                        ControlPayloadTag.TAG_TEXT -> {
+                                            try {
+                                                val wireFrame = MeshTextManager.decodeWireFrame(content)
+                                                AndroidPlatformBridge.instance.postIncomingText(wireFrame)
+                                            } catch (e: Exception) {
+                                                Log.e(TAG, "Error decoding incoming text wire frame", e)
+                                            }
+                                        }
+                                        ControlPayloadTag.TAG_GPS -> {
+                                            try {
+                                                val frame = ConvoyGpsTracker.decodeTelemetryFrame(content)
+                                                AndroidPlatformBridge.instance.postIncomingGps(frame)
+                                            } catch (e: Exception) {
+                                                Log.e(TAG, "Error decoding incoming GPS frame", e)
+                                            }
+                                        }
+                                        ControlPayloadTag.TAG_EMERGENCY -> {
+                                            AndroidPlatformBridge.instance.postEmergencyAlert()
+                                        }
+                                    }
                                 }
                             }
                         }

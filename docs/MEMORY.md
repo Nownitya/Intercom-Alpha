@@ -421,6 +421,20 @@
     - Explicit memory zeroization (`masterSecret.fill(0)`) and cleanup of superseded epoch keys.
     - Wired into `GroupManager.kt` and `GroupManagerImpl.kt`.
 
+### 2.46 Basecamp Repeater State Management & Platform Bridge Wiring (Sprint 17 - ICA-1701)
+- **Challenge**: Stationing a mobile phone as an autonomous basecamp repeater requires decoupling audio hardware resources (mic/speaker pipelines) to conserve power and airtime while keeping the BLE transport flooding active. In addition, mobile riders need to query basecamp link quality via diagnostic pings.
+- **Solution**:
+  - Implemented `RepeaterUiState.kt` and `RepeaterViewModel.kt` in `app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/repeater/`:
+    - Reactive `StateFlow<RepeaterUiState>` exposing active neighbor callsigns, battery percentage, solar status, duty cycle modes (`CONTINUOUS`, `POWER_SAVER`, `EXTREME_SURVIVAL`), packet counters, and remote diagnostic ping latency.
+    - Standby screen lock toggle for OLED power preservation.
+  - Extended `IntercomHardwareBridge.kt` and `AndroidPlatformBridge.kt`:
+    - `isRepeaterModeActive`, `repeaterTelemetry`, `incomingRepeaterPongs`, `incomingRepeaterBeacons`.
+    - When repeater mode is enabled, `IntercomForegroundService.kt` safely releases microphone recording and audio playback pipelines (`audioEngine.stop()`), eliminating unnecessary CPU wakeups and dedicating 100% of RF airtime to relaying mesh packets.
+  - Extended `IntercomBridge.kt` (`iosMain`):
+    - Wired `MeshRepeaterService` with reactive Swift-friendly `CancellationHandle` observers (`observeRepeaterTelemetry`, `observeRepeaterModeActive`, `observeLastPingLatency`, `observeLatestBeacon`).
+    - Safe audio pipeline pause/resume upon entering/exiting repeater mode.
+  - Registered `MeshRepeaterService` and `RepeaterViewModel` in Koin `AppModule.kt`.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

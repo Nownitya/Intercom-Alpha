@@ -878,4 +878,25 @@
   - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
 ---
+### [2026-10-06] - ICA-1701: Basecamp Repeater State Management & Platform Bridge Wiring
+- **Branch**: `feature/ICA-1701-repeater-viewmodel-wiring`
+- **Objective**: Implement `RepeaterUiState.kt` and `RepeaterViewModel.kt` in `app/sharedUI`, wiring `MeshRepeaterService` into Koin DI and `IntercomHardwareBridge`/`AndroidPlatformBridge`/`IntercomBridge`. Manage stationary node state: battery percentage, solar charging indicator, active neighbor count, forwarded packet counters, and remote diagnostic ping triggers.
+- **Implementation**:
+  - `MeshRepeaterService.kt`: Added `activeNeighbors` field to `RepeaterTelemetry`, exposed `setDutyCycle(mode)`, added companion ping/pong helpers (`createDiagnosticPing`, `decodePongPayload`, `decodeBeaconPayload`).
+  - `IntercomHardwareBridge.kt`: Added `isRepeaterModeActive`, `repeaterTelemetry`, `incomingRepeaterPongs`, `incomingRepeaterBeacons`, `setRepeaterModeActive`, `updateRepeaterTelemetry`, `sendRepeaterPacket`, and updated `attachSubsystems` and `NoOpIntercomHardwareBridge`.
+  - `AndroidPlatformBridge.kt`: Implemented hardware bridge repeater contracts, bound service repeater mode toggling, and incoming ping/pong/beacon dispatching.
+  - `IntercomForegroundService.kt`: Added `setRepeaterMode(active)` to release microphone capture & speaker playback pipelines during stationary repeater operation, and updated `controlRxJob` to decode and route `REPEATER_PONG` and `REPEATER_BEACON`.
+  - `IntercomBridge.kt` (`iosMain`): Wired `MeshRepeaterService` with Swift-friendly reactive `CancellationHandle` observers (`observeRepeaterTelemetry`, `observeRepeaterModeActive`, `observeLastPingLatency`, `observeLatestBeacon`). Audio capture/playback is safely paused in repeater mode.
+  - `RepeaterUiState.kt` & `RepeaterViewModel.kt`: Created reactive presentation model in `app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/repeater/` managing duty cycles, active neighbor list, ping latency calculation, and standby lock.
+  - `AppModule.kt`: Registered `MeshRepeaterService` and `RepeaterViewModel` in shared UI Koin dependency injection module.
+  - `RepeaterViewModelTest.kt`: Created 8 comprehensive multiplatform unit tests validating state defaults, audio pipeline bypass activation, duty cycle selection, beacon broadcasts, diagnostic ping/pong round-trip latency reflection, standby lock, and hardware bridge sync.
+- **Verification**:
+  - `./gradlew :app:sharedUI:jvmTest :app:sharedLogic:jvmTest`: 100% test pass in 27s (Rule 6).
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly (Rule 6).
+  - `./gradlew :app:androidApp:assembleDebug`: BUILD SUCCESSFUL in 5s (Rule 6).
+  - `./gradlew test`: 100% test pass across all project test suites in 9s (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
+---
+
 
