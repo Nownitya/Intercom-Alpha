@@ -19,6 +19,9 @@ interface GroupManager {
     fun generateInviteCode(): String
     fun parseInviteCode(code: String): InviteInfo?
 
+    val epochManager: GroupEpochManager?
+        get() = null
+
     companion object {
         const val INVITE_CODE_PREFIX = "INTERCOM:"
         const val INVITE_CODE_VERSION = 1

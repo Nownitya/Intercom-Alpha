@@ -50,7 +50,9 @@ enum class ControlType {
     SYNC_RESPONSE,
     REPEATER_BEACON,
     REPEATER_PING,
-    REPEATER_PONG
+    REPEATER_PONG,
+    EPOCH_ROLLOVER,
+    EPOCH_BEACON
 }
 
 @Serializable

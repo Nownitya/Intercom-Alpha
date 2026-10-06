@@ -30,6 +30,9 @@ class GroupManagerImpl(
 
     private var activeGroup: Group? = null
 
+    override var epochManager: GroupEpochManager? = null
+        private set
+
     override suspend fun createGroup(name: String, config: GroupConfig): Group {
         val group = Group(
             id = randomUUID(),
@@ -39,6 +42,15 @@ class GroupManagerImpl(
             config = config
         )
         activeGroup = group
+        if (config.enableEncryption) {
+            val initialKey = org.nowni.intercom_alpha.mesh.PacketCipher.deriveKey(group.id)
+            epochManager = GroupEpochManager(
+                groupId = group.id,
+                localPeerId = localPeerId,
+                leaderId = localPeerId,
+                initialMasterSecret = initialKey
+            )
+        }
         currentGroupChannel.trySend(group)
         isLeaderChannel.trySend(true)
 
@@ -59,6 +71,13 @@ class GroupManagerImpl(
             config = GroupConfig()
         )
         activeGroup = group
+        val initialKey = org.nowni.intercom_alpha.mesh.PacketCipher.deriveKey(group.id)
+        epochManager = GroupEpochManager(
+            groupId = group.id,
+            localPeerId = localPeerId,
+            leaderId = info.leaderId,
+            initialMasterSecret = initialKey
+        )
         currentGroupChannel.trySend(group)
         isLeaderChannel.trySend(info.leaderId == localPeerId)
         inviteCodeChannel.trySend(inviteCode)
@@ -67,6 +86,7 @@ class GroupManagerImpl(
 
     override suspend fun leaveGroup() {
         activeGroup = null
+        epochManager = null
         currentGroupChannel.trySend(null)
         isLeaderChannel.trySend(false)
         inviteCodeChannel.trySend("")
