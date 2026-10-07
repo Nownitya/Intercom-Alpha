@@ -63,6 +63,11 @@ final class IntercomViewModel: ObservableObject {
     @Published var trailMapSnapshot: TrailMapSnapshot? = nil
     @Published var showTrailSheet: Bool = false
 
+    // --- Over-The-Air BLE Mesh Trail Sharing Subsystem (Sprint 19 / ICA-1904) ---
+    @Published var activeTransfers: [FileTransferProgress] = []
+    @Published var storedTrails: [TrailPolyline] = []
+    @Published var showTrailManagerSheet: Bool = false
+
     private let bridge = IntercomBridge(localPeerId: "ios-lead", localPeerName: "iOS Lead")
     private var cancellables: [CancellationHandle] = []
     private var activeActivity: Activity<IntercomActivityAttributes>? = nil
@@ -282,6 +287,42 @@ final class IntercomViewModel: ObservableObject {
         showTrailSheet.toggle()
     }
 
+    // --- Over-The-Air Trail Sharing Controls (Sprint 19 / ICA-1904) ---
+
+    func beamActiveTrail(format: FileTransferType = .gpx) {
+        if let activeTrail = trailMapSnapshot?.activeTrail {
+            let waypoints = trailMapSnapshot?.waypoints ?? []
+            bridge.sendTrailOverMesh(trail: activeTrail, waypoints: waypoints, format: format)
+        } else if let first = storedTrails.first {
+            bridge.sendTrailOverMesh(trail: first, waypoints: [], format: format)
+        }
+    }
+
+    func beamTrail(trail: TrailPolyline, format: FileTransferType = .gpx) {
+        let waypoints = trailMapSnapshot?.waypoints ?? []
+        bridge.sendTrailOverMesh(trail: trail, waypoints: waypoints, format: format)
+    }
+
+    func cancelTransfer(transferId: String) {
+        bridge.cancelFileTransfer(transferId: transferId)
+    }
+
+    func importTrailText(text: String, fileName: String, format: FileTransferType = .gpx) {
+        bridge.importTrailFromText(text: text, fileName: fileName, format: format)
+    }
+
+    func deleteStoredTrail(trailId: String) {
+        bridge.deleteStoredTrail(trailId: trailId)
+    }
+
+    func selectStoredTrail(trail: TrailPolyline) {
+        bridge.loadTrail(trail: trail)
+    }
+
+    func toggleTrailManagerSheet() {
+        showTrailManagerSheet.toggle()
+    }
+
     // --- Reactive Observers Setup ---
 
     private func setupObservers() {
@@ -468,6 +509,21 @@ final class IntercomViewModel: ObservableObject {
             }
         }
         cancellables.append(trailMapSub)
+
+        // --- Over-The-Air File Transfer Observers (Sprint 19 / ICA-1904) ---
+        let fileTransfersSub = bridge.observeFileTransfers { [weak self] transfers in
+            Task { @MainActor in
+                self?.activeTransfers = transfers
+            }
+        }
+        cancellables.append(fileTransfersSub)
+
+        let storedTrailsSub = bridge.observeStoredTrails { [weak self] trails in
+            Task { @MainActor in
+                self?.storedTrails = trails
+            }
+        }
+        cancellables.append(storedTrailsSub)
 
         isPfsRatchetActive = bridge.isPfsRatchetActive()
     }
