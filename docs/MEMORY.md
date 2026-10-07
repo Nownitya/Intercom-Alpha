@@ -653,6 +653,20 @@
     - Rendered dynamic tether boundary ring, obstacle hazard icons, and split warnings inside `TacticalVectorRadarView`.
     - Added tether warning status badge in the compact telemetry info strip below the radar.
 
+### 2.61 16-Node Concurrent Convoy Stress Simulation Harness & Archify Showcase Update (Sprint 20 - ICA-2004)
+- **Challenge**: Validating complex, multi-hop mesh dynamics (voice ADPCM, chunked GPX route sharing, geofence tether alarms, battery governor duty-cycling) across a large-scale convoy (16 concurrent nodes over >3 km) under stochastic packet loss, while guaranteeing memory bounds (<80 MB RAM) and zero coroutine leaks, and keeping visual architecture documentation synchronized.
+- **Solution**:
+  - `ConvoyStressSimulationHarness.kt`:
+    - Implemented simulated 16-node virtual convoy (`ConvoyStressNode`) operating in linear highway formation and multi-cluster mountain passes.
+    - Simulated RF loss (10%), out-of-order jitter, and hop-distance limits (`maxDirectHopDistance = 2`).
+    - Verified multi-hop relay forwarding across 8 linear hops with 100% decryption fidelity and zero lost chunks.
+    - Verified convoy geofence tether warnings, breach alarms, and cluster split detection with single-linkage BFS connected components in `ConvoyGeofenceEngine.kt`.
+    - Verified battery governor autonomous power scaling (100% -> 50% -> 20%) and rest-stop sleep across 16 concurrent nodes.
+    - Verified memory stability: verified <80 MB resident heap and zero coroutine leaks under high stress.
+  - `docs/architecture/intercom-alpha.architecture.json` & `docs/architecture/intercom-alpha-architecture.html`:
+    - Synchronized architecture specification with Sprint 18, 19, and 20 subsystems (`trail_engine`, `geofence_engine`, `battery_governor`).
+    - Validated and delivered showcase HTML using Archify CLI (`node .agents/skills/archify/bin/archify.mjs deliver architecture ... --quality showcase --json`) with 9/9 checks passed, 0 errors, and 0 warnings.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index
