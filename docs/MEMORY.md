@@ -717,6 +717,24 @@
     - Added `@Published var crashSnapshot`, `@Published var latestVoiceCommand`, and `@Published var showCrashCountdownCard`.
     - Implemented `TacticalVoiceCommandBadge` overlay and `CrashCountdownCardView` bottom card with tactile abort controls.
 
+### 2.65 Crash Impact & Voice Command Multiplatform Simulation Harness & Benchmark Suite (Sprint 21 - ICA-2104)
+- **Challenge**: Rigorously validating the end-to-end physics of crash impact detection (8.5g severe collisions vs 3.2g vertical pothole bumps vs 42° curve leaning), sustained tip-over timeouts (>60° for >8s), abortable 30s countdown state progression, offline DSP keyword spotting under high-speed (80–120 km/h) aerodynamic wind buffeting (<200 Hz rumble rejection), and continuous streaming memory bounds without physical crash test rigs.
+- **Solution**:
+  - `CrashAndVoiceSimulationHarness.kt`:
+    - Simulated 1,000 normal cruising IMU samples with zero false alarms.
+    - Verified 5 high-speed pothole shocks (up to 3.2g) produce zero countdown activations.
+    - Verified dynamic motorcycle curve cornering (up to 42° lean for 3.5s) produces zero fall-over detections.
+    - Verified 8.5g severe collision shock immediately triggers COUNTDOWN_ACTIVE, and simulated rider 1-tap abort at remaining 18s safely halts emergency dispatch.
+    - Verified 68° fall-over sustained for 8.5s activates 30s pre-alert countdown; upon expiry at 0s, autonomously broadcasts `CrashAlertPacket` via `ControlType.CRASH_ALERT` over multi-hop mesh.
+    - Modeled acoustic aerodynamic helmet wind noise (<200 Hz high energy, low ZCR); verified zero false command triggers during riding silence.
+    - Validated speech phonetic classifier recognizing tactical voice commands ("Intercom SOS", "Next Channel", "Cancel Alert", "Toggle Mute") in clean and wind-mixed audio streams.
+    - Validated long-term streaming stability (5,000 consecutive audio and IMU frames) with bounded heap memory and zero coroutine leaks.
+  - `docs/architecture/intercom-alpha.architecture.json` & `docs/architecture/intercom-alpha-architecture.html`:
+    - Integrated `crash_detector` and `voice_recognizer` components into KMP `shared_logic` container.
+    - Added clean layout positioning and connections with adjacent components.
+    - Added dedicated `crash-and-voice-hud` tactical cockpit view and updated documentation info cards.
+    - Validated and delivered interactive HTML architecture diagram via Archify CLI (all 9 checks passed, 0 errors, 0 warnings).
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

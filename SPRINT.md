@@ -18,11 +18,12 @@
 | **ICA-2101** | Pure KMP Crash Detection, Fall-Over IMU State Machine & Countdown Arbiter | Ralph | `SensorModels.kt`, `CrashDetector.kt`, `CrashDetectorTest.kt` | ✅ Completed |
 | **ICA-2102** | Pure KMP Offline Voice Command & Keyword Spotting DSP Engine | Ralph | `VoiceCommandModels.kt`, `VoiceCommandRecognizer.kt`, `VoiceCommandRecognizerTest.kt` | ✅ Completed |
 | **ICA-2103** | Subsystem Hardware Bridge Wiring & Multiplatform Emergency HUD Presentation | Ralph | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `HomeScreen.kt`, `ContentView.swift` | ✅ Completed |
-| **ICA-2104** | Crash Impact & Voice Command Multiplatform Simulation Harness & Benchmark Suite | Ralph | `CrashAndVoiceSimulationHarness.kt`, `intercom-alpha.architecture.json` | 🟡 Next Up |
+| **ICA-2104** | Crash Impact & Voice Command Multiplatform Simulation Harness & Benchmark Suite | Ralph | `CrashAndVoiceSimulationHarness.kt`, `intercom-alpha.architecture.json` | ✅ Completed |
 
 ---
 
 ## 📦 Historical Sprint Archive
+- ✅ **Sprint 21: Autonomous Crash Impact Detection, eCall SOS & Offline Voice Command HUD**: Completed 2026-10-07 (100% DoD, v2.8.0 Released).
 - ✅ **Sprint 20: Tactical Convoy Geofencing, Autonomous Power Governor & Multi-Node Stress Benchmark Suite**: Completed 2026-10-07 (100% DoD, v2.7.0 Released).
 - ✅ **Sprint 19: Over-The-Air BLE Mesh GPX/GeoJSON Trail Sharing & Storage Manager**: Completed 2026-10-07 (100% DoD, v2.6.0 Released).
 - ✅ **Sprint 18: Offline Vector Terrain & Trail Map Overlay**: Completed 2026-10-07 (100% DoD, v2.5.0 Released).
