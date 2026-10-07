@@ -542,6 +542,20 @@
     - Sliding-window paced transmission queue with selective NACK retransmission for lossy mesh hops.
     - Local trail storage library and direct text import.
 
+### 2.55 Subsystem Hardware Bridge Wiring & Reactive State Management for Mesh Trail Sharing (Sprint 19 - ICA-1902)
+- **Challenge**: Integrating `MeshFileTransferManager` across Compose Multiplatform (`sharedUI`), Android platform foreground service, and 100% native iOS SwiftUI (`iosApp`) while enforcing Rule 1 (`CancellationHandle` observers tied to SwiftUI lifecycle, zero Compose imports on iOS) and maintaining non-blocking coroutines without thread locks during file reassembly.
+- **Solution**:
+  - `IntercomHardwareBridge.kt` & `AndroidPlatformBridge.kt`:
+    - Exposed reactive `fileTransfers: StateFlow<List<FileTransferProgress>>` and `storedTrails: StateFlow<List<TrailPolyline>>`.
+    - Wired bidirectional hooks: outbox converts typed `FileTransferChunk` and `FileTransferAck` into `MeshPacket.Control` with `ControlType.FILE_CHUNK` (0x0B) and `ControlType.FILE_ACK` (0x0C); inbound parser decodes payloads and feeds into `handleIncomingChunk` / `handleIncomingAck`.
+  - `IntercomBridge.kt` (`iosMain`):
+    - Instantiated `fileTransferManager` in Swift bridge with `observeFileTransfers` and `observeStoredTrails` returning `CancellationHandle` for safe SwiftUI lifecycle integration.
+    - Exposed Swift controls: `sendTrailOverMesh`, `cancelFileTransfer`, `importTrailFromText`, `deleteStoredTrail`.
+  - `HomeViewModel.kt` & `HomeUiState.kt`:
+    - Synchronized `activeTransfers`, `storedTrails`, and `showTrailManagerSheet`.
+    - Added UI actions: `BeamActiveTrail`, `CancelTransfer`, `ImportTrailText`, `SelectStoredTrail`, `DeleteStoredTrail`, `ToggleTrailManagerSheet`.
+    - On completed trail receipt, automatically loads into `trailMapManager` for real-time vector cockpit HUD projection.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

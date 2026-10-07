@@ -234,13 +234,13 @@
 ### 🚀 Sprint 19: Over-The-Air BLE Mesh GPX/GeoJSON Trail Sharing & Storage Manager (Phase 17 - v2.6 Roadmap)
 - **Sprint Goal**: Implement pure KMP chunked file transmission engine (Adler32, sliding-window retransmission, MTU <= 120 bytes), GPX/GeoJSON parsers and exporters, and seamless over-the-air route beaming across Compose Multiplatform (`sharedUI`) and 100% Native iOS SwiftUI (`iosApp`).
 - **Sprint Branch**: `sprint/sprint-19-mesh-trail-sharing`
-- **Status**: 🟡 In Progress (Story 1 Completed ➔ Story 2 Ready)
+- **Status**: 🟡 In Progress (Stories 1 & 2 Completed ➔ Story 3 Ready)
 
 | Task ID | Item | Target Files | Status |
 | :--- | :--- | :--- | :--- |
 | **ICA-1901** | Pure KMP Chunked Mesh File Transfer & GPX/GeoJSON Protocol Engine | `MeshFileModels.kt`, `MeshFileTransferEngine.kt`, `MeshFileTransferManager.kt`, `MeshFileTransferTest.kt` | ✅ Completed |
-| **ICA-1902** | Subsystem Hardware Bridge Wiring & Reactive State Management | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `HomeViewModel.kt`, `HomeViewModelTest.kt` | 🟡 Ready for Dev |
-| **ICA-1903** | Compose Multiplatform Trail File Manager & Over-The-Air Beam Cockpit Sheet | `TrailFileManagerSheet.kt`, `OfflineTrailCockpitSheet.kt`, `HomeScreen.kt` | ⚪ Queued |
+| **ICA-1902** | Subsystem Hardware Bridge Wiring & Reactive State Management | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `HomeViewModel.kt`, `HomeViewModelTest.kt` | ✅ Completed |
+| **ICA-1903** | Compose Multiplatform Trail File Manager & Over-The-Air Beam Cockpit Sheet | `TrailFileManagerSheet.kt`, `OfflineTrailCockpitSheet.kt`, `HomeScreen.kt` | 🟡 Ready for Dev |
 | **ICA-1904** | Native iOS SwiftUI Trail File Manager & Over-The-Air Beam Sheet | `TrailFileManagerSheet.swift`, `OfflineTrailCockpitSheet.swift`, `IntercomViewModel.swift` | ⚪ Queued |
 
 

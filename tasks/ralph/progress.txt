@@ -1117,3 +1117,42 @@
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-19-mesh-trail-sharing`).
 ---
+
+### [2026-10-07] - ICA-1902: Subsystem Hardware Bridge Wiring & Reactive State Management
+- **Branch**: `feature/ICA-1902-bridge-wiring`
+- **Objective**: Wire `MeshFileTransferManager` into Koin DI (`AppModule.kt`), `IntercomHardwareBridge`, `AndroidPlatformBridge`, and `IntercomBridge` (`iosMain`) with typed `CancellationHandle` observers. Integrate into `HomeUiState.kt` and `HomeViewModel.kt`, managing active transfer progress, stored trail library, and actions to beam trail to convoy or import local GPX text.
+- **Implementation**:
+  - `IntercomHardwareBridge.kt`:
+    - Added `fileTransfers: StateFlow<List<FileTransferProgress>>` and `storedTrails: StateFlow<List<TrailPolyline>>`.
+    - Added `updateFileTransfers`, `updateStoredTrails`, `sendControlPacket`, and `fileTransferManager` attachment in `attachSubsystems()`.
+    - Implemented simulation helpers `simulateFileTransfers` and `simulateStoredTrails` in `NoOpIntercomHardwareBridge`.
+  - `AndroidPlatformBridge.kt`:
+    - Wired `fileTransferManager` into Android platform bridge lifecycle.
+    - Synchronized `activeTransfers` and `storedTrails` flows.
+    - Outbox hooks wired to serialize chunks/acks into `ControlType.FILE_CHUNK` (0x0B) and `ControlType.FILE_ACK` (0x0C) `MeshPacket.Control` packets.
+    - Exposed `postIncomingFileChunk` and `postIncomingFileAck`.
+  - `IntercomForegroundService.kt`:
+    - Dispatched incoming `ControlType.FILE_CHUNK` and `ControlType.FILE_ACK` control packets into `AndroidPlatformBridge`.
+  - `MeshFileTransferEngine.kt`:
+    - Implemented `serializeChunk`, `deserializeChunk`, `serializeAck`, and `deserializeAck` for JSON wire serialization.
+  - `IntercomBridge.kt` (`iosMain`):
+    - Instantiated `fileTransferManager` in Swift interop bridge.
+    - Wired outbox hooks and incoming control loop for chunk and ack handling.
+    - Exposed Swift-friendly reactive observers returning `CancellationHandle` (Rule 1): `observeFileTransfers` and `observeStoredTrails`.
+    - Added action controls: `sendTrailOverMesh`, `cancelFileTransfer`, `importTrailFromText`, `deleteStoredTrail`.
+  - `AppModule.kt`:
+    - Registered `single { MeshFileTransferManager() }` in shared Koin DI graph.
+  - `HomeUiState.kt`:
+    - Added `activeTransfers`, `storedTrails`, and `showTrailManagerSheet` to `HomeUiState`.
+    - Added `BeamActiveTrail`, `CancelTransfer`, `ImportTrailText`, `SelectStoredTrail`, `DeleteStoredTrail`, and `ToggleTrailManagerSheet` to `HomeUiAction`.
+  - `HomeViewModel.kt`:
+    - Injected `MeshFileTransferManager`, attached to `hardwareBridge`, synchronized state flows, and wired outbox delegates.
+    - Implemented action handlers for beaming, cancelling, importing, and selecting trails.
+  - Unit tests:
+    - `AppModuleTest.kt`: Verified Koin resolves `MeshFileTransferManager`.
+    - `HomeViewModelTest.kt`: Added 4 comprehensive test suites covering initial states, sheet toggle, beaming and cancelling transfers, text import, and hardware bridge sync.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (all 95 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-19-mesh-trail-sharing`).
+---
