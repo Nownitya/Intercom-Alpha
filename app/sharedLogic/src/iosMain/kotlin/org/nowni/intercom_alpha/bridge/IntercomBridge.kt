@@ -22,10 +22,17 @@ import org.nowni.intercom_alpha.headset.HeadsetManagerImpl
 import org.nowni.intercom_alpha.headset.HelmetAccessoryManager
 import org.nowni.intercom_alpha.headset.HelmetAccessoryState
 import org.nowni.intercom_alpha.headset.RemotePttAction
+import org.nowni.intercom_alpha.map.FileTransferAck
+import org.nowni.intercom_alpha.map.FileTransferChunk
+import org.nowni.intercom_alpha.map.FileTransferProgress
+import org.nowni.intercom_alpha.map.FileTransferType
 import org.nowni.intercom_alpha.map.GeoPoint
+import org.nowni.intercom_alpha.map.MeshFileTransferEngine
+import org.nowni.intercom_alpha.map.MeshFileTransferManager
 import org.nowni.intercom_alpha.map.RadarRangeZoom
 import org.nowni.intercom_alpha.map.TrailMapManager
 import org.nowni.intercom_alpha.map.TrailMapSnapshot
+import org.nowni.intercom_alpha.map.TrailPolyline
 import org.nowni.intercom_alpha.map.TrailWaypoint
 import org.nowni.intercom_alpha.map.WaypointType
 import org.nowni.intercom_alpha.mesh.*
@@ -77,6 +84,7 @@ class IntercomBridge(
         }
     )
     val trailMapManager: TrailMapManager = TrailMapManager()
+    val fileTransferManager: MeshFileTransferManager = MeshFileTransferManager()
 
     private val _isRepeaterModeActive = MutableStateFlow(false)
     val isRepeaterModeActive: StateFlow<Boolean> = _isRepeaterModeActive.asStateFlow()
@@ -173,9 +181,31 @@ class IntercomBridge(
                                 _latestBeacon.value = beacon
                             }
                         }
+                        ControlType.FILE_CHUNK -> {
+                            try {
+                                val chunk = MeshFileTransferEngine.deserializeChunk(packet.payload)
+                                fileTransferManager.handleIncomingChunk(chunk, packet.senderId)
+                            } catch (_: Exception) {}
+                        }
+                        ControlType.FILE_ACK -> {
+                            try {
+                                val ack = MeshFileTransferEngine.deserializeAck(packet.payload)
+                                fileTransferManager.handleIncomingAck(ack)
+                            } catch (_: Exception) {}
+                        }
                         else -> {}
                     }
                 }
+            }
+
+            // 9. Connect Mesh File Transfer Manager outbound hooks
+            fileTransferManager.onSendChunk = { chunk, _ ->
+                val bytes = MeshFileTransferEngine.serializeChunk(chunk)
+                meshTransport.sendControl(ControlType.FILE_CHUNK, bytes)
+            }
+            fileTransferManager.onSendAck = { ack, _ ->
+                val bytes = MeshFileTransferEngine.serializeAck(ack)
+                meshTransport.sendControl(ControlType.FILE_ACK, bytes)
             }
         }
     }
@@ -724,6 +754,54 @@ class IntercomBridge(
     fun updateTrailLocalGps(lat: Double, lon: Double, alt: Double, heading: Float) {
         scope.launch {
             trailMapManager.updateLocalPosition(lat, lon, alt, heading)
+        }
+    }
+
+    // --- Swift-Friendly File Transfer Observers & Controls (Sprint 19 / ICA-1902) ---
+
+    fun observeFileTransfers(onTransfers: (List<FileTransferProgress>) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            fileTransferManager.activeTransfers.collect { transfers ->
+                onTransfers(transfers)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun observeStoredTrails(onTrails: (List<TrailPolyline>) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            fileTransferManager.storedTrails.collect { trails ->
+                onTrails(trails)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun sendTrailOverMesh(
+        trail: TrailPolyline,
+        waypoints: List<TrailWaypoint> = emptyList(),
+        format: FileTransferType = FileTransferType.GPX
+    ) {
+        scope.launch {
+            fileTransferManager.startSendTrail(trail, waypoints, format)
+        }
+    }
+
+    fun cancelFileTransfer(transferId: String) {
+        scope.launch {
+            fileTransferManager.cancelTransfer(transferId)
+        }
+    }
+
+    fun importTrailFromText(text: String, fileName: String, format: FileTransferType = FileTransferType.GPX) {
+        scope.launch {
+            fileTransferManager.importTrailFromText(text, fileName, format)
+        }
+    }
+
+    fun deleteStoredTrail(trailId: String) {
+        scope.launch {
+            fileTransferManager.deleteStoredTrail(trailId)
         }
     }
 }

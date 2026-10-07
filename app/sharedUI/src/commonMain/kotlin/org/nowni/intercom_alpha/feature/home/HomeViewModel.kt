@@ -21,9 +21,13 @@ import org.nowni.intercom_alpha.feature.home.state.HomeUiState
 import org.nowni.intercom_alpha.headset.HelmetAccessoryManager
 import org.nowni.intercom_alpha.headset.RemotePttAction
 import org.nowni.intercom_alpha.map.GeoPoint
+import org.nowni.intercom_alpha.map.MeshFileTransferEngine
+import org.nowni.intercom_alpha.map.MeshFileTransferManager
 import org.nowni.intercom_alpha.map.RadarRangeZoom
 import org.nowni.intercom_alpha.map.TrailMapManager
 import org.nowni.intercom_alpha.map.TrailMapSnapshot
+import org.nowni.intercom_alpha.mesh.ControlType
+import org.nowni.intercom_alpha.mesh.MeshPacket
 import org.nowni.intercom_alpha.mesh.MeshRepeaterService
 import org.nowni.intercom_alpha.mesh.ProximityRadar
 import org.nowni.intercom_alpha.telemetry.ConvoyGpsTracker
@@ -39,6 +43,7 @@ class HomeViewModel(
     val bitrateController: AdaptiveBitrateController = AdaptiveBitrateController(),
     val helmetAccessoryManager: HelmetAccessoryManager = HelmetAccessoryManager(),
     val trailMapManager: TrailMapManager = TrailMapManager(),
+    val fileTransferManager: MeshFileTransferManager = MeshFileTransferManager(),
     val hardwareBridge: IntercomHardwareBridge = NoOpIntercomHardwareBridge()
 ) : ViewModel() {
 
@@ -53,13 +58,45 @@ class HomeViewModel(
 
     init {
         // 1. Attach shared logic subsystems to platform hardware bridge
-        hardwareBridge.attachSubsystems(channelManager, blackboxRecorder, helmetAccessoryManager, trailMapManager = trailMapManager)
+        hardwareBridge.attachSubsystems(
+            channelManager,
+            blackboxRecorder,
+            helmetAccessoryManager,
+            trailMapManager = trailMapManager,
+            fileTransferManager = fileTransferManager
+        )
 
         // 2. Synchronize shared logic subsystem flows
         viewModelScope.launch {
             trailMapManager.snapshot.collect { snapshot ->
                 _uiState.update { it.copy(trailMapSnapshot = snapshot) }
             }
+        }
+        viewModelScope.launch {
+            fileTransferManager.activeTransfers.collect { transfers ->
+                _uiState.update { it.copy(activeTransfers = transfers) }
+            }
+        }
+        viewModelScope.launch {
+            fileTransferManager.storedTrails.collect { trails ->
+                _uiState.update { it.copy(storedTrails = trails) }
+            }
+        }
+        viewModelScope.launch {
+            fileTransferManager.completedTrailReceived.collect { (trail, waypoints) ->
+                trailMapManager.loadTrail(trail)
+                for (wpt in waypoints) {
+                    trailMapManager.addWaypoint(wpt)
+                }
+            }
+        }
+        fileTransferManager.onSendChunk = { chunk, _ ->
+            val bytes = MeshFileTransferEngine.serializeChunk(chunk)
+            hardwareBridge.sendControlPacket(MeshPacket.Control(senderId = "local-rider", type = ControlType.FILE_CHUNK, payload = bytes))
+        }
+        fileTransferManager.onSendAck = { ack, _ ->
+            val bytes = MeshFileTransferEngine.serializeAck(ack)
+            hardwareBridge.sendControlPacket(MeshPacket.Control(senderId = "local-rider", type = ControlType.FILE_ACK, payload = bytes))
         }
         viewModelScope.launch {
             channelManager.channelState.collect { state ->
@@ -405,6 +442,53 @@ class HomeViewModel(
                     }
                     trailMapManager.loadSampleAlpineTrail(center)
                 }
+            }
+
+            // Sprint 19 Trail File Sharing Actions (ICA-1902)
+            is HomeUiAction.BeamActiveTrail -> {
+                viewModelScope.launch {
+                    val trail = _uiState.value.trailMapSnapshot.activeTrail
+                        ?: _uiState.value.storedTrails.firstOrNull()
+                    if (trail != null) {
+                        val waypoints = _uiState.value.trailMapSnapshot.projectedWaypoints.map { it.waypoint }
+                        fileTransferManager.startSendTrail(
+                            trail = trail,
+                            waypoints = waypoints,
+                            format = action.type
+                        )
+                    }
+                }
+            }
+
+            is HomeUiAction.CancelTransfer -> {
+                viewModelScope.launch {
+                    fileTransferManager.cancelTransfer(action.transferId)
+                }
+            }
+
+            is HomeUiAction.ImportTrailText -> {
+                viewModelScope.launch {
+                    fileTransferManager.importTrailFromText(action.text, action.fileName, action.format)
+                }
+            }
+
+            is HomeUiAction.SelectStoredTrail -> {
+                viewModelScope.launch {
+                    val trail = _uiState.value.storedTrails.find { it.id == action.trailId }
+                    if (trail != null) {
+                        trailMapManager.loadTrail(trail)
+                    }
+                }
+            }
+
+            is HomeUiAction.DeleteStoredTrail -> {
+                viewModelScope.launch {
+                    fileTransferManager.deleteStoredTrail(action.trailId)
+                }
+            }
+
+            is HomeUiAction.ToggleTrailManagerSheet -> {
+                _uiState.update { it.copy(showTrailManagerSheet = action.show) }
             }
         }
     }

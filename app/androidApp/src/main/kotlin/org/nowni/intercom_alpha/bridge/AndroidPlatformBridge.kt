@@ -18,8 +18,14 @@ import org.nowni.intercom_alpha.audio.EmergencyBlackboxRecorder
 import org.nowni.intercom_alpha.channel.ChannelManager
 import org.nowni.intercom_alpha.headset.HelmetAccessoryManager
 import org.nowni.intercom_alpha.headset.HelmetAccessoryState
+import org.nowni.intercom_alpha.map.FileTransferAck
+import org.nowni.intercom_alpha.map.FileTransferChunk
+import org.nowni.intercom_alpha.map.FileTransferProgress
+import org.nowni.intercom_alpha.map.MeshFileTransferEngine
+import org.nowni.intercom_alpha.map.MeshFileTransferManager
 import org.nowni.intercom_alpha.map.TrailMapManager
 import org.nowni.intercom_alpha.map.TrailMapSnapshot
+import org.nowni.intercom_alpha.map.TrailPolyline
 import org.nowni.intercom_alpha.mesh.ControlType
 import org.nowni.intercom_alpha.mesh.MeshPacket
 import org.nowni.intercom_alpha.mesh.MeshRepeaterService
@@ -88,6 +94,12 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
     private val _trailMapSnapshot = MutableStateFlow(TrailMapSnapshot())
     override val trailMapSnapshot: StateFlow<TrailMapSnapshot> = _trailMapSnapshot.asStateFlow()
 
+    private val _fileTransfers = MutableStateFlow<List<FileTransferProgress>>(emptyList())
+    override val fileTransfers: StateFlow<List<FileTransferProgress>> = _fileTransfers.asStateFlow()
+
+    private val _storedTrails = MutableStateFlow<List<TrailPolyline>>(emptyList())
+    override val storedTrails: StateFlow<List<TrailPolyline>> = _storedTrails.asStateFlow()
+
     var channelManager: ChannelManager? = null
         private set
     var blackboxRecorder: EmergencyBlackboxRecorder? = null
@@ -97,6 +109,8 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
     var repeaterService: MeshRepeaterService? = null
         private set
     var trailMapManager: TrailMapManager? = null
+        private set
+    var fileTransferManager: MeshFileTransferManager? = null
         private set
 
     private var boundService: IntercomForegroundService? = null
@@ -111,13 +125,15 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         blackboxRecorder: EmergencyBlackboxRecorder,
         helmetAccessoryManager: HelmetAccessoryManager?,
         repeaterService: MeshRepeaterService?,
-        trailMapManager: TrailMapManager?
+        trailMapManager: TrailMapManager?,
+        fileTransferManager: MeshFileTransferManager?
     ) {
         this.channelManager = channelManager
         this.blackboxRecorder = blackboxRecorder
         this.helmetAccessoryManager = helmetAccessoryManager
         this.repeaterService = repeaterService
         this.trailMapManager = trailMapManager
+        this.fileTransferManager = fileTransferManager
 
         helmetAccessoryManager?.let { accessoryMgr ->
             scope.launch {
@@ -134,10 +150,39 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
                 }
             }
         }
+
+        fileTransferManager?.let { ftm ->
+            scope.launch {
+                ftm.activeTransfers.collect { transfers ->
+                    _fileTransfers.value = transfers
+                }
+            }
+            scope.launch {
+                ftm.storedTrails.collect { trails ->
+                    _storedTrails.value = trails
+                }
+            }
+            ftm.onSendChunk = { chunk, _ ->
+                val bytes = MeshFileTransferEngine.serializeChunk(chunk)
+                sendControlPacket(MeshPacket.Control(senderId = "android-local", type = ControlType.FILE_CHUNK, payload = bytes))
+            }
+            ftm.onSendAck = { ack, _ ->
+                val bytes = MeshFileTransferEngine.serializeAck(ack)
+                sendControlPacket(MeshPacket.Control(senderId = "android-local", type = ControlType.FILE_ACK, payload = bytes))
+            }
+        }
     }
 
     override fun updateTrailMapSnapshot(snapshot: TrailMapSnapshot) {
         _trailMapSnapshot.value = snapshot
+    }
+
+    override fun updateFileTransfers(transfers: List<FileTransferProgress>) {
+        _fileTransfers.value = transfers
+    }
+
+    override fun updateStoredTrails(trails: List<TrailPolyline>) {
+        _storedTrails.value = trails
     }
 
     fun bindService(service: IntercomForegroundService) {
@@ -213,16 +258,20 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
     }
 
     override fun sendRepeaterPacket(packet: MeshPacket.Control) {
+        sendControlPacket(packet)
+    }
+
+    override fun sendControlPacket(packet: MeshPacket.Control) {
         scope.launch(Dispatchers.IO) {
             val service = boundService
             if (service == null) {
-                Log.w(TAG, "Cannot sendRepeaterPacket: No service bound")
+                Log.w(TAG, "Cannot sendControlPacket: No service bound")
                 return@launch
             }
             try {
                 service.meshTransport.sendControl(packet.type, packet.payload)
             } catch (e: Exception) {
-                Log.e(TAG, "Error broadcasting repeater packet (${packet.type})", e)
+                Log.e(TAG, "Error broadcasting control packet (${packet.type})", e)
             }
         }
     }
@@ -267,5 +316,17 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
 
     fun postIncomingRepeaterBeacon(beacon: RepeaterBeaconPayload) {
         _incomingRepeaterBeacons.tryEmit(beacon)
+    }
+
+    fun postIncomingFileChunk(chunk: FileTransferChunk, senderId: String) {
+        scope.launch {
+            fileTransferManager?.handleIncomingChunk(chunk, senderId)
+        }
+    }
+
+    fun postIncomingFileAck(ack: FileTransferAck) {
+        scope.launch {
+            fileTransferManager?.handleIncomingAck(ack)
+        }
     }
 }

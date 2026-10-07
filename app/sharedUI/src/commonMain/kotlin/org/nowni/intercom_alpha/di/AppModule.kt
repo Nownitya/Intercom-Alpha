@@ -28,6 +28,7 @@ fun createSharedUiModule(
     single { org.nowni.intercom_alpha.headset.HelmetAccessoryManager() }
     single { MeshRepeaterService(repeaterId = "basecamp-relay-1", repeaterName = "Basecamp Relay Alpha") }
     single { org.nowni.intercom_alpha.map.TrailMapManager() }
+    single { org.nowni.intercom_alpha.map.MeshFileTransferManager() }
     single<IntercomHardwareBridge> { hardwareBridge }
 
     viewModelOf(::HomeViewModel)
