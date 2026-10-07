@@ -21,6 +21,10 @@ import org.nowni.intercom_alpha.mesh.RepeaterDutyCycleMode
 import org.nowni.intercom_alpha.mesh.RepeaterPongPayload
 import org.nowni.intercom_alpha.telemetry.ConvoyGpsTracker
 import org.nowni.intercom_alpha.telemetry.GpsCoordinate
+import org.nowni.intercom_alpha.audio.VoiceCommand
+import org.nowni.intercom_alpha.safety.CrashSeverity
+import org.nowni.intercom_alpha.safety.CrashState
+import org.nowni.intercom_alpha.safety.ImuReading
 import org.nowni.intercom_alpha.text.CannedMessageCode
 import org.nowni.intercom_alpha.text.MeshTextManager
 import org.nowni.intercom_alpha.text.MeshTextWireFrame
@@ -451,5 +455,106 @@ class HomeViewModelTest {
         hardwareBridge.simulateFileTransfers(listOf(dummyProgress))
         assertEquals(1, hardwareBridge.fileTransfers.value.size)
         assertEquals("rx-test-1", hardwareBridge.fileTransfers.value.first().transferId)
+    }
+
+    @Test
+    fun testCrashDetectionCountdownAndCancellationFlow() = runTest(testDispatcher) {
+        val initialSnap = viewModel.uiState.value.crashSnapshot
+        assertEquals(CrashState.NORMAL, initialSnap.state)
+        assertFalse(viewModel.uiState.value.showCrashCountdownDialog)
+
+        // 1. Simulate high-G collision impact on detector
+        val impact = ImuReading(
+            timestampMs = 1000L,
+            accelX = 40.0f,
+            accelY = 30.0f,
+            accelZ = 20.0f
+        )
+        viewModel.crashDetector.processImuReading(impact)
+        advanceUntilIdle()
+
+        val activeSnap = viewModel.uiState.value.crashSnapshot
+        assertEquals(CrashState.COUNTDOWN_ACTIVE, activeSnap.state)
+        assertTrue(viewModel.uiState.value.showCrashCountdownDialog)
+        assertEquals(CrashSeverity.HARD_IMPACT, activeSnap.severity)
+
+        // 2. Rider cancels countdown dialog
+        viewModel.onAction(HomeUiAction.CancelCrashCountdown)
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.showCrashCountdownDialog)
+        assertEquals(CrashState.CANCELLED_BY_RIDER, viewModel.uiState.value.crashSnapshot.state)
+    }
+
+    @Test
+    fun testManualCrashSosTrigger() = runTest(testDispatcher) {
+        assertFalse(viewModel.uiState.value.isEmergencyActive)
+
+        viewModel.onAction(HomeUiAction.TriggerManualCrashSos)
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.isEmergencyActive)
+        assertFalse(viewModel.uiState.value.showCrashCountdownDialog)
+        assertEquals(CrashState.EMERGENCY_DISPATCHED, viewModel.uiState.value.crashSnapshot.state)
+    }
+
+    @Test
+    fun testOfflineVoiceCommandChannelSteppingAndMuteToggle() = runTest(testDispatcher) {
+        assertEquals(1, viewModel.uiState.value.channelState.activeChannelId)
+
+        // 1. Next Channel command
+        viewModel.voiceCommandRecognizer.simulateCommand(VoiceCommand.NEXT_CHANNEL)
+        advanceUntilIdle()
+
+        assertEquals(2, viewModel.uiState.value.channelState.activeChannelId)
+        assertEquals(VoiceCommand.NEXT_CHANNEL, viewModel.uiState.value.latestVoiceCommand?.command)
+
+        // 2. Prev Channel command
+        viewModel.voiceCommandRecognizer.simulateCommand(VoiceCommand.PREV_CHANNEL)
+        advanceUntilIdle()
+
+        assertEquals(1, viewModel.uiState.value.channelState.activeChannelId)
+        assertEquals(VoiceCommand.PREV_CHANNEL, viewModel.uiState.value.latestVoiceCommand?.command)
+
+        // 3. Mute Toggle command (flips PTT)
+        assertFalse(viewModel.uiState.value.isTransmitting)
+        viewModel.voiceCommandRecognizer.simulateCommand(VoiceCommand.MUTE_TOGGLE, timestampMs = 1000L)
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.isTransmitting)
+
+        viewModel.voiceCommandRecognizer.simulateCommand(VoiceCommand.MUTE_TOGGLE, timestampMs = 2000L)
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.isTransmitting)
+    }
+
+    @Test
+    fun testOfflineVoiceCommandCancelAlertAndDismissBadge() = runTest(testDispatcher) {
+        // Trigger countdown
+        val impact = ImuReading(
+            timestampMs = 2000L,
+            accelX = 45.0f,
+            accelY = 35.0f,
+            accelZ = 20.0f
+        )
+        viewModel.crashDetector.processImuReading(impact)
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.showCrashCountdownDialog)
+
+        // Voice command cancels countdown
+        viewModel.voiceCommandRecognizer.simulateCommand(VoiceCommand.CANCEL_ALERT)
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.showCrashCountdownDialog)
+        assertEquals(CrashState.CANCELLED_BY_RIDER, viewModel.uiState.value.crashSnapshot.state)
+        assertNotNull(viewModel.uiState.value.latestVoiceCommand)
+
+        // Dismiss voice badge
+        viewModel.onAction(HomeUiAction.DismissVoiceCommandBadge)
+        advanceUntilIdle()
+
+        assertNull(viewModel.uiState.value.latestVoiceCommand)
     }
 }

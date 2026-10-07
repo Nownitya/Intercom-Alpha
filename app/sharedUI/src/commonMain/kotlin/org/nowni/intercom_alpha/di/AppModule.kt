@@ -31,6 +31,8 @@ fun createSharedUiModule(
     single { org.nowni.intercom_alpha.map.MeshFileTransferManager() }
     single { org.nowni.intercom_alpha.telemetry.ConvoyGeofenceEngine() }
     single { org.nowni.intercom_alpha.power.BatteryGovernor(nodeId = "android-local") }
+    single { org.nowni.intercom_alpha.safety.CrashDetector() }
+    single { org.nowni.intercom_alpha.audio.VoiceCommandRecognizer() }
     single<IntercomHardwareBridge> { hardwareBridge }
 
     viewModelOf(::HomeViewModel)

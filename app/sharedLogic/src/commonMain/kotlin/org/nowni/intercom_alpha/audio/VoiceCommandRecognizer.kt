@@ -77,16 +77,17 @@ class VoiceCommandRecognizer(
         confidence: Float = 0.95f,
         timestampMs: Long = 0L
     ): CommandDetection = mutex.withLock {
+        val now = if (timestampMs > 0L) timestampMs else org.nowni.intercom_alpha.currentTimeMillis()
         val detection = CommandDetection(
             command = command,
             confidence = confidence.coerceIn(0f, 1f),
-            timestampMs = timestampMs,
+            timestampMs = now,
             phraseSpoken = command.phrase,
             durationMs = 600L
         )
         _latestDetection.value = detection
         _detectionsChannel.trySend(detection)
-        lastSuccessfulDetectionMs = timestampMs
+        lastSuccessfulDetectionMs = now
         return@withLock detection
     }
 
