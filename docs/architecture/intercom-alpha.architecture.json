@@ -26,6 +26,12 @@
         "label": "Group Key Security & Cloud Fallback",
         "focus": ["group_mgr", "packet_cipher", "deduplicator", "mesh_transport", "signaling_server"],
         "note": "QR code key derivation, sliding-window broadcast storm suppression, and Ktor cloud fallback."
+      },
+      {
+        "id": "convoy-telemetry-governor",
+        "label": "Convoy Geofence & Power Governor",
+        "focus": ["swift_bridge", "trail_engine", "geofence_engine", "battery_governor", "mesh_transport", "remote_peers"],
+        "note": "Follow dynamic convoy tethering, split detection, and autonomous battery duty-cycle scaling."
       }
     ]
   },
@@ -76,6 +82,15 @@
       "size": [136, 62]
     },
     {
+      "id": "trail_engine",
+      "type": "backend",
+      "label": "Trail Map Engine",
+      "sublabel": "Vector Geometry",
+      "tag": "Contours / OTA",
+      "pos": [520, 580],
+      "size": [136, 62]
+    },
+    {
       "id": "packet_cipher",
       "type": "security",
       "label": "Packet Cipher",
@@ -94,6 +109,15 @@
       "size": [136, 62]
     },
     {
+      "id": "geofence_engine",
+      "type": "backend",
+      "label": "Convoy Geofence",
+      "sublabel": "Tether Radar & Split",
+      "tag": "Haversine / Alarms",
+      "pos": [740, 580],
+      "size": [136, 62]
+    },
+    {
       "id": "signaling_server",
       "type": "cloud",
       "label": "Signaling Server",
@@ -109,6 +133,15 @@
       "sublabel": "GATT 0x180D",
       "tag": "Flooding Relay",
       "pos": [960, 400],
+      "size": [136, 62]
+    },
+    {
+      "id": "battery_governor",
+      "type": "backend",
+      "label": "Battery Governor",
+      "sublabel": "Duty-Cycle Scaling",
+      "tag": "Motion / Rest-Stop",
+      "pos": [960, 580],
       "size": [136, 62]
     },
     {
@@ -131,7 +164,7 @@
     {
       "kind": "security-group",
       "label": "KMP Core Engine (:app:sharedLogic)",
-      "wraps": ["group_mgr", "audio_engine", "packet_cipher", "deduplicator", "mesh_transport"],
+      "wraps": ["group_mgr", "audio_engine", "trail_engine", "packet_cipher", "deduplicator", "geofence_engine", "mesh_transport", "battery_governor"],
       "pad": 16
     },
     {
@@ -182,9 +215,29 @@
       "variant": "security"
     },
     {
+      "from": "trail_engine",
+      "to": "geofence_engine",
+      "label": "Waypoints",
+      "variant": "emphasis"
+    },
+    {
+      "from": "geofence_engine",
+      "to": "battery_governor",
+      "label": "Alarms",
+      "variant": "emphasis"
+    },
+    {
       "from": "deduplicator",
       "to": "mesh_transport",
       "label": "Relay",
+      "variant": "emphasis"
+    },
+    {
+      "from": "battery_governor",
+      "to": "mesh_transport",
+      "label": "Power Ctrl",
+      "fromSide": "top",
+      "toSide": "bottom",
       "variant": "emphasis"
     },
     {
@@ -226,6 +279,15 @@
         "Pure Kotlin RFC 8439 ChaCha20-Poly1305 AEAD cipher with 128-bit authentication tags",
         "Group symmetric key derived from QR code invite secret via FIPS 180-4 SHA-256",
         "Intermediate relay nodes forward encrypted voice frames without ability to tamper or eavesdrop"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Tactical Geofencing & Power Governor (Sprint 20)",
+      "items": [
+        "Pure KMP ConvoyGeofenceEngine monitors 600m tether bounds, cluster splits, and trail hazards",
+        "Autonomous BatteryGovernor dynamically adapts radio duty cycles (<30% conservative, <15% survival)",
+        "Rest-stop stillness detection (>10m) with instant motion and PTT wake; unconditional emergency override"
       ]
     }
   ]
