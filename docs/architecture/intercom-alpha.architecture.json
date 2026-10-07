@@ -32,6 +32,12 @@
         "label": "Convoy Geofence & Power Governor",
         "focus": ["swift_bridge", "trail_engine", "geofence_engine", "battery_governor", "mesh_transport", "remote_peers"],
         "note": "Follow dynamic convoy tethering, split detection, and autonomous battery duty-cycle scaling."
+      },
+      {
+        "id": "crash-and-voice-hud",
+        "label": "Crash Detection & Voice HUD",
+        "focus": ["android_ui", "ios_ui", "swift_bridge", "voice_recognizer", "crash_detector", "mesh_transport", "remote_peers"],
+        "note": "Follow real-time IMU high-G crash detection, 30-second abortable countdown, eCall SOS dispatch, and offline hands-free voice command DSP."
       }
     ]
   },
@@ -152,6 +158,24 @@
       "tag": "Multi-Hop Hops",
       "pos": [1180, 400],
       "size": [136, 62]
+    },
+    {
+      "id": "crash_detector",
+      "type": "backend",
+      "label": "Crash Detector",
+      "sublabel": "IMU High-G / Tilt",
+      "tag": "30s eCall Arbiter",
+      "pos": [300, 580],
+      "size": [136, 62]
+    },
+    {
+      "id": "voice_recognizer",
+      "type": "backend",
+      "label": "Voice Command DSP",
+      "sublabel": "Offline Keyword Spotter",
+      "tag": "1-Pole Spectral Filter",
+      "pos": [300, 180],
+      "size": [136, 62]
     }
   ],
   "boundaries": [
@@ -164,7 +188,7 @@
     {
       "kind": "security-group",
       "label": "KMP Core Engine (:app:sharedLogic)",
-      "wraps": ["group_mgr", "audio_engine", "trail_engine", "packet_cipher", "deduplicator", "geofence_engine", "mesh_transport", "battery_governor"],
+      "wraps": ["group_mgr", "audio_engine", "trail_engine", "packet_cipher", "deduplicator", "geofence_engine", "mesh_transport", "battery_governor", "crash_detector", "voice_recognizer"],
       "pad": 16
     },
     {
@@ -177,34 +201,50 @@
   "connections": [
     {
       "from": "android_ui",
-      "to": "audio_engine",
-      "label": "Audio",
+      "to": "voice_recognizer",
+      "label": "Mic Audio",
       "fromSide": "right",
-      "toSide": "top",
+      "toSide": "left",
       "variant": "emphasis"
     },
     {
-      "from": "ios_ui",
-      "to": "swift_bridge",
-      "label": "SwiftUI",
-      "variant": "emphasis"
-    },
-    {
-      "from": "swift_bridge",
-      "to": "audio_engine",
-      "label": "Cinterop",
+      "from": "voice_recognizer",
+      "to": "group_mgr",
+      "label": "Voice Ctrl",
+      "fromSide": "right",
+      "toSide": "left",
       "variant": "emphasis"
     },
     {
       "from": "group_mgr",
       "to": "packet_cipher",
       "label": "Key",
+      "fromSide": "right",
+      "toSide": "left",
       "variant": "security"
+    },
+    {
+      "from": "ios_ui",
+      "to": "swift_bridge",
+      "label": "SwiftUI",
+      "fromSide": "right",
+      "toSide": "left",
+      "variant": "emphasis"
+    },
+    {
+      "from": "swift_bridge",
+      "to": "audio_engine",
+      "label": "Cinterop",
+      "fromSide": "right",
+      "toSide": "left",
+      "variant": "emphasis"
     },
     {
       "from": "audio_engine",
       "to": "deduplicator",
       "label": "Frames",
+      "fromSide": "right",
+      "toSide": "left",
       "variant": "emphasis"
     },
     {
@@ -212,24 +252,65 @@
       "to": "deduplicator",
       "label": "AEAD",
       "labelAt": [820, 320],
+      "fromSide": "bottom",
+      "toSide": "top",
       "variant": "security"
+    },
+    {
+      "from": "deduplicator",
+      "to": "mesh_transport",
+      "label": "Relay",
+      "fromSide": "right",
+      "toSide": "left",
+      "variant": "emphasis"
+    },
+    {
+      "from": "mesh_transport",
+      "to": "remote_peers",
+      "label": "GATT BLE",
+      "fromSide": "right",
+      "toSide": "left",
+      "variant": "emphasis"
+    },
+    {
+      "from": "mesh_transport",
+      "to": "signaling_server",
+      "label": "Relay WS",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "variant": "dashed"
+    },
+    {
+      "from": "swift_bridge",
+      "to": "crash_detector",
+      "label": "IMU Motion",
+      "labelAt": [368, 520],
+      "fromSide": "bottom",
+      "toSide": "top",
+      "variant": "emphasis"
+    },
+    {
+      "from": "crash_detector",
+      "to": "trail_engine",
+      "label": "eCall Fix",
+      "fromSide": "right",
+      "toSide": "left",
+      "variant": "emphasis"
     },
     {
       "from": "trail_engine",
       "to": "geofence_engine",
       "label": "Waypoints",
+      "fromSide": "right",
+      "toSide": "left",
       "variant": "emphasis"
     },
     {
       "from": "geofence_engine",
       "to": "battery_governor",
       "label": "Alarms",
-      "variant": "emphasis"
-    },
-    {
-      "from": "deduplicator",
-      "to": "mesh_transport",
-      "label": "Relay",
+      "fromSide": "right",
+      "toSide": "left",
       "variant": "emphasis"
     },
     {
@@ -238,18 +319,6 @@
       "label": "Power Ctrl",
       "fromSide": "top",
       "toSide": "bottom",
-      "variant": "emphasis"
-    },
-    {
-      "from": "mesh_transport",
-      "to": "signaling_server",
-      "label": "Relay WS",
-      "variant": "dashed"
-    },
-    {
-      "from": "mesh_transport",
-      "to": "remote_peers",
-      "label": "GATT BLE",
       "variant": "emphasis"
     }
   ],
@@ -288,6 +357,15 @@
         "Pure KMP ConvoyGeofenceEngine monitors 600m tether bounds, cluster splits, and trail hazards",
         "Autonomous BatteryGovernor dynamically adapts radio duty cycles (<30% conservative, <15% survival)",
         "Rest-stop stillness detection (>10m) with instant motion and PTT wake; unconditional emergency override"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Crash Detection, eCall & Offline Voice HUD (Sprint 21)",
+      "items": [
+        "Pure KMP CrashDetector evaluates multi-axis IMU kinematics (>4.5g / >7.0g shocks, >60° sustained tilt, >35 km/h deceleration)",
+        "30-second abortable pre-alert countdown HUD with 1-tap rider abort and autonomous CRASH_ALERT mesh dispatch",
+        "Offline VoiceCommandRecognizer DSP rejects 80-120 km/h wind buffeting (<200 Hz) with hands-free tactical keyword spotter"
       ]
     }
   ]
