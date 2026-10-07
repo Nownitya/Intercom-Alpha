@@ -296,6 +296,53 @@ fun HomeScreen(
                 )
             }
 
+            // ================= 2B. GEOFENCE TETHER BREACH / SPLIT BANNER =================
+            if (uiState.geofenceSnapshot.overallStatus == org.nowni.intercom_alpha.telemetry.GeofenceTetherStatus.BREACH ||
+                uiState.geofenceSnapshot.splitWarning != null
+            ) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFF33080C),
+                    border = BorderStroke(1.dp, Color(0xFFFF1744))
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text("⚠️", fontSize = 14.sp)
+                            Column {
+                                val split = uiState.geofenceSnapshot.splitWarning
+                                val title = if (split != null) {
+                                    "CONVOY SPLIT DETECTED (${split.clusterGapMeters.toInt()}m GAP)"
+                                } else {
+                                    "TETHER BREACH (>600m FROM LEAD)"
+                                }
+                                Text(
+                                    text = title,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color(0xFFFF5252)
+                                )
+                                Text(
+                                    text = "Lead: ${uiState.geofenceSnapshot.furthestRiderDistanceMeters.toInt()}m | Check radar vectors",
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White.copy(alpha = 0.8f)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             // ================= 3. 16-CHANNEL SELECTOR RACK =================
             ChannelSelectorBar(
                 channelState = uiState.channelState,
@@ -309,6 +356,8 @@ fun HomeScreen(
                 radarSnapshot = uiState.radarSnapshot,
                 convoySnapshot = uiState.convoySnapshot,
                 trailMapSnapshot = uiState.trailMapSnapshot,
+                geofenceSnapshot = uiState.geofenceSnapshot,
+                powerGovernorState = uiState.powerGovernorState,
                 onCycleZoom = { onAction(HomeUiAction.CycleRadarZoom) },
                 onOpenTrailSheet = { onAction(HomeUiAction.ToggleTrailSheet(true)) }
             )
