@@ -40,7 +40,7 @@
         "Unconditionally restores full power upon Emergency SOS or priority preemption",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-2003",

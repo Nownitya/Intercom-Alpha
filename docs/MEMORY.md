@@ -606,6 +606,22 @@
     - Alarm wire framing: automatically constructs `GeofenceAlarmPacket` with JSON serialization (`Json { ignoreUnknownKeys = true; encodeDefaults = true }`) dispatched through `outgoingAlarmPackets` channel.
     - StateFlow telemetry: exposes `geofenceState: StateFlow<ConvoyGeofenceSnapshot>` for immediate consumption by HUD viewmodels.
 
+### 2.59 Smart Battery Duty-Cycle Governor & Motion-Aware Power Mode (Sprint 20 - ICA-2002)
+- **Challenge**: Off-grid backcountry rides run 6 to 12 hours on single smartphone batteries without access to chargers. Leaving BLE radios scanning and advertising at 100% duty cycle when the battery drops below 30% quickly drains the phone to 0%, stranding riders without communications. However, dumb timers that blindly shut off radios break critical emergency calls, and waking phones from deep sleep without physical interaction causes missed alerts.
+- **Solution**:
+  - `PowerStateModels.kt`:
+    - Defined `PowerPolicy` (`NORMAL`, `CONSERVATIVE`, `EXTREME_SURVIVAL`, `REST_STOP_SLEEP`, `EMERGENCY_OVERRIDE`).
+    - Configured `RadioDutyCycleProfile` providing parameterized scan windows/intervals, advertising intervals, GPS beacon rates, and audio profile ceilings.
+    - Configured `GovernorConfig` providing configurable thresholds: `<30%` triggers `CONSERVATIVE` (50% duty cycle, medium audio ceiling); `<15%` triggers `EXTREME_SURVIVAL` (20% duty cycle, low audio ceiling).
+    - Defined `PowerGovernorState` and serializable `PowerStatusPacket` for multi-node telemetry.
+  - `MeshTransport.kt`:
+    - Added `POWER_STATUS` (`0x0E`) to `ControlType` for multiplexed BLE mesh telemetry.
+  - `BatteryGovernor.kt`:
+    - Pure KMP autonomous governor with thread-safe `Mutex` synchronization.
+    - Motion-aware rest stop watchdog: monitors speed ($<= 3.0\text{ km/h}$) and stillness. If stillness persists for $>10\text{ minutes}$ (600,000ms), smoothly transitions to `REST_STOP_SLEEP` (5% duty cycle, ultra-low audio, 60s GPS beacon).
+    - Multi-trigger instant wake: automatically wakes immediately to battery-appropriate tier upon motion resumption ($\ge 5.0\text{ km/h}$), handlebar PTT button actuation (`onPttPressed()`), or charger connection.
+    - Unconditional Emergency SOS preemption: active emergency broadcasts (`updateEmergencyStatus(true)`) instantly force `EMERGENCY_OVERRIDE`, overriding low battery and sleep modes with full 100% duty cycle and maximum audio bandwidth until the emergency clears.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

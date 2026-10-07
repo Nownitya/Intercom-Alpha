@@ -1244,4 +1244,28 @@
   - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-20-geofence-power-stress`).
+### [2026-10-07] - ICA-2002: Smart Battery Duty-Cycle Governor & Motion-Aware Power Mode
+- **Branch**: `feature/ICA-2002-battery-governor`
+- **Objective**: Implement pure KMP `BatteryGovernor.kt` and `PowerStateModels.kt` in `commonMain` to scale BLE radio duty cycles dynamically (<30% conservative, <15% survival), detect sustained stillness (>10 min) to shift into rest-stop low-power sleep, wake on motion or PTT, and unconditionally override power saving upon emergency SOS broadcasts.
+- **Implementation**:
+  - `PowerStateModels.kt`:
+    - Defined `PowerPolicy` (`NORMAL`, `CONSERVATIVE`, `EXTREME_SURVIVAL`, `REST_STOP_SLEEP`, `EMERGENCY_OVERRIDE`).
+    - Defined `RadioDutyCycleProfile` (scan window/interval, advertising interval, GPS beacon interval, duty cycle percent, audio profile ceiling).
+    - Defined `GovernorConfig` with customizable battery thresholds, stillness intervals, and duty cycle timing profiles.
+    - Defined `PowerGovernorState` and serializable `PowerStatusPacket` for multi-node telemetry.
+  - `MeshTransport.kt`:
+    - Added `POWER_STATUS` to `ControlType` enum for control frame multiplexing over BLE mesh.
+  - `BatteryGovernor.kt`:
+    - Thread-safe mutex-protected state machine.
+    - Battery threshold scaling: dynamically adapts duty cycles from 100% down to 50% (<30% battery) and 20% (<15% critical battery).
+    - Stillness watchdog: detects sustained stillness (>10 min at <= 3.0 km/h) and transitions to `REST_STOP_SLEEP` (5% duty cycle).
+    - Wake triggers: wakes instantly on motion resumption (speed >= 5.0 km/h) or PTT button actuation, recording specific `wakeReason`.
+    - Emergency SOS preemption: unconditionally restores full 100% duty cycle, high GPS beaconing, and highest audio profile during active emergency broadcasts.
+    - Wire packet framing and JSON serialization/deserialization.
+  - `BatteryGovernorTest.kt`:
+    - 8 comprehensive unit test suites validating initial state, battery threshold scaling, rest stop stillness detection, motion wake, PTT wake, emergency SOS preemption, manual override, and wire packet serialization symmetry.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-20-geofence-power-stress`).
 ---
