@@ -23,6 +23,7 @@
 ---
 
 ## 📦 Historical Sprint Archive
+- ✅ **Sprint 19: Over-The-Air BLE Mesh GPX/GeoJSON Trail Sharing & Storage Manager**: Completed 2026-10-07 (100% DoD, v2.6.0 Released).
 - ✅ **Sprint 18: Offline Vector Terrain & Trail Map Overlay**: Completed 2026-10-07 (100% DoD, v2.5.0 Released).
 - ✅ **Sprint 17: Basecamp Stationary Repeater UI & Low-Power Cockpit Mode**: Completed 2026-10-06 (100% DoD, v2.4.0 Released).
 - ✅ **Sprint 16: Mesh Repeater, Audio DSP & Convoy Simulation**: Completed 2026-10-06 (100% DoD, Merged to `develop`).

@@ -103,6 +103,8 @@ Rider opens app ➔ Creates or scans QR code ➔ Pairs Bluetooth helmet headset 
 - **Mesh Repeater, Audio DSP & Convoy Simulation**: Pure KMP AGC & DRC speech normalization, autonomous stationary basecamp mesh repeater mode (`MeshRepeaterService.kt`), automated 8-node virtual convoy RF simulation harness (`ConvoyMeshSimulationHarness.kt`), and decentralized OTA group re-keying & dynamic epoch migration (`GroupEpochManager.kt`) (Sprint 16).
 - **Basecamp Stationary Repeater UI & Dedicated Low-Power Cockpit Mode**: Dedicated `BasecampRepeaterScreen.kt` in pure OLED `#000000` dark standby, 100% native SwiftUI [`BasecampRepeaterView.swift`](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/app/iosApp/iosApp/BasecampRepeaterView.swift) with iOS 17+ StandBy landscape support, and remote basecamp beacon telemetry with 1-tap diagnostic pings on the main cockpit HUD (Sprint 17).
 - **Offline Vector Terrain & Trail Map Overlay**: Pure KMP offline vector geometry projection, trail tracks, topographic elevation contours, waypoint breadcrumbs, and seamless radar integration across Compose Multiplatform (`ProximityRadarView.kt`, `OfflineTrailCockpitSheet.kt`) and 100% Native iOS SwiftUI (`ContentView.swift`, `OfflineTrailCockpitSheet.swift`) with zero cellular data (Sprint 18 - v2.5.0 Release).
+- **Over-The-Air BLE Mesh GPX/GeoJSON Trail Sharing & Storage Manager**: Pure KMP chunked file transmission engine (Adler-32, sliding-window retransmission, MTU <= 100 bytes), GPX 1.1 and RFC 7946 GeoJSON parsers/exporters, and seamless 1-tap route beaming across Compose Multiplatform (`TrailFileManagerSheet.kt`) and 100% Native iOS SwiftUI (`TrailFileManagerSheet.swift`) with offline route catalog management (Sprint 19 - v2.6.0 Release).
+
 
 ---
 
