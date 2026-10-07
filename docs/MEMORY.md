@@ -622,6 +622,37 @@
     - Multi-trigger instant wake: automatically wakes immediately to battery-appropriate tier upon motion resumption ($\ge 5.0\text{ km/h}$), handlebar PTT button actuation (`onPttPressed()`), or charger connection.
     - Unconditional Emergency SOS preemption: active emergency broadcasts (`updateEmergencyStatus(true)`) instantly force `EMERGENCY_OVERRIDE`, overriding low battery and sleep modes with full 100% duty cycle and maximum audio bandwidth until the emergency clears.
 
+### 2.60 Subsystem Hardware Bridge Wiring & Multiplatform Presentation HUD Integration (Sprint 20 - ICA-2003)
+- **Challenge**: Bridging two critical background telemetry engines (`ConvoyGeofenceEngine` and `BatteryGovernor`) into Android and iOS hardware layers and presenting dynamic radar overlays and battery governor badges across two distinct UI paradigms (Compose Multiplatform on Android/Desktop vs 100% Native SwiftUI on iOS) without violating Rule 1 (Zero Compose Multiplatform on iOS), Rule 2 (Shared Business Logic in KMP), or the Zero-Scroll Handlebar Cockpit Contract.
+- **Solution**:
+  - `IntercomHardwareBridge.kt`:
+    - Defined `TAG_GEOFENCE_ALARM` (`0x06`) and `TAG_POWER_STATUS` (`0x07`) in `ControlPayloadTag`.
+    - Added reactive StateFlows `geofenceSnapshot: StateFlow<ConvoyGeofenceSnapshot>` and `powerGovernorState: StateFlow<PowerGovernorState>` to `IntercomHardwareBridge` and its default implementation.
+    - Added `attachSubsystems` parameters for `ConvoyGeofenceEngine` and `BatteryGovernor`.
+  - `AndroidPlatformBridge.kt`:
+    - Implemented hardware bridge bindings, state flow collectors, and update delegations.
+  - `IntercomBridge.kt` (`iosMain`):
+    - Instantiated pure KMP `ConvoyGeofenceEngine` and `BatteryGovernor` instances in `iosMain`.
+    - Implemented reactive `observeGeofenceSnapshot` and `observeBatteryGovernorState` returning typed `CancellationHandle` closures for memory-safe SwiftUI lifecycle binding (Rule 1).
+    - Exposed `updateBattery`, `setPowerPolicyOverride`, `setGeofenceLeadRider`, and `updateLocalGpsWithMotion`.
+    - Hooked `setPttActive(...)` directly to `batteryGovernor.onPttWake()` for seamless low-latency wake on PTT actuation.
+  - `AppModule.kt`:
+    - Registered `ConvoyGeofenceEngine` and `BatteryGovernor` singletons in Koin dependency injection module.
+  - `HomeUiState.kt` & `HomeViewModel.kt`:
+    - Exposed `geofenceSnapshot` and `powerGovernorState` in state.
+    - Connected incoming GPS telemetry frames and local GPS streams to both geofence engine and battery governor.
+    - Added UI actions: `SetPowerPolicyOverride` and `SetGeofenceLeadRider`.
+  - `ProximityRadarView.kt` & `HomeScreen.kt`:
+    - Rendered dynamic outer tether perimeter ring (warn at 300m, breach at 600m) and hazard warning markers onto radar Canvas.
+    - Added `TETHER` and `PWR` badges in the sub-radar telemetry metric strip.
+    - Added high-contrast `GeofenceBreachBanner` on `HomeScreen.kt` displaying tether breaches (>600m from lead) and convoy cluster splits with gap distances.
+  - `ContentView.swift` & `IntercomViewModel.swift`:
+    - 100% native SwiftUI implementation adhering strictly to Rule 1.
+    - Added `@Published var geofenceSnapshot` and `@Published var powerGovernorState` in `IntercomViewModel.swift`.
+    - Added battery governor power mode pill (`PWR 100%`, `CONS 50%`, `SURV 20%`, `SLEEP 5%`, `SOS`) in `TacticalAvionicsBar`.
+    - Rendered dynamic tether boundary ring, obstacle hazard icons, and split warnings inside `TacticalVectorRadarView`.
+    - Added tether warning status badge in the compact telemetry info strip below the radar.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

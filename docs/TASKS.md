@@ -248,14 +248,14 @@
 ### 🚀 Sprint 20: Tactical Convoy Geofencing, Autonomous Power Governor & Multi-Node Stress Benchmark Suite (Phase 18 - v2.7 Roadmap)
 - **Sprint Goal**: Implement real-time convoy tether geofencing and waypoint proximity radar alarms, smart battery duty-cycle governing with motion-aware rest-stop sleep modes, multiplatform HUD presentation, and an automated 16-node virtual convoy stress harness with Archify showcase updates.
 - **Sprint Branch**: `sprint/sprint-20-geofence-power-stress`
-- **Status**: 🟡 In Progress (Story 2 Completed ➔ Story 3 Ready for Dev)
+- **Status**: 🟡 In Progress (Story 3 Completed ➔ Story 4 Ready for Dev)
 
 | Task ID | Item | Target Files | Status |
 | :--- | :--- | :--- | :--- |
 | **ICA-2001** | Pure KMP Convoy Geofencing, Hazard Waypoint Radar Alarms & Convoy Split Engine | `ConvoyGeofenceModels.kt`, `ConvoyGeofenceEngine.kt`, `ConvoyGeofenceEngineTest.kt` | ✅ Completed |
 | **ICA-2002** | Smart Battery Duty-Cycle Governor & Motion-Aware Power Mode | `PowerStateModels.kt`, `BatteryGovernor.kt`, `BatteryGovernorTest.kt` | ✅ Completed |
-| **ICA-2003** | Subsystem Hardware Bridge Wiring & Multiplatform Presentation HUD Integration | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `HomeScreen.kt`, `ContentView.swift` | 🟡 Ready for Dev |
-| **ICA-2004** | 16-Node Concurrent Convoy Stress Simulation Harness & Archify Showcase Update | `ConvoyStressSimulationHarness.kt`, `intercom-alpha.architecture.json` | ⚪ Queued |
+| **ICA-2003** | Subsystem Hardware Bridge Wiring & Multiplatform Presentation HUD Integration | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `HomeScreen.kt`, `ContentView.swift` | ✅ Completed |
+| **ICA-2004** | 16-Node Concurrent Convoy Stress Simulation Harness & Archify Showcase Update | `ConvoyStressSimulationHarness.kt`, `intercom-alpha.architecture.json` | 🟡 Next Up |
 
 
 

@@ -1269,3 +1269,43 @@
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-20-geofence-power-stress`).
 ---
+
+### [2026-10-07] - ICA-2003: Subsystem Hardware Bridge Wiring & Multiplatform Presentation HUD Integration
+- **Branch**: `feature/ICA-2003-bridge-and-hud`
+- **Objective**: Wire `ConvoyGeofenceEngine` and `BatteryGovernor` into Koin DI (`AppModule.kt`), `IntercomHardwareBridge`, `AndroidPlatformBridge`, and `IntercomBridge` (`iosMain`) with typed `CancellationHandle` observers. Integrate geofence warning rings, hazard proximity banners, and power governor indicators across Compose Multiplatform (`HomeScreen.kt`, `ProximityRadarView.kt`) and 100% Native iOS SwiftUI (`ContentView.swift`, `IntercomViewModel.swift`) respecting Rule 1.
+- **Implementation**:
+  - `IntercomHardwareBridge.kt`:
+    - Added `TAG_GEOFENCE_ALARM` (0x06) and `TAG_POWER_STATUS` (0x07) control payload tags.
+    - Added reactive StateFlows `geofenceSnapshot` and `powerGovernorState` to bridge interface and default implementation.
+    - Added methods `updateGeofenceSnapshot(...)` and `updatePowerGovernorState(...)`.
+    - Wired `attachSubsystems` to accept `ConvoyGeofenceEngine` and `BatteryGovernor`.
+  - `AndroidPlatformBridge.kt`:
+    - Exposed `geofenceSnapshot` and `powerGovernorState` StateFlows.
+    - Implemented observer attachments and update methods.
+  - `IntercomBridge.kt` (`iosMain`):
+    - Instantiated pure KMP `ConvoyGeofenceEngine` and `BatteryGovernor` instances in `iosMain`.
+    - Added `observeGeofenceSnapshot` and `observeBatteryGovernorState` returning reactive `CancellationHandle` callbacks for lifecycle-safe SwiftUI binding (Rule 1).
+    - Added `updateBattery(percent, isCharging)`, `setPowerPolicyOverride(policy)`, `setGeofenceLeadRider(leadPeerId)`, and `updateLocalGpsWithMotion(lat, lon, alt, speedKmh, heading)`.
+    - Wired PTT button actuation in `setPttActive(...)` to trigger governor wake via `batteryGovernor.onPttWake()`.
+  - `AppModule.kt`:
+    - Registered singletons `ConvoyGeofenceEngine` and `BatteryGovernor` into Koin DI.
+  - `HomeUiState.kt` & `HomeViewModel.kt`:
+    - Added `geofenceSnapshot` and `powerGovernorState` to `HomeUiState`.
+    - Injected subsystems into `HomeViewModel`, registered bridge listeners, and connected incoming telemetry and local GPS streams.
+    - Added UI actions `SetPowerPolicyOverride` and `SetGeofenceLeadRider`.
+  - `ProximityRadarView.kt` & `HomeScreen.kt`:
+    - Added dynamic outer tether warning/breach ring and obstacle hazard markers to radar canvas.
+    - Added `TETHER` and `PWR` telemetry badges in the sub-radar metrics bar.
+    - Implemented high-visibility `GeofenceBreachBanner` on `HomeScreen.kt` for tether breaches (>600m) or convoy cluster splits.
+  - `IntercomViewModel.swift` & `ContentView.swift`:
+    - Subscribed to `observeGeofenceSnapshot` and `observeBatteryGovernorState` via `CancellationHandle`.
+    - Implemented 100% native SwiftUI `Geofence Tether Breach or Convoy Split Warning Banner`.
+    - Added battery governor power mode pill badge in `TacticalAvionicsBar`.
+    - Rendered dynamic convoy tether ring and obstacle hazard markers inside `TacticalVectorRadarView`.
+    - Added live tether warning status indicator in the radar telemetry strip.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-20-geofence-power-stress`).
+---
+
