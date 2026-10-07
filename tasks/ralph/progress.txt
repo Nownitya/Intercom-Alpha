@@ -1180,3 +1180,45 @@
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-19-mesh-trail-sharing`).
 ---
 
+### [2026-10-07] - ICA-1904: Native iOS SwiftUI Trail File Manager & Over-The-Air Beam Sheet
+- **Branch**: `feature/ICA-1904-swiftui-trail-manager`
+- **Objective**: Implement 100% native SwiftUI `TrailFileManagerSheet.swift` in `app/iosApp` (Rule 1). Wire `IntercomViewModel` observers with `CancellationHandle`, supporting trail library management, live OTA chunk transfer progress gauges, and 1-tap beam to mesh convoy.
+- **Implementation**:
+  - `TrailFileManagerSheet.swift`:
+    - 100% Native SwiftUI modal sheet adhering strictly to Architectural Rule 1 (zero Compose Multiplatform imports on iOS).
+    - Top header displaying glowing cyan title ("TRAIL FILE MANAGER"), high-contrast "OFF-GRID OTA" badge, and dismiss action.
+    - Active cockpit route card featuring format toggle (`GPX` vs `GEOJSON`), high-visibility 1-tap "BEAM TO CONVOY" actuator with tactile haptics (`UIImpactFeedbackGenerator`), and text import trigger.
+    - Live Over-The-Air file transfers section rendering dynamic progress bars, percentage indicators, chunk progress counters (`X / Y chunks`), direction badges (`OUTGOING` / `INCOMING`), and cancellation buttons.
+    - Stored routes library rendering active checkmark indicators, difficulty badges (`EASY`, `MODERATE`, `HARD`, `EXPERT`), total distance (`km`), elevation ascent (`m`), waypoint counts, 1-tap beam trigger, and deletion controls.
+    - Monospace raw GPX/GeoJSON text import modal sheet for rapid offline manual route entry.
+  - `IntercomViewModel.swift`:
+    - Exposed `@Published var activeTransfers: [FileTransferProgress] = []`, `@Published var storedTrails: [TrailPolyline] = []`, and `@Published var showTrailManagerSheet: Bool = false`.
+    - Wired reactive listeners `observeFileTransfers` and `observeStoredTrails` into `cancellables: [CancellationHandle]`.
+    - Added UI action handlers: `beamActiveTrail(format:)`, `beamTrail(trail:format:)`, `cancelTransfer(transferId:)`, `importTrailText(text:fileName:format:)`, `deleteStoredTrail(trailId:)`, `selectStoredTrail(trail:)`, and `toggleTrailManagerSheet()`.
+  - `OfflineTrailCockpitSheet.swift`:
+    - Added prominent "⚡ OTA ROUTES" shortcut button in cockpit header.
+    - Attached `.sheet(isPresented: $vm.showTrailManagerSheet) { TrailFileManagerSheet(vm: vm) }`.
+  - `ContentView.swift`:
+    - Added Over-The-Air BLE Mesh Trail Manager button in `TacticalAvionicsBar` with active transfer badge and border glow.
+    - Attached `.sheet(isPresented: $vm.showTrailManagerSheet) { TrailFileManagerSheet(vm: vm) }`.
+  - `IntercomBridge.kt`:
+    - Added `loadTrail(trail: TrailPolyline)` helper method.
+    - Connected `fileTransferManager.completedTrailReceived` to automatically load newly completed route downloads into `trailMapManager` for real-time HUD vector rendering.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-19-mesh-trail-sharing`).
+---
+
+## 🏆 Sprint 19 & Phase 17 Completion Summary
+- **Milestone**: Phase 17 / Sprint 19 (Over-The-Air BLE Mesh GPX/GeoJSON Trail Sharing & Storage Manager - v2.6 Roadmap)
+- **Result**: 100% Definition of Done (DoD) achieved across all 4 stories (`ICA-1901` through `ICA-1904`).
+- **All 4 Sprint 19 stories PASSED**:
+  - `ICA-1901: Pure KMP Chunked Mesh File Transfer & GPX/GeoJSON Protocol Engine` [PASSED]
+  - `ICA-1902: Subsystem Hardware Bridge Wiring & Reactive State Management` [PASSED]
+  - `ICA-1903: Compose Multiplatform Trail File Manager & Over-The-Air Beam Cockpit Sheet` [PASSED]
+  - `ICA-1904: Native iOS SwiftUI Trail File Manager & Over-The-Air Beam Sheet` [PASSED]
+- **Target Release**: `v2.6.0` Ready for Release Tagging.
+---
+
+

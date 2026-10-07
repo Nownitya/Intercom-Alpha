@@ -571,6 +571,25 @@
     - Exposed "OTA / Routes" launcher in the Top Quick Actions row.
     - Full dialog orchestration binding ViewModel state and actions without blocking ongoing audio streaming.
 
+### 2.57 Native iOS SwiftUI Trail File Manager & Over-The-Air Beam Sheet (Sprint 19 - ICA-1904)
+- **Challenge**: Providing a 100% native SwiftUI file transmission and route management center without breaking Rule 1 (zero Compose Multiplatform imports on iOS), ensuring reactive UI binding to KMP flows without memory leaks, and automatically reflecting completed trail downloads onto the vector radar map.
+- **Solution**:
+  - `TrailFileManagerSheet.swift`:
+    - Pure SwiftUI view rendering stored trail catalog, active route card, live OTA chunk transmission cards, and raw GPX/GeoJSON text import modal.
+    - Dynamic progress gauges with percent and chunk count (`X / Y chunks`), direction badges (`OUTGOING` / `INCOMING`), and cancellation buttons.
+    - 1-tap "BEAM TO CONVOY" button with tactile feedback (`UIImpactFeedbackGenerator`).
+    - Difficulty rating badges, distance (`km`), elevation gain (`m`), and waypoint metrics.
+  - `IntercomViewModel.swift`:
+    - Exposed `@Published` state variables (`activeTransfers`, `storedTrails`, `showTrailManagerSheet`).
+    - Bound `observeFileTransfers` and `observeStoredTrails` via thread-safe `CancellationHandle` objects automatically cleaned up on `deinit`.
+    - Added UI action methods (`beamActiveTrail`, `beamTrail`, `cancelTransfer`, `importTrailText`, `deleteStoredTrail`, `selectStoredTrail`).
+  - `OfflineTrailCockpitSheet.swift` & `ContentView.swift`:
+    - Added "OTA ROUTES" quick launcher button in the cockpit header and `TacticalAvionicsBar`.
+    - Bound sheet presentation via `.sheet(isPresented: $vm.showTrailManagerSheet)`.
+  - `IntercomBridge.kt`:
+    - Added `loadTrail` helper method.
+    - Connected `fileTransferManager.completedTrailReceived` to automatically load newly completed trail downloads into `trailMapManager` for real-time vector HUD projection.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index
