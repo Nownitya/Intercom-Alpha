@@ -126,4 +126,9 @@ For critical production defects (e.g., Bluetooth permission crash on iOS 18 or A
 | `v0.7.0` | `1cdb52e` | Phase 5: Pure KMP Audio Codec, Jitter Buffer & PLC |
 | `v1.0.0` | `7be2904` | Sprint 08: Production Release v1.0.0 — Off-Grid BLE Mesh Multiplatform Intercom |
 | `v2.0.0` | `9785675` | Sprint 13: Production Release v2.0.0 — Android Platform Hardware, R8 Minification & Profiling |
-| `v2.1.0` | *(Current)* | Sprint 14: Production Release v2.1.0 — Advanced Convoy Mesh, Forward-Secret Key Ratchet & Live Activity |
+| `v2.1.0` | `8c3be9d` | Sprint 14: Production Release v2.1.0 — Advanced Convoy Mesh, Forward-Secret Key Ratchet & Live Activity |
+| `v2.2.0` | `a906cf2` | Sprint 15: Production Release v2.2.0 — Zero-Scroll Tactical Cockpit HUD & Telemetry Integration |
+| `v2.4.0` | `e2a7b3c` | Sprint 17: Production Release v2.4.0 — Basecamp Stationary Repeater UI & Dedicated Low-Power Cockpit Mode |
+| `v2.5.0` | `5c84d72` | Sprint 18: Production Release v2.5.0 — Offline Vector Terrain & Trail Map Overlay |
+| `v2.6.0` | `6c121e4` | Sprint 19: Production Release v2.6.0 — Over-The-Air BLE Mesh GPX/GeoJSON Trail Sharing & Storage Manager |
+| `v2.7.0` | *(Current)* | Sprint 20: Production Release v2.7.0 — Tactical Convoy Geofencing, Autonomous Power Governor & Multi-Node Stress Benchmark Suite |

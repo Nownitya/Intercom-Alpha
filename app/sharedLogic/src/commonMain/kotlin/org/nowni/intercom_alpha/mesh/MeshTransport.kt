@@ -54,7 +54,9 @@ enum class ControlType {
     EPOCH_ROLLOVER,
     EPOCH_BEACON,
     FILE_CHUNK,
-    FILE_ACK
+    FILE_ACK,
+    GEOFENCE_ALARM,
+    POWER_STATUS
 }
 
 @Serializable

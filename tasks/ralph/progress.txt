@@ -1220,5 +1220,126 @@
   - `ICA-1904: Native iOS SwiftUI Trail File Manager & Over-The-Air Beam Sheet` [PASSED]
 - **Target Release**: `v2.6.0` Ready for Release Tagging.
 ---
+## 🚀 Sprint 20: Tactical Convoy Geofencing, Autonomous Power Governor & Multi-Node Stress Benchmark Suite (Phase 18 - v2.7 Roadmap)
 
+### [2026-10-07] - ICA-2001: Pure KMP Convoy Geofencing, Hazard Waypoint Radar Alarms & Convoy Split Engine
+- **Branch**: `feature/ICA-2001-geofence-hazard-engine`
+- **Objective**: Implement pure KMP `ConvoyGeofenceEngine.kt` and `ConvoyGeofenceModels.kt` in `commonMain` to monitor tether distance from lead rider (warn at >300m, breach at >600m), detect hazard waypoint proximity within 150m, detect convoy cluster bifurcation/split (>500m inter-group gap), and emit wire alarm packets with zero Java or C dependencies (Rules 2 & 3).
+- **Implementation**:
+  - `ConvoyGeofenceModels.kt`:
+    - Defined `GeofenceTetherStatus` (`IN_BOUNDS`, `WARNING`, `BREACH`, `DISCONNECTED`).
+    - Defined `RiderTetherAlert`, `HazardProximityAlert`, `ConvoySplitWarning`, `ConvoyGeofenceSnapshot`.
+    - Defined `GeofenceAlarmType` (`TETHER_WARNING`, `TETHER_BREACH`, `HAZARD_APPROACH`, `CONVOY_SPLIT`, `TETHER_RESTORED`) and serializable `GeofenceAlarmPacket`.
+  - `MeshTransport.kt`:
+    - Added `GEOFENCE_ALARM` to `ControlType` enum for control frame multiplexing over BLE mesh.
+  - `ConvoyGeofenceEngine.kt`:
+    - Pure KMP Great-Circle Haversine tether checking against lead rider (warn >300m, breach >600m).
+    - Waypoint proximity radar evaluating obstacle distance within 150m, computing relative bearing and approaching/receding trends.
+    - Single-linkage clustering detecting convoy cluster bifurcation (split gap >500m).
+    - Wire serialization with `Json { ignoreUnknownKeys = true; encodeDefaults = true }`.
+    - StateFlow telemetry: `geofenceState: StateFlow<ConvoyGeofenceSnapshot>` and channel `outgoingAlarmPackets: ReceiveChannel<GeofenceAlarmPacket>`.
+  - `ConvoyGeofenceEngineTest.kt`:
+    - 6/6 unit test suites passed covering initial state, warning/breach transitions, stale rider disconnection, obstacle hazard proximity, cluster split detection, and wire serialization.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-20-geofence-power-stress`).
+### [2026-10-07] - ICA-2002: Smart Battery Duty-Cycle Governor & Motion-Aware Power Mode
+- **Branch**: `feature/ICA-2002-battery-governor`
+- **Objective**: Implement pure KMP `BatteryGovernor.kt` and `PowerStateModels.kt` in `commonMain` to scale BLE radio duty cycles dynamically (<30% conservative, <15% survival), detect sustained stillness (>10 min) to shift into rest-stop low-power sleep, wake on motion or PTT, and unconditionally override power saving upon emergency SOS broadcasts.
+- **Implementation**:
+  - `PowerStateModels.kt`:
+    - Defined `PowerPolicy` (`NORMAL`, `CONSERVATIVE`, `EXTREME_SURVIVAL`, `REST_STOP_SLEEP`, `EMERGENCY_OVERRIDE`).
+    - Defined `RadioDutyCycleProfile` (scan window/interval, advertising interval, GPS beacon interval, duty cycle percent, audio profile ceiling).
+    - Defined `GovernorConfig` with customizable battery thresholds, stillness intervals, and duty cycle timing profiles.
+    - Defined `PowerGovernorState` and serializable `PowerStatusPacket` for multi-node telemetry.
+  - `MeshTransport.kt`:
+    - Added `POWER_STATUS` to `ControlType` enum for control frame multiplexing over BLE mesh.
+  - `BatteryGovernor.kt`:
+    - Thread-safe mutex-protected state machine.
+    - Battery threshold scaling: dynamically adapts duty cycles from 100% down to 50% (<30% battery) and 20% (<15% critical battery).
+    - Stillness watchdog: detects sustained stillness (>10 min at <= 3.0 km/h) and transitions to `REST_STOP_SLEEP` (5% duty cycle).
+    - Wake triggers: wakes instantly on motion resumption (speed >= 5.0 km/h) or PTT button actuation, recording specific `wakeReason`.
+    - Emergency SOS preemption: unconditionally restores full 100% duty cycle, high GPS beaconing, and highest audio profile during active emergency broadcasts.
+    - Wire packet framing and JSON serialization/deserialization.
+  - `BatteryGovernorTest.kt`:
+    - 8 comprehensive unit test suites validating initial state, battery threshold scaling, rest stop stillness detection, motion wake, PTT wake, emergency SOS preemption, manual override, and wire packet serialization symmetry.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-20-geofence-power-stress`).
+---
 
+### [2026-10-07] - ICA-2003: Subsystem Hardware Bridge Wiring & Multiplatform Presentation HUD Integration
+- **Branch**: `feature/ICA-2003-bridge-and-hud`
+- **Objective**: Wire `ConvoyGeofenceEngine` and `BatteryGovernor` into Koin DI (`AppModule.kt`), `IntercomHardwareBridge`, `AndroidPlatformBridge`, and `IntercomBridge` (`iosMain`) with typed `CancellationHandle` observers. Integrate geofence warning rings, hazard proximity banners, and power governor indicators across Compose Multiplatform (`HomeScreen.kt`, `ProximityRadarView.kt`) and 100% Native iOS SwiftUI (`ContentView.swift`, `IntercomViewModel.swift`) respecting Rule 1.
+- **Implementation**:
+  - `IntercomHardwareBridge.kt`:
+    - Added `TAG_GEOFENCE_ALARM` (0x06) and `TAG_POWER_STATUS` (0x07) control payload tags.
+    - Added reactive StateFlows `geofenceSnapshot` and `powerGovernorState` to bridge interface and default implementation.
+    - Added methods `updateGeofenceSnapshot(...)` and `updatePowerGovernorState(...)`.
+    - Wired `attachSubsystems` to accept `ConvoyGeofenceEngine` and `BatteryGovernor`.
+  - `AndroidPlatformBridge.kt`:
+    - Exposed `geofenceSnapshot` and `powerGovernorState` StateFlows.
+    - Implemented observer attachments and update methods.
+  - `IntercomBridge.kt` (`iosMain`):
+    - Instantiated pure KMP `ConvoyGeofenceEngine` and `BatteryGovernor` instances in `iosMain`.
+    - Added `observeGeofenceSnapshot` and `observeBatteryGovernorState` returning reactive `CancellationHandle` callbacks for lifecycle-safe SwiftUI binding (Rule 1).
+    - Added `updateBattery(percent, isCharging)`, `setPowerPolicyOverride(policy)`, `setGeofenceLeadRider(leadPeerId)`, and `updateLocalGpsWithMotion(lat, lon, alt, speedKmh, heading)`.
+    - Wired PTT button actuation in `setPttActive(...)` to trigger governor wake via `batteryGovernor.onPttWake()`.
+  - `AppModule.kt`:
+    - Registered singletons `ConvoyGeofenceEngine` and `BatteryGovernor` into Koin DI.
+  - `HomeUiState.kt` & `HomeViewModel.kt`:
+    - Added `geofenceSnapshot` and `powerGovernorState` to `HomeUiState`.
+    - Injected subsystems into `HomeViewModel`, registered bridge listeners, and connected incoming telemetry and local GPS streams.
+    - Added UI actions `SetPowerPolicyOverride` and `SetGeofenceLeadRider`.
+  - `ProximityRadarView.kt` & `HomeScreen.kt`:
+    - Added dynamic outer tether warning/breach ring and obstacle hazard markers to radar canvas.
+    - Added `TETHER` and `PWR` telemetry badges in the sub-radar metrics bar.
+    - Implemented high-visibility `GeofenceBreachBanner` on `HomeScreen.kt` for tether breaches (>600m) or convoy cluster splits.
+  - `IntercomViewModel.swift` & `ContentView.swift`:
+    - Subscribed to `observeGeofenceSnapshot` and `observeBatteryGovernorState` via `CancellationHandle`.
+    - Implemented 100% native SwiftUI `Geofence Tether Breach or Convoy Split Warning Banner`.
+    - Added battery governor power mode pill badge in `TacticalAvionicsBar`.
+    - Rendered dynamic convoy tether ring and obstacle hazard markers inside `TacticalVectorRadarView`.
+    - Added live tether warning status indicator in the radar telemetry strip.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-20-geofence-power-stress`).
+### [2026-10-07] - ICA-2004: 16-Node Concurrent Convoy Stress Simulation Harness & Archify Showcase Update
+- **Branch**: `feature/ICA-2004-stress-simulation-archify`
+- **Objective**: Implement `ConvoyStressSimulationHarness.kt` simulating 16 virtual riders exchanging voice ADPCM packets, OTA GPX route chunks, geofence alarms, and battery duty cycling over lossy multi-hop RF mesh. Benchmark latency, throughput, and memory bounds. Update Archify architecture diagram specification and generate showcase HTML.
+- **Implementation**:
+  - `ConvoyStressSimulationHarness.kt`:
+    - Simulated 16 concurrent nodes (`ConvoyStressNode`) in linear and clustered formations spanning over 3 km.
+    - Simulated multi-hop packet forwarding with configurable RF packet loss (10%), hop distance radius, and out-of-order jitter.
+    - Verified full voice ADPCM frame transmission across 8 linear mesh hops with 100% decryption fidelity and zero lost chunks.
+    - Simulated concurrent OTA route chunk distribution across the mesh cluster.
+    - Verified dynamic geofence tether warning, breach alarms, and convoy partition split detection across 16 nodes.
+    - Verified autonomous battery governor duty-cycle transitions down to 20% under critical battery levels.
+    - Verified memory stability: verified <80 MB resident RAM and zero coroutine leaks under high-load stress simulation.
+  - `ConvoyGeofenceEngine.kt`:
+    - Upgraded `detectConvoySplitInternal` to use true single-linkage connected-component clustering via BFS over `splitClusterMinDistanceMeters` (500m), ensuring robust detection of multi-node cluster splits and inter-cluster gap distance.
+  - `docs/architecture/intercom-alpha.architecture.json` & `docs/architecture/intercom-alpha-architecture.html`:
+    - Integrated Sprint 18, 19, and 20 subsystems (`trail_engine`, `geofence_engine`, `battery_governor`).
+    - Added UI components for trail cockpit, tether warnings, and battery governor HUD indicators.
+    - Delivered showcase HTML using Archify CLI with 9/9 checks passed, 0 errors, and 0 warnings.
+  - `ConvoyStressSimulationHarnessTest`:
+    - 4 comprehensive stress benchmark unit tests verifying multi-hop delivery, geofence split alerts, power policy adaptation, and memory bounds.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-20-geofence-power-stress`).
+---
+
+## 🏆 Sprint 20 & Phase 18 Completion Summary
+- **Milestone**: Phase 18 / Sprint 20 (Tactical Convoy Geofencing, Autonomous Power Governor & Multi-Node Stress Benchmark Suite - Target Release: `v2.7.0`)
+- **Result**: 100% Definition of Done (DoD) achieved across all 4 stories (`ICA-2001` through `ICA-2004`).
+- **All 4 Sprint 20 stories PASSED**:
+  - `ICA-2001: Pure KMP Convoy Geofencing, Hazard Waypoint Radar Alarms & Convoy Split Engine` [PASSED]
+  - `ICA-2002: Smart Battery Duty-Cycle Governor & Motion-Aware Power Mode` [PASSED]
+  - `ICA-2003: Subsystem Hardware Bridge Wiring & Multiplatform Presentation HUD Integration` [PASSED]
+  - `ICA-2004: 16-Node Concurrent Convoy Stress Simulation Harness & Archify Showcase Update` [PASSED]
+- **Release Status**: `v2.7.0` Ready for Production Tagging on `main`.
+---

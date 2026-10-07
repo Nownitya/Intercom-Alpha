@@ -68,6 +68,10 @@ final class IntercomViewModel: ObservableObject {
     @Published var storedTrails: [TrailPolyline] = []
     @Published var showTrailManagerSheet: Bool = false
 
+    // --- Tactical Convoy Geofence & Battery Governor (Sprint 20 / ICA-2003) ---
+    @Published var geofenceSnapshot: ConvoyGeofenceSnapshot? = nil
+    @Published var powerGovernorState: PowerGovernorState? = nil
+
     private let bridge = IntercomBridge(localPeerId: "ios-lead", localPeerName: "iOS Lead")
     private var cancellables: [CancellationHandle] = []
     private var activeActivity: Activity<IntercomActivityAttributes>? = nil
@@ -323,6 +327,20 @@ final class IntercomViewModel: ObservableObject {
         showTrailManagerSheet.toggle()
     }
 
+    // --- Tactical Geofence & Battery Governor Controls (Sprint 20 / ICA-2003) ---
+
+    func setPowerPolicyOverride(policy: PowerPolicy?) {
+        bridge.setPowerPolicyOverride(policy: policy)
+    }
+
+    func setGeofenceLeadRider(leadPeerId: String?) {
+        bridge.setGeofenceLeadRider(leadPeerId: leadPeerId)
+    }
+
+    func updateBattery(percent: Int, isCharging: Bool = false) {
+        bridge.updateBattery(percent: Int32(percent), isCharging: isCharging)
+    }
+
     // --- Reactive Observers Setup ---
 
     private func setupObservers() {
@@ -524,6 +542,21 @@ final class IntercomViewModel: ObservableObject {
             }
         }
         cancellables.append(storedTrailsSub)
+
+        // --- Tactical Convoy Geofence & Battery Governor Observers (Sprint 20 / ICA-2003) ---
+        let geofenceSub = bridge.observeGeofenceSnapshot { [weak self] snapshot in
+            Task { @MainActor in
+                self?.geofenceSnapshot = snapshot
+            }
+        }
+        cancellables.append(geofenceSub)
+
+        let powerGovernorSub = bridge.observeBatteryGovernorState { [weak self] state in
+            Task { @MainActor in
+                self?.powerGovernorState = state
+            }
+        }
+        cancellables.append(powerGovernorSub)
 
         isPfsRatchetActive = bridge.isPfsRatchetActive()
     }
