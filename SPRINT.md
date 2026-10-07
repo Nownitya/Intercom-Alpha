@@ -15,8 +15,8 @@
 
 | Task ID | Item | Owner | Target Files | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **ICA-2001** | Pure KMP Convoy Geofencing, Hazard Waypoint Radar Alarms & Convoy Split Engine | Ralph | `ConvoyGeofenceModels.kt`, `ConvoyGeofenceEngine.kt`, `ConvoyGeofenceEngineTest.kt` | 🟡 Ready for Dev |
-| **ICA-2002** | Smart Battery Duty-Cycle Governor & Motion-Aware Power Mode | Ralph | `PowerStateModels.kt`, `BatteryGovernor.kt`, `BatteryGovernorTest.kt` | ⚪ Queued |
+| **ICA-2001** | Pure KMP Convoy Geofencing, Hazard Waypoint Radar Alarms & Convoy Split Engine | Ralph | `ConvoyGeofenceModels.kt`, `ConvoyGeofenceEngine.kt`, `ConvoyGeofenceEngineTest.kt` | ✅ Completed |
+| **ICA-2002** | Smart Battery Duty-Cycle Governor & Motion-Aware Power Mode | Ralph | `PowerStateModels.kt`, `BatteryGovernor.kt`, `BatteryGovernorTest.kt` | 🟡 Ready for Dev |
 | **ICA-2003** | Subsystem Hardware Bridge Wiring & Multiplatform Presentation HUD Integration | Ralph | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `HomeScreen.kt`, `ContentView.swift` | ⚪ Queued |
 | **ICA-2004** | 16-Node Concurrent Convoy Stress Simulation Harness & Archify Showcase Update | Ralph | `ConvoyStressSimulationHarness.kt`, `intercom-alpha.architecture.json` | ⚪ Queued |
 

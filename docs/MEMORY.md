@@ -590,6 +590,22 @@
     - Added `loadTrail` helper method.
     - Connected `fileTransferManager.completedTrailReceived` to automatically load newly completed trail downloads into `trailMapManager` for real-time vector HUD projection.
 
+### 2.58 Pure KMP Convoy Geofencing, Hazard Waypoint Radar Alarms & Convoy Split Engine (Sprint 20 - ICA-2001)
+- **Challenge**: In backcountry and off-grid mountain rides, riders frequently get separated from the pack or encounter trail hazards (downed trees, washouts, narrow passes). Traditional geofencing relies on cloud APIs or OS location frameworks (`CoreLocation` geofences, Google Play Geofencing API) which fail without cellular data, consume excessive battery, or lack convoy-relative dynamic distance tracking. Furthermore, convoy cluster bifurcation (the group splitting into two detached packs) is undetectable by static point geofences.
+- **Solution**:
+  - `ConvoyGeofenceModels.kt`:
+    - Defined `GeofenceTetherStatus` (`IN_BOUNDS`, `WARNING`, `BREACH`, `DISCONNECTED`).
+    - Defined `RiderTetherAlert`, `HazardProximityAlert`, `ConvoySplitWarning`, and `ConvoyGeofenceSnapshot`.
+    - Defined `GeofenceAlarmType` (`TETHER_WARNING`, `TETHER_BREACH`, `HAZARD_APPROACH`, `CONVOY_SPLIT`, `TETHER_RESTORED`) and compact wire packet `GeofenceAlarmPacket`.
+  - `MeshTransport.kt`:
+    - Added `GEOFENCE_ALARM` (`0x0D`) to `ControlType` for multiplexed BLE mesh transmission.
+  - `ConvoyGeofenceEngine.kt`:
+    - Pure KMP Great-Circle Haversine distance engine: tracks dynamic distance between local rider and lead rider (or nearest peer if lead is undefined). Triggers `WARNING` at >300m and `BREACH` at >600m.
+    - Proximity Radar: evaluates proximity to known trail hazard waypoints (obstacles, hazards, steep terrain) within 150m, computing relative bearing ($-180^\circ \dots +180^\circ$) and approach/recede trends based on speed vector.
+    - Single-linkage clustering cluster bifurcation detection: detects when the convoy splits into disjoint clusters separated by >500m gaps, advising tail or sweep repositioning.
+    - Alarm wire framing: automatically constructs `GeofenceAlarmPacket` with JSON serialization (`Json { ignoreUnknownKeys = true; encodeDefaults = true }`) dispatched through `outgoingAlarmPackets` channel.
+    - StateFlow telemetry: exposes `geofenceState: StateFlow<ConvoyGeofenceSnapshot>` for immediate consumption by HUD viewmodels.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

@@ -1220,5 +1220,28 @@
   - `ICA-1904: Native iOS SwiftUI Trail File Manager & Over-The-Air Beam Sheet` [PASSED]
 - **Target Release**: `v2.6.0` Ready for Release Tagging.
 ---
+## 🚀 Sprint 20: Tactical Convoy Geofencing, Autonomous Power Governor & Multi-Node Stress Benchmark Suite (Phase 18 - v2.7 Roadmap)
 
-
+### [2026-10-07] - ICA-2001: Pure KMP Convoy Geofencing, Hazard Waypoint Radar Alarms & Convoy Split Engine
+- **Branch**: `feature/ICA-2001-geofence-hazard-engine`
+- **Objective**: Implement pure KMP `ConvoyGeofenceEngine.kt` and `ConvoyGeofenceModels.kt` in `commonMain` to monitor tether distance from lead rider (warn at >300m, breach at >600m), detect hazard waypoint proximity within 150m, detect convoy cluster bifurcation/split (>500m inter-group gap), and emit wire alarm packets with zero Java or C dependencies (Rules 2 & 3).
+- **Implementation**:
+  - `ConvoyGeofenceModels.kt`:
+    - Defined `GeofenceTetherStatus` (`IN_BOUNDS`, `WARNING`, `BREACH`, `DISCONNECTED`).
+    - Defined `RiderTetherAlert`, `HazardProximityAlert`, `ConvoySplitWarning`, `ConvoyGeofenceSnapshot`.
+    - Defined `GeofenceAlarmType` (`TETHER_WARNING`, `TETHER_BREACH`, `HAZARD_APPROACH`, `CONVOY_SPLIT`, `TETHER_RESTORED`) and serializable `GeofenceAlarmPacket`.
+  - `MeshTransport.kt`:
+    - Added `GEOFENCE_ALARM` to `ControlType` enum for control frame multiplexing over BLE mesh.
+  - `ConvoyGeofenceEngine.kt`:
+    - Pure KMP Great-Circle Haversine tether checking against lead rider (warn >300m, breach >600m).
+    - Waypoint proximity radar evaluating obstacle distance within 150m, computing relative bearing and approaching/receding trends.
+    - Single-linkage clustering detecting convoy cluster bifurcation (split gap >500m).
+    - Wire serialization with `Json { ignoreUnknownKeys = true; encodeDefaults = true }`.
+    - StateFlow telemetry: `geofenceState: StateFlow<ConvoyGeofenceSnapshot>` and channel `outgoingAlarmPackets: ReceiveChannel<GeofenceAlarmPacket>`.
+  - `ConvoyGeofenceEngineTest.kt`:
+    - 6/6 unit test suites passed covering initial state, warning/breach transitions, stale rider disconnection, obstacle hazard proximity, cluster split detection, and wire serialization.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-20-geofence-power-stress`).
+---

@@ -22,7 +22,7 @@
         "Detects convoy partition into bifurcated rider clusters and emits split warnings",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-2002",
