@@ -44,6 +44,8 @@ class HomeViewModel(
     val helmetAccessoryManager: HelmetAccessoryManager = HelmetAccessoryManager(),
     val trailMapManager: TrailMapManager = TrailMapManager(),
     val fileTransferManager: MeshFileTransferManager = MeshFileTransferManager(),
+    val geofenceEngine: org.nowni.intercom_alpha.telemetry.ConvoyGeofenceEngine = org.nowni.intercom_alpha.telemetry.ConvoyGeofenceEngine(),
+    val batteryGovernor: org.nowni.intercom_alpha.power.BatteryGovernor = org.nowni.intercom_alpha.power.BatteryGovernor("android-local"),
     val hardwareBridge: IntercomHardwareBridge = NoOpIntercomHardwareBridge()
 ) : ViewModel() {
 
@@ -63,8 +65,22 @@ class HomeViewModel(
             blackboxRecorder,
             helmetAccessoryManager,
             trailMapManager = trailMapManager,
-            fileTransferManager = fileTransferManager
+            fileTransferManager = fileTransferManager,
+            geofenceEngine = geofenceEngine,
+            batteryGovernor = batteryGovernor
         )
+
+        viewModelScope.launch {
+            geofenceEngine.geofenceState.collect { snapshot ->
+                _uiState.update { it.copy(geofenceSnapshot = snapshot) }
+            }
+        }
+
+        viewModelScope.launch {
+            batteryGovernor.governorState.collect { state ->
+                _uiState.update { it.copy(powerGovernorState = state) }
+            }
+        }
 
         // 2. Synchronize shared logic subsystem flows
         viewModelScope.launch {
@@ -126,6 +142,7 @@ class HomeViewModel(
         viewModelScope.launch {
             priorityManager.isEmergencyActive.collect { active ->
                 _uiState.update { it.copy(isEmergencyActive = active) }
+                batteryGovernor.updateEmergencyStatus(active)
             }
         }
         viewModelScope.launch {
@@ -223,6 +240,7 @@ class HomeViewModel(
                     longitude = frame.coordinate.longitude,
                     altitudeMeters = frame.coordinate.altitudeMeters
                 )
+                geofenceEngine.handleRemoteTelemetry(frame)
             }
         }
         viewModelScope.launch {
@@ -237,7 +255,7 @@ class HomeViewModel(
             }
         }
 
-        // 7. Ingest live local GPS fixes into convoy tracker & trail map
+        // 7. Ingest live local GPS fixes into convoy tracker, trail map, geofence & battery governor
         viewModelScope.launch {
             hardwareBridge.localGpsCoordinate.collect { coord ->
                 if (coord != null) {
@@ -247,6 +265,19 @@ class HomeViewModel(
                         longitude = coord.longitude,
                         altitudeMeters = coord.altitudeMeters,
                         headingDegrees = coord.headingDegrees,
+                        timestampMs = coord.timestampMs
+                    )
+                    geofenceEngine.updateLocalPosition(
+                        latitude = coord.latitude,
+                        longitude = coord.longitude,
+                        altitudeMeters = coord.altitudeMeters,
+                        speedKmh = coord.speedKmh,
+                        headingDegrees = coord.headingDegrees,
+                        timestampMs = coord.timestampMs
+                    )
+                    batteryGovernor.updateMotion(
+                        speedKmh = coord.speedKmh.toDouble(),
+                        still = coord.speedKmh <= 2.0f,
                         timestampMs = coord.timestampMs
                     )
                 }
@@ -277,6 +308,9 @@ class HomeViewModel(
         when (action) {
             HomeUiAction.StartTransmitting -> {
                 hardwareBridge.setPttActive(true)
+                viewModelScope.launch {
+                    batteryGovernor.onPttPressed()
+                }
             }
 
             HomeUiAction.StopTransmitting -> {
@@ -489,6 +523,18 @@ class HomeViewModel(
 
             is HomeUiAction.ToggleTrailManagerSheet -> {
                 _uiState.update { it.copy(showTrailManagerSheet = action.show) }
+            }
+
+            is HomeUiAction.SetPowerPolicyOverride -> {
+                viewModelScope.launch {
+                    batteryGovernor.setManualOverride(action.policy)
+                }
+            }
+
+            is HomeUiAction.SetGeofenceLeadRider -> {
+                viewModelScope.launch {
+                    geofenceEngine.setLeadRider(action.leadPeerId)
+                }
             }
         }
     }

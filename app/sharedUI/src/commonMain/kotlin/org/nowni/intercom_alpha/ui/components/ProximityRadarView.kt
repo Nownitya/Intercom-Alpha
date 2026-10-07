@@ -38,6 +38,8 @@ fun ProximityRadarView(
     radarSnapshot: RadarSnapshot,
     convoySnapshot: ConvoyTelemetrySnapshot,
     trailMapSnapshot: TrailMapSnapshot = TrailMapSnapshot(),
+    geofenceSnapshot: org.nowni.intercom_alpha.telemetry.ConvoyGeofenceSnapshot = org.nowni.intercom_alpha.telemetry.ConvoyGeofenceSnapshot(),
+    powerGovernorState: org.nowni.intercom_alpha.power.PowerGovernorState = org.nowni.intercom_alpha.power.PowerGovernorState(),
     onCycleZoom: () -> Unit = {},
     onOpenTrailSheet: () -> Unit = {},
     modifier: Modifier = Modifier
@@ -235,6 +237,45 @@ fun ProximityRadarView(
                             )
                         }
                     }
+
+                    // ================= D. TACTICAL GEOFENCE TETHER BOUNDARY RING =================
+                    when (geofenceSnapshot.overallStatus) {
+                        org.nowni.intercom_alpha.telemetry.GeofenceTetherStatus.BREACH -> {
+                            drawCircle(
+                                color = Color(0xFFFF1744),
+                                radius = maxRadius,
+                                center = center,
+                                style = Stroke(width = 2.5.dp.toPx())
+                            )
+                        }
+                        org.nowni.intercom_alpha.telemetry.GeofenceTetherStatus.WARNING -> {
+                            drawCircle(
+                                color = Color(0xFFFF9100),
+                                radius = maxRadius,
+                                center = center,
+                                style = Stroke(
+                                    width = 1.5.dp.toPx(),
+                                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(6f, 4f))
+                                )
+                            )
+                        }
+                        else -> {}
+                    }
+
+                    // ================= E. HAZARD WAYPOINT RADAR PROXIMITY BLIPS =================
+                    for (hazard in geofenceSnapshot.activeHazardAlerts) {
+                        val rad = (hazard.relativeBearingDegrees - 90.0) * (kotlin.math.PI / 180.0)
+                        val norm = (hazard.distanceMeters / maxRadarRange).coerceIn(0.15, 0.95)
+                        val r = (norm * maxRadius).toFloat()
+                        val hx = center.x + (r * cos(rad)).toFloat()
+                        val hy = center.y + (r * sin(rad)).toFloat()
+                        drawCircle(
+                            color = Color(0xFFFF5252),
+                            radius = 4.5.dp.toPx(),
+                            center = Offset(hx, hy),
+                            style = Stroke(width = 1.5.dp.toPx())
+                        )
+                    }
                 }
 
                 // Interactive Radar Range Zoom Badge
@@ -411,13 +452,48 @@ fun ProximityRadarView(
                 // Sub-Metrics Bar
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
+                    val tetherColor = when (geofenceSnapshot.overallStatus) {
+                        org.nowni.intercom_alpha.telemetry.GeofenceTetherStatus.IN_BOUNDS -> Color(0xFF00E676)
+                        org.nowni.intercom_alpha.telemetry.GeofenceTetherStatus.WARNING -> Color(0xFFFF9100)
+                        org.nowni.intercom_alpha.telemetry.GeofenceTetherStatus.BREACH -> Color(0xFFFF1744)
+                        org.nowni.intercom_alpha.telemetry.GeofenceTetherStatus.DISCONNECTED -> Color(0xFF7A8B9E)
+                    }
+                    val tetherText = when (geofenceSnapshot.overallStatus) {
+                        org.nowni.intercom_alpha.telemetry.GeofenceTetherStatus.IN_BOUNDS -> "TETHER: OK"
+                        org.nowni.intercom_alpha.telemetry.GeofenceTetherStatus.WARNING -> "TETHER: WARN"
+                        org.nowni.intercom_alpha.telemetry.GeofenceTetherStatus.BREACH -> "TETHER: BREACH"
+                        org.nowni.intercom_alpha.telemetry.GeofenceTetherStatus.DISCONNECTED -> "TETHER: DISC"
+                    }
+
+                    val pwrText = when (powerGovernorState.policy) {
+                        org.nowni.intercom_alpha.power.PowerPolicy.NORMAL -> "PWR: 100%"
+                        org.nowni.intercom_alpha.power.PowerPolicy.CONSERVATIVE -> "PWR: CONS 50%"
+                        org.nowni.intercom_alpha.power.PowerPolicy.EXTREME_SURVIVAL -> "PWR: SURV 20%"
+                        org.nowni.intercom_alpha.power.PowerPolicy.REST_STOP_SLEEP -> "PWR: SLEEP 5%"
+                        org.nowni.intercom_alpha.power.PowerPolicy.EMERGENCY_OVERRIDE -> "PWR: SOS"
+                    }
+                    val pwrColor = when (powerGovernorState.policy) {
+                        org.nowni.intercom_alpha.power.PowerPolicy.NORMAL -> Color(0xFF00E5FF)
+                        org.nowni.intercom_alpha.power.PowerPolicy.CONSERVATIVE -> Color(0xFFFFB300)
+                        org.nowni.intercom_alpha.power.PowerPolicy.EXTREME_SURVIVAL -> Color(0xFFFF5252)
+                        org.nowni.intercom_alpha.power.PowerPolicy.REST_STOP_SLEEP -> Color(0xFF7A8B9E)
+                        org.nowni.intercom_alpha.power.PowerPolicy.EMERGENCY_OVERRIDE -> Color(0xFFFF1744)
+                    }
+
                     Text(
-                        text = "ALT ${trailMapSnapshot.currentElevationMeters.toInt()}m",
+                        text = tetherText,
                         fontSize = 8.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF00E676)
+                        fontWeight = FontWeight.Black,
+                        color = tetherColor
+                    )
+                    Text(
+                        text = pwrText,
+                        fontSize = 8.sp,
+                        fontWeight = FontWeight.Black,
+                        color = pwrColor
                     )
                     Text(
                         text = if (trailMapSnapshot.isOverlayEnabled) "TOPO [ON]" else "TOPO [OFF]",

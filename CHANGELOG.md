@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.7.0] - 2026-10-07 — Sprint 20: Tactical Convoy Geofencing, Autonomous Power Governor & Multi-Node Stress Benchmark Suite
+
+### Added
+- **Pure KMP Convoy Geofencing, Hazard Waypoint Radar Alarms & Convoy Split Engine (`ConvoyGeofenceModels.kt`, `ConvoyGeofenceEngine.kt`)**: Great-Circle Haversine tether monitoring (warn at >300m, breach alarm at >600m from lead rider), hazard obstacle proximity radar (e.g. 100m proximity alarm), single-linkage BFS connected-component clustering for convoy partition/split detection across rider clusters with inter-cluster gap calculation, and automatic control alarm emission with zero Java or C dependencies (Rules 2 & 3).
+- **Autonomous Power Governor & Motion Watchdog (`PowerStateModels.kt`, `BatteryGovernor.kt`)**: Multi-tier radio duty-cycle governor (NORMAL 100%, CONSERVATIVE 50% at <30% battery, EXTREME_SURVIVAL 20% at <15% battery), rest-stop stillness watchdog (>10 min at <= 3.0 km/h) shifting to 5% duty-cycle sleep, instant wake on motion resumption (>= 5.0 km/h) or PTT actuation, and unconditional Emergency SOS preemption restoring full 100% duty cycle and maximum audio bandwidth.
+- **Subsystem Hardware Bridge Wiring & Multiplatform Presentation HUD Integration (`IntercomHardwareBridge.kt`, `AndroidPlatformBridge.kt`, `IntercomBridge.kt`, `HomeViewModel.kt`, `HomeScreen.kt`, `ContentView.swift`)**: Wired subsystems to hardware bridges and reactive ViewModels with Swift-friendly `CancellationHandle` closures. Compose Multiplatform HUD renders dynamic outer tether boundary ring, obstacle hazard markers, `TETHER` / `PWR` badges, and high-visibility `GeofenceBreachBanner`. 100% Native iOS SwiftUI renders tether boundary ring in `TacticalVectorRadarView`, battery governor power mode pill in `TacticalAvionicsBar`, and native tether breach warning banner complying strictly with Rule 1.
+- **16-Node Concurrent Convoy Stress Simulation Harness & Archify Showcase (`ConvoyStressSimulationHarness.kt`, `intercom-alpha.architecture.json`)**: Simulated 16 concurrent virtual nodes in linear formations spanning >3 km with 10% RF loss, out-of-order jitter, and hop-distance limits. Verified 8-hop linear packet forwarding with 100% voice decryption fidelity, concurrent OTA route chunk distribution, geofence split alarms, and autonomous battery governor power scaling. Verified memory stability (<80 MB RAM) and zero coroutine leaks. Synchronized Archify architecture specification and delivered showcase HTML with 9/9 checks passed and 0 errors.
+
+---
+
 ## [2.6.0] - 2026-10-07 — Sprint 19: Over-The-Air BLE Mesh GPX/GeoJSON Trail Sharing & Storage Manager
 
 ### Added

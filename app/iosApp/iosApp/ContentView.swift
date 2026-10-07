@@ -40,11 +40,37 @@ struct ContentView: View {
                 )
                 .padding(.horizontal, 14)
 
+                // Geofence Tether Breach or Convoy Split Warning Banner (Sprint 20 / ICA-2003)
+                if let geofence = vm.geofenceSnapshot,
+                   geofence.overallStatus == .breach || geofence.splitWarning != nil {
+                    HStack(spacing: 8) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(.white)
+                        VStack(alignment: .leading, spacing: 2) {
+                            let title = geofence.splitWarning != nil ? "CONVOY SPLIT (\(Int(geofence.splitWarning?.clusterGapMeters ?? 0))m GAP)" : "TETHER BREACH (>600m)"
+                            Text(title)
+                                .font(.system(size: 10, weight: .black, design: .monospaced))
+                                .foregroundColor(.white)
+                            Text("Lead: \(Int(geofence.furthestRiderDistanceMeters))m • Check Radar")
+                                .font(.system(size: 9, weight: .bold, design: .monospaced))
+                                .foregroundColor(.white.opacity(0.85))
+                        }
+                        Spacer()
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(Color.red)
+                    .cornerRadius(8)
+                    .padding(.horizontal, 14)
+                }
+
                 // 4. Tactical Vector Radar
                 TacticalVectorRadarView(
                     radarSnapshot: vm.radarSnapshot,
                     convoySnapshot: vm.convoySnapshot,
                     trailMapSnapshot: vm.trailMapSnapshot,
+                    geofenceSnapshot: vm.geofenceSnapshot,
                     peersCount: vm.peers.count,
                     onCycleZoom: { vm.cycleRadarZoom() },
                     onOpenTrailCockpit: { vm.showTrailSheet = true }
@@ -380,6 +406,32 @@ struct TacticalAvionicsBar: View {
                 }
             }
 
+            // Battery Governor Power Mode Pill (Sprint 20 - ICA-2003)
+            if let power = vm.powerGovernorState {
+                HStack(spacing: 3) {
+                    Image(systemName: power.policy == .emergencyOverride ? "bolt.trianglebadge.exclamationmark.fill" : "bolt.fill")
+                        .font(.system(size: 8, weight: .bold))
+                    let policyTag: String = {
+                        switch power.policy {
+                        case .normal: return "NORM"
+                        case .conservative: return "CONS"
+                        case .extremeSurvival: return "SURV"
+                        case .restStopSleep: return "SLEEP"
+                        case .emergencyOverride: return "SOS"
+                        default: return "PWR"
+                        }
+                    }()
+                    Text("\(policyTag) \(Int(power.dutyCycle.dutyCyclePercent))%")
+                        .font(.system(size: 8, weight: .black, design: .monospaced))
+                }
+                .foregroundColor(power.policy == .restStopSleep ? .yellow : (power.dutyCycle.dutyCyclePercent < 50 ? .orange : (power.policy == .emergencyOverride ? .red : .green)))
+                .padding(.horizontal, 5)
+                .padding(.vertical, 3)
+                .background((power.policy == .restStopSleep ? Color.yellow : (power.dutyCycle.dutyCyclePercent < 50 ? Color.orange : (power.policy == .emergencyOverride ? Color.red : Color.green))).opacity(0.15))
+                .cornerRadius(5)
+                .overlay(RoundedRectangle(cornerRadius: 5).stroke((power.policy == .restStopSleep ? Color.yellow : (power.dutyCycle.dutyCyclePercent < 50 ? Color.orange : (power.policy == .emergencyOverride ? Color.red : Color.green))).opacity(0.3), lineWidth: 1))
+            }
+
             // Peers Sheet Button
             Button(action: onShowPeers) {
                 Image(systemName: "person.2.fill")
@@ -501,6 +553,7 @@ struct TacticalVectorRadarView: View {
     let radarSnapshot: RadarSnapshot?
     let convoySnapshot: ConvoyTelemetrySnapshot?
     let trailMapSnapshot: TrailMapSnapshot?
+    let geofenceSnapshot: ConvoyGeofenceSnapshot?
     let peersCount: Int
     let onCycleZoom: () -> Void
     let onOpenTrailCockpit: () -> Void
@@ -589,6 +642,33 @@ struct TacticalVectorRadarView: View {
                     .stroke(Color.cyan.opacity(0.12), lineWidth: 1)
                     .frame(width: 65, height: 65)
 
+                // Convoy Tether Perimeter Ring & Hazard Alarms (Sprint 20 - ICA-2003)
+                if let geofence = geofenceSnapshot {
+                    let maxDist = trailMapSnapshot?.activeRangeZoom.maxDistanceMeters ?? 1500.0
+                    let tetherDiameter = CGFloat(min(600.0 / maxDist, 1.0)) * 150.0
+                    Circle()
+                        .stroke(
+                            geofence.overallStatus == .breach ? Color.red : (geofence.overallStatus == .warning ? Color.orange : Color.cyan.opacity(0.2)),
+                            style: StrokeStyle(lineWidth: geofence.overallStatus == .breach ? 1.5 : 1.0, dash: [4, 4])
+                        )
+                        .frame(width: tetherDiameter, height: tetherDiameter)
+
+                    // Active Hazard Radar Icons
+                    ForEach(geofence.activeHazardAlerts, id: \.waypointId) { hazard in
+                        let dist = min(max(hazard.distanceMeters, 10.0), maxDist)
+                        let normalized = CGFloat(dist / maxDist)
+                        let rad = CGFloat(hazard.relativeBearingDegrees * .pi / 180.0)
+                        let r = normalized * 75.0
+                        let x = r * sin(rad)
+                        let y = -r * cos(rad)
+
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 8))
+                            .foregroundColor(.yellow)
+                            .offset(x: x, y: y)
+                    }
+                }
+
                 // Crosshairs
                 Rectangle()
                     .fill(Color.cyan.opacity(0.15))
@@ -665,6 +745,21 @@ struct TacticalVectorRadarView: View {
 
             // Compact Telemetry Info Strip Under Radar with Trail Launcher
             HStack(spacing: 8) {
+                if let geofence = geofenceSnapshot, geofence.overallStatus == .breach || geofence.overallStatus == .warning {
+                    HStack(spacing: 3) {
+                        Image(systemName: geofence.overallStatus == .breach ? "exclamationmark.octagon.fill" : "bell.fill")
+                            .font(.system(size: 8))
+                            .foregroundColor(geofence.overallStatus == .breach ? .red : .orange)
+                        Text(geofence.overallStatus == .breach ? "BREACH \(Int(geofence.furthestRiderDistanceMeters))m" : "WARN \(Int(geofence.furthestRiderDistanceMeters))m")
+                            .font(.system(size: 8, weight: .black, design: .monospaced))
+                            .foregroundColor(geofence.overallStatus == .breach ? .red : .orange)
+                    }
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 2)
+                    .background((geofence.overallStatus == .breach ? Color.red : Color.orange).opacity(0.15))
+                    .cornerRadius(4)
+                }
+
                 if let trail = trailMapSnapshot?.activeTrail {
                     Button(action: {
                         UIImpactFeedbackGenerator(style: .light).impactOccurred()

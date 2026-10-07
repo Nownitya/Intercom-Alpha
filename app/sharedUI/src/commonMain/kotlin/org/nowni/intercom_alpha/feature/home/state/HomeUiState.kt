@@ -58,7 +58,11 @@ data class HomeUiState(
     // Sprint 19 Over-The-Air BLE Mesh GPX/GeoJSON Trail Sharing (ICA-1902)
     val activeTransfers: List<FileTransferProgress> = emptyList(),
     val storedTrails: List<TrailPolyline> = emptyList(),
-    val showTrailManagerSheet: Boolean = false
+    val showTrailManagerSheet: Boolean = false,
+
+    // Sprint 20 Tactical Convoy Geofencing & Battery Governor (ICA-2003)
+    val geofenceSnapshot: org.nowni.intercom_alpha.telemetry.ConvoyGeofenceSnapshot = org.nowni.intercom_alpha.telemetry.ConvoyGeofenceSnapshot(),
+    val powerGovernorState: org.nowni.intercom_alpha.power.PowerGovernorState = org.nowni.intercom_alpha.power.PowerGovernorState()
 )
 
 sealed interface HomeUiAction {
@@ -98,6 +102,10 @@ sealed interface HomeUiAction {
     data class SelectStoredTrail(val trailId: String) : HomeUiAction
     data class DeleteStoredTrail(val trailId: String) : HomeUiAction
     data class ToggleTrailManagerSheet(val show: Boolean) : HomeUiAction
+
+    // Sprint 20 Geofence & Power Governor Actions (ICA-2003)
+    data class SetPowerPolicyOverride(val policy: org.nowni.intercom_alpha.power.PowerPolicy?) : HomeUiAction
+    data class SetGeofenceLeadRider(val leadPeerId: String?) : HomeUiAction
 }
 
 sealed interface HomeUiEvent {

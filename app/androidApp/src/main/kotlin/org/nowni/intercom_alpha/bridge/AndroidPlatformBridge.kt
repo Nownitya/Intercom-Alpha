@@ -100,6 +100,12 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
     private val _storedTrails = MutableStateFlow<List<TrailPolyline>>(emptyList())
     override val storedTrails: StateFlow<List<TrailPolyline>> = _storedTrails.asStateFlow()
 
+    private val _geofenceSnapshot = MutableStateFlow(org.nowni.intercom_alpha.telemetry.ConvoyGeofenceSnapshot())
+    override val geofenceSnapshot: StateFlow<org.nowni.intercom_alpha.telemetry.ConvoyGeofenceSnapshot> = _geofenceSnapshot.asStateFlow()
+
+    private val _powerGovernorState = MutableStateFlow(org.nowni.intercom_alpha.power.PowerGovernorState())
+    override val powerGovernorState: StateFlow<org.nowni.intercom_alpha.power.PowerGovernorState> = _powerGovernorState.asStateFlow()
+
     var channelManager: ChannelManager? = null
         private set
     var blackboxRecorder: EmergencyBlackboxRecorder? = null
@@ -111,6 +117,10 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
     var trailMapManager: TrailMapManager? = null
         private set
     var fileTransferManager: MeshFileTransferManager? = null
+        private set
+    var geofenceEngine: org.nowni.intercom_alpha.telemetry.ConvoyGeofenceEngine? = null
+        private set
+    var batteryGovernor: org.nowni.intercom_alpha.power.BatteryGovernor? = null
         private set
 
     private var boundService: IntercomForegroundService? = null
@@ -126,7 +136,9 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         helmetAccessoryManager: HelmetAccessoryManager?,
         repeaterService: MeshRepeaterService?,
         trailMapManager: TrailMapManager?,
-        fileTransferManager: MeshFileTransferManager?
+        fileTransferManager: MeshFileTransferManager?,
+        geofenceEngine: org.nowni.intercom_alpha.telemetry.ConvoyGeofenceEngine?,
+        batteryGovernor: org.nowni.intercom_alpha.power.BatteryGovernor?
     ) {
         this.channelManager = channelManager
         this.blackboxRecorder = blackboxRecorder
@@ -134,6 +146,24 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         this.repeaterService = repeaterService
         this.trailMapManager = trailMapManager
         this.fileTransferManager = fileTransferManager
+        this.geofenceEngine = geofenceEngine
+        this.batteryGovernor = batteryGovernor
+
+        geofenceEngine?.let { engine ->
+            scope.launch {
+                engine.geofenceState.collect { snapshot ->
+                    _geofenceSnapshot.value = snapshot
+                }
+            }
+        }
+
+        batteryGovernor?.let { governor ->
+            scope.launch {
+                governor.governorState.collect { state ->
+                    _powerGovernorState.value = state
+                }
+            }
+        }
 
         helmetAccessoryManager?.let { accessoryMgr ->
             scope.launch {
@@ -171,18 +201,6 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
                 sendControlPacket(MeshPacket.Control(senderId = "android-local", type = ControlType.FILE_ACK, payload = bytes))
             }
         }
-    }
-
-    override fun updateTrailMapSnapshot(snapshot: TrailMapSnapshot) {
-        _trailMapSnapshot.value = snapshot
-    }
-
-    override fun updateFileTransfers(transfers: List<FileTransferProgress>) {
-        _fileTransfers.value = transfers
-    }
-
-    override fun updateStoredTrails(trails: List<TrailPolyline>) {
-        _storedTrails.value = trails
     }
 
     fun bindService(service: IntercomForegroundService) {
@@ -255,6 +273,26 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
 
     override fun updateRepeaterTelemetry(telemetry: RepeaterTelemetry?) {
         _repeaterTelemetry.value = telemetry
+    }
+
+    override fun updateTrailMapSnapshot(snapshot: TrailMapSnapshot) {
+        _trailMapSnapshot.value = snapshot
+    }
+
+    override fun updateFileTransfers(transfers: List<FileTransferProgress>) {
+        _fileTransfers.value = transfers
+    }
+
+    override fun updateStoredTrails(trails: List<TrailPolyline>) {
+        _storedTrails.value = trails
+    }
+
+    override fun updateGeofenceSnapshot(snapshot: org.nowni.intercom_alpha.telemetry.ConvoyGeofenceSnapshot) {
+        _geofenceSnapshot.value = snapshot
+    }
+
+    override fun updatePowerGovernorState(state: org.nowni.intercom_alpha.power.PowerGovernorState) {
+        _powerGovernorState.value = state
     }
 
     override fun sendRepeaterPacket(packet: MeshPacket.Control) {

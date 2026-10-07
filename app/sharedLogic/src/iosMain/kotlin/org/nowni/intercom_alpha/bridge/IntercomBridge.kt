@@ -85,6 +85,8 @@ class IntercomBridge(
     )
     val trailMapManager: TrailMapManager = TrailMapManager()
     val fileTransferManager: MeshFileTransferManager = MeshFileTransferManager()
+    val geofenceEngine: org.nowni.intercom_alpha.telemetry.ConvoyGeofenceEngine = org.nowni.intercom_alpha.telemetry.ConvoyGeofenceEngine()
+    val batteryGovernor: org.nowni.intercom_alpha.power.BatteryGovernor = org.nowni.intercom_alpha.power.BatteryGovernor(nodeId = localPeerId)
 
     private val _isRepeaterModeActive = MutableStateFlow(false)
     val isRepeaterModeActive: StateFlow<Boolean> = _isRepeaterModeActive.asStateFlow()
@@ -271,6 +273,11 @@ class IntercomBridge(
 
     fun setPttActive(active: Boolean) {
         isPttActive = active
+        if (active) {
+            scope.launch {
+                batteryGovernor.onPttPressed()
+            }
+        }
     }
 
     fun setVoxEnabled(enabled: Boolean, thresholdDb: Float = -40f) {
@@ -813,6 +820,52 @@ class IntercomBridge(
     fun loadTrail(trail: TrailPolyline) {
         scope.launch {
             trailMapManager.loadTrail(trail)
+        }
+    }
+
+    // --- Swift-Friendly Geofence & Battery Governor Observers & Controls (Sprint 20 / ICA-2003) ---
+
+    fun observeGeofenceSnapshot(onSnapshot: (org.nowni.intercom_alpha.telemetry.ConvoyGeofenceSnapshot) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            geofenceEngine.geofenceState.collect { snapshot ->
+                onSnapshot(snapshot)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun observeBatteryGovernorState(onState: (org.nowni.intercom_alpha.power.PowerGovernorState) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            batteryGovernor.governorState.collect { state ->
+                onState(state)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun updateBattery(percent: Int, isCharging: Boolean = false) {
+        scope.launch {
+            batteryGovernor.updateBattery(percent, isCharging)
+        }
+    }
+
+    fun setPowerPolicyOverride(policy: org.nowni.intercom_alpha.power.PowerPolicy?) {
+        scope.launch {
+            batteryGovernor.setManualOverride(policy)
+        }
+    }
+
+    fun setGeofenceLeadRider(leadPeerId: String?) {
+        scope.launch {
+            geofenceEngine.setLeadRider(leadPeerId)
+        }
+    }
+
+    fun updateLocalGpsWithMotion(lat: Double, lon: Double, alt: Double, speedKmh: Float, heading: Float) {
+        scope.launch {
+            trailMapManager.updateLocalPosition(lat, lon, alt, heading)
+            geofenceEngine.updateLocalPosition(latitude = lat, longitude = lon, altitudeMeters = alt, speedKmh = speedKmh, headingDegrees = heading)
+            batteryGovernor.updateMotion(speedKmh.toDouble(), speedKmh <= 2.0f)
         }
     }
 }
