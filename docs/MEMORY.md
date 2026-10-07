@@ -556,6 +556,21 @@
     - Added UI actions: `BeamActiveTrail`, `CancelTransfer`, `ImportTrailText`, `SelectStoredTrail`, `DeleteStoredTrail`, `ToggleTrailManagerSheet`.
     - On completed trail receipt, automatically loads into `trailMapManager` for real-time vector cockpit HUD projection.
 
+### 2.56 Compose Multiplatform Trail File Manager & Over-The-Air Beam Cockpit Sheet (Sprint 19 - ICA-1903)
+- **Challenge**: Displaying a multi-faceted off-grid file transfer center (stored GPX/GeoJSON trail catalog, live chunk-by-chunk transmission progress gauges, manual file import, and 1-tap beam trigger) within a handlebar RAM-mount mobile view without causing global scrolling conflicts or blocking essential intercom telemetry (Rule 1 & Zero-Scroll contract).
+- **Solution**:
+  - `TrailFileManagerSheet.kt`:
+    - Constrained dialog sheet height to `0.88f` with internal bounded `LazyColumn` for route cards.
+    - Rendered trail cards showing difficulty ratings (`EASY`, `MODERATE`, `HARD`, `EXPERT`), total distance (km), elevation ascent (m), waypoint counts, and active selection indicator.
+    - Live transmission cards with active progress bars, percent complete, chunk counters (`X / Y chunks`), direction badges (`OUTGOING` / `INCOMING`), and cancellation buttons.
+    - Top header actions featuring format selector (`GPX` vs `GEOJSON`) and 1-tap "BEAM TO CONVOY" actuator.
+    - Modal GPX/GeoJSON raw text import modal dialog for rapid offline route pasting.
+  - `OfflineTrailCockpitSheet.kt`:
+    - Integrated prominent "⚡ OTA ROUTES" launcher button in the cockpit header, offering instant routing drawer access alongside the radar overlay toggle.
+  - `HomeScreen.kt`:
+    - Exposed "OTA / Routes" launcher in the Top Quick Actions row.
+    - Full dialog orchestration binding ViewModel state and actions without blocking ongoing audio streaming.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

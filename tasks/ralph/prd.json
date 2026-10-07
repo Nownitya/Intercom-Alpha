@@ -63,7 +63,7 @@
         "1-tap 'Beam to Convoy' broadcasts trail over mesh to all connected riders",
         "Preserves single-viewport zero-scroll mobile handlebar layout constraint"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-1904",

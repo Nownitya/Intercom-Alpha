@@ -1156,3 +1156,27 @@
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-19-mesh-trail-sharing`).
 ---
+
+### [2026-10-07] - ICA-1903: Compose Multiplatform Trail File Manager & Over-The-Air Beam Cockpit Sheet
+- **Branch**: `feature/ICA-1903-compose-trail-manager`
+- **Objective**: Build `TrailFileManagerSheet.kt` in `app/sharedUI` displaying stored trail library, active trail switch, live OTA progress bars for sending/receiving chunks, and 1-tap 'Beam to Convoy' actuator. Wire into `OfflineTrailCockpitSheet.kt` and `HomeScreen.kt` adhering to zero-scroll handlebar layout contract.
+- **Implementation**:
+  - `TrailFileManagerSheet.kt`:
+    - Created modal dialog displaying stored routes library with difficulty badges (EASY, MODERATE, HARD, EXPERT), total distance (km), elevation ascent (m), and active trail radio selection.
+    - Live OTA transmission progress cards displaying direction badge (OUTGOING / INCOMING), file name, percentage progress bar, chunk count (`X / Y chunks`), and cancel button.
+    - Top action bar featuring format switch (`GPX` / `GEOJSON`) and high-contrast tactical "⚡ BEAM TO CONVOY" button.
+    - Direct route import dialog ("Import Route Text") allowing paste of raw GPX/GeoJSON payloads for instant parsing and library ingestion.
+    - Responsive constraint sizing (capped to 88% viewport height, internal bounded `LazyColumn`) honoring zero-scroll motorcycle cockpit ergonomics.
+  - `OfflineTrailCockpitSheet.kt`:
+    - Added `onOpenTrailManager` callback parameter to header.
+    - Integrated prominent "⚡ OTA ROUTES" shortcut button next to radar overlay toggle, allowing instantaneous route library and beaming drawer invocation.
+  - `HomeScreen.kt`:
+    - Added "OTA / Routes" launcher button in the Top Quick Actions bar.
+    - Wired `TrailFileManagerSheet` modal presentation observing `uiState.showTrailManagerSheet`, `uiState.storedTrails`, and `uiState.activeTransfers`.
+    - Wired actions: `onDismissRequest`, `onBeamTrail`, `onCancelTransfer`, `onSelectTrail`, `onDeleteTrail`, `onImportTrail`.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (all 95 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-19-mesh-trail-sharing`).
+---
+
