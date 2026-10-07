@@ -55,7 +55,8 @@ enum class ControlType {
     EPOCH_BEACON,
     FILE_CHUNK,
     FILE_ACK,
-    GEOFENCE_ALARM
+    GEOFENCE_ALARM,
+    POWER_STATUS
 }
 
 @Serializable
