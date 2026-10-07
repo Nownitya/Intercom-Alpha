@@ -52,7 +52,9 @@ enum class ControlType {
     REPEATER_PING,
     REPEATER_PONG,
     EPOCH_ROLLOVER,
-    EPOCH_BEACON
+    EPOCH_BEACON,
+    FILE_CHUNK,
+    FILE_ACK
 }
 
 @Serializable
