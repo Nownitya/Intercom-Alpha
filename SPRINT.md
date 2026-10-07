@@ -1,28 +1,29 @@
-# Current Status: Sprint 18 (Phase 16: Offline Vector Terrain & Trail Map Overlay)
+# Current Status: Sprint 19 (Phase 17: Over-The-Air BLE Mesh GPX/GeoJSON Trail Sharing & Storage Manager)
 
 > **Active Sprint Reference:** [TASKS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/TASKS.md) & [prd.json](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/tasks/ralph/prd.json)  
-> **Sprint Branch:** `sprint/sprint-18-offline-vector-terrain-map`  
+> **Sprint Branch:** `sprint/sprint-19-mesh-trail-sharing`  
 > **Sprint Governance Rules:** [SPRINT-RULES.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/SPRINT-RULES.md)  
 > **Engineering Contract:** [AGENTS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/AGENTS.md)  
 > **Knowledge Base:** [MEMORY.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/MEMORY.md)  
 
 ---
 
-## 🚀 Active Sprint: Sprint 18 (Phase 16: Offline Vector Terrain & Trail Map Overlay)
-**Goal:** Deliver an offline vector terrain and trail map overlay subsystem across KMP shared logic, Compose Multiplatform (`sharedUI`), and 100% Native iOS SwiftUI (`iosApp`), rendering pre-cached topographical contours, trail tracks, waypoint markers, and breadcrumbs beneath the tactical vector radar without cellular data.  
-- **Sprint Branch:** `sprint/sprint-18-offline-vector-terrain-map`  
-- **Target Release:** `v2.5.0`  
+## 🚀 Active Sprint: Sprint 19 (Phase 17: Over-The-Air BLE Mesh GPX/GeoJSON Trail Sharing & Storage Manager)
+**Goal:** Deliver an over-the-air BLE mesh chunked file transmission engine and storage manager for GPX/GeoJSON trail tracks and tactical waypoint packs across KMP shared logic, Compose Multiplatform (`sharedUI`), and 100% Native iOS SwiftUI (`iosApp`), allowing riders to beam and synchronize routes completely off-grid.  
+- **Sprint Branch:** `sprint/sprint-19-mesh-trail-sharing`  
+- **Target Release:** `v2.6.0`  
 
 | Task ID | Item | Owner | Target Files | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **ICA-1801** | Pure KMP Offline Vector Trail & Terrain Geometry Engine | Ralph | `VectorMapModels.kt`, `TrailMapEngine.kt`, `TrailMapManager.kt` | ✅ Completed |
-| **ICA-1802** | Subsystem Bridge Wiring & Reactive Presentation Integration | Ralph | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `HomeViewModel.kt` | ✅ Completed |
-| **ICA-1803** | Compose Multiplatform Radar Topo Contour & Vector Trail Overlay | Ralph | `ProximityRadarView.kt`, `OfflineTrailCockpitSheet.kt`, `HomeScreen.kt` | ✅ Completed |
-| **ICA-1804** | Native iOS SwiftUI Radar Topographic Overlay & Offline Trail Cockpit Sheet | Ralph | `ContentView.swift`, `OfflineTrailCockpitSheet.swift`, `IntercomViewModel.swift` | ✅ Completed |
+| **ICA-1901** | Pure KMP Chunked Mesh File Transfer & GPX/GeoJSON Protocol Engine | Ralph | `MeshFileModels.kt`, `MeshFileTransferEngine.kt`, `MeshFileTransferManager.kt` | 🟡 Ready for Dev |
+| **ICA-1902** | Subsystem Hardware Bridge Wiring & Reactive State Management | Ralph | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `HomeViewModel.kt` | ⚪ Queued |
+| **ICA-1903** | Compose Multiplatform Trail File Manager & Over-The-Air Beam Cockpit Sheet | Ralph | `TrailFileManagerSheet.kt`, `OfflineTrailCockpitSheet.kt`, `HomeScreen.kt` | ⚪ Queued |
+| **ICA-1904** | Native iOS SwiftUI Trail File Manager & Over-The-Air Beam Sheet | Ralph | `TrailFileManagerSheet.swift`, `OfflineTrailCockpitSheet.swift`, `IntercomViewModel.swift` | ⚪ Queued |
 
 ---
 
 ## 📦 Historical Sprint Archive
+- ✅ **Sprint 18: Offline Vector Terrain & Trail Map Overlay**: Completed 2026-10-07 (100% DoD, v2.5.0 Released).
 - ✅ **Sprint 17: Basecamp Stationary Repeater UI & Low-Power Cockpit Mode**: Completed 2026-10-06 (100% DoD, v2.4.0 Released).
 - ✅ **Sprint 16: Mesh Repeater, Audio DSP & Convoy Simulation**: Completed 2026-10-06 (100% DoD, Merged to `develop`).
 - ✅ **Sprint 15: Zero-Scroll Tactical Cockpit HUD & Hardware Telemetry Integration**: Completed 2026-10-06 (100% DoD, v2.2.0 Released).

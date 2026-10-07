@@ -1,35 +1,35 @@
 {
   "project": "Intercom-Alpha",
-  "branchName": "sprint/sprint-18-offline-vector-terrain-map",
-  "phase": "Phase 16: Offline Vector Terrain & Trail Map Overlay",
-  "sprint": "Sprint 18",
-  "updatedAt": "2026-10-07T00:30:00Z",
+  "branchName": "sprint/sprint-19-mesh-trail-sharing",
+  "phase": "Phase 17: Over-The-Air BLE Mesh GPX/GeoJSON Trail Sharing & Storage Manager",
+  "sprint": "Sprint 19",
+  "updatedAt": "2026-10-07T06:10:00Z",
   "stories": [
     {
-      "id": "ICA-1801",
+      "id": "ICA-1901",
       "priority": 1,
-      "title": "Pure KMP Offline Vector Trail & Terrain Geometry Engine",
-      "description": "Implement pure KMP domain models (VectorMapModels.kt), local projection math, trail/waypoint parsers (TrailMapEngine.kt), and reactive state coordinator (TrailMapManager.kt) in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/map/. Supports GeoPoints, trail polylines, elevation contours, waypoint breadcrumbs, and radar projection relative to user GPS heading with zero external map library dependencies.",
+      "title": "Pure KMP Chunked Mesh File Transfer & GPX/GeoJSON Protocol Engine",
+      "description": "Implement pure KMP chunked file transmission engine (MeshFileTransferEngine.kt and MeshFileModels.kt) in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/map/. Splits large GPX/GeoJSON payloads into single-MTU chunks (<=120 bytes) with transfer IDs, chunk index/count, Adler32 checksum, sliding-window ACK/NACK retransmission, in-memory reassembly, and pure KMP GPX/GeoJSON parsers and exporters with zero Java/C dependencies (Rules 2 & 3).",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/map/VectorMapModels.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/map/TrailMapEngine.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/map/TrailMapManager.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/map/TrailMapManagerTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/map/MeshFileModels.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/map/MeshFileTransferEngine.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/map/MeshFileTransferManager.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/map/MeshFileTransferTest.kt"
       ],
       "acceptanceCriteria": [
-        "Pure KMP implementation with zero Java, C, or proprietary map SDK dependencies (Rules 2 & 3)",
-        "Calculates equirectangular/flat-earth radar projections with distance bounds (500m, 1.5km, 5km)",
-        "Parses lightweight GeoJSON/JSON trail tracks and waypoints into typed polylines and markers",
-        "Maintains rolling breadcrumb trails for local rider and mesh convoy peers",
+        "Pure KMP implementation with zero Java, C, or external serialization dependencies (Rules 2 & 3)",
+        "Splits arbitrary GPX/GeoJSON trail data into MTU-compliant 120-byte chunks with Adler32 integrity checks",
+        "Sliding-window transmission with selective NACK retransmission over simulated lossy RF",
+        "Reassembles received chunks into typed TrailPolyline and TrailWaypoint models upon completion",
         "100% unit test pass on JVM and iOS Simulator targets"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-1802",
+      "id": "ICA-1902",
       "priority": 2,
-      "title": "Subsystem Bridge Wiring & Reactive Presentation Integration",
-      "description": "Wire TrailMapManager into Koin DI, IntercomHardwareBridge, AndroidPlatformBridge, and IntercomBridge (iosMain) with typed CancellationHandle observers. Integrate into HomeUiState.kt and HomeViewModel.kt, managing trail snapshot, selectable radar zoom ranges (500m, 1.5km, 5km), trail overlay toggles, and waypoint creation.",
+      "title": "Subsystem Hardware Bridge Wiring & Reactive State Management",
+      "description": "Wire MeshFileTransferManager into Koin DI (AppModule.kt), IntercomHardwareBridge, AndroidPlatformBridge, and IntercomBridge (iosMain) with typed CancellationHandle observers. Integrate into HomeUiState.kt and HomeViewModel.kt, managing active transfer progress, stored trail library, and actions to beam trail to convoy or import local GPX text.",
       "targetFiles": [
         "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomHardwareBridge.kt",
         "app/sharedLogic/src/androidMain/kotlin/org/nowni/intercom_alpha/bridge/AndroidPlatformBridge.kt",
@@ -40,48 +40,48 @@
         "app/sharedUI/src/commonTest/kotlin/org/nowni/intercom_alpha/feature/home/HomeViewModelTest.kt"
       ],
       "acceptanceCriteria": [
-        "Exposes reactive StateFlow<TrailMapSnapshot> across hardware bridges and ViewModels",
-        "Provides swift-friendly observeTrailMapSnapshot callback with CancellationHandle lifecycle (Rule 1)",
-        "HomeViewModel coordinates GPS location changes to TrailMapManager for dynamic projection",
+        "Exposes reactive StateFlow<List<FileTransferProgress>> and StateFlow<List<TrailPolyline>>",
+        "Provides swift-friendly observeFileTransfers and observeStoredTrails callbacks with CancellationHandle (Rule 1)",
+        "HomeViewModel coordinates BeamActiveTrail, CancelTransfer, and LoadStoredTrail actions",
         "Full test pass in sharedUI and sharedLogic modules"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-1803",
+      "id": "ICA-1903",
       "priority": 3,
-      "title": "Compose Multiplatform Radar Topo Contour & Vector Trail Overlay",
-      "description": "Upgrade ProximityRadarView.kt in app/sharedUI to render subtle topographic contour lines, neon trail polylines, and waypoint icons directly beneath the radar rings. Add radar range toggle button (0.5k / 1.5k / 5k) and an expandable OfflineTrailCockpitSheet.kt displaying trail profile, elevation stats, and waypoint roster.",
+      "title": "Compose Multiplatform Trail File Manager & Over-The-Air Beam Cockpit Sheet",
+      "description": "Build TrailFileManagerSheet.kt in app/sharedUI displaying stored trail library, active trail switch, live OTA progress bars for sending/receiving chunks, and 1-tap 'Beam to Convoy' actuator. Wire into OfflineTrailCockpitSheet.kt and HomeScreen.kt adhering to zero-scroll handlebar layout contract.",
       "targetFiles": [
-        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/ProximityRadarView.kt",
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/TrailFileManagerSheet.kt",
         "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/OfflineTrailCockpitSheet.kt",
         "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/HomeScreen.kt"
       ],
       "acceptanceCriteria": [
-        "Renders projected trail polylines and elevation contours under radar canvas without jank or allocations",
-        "Interactive radar range zoom cycling (500m -> 1500m -> 5000m)",
-        "OfflineTrailCockpitSheet displays active trail name, elevation gain, distance, and nearest waypoint",
+        "Renders trail library with difficulty badges, total distance, elevation ascent, and active selection check",
+        "Renders dynamic transfer progress bars with percentage, chunk counter, and throughput",
+        "1-tap 'Beam to Convoy' broadcasts trail over mesh to all connected riders",
         "Preserves single-viewport zero-scroll mobile handlebar layout constraint"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-1804",
+      "id": "ICA-1904",
       "priority": 4,
-      "title": "Native iOS SwiftUI Radar Topographic Overlay & Offline Trail Cockpit Sheet",
-      "description": "Implement 100% native SwiftUI radar topographic contours and vector trail overlay in TacticalVectorRadarView (ContentView.swift) and OfflineTrailCockpitSheet.swift in app/iosApp (Rule 1). Wire IntercomViewModel observers with CancellationHandle, supporting radar range zoom, elevation difference badges, and offline waypoint list.",
+      "title": "Native iOS SwiftUI Trail File Manager & Over-The-Air Beam Sheet",
+      "description": "Implement 100% native SwiftUI TrailFileManagerSheet.swift in app/iosApp (Rule 1). Wire IntercomViewModel observers with CancellationHandle, supporting trail library management, live OTA chunk transfer progress gauges, and 1-tap beam to mesh convoy.",
       "targetFiles": [
-        "app/iosApp/iosApp/ContentView.swift",
+        "app/iosApp/iosApp/TrailFileManagerSheet.swift",
         "app/iosApp/iosApp/OfflineTrailCockpitSheet.swift",
         "app/iosApp/iosApp/IntercomViewModel.swift"
       ],
       "acceptanceCriteria": [
         "100% native SwiftUI with zero Compose Multiplatform imports (Rule 1)",
-        "Draws vector trail paths and contour arcs using SwiftUI Path on TacticalVectorRadarView",
-        "Adds OfflineTrailCockpitSheet with elevation profile and nearest waypoint navigation",
+        "Live transfer progress rings/bars showing outgoing and incoming trail chunks",
+        "Seamless integration with IntercomViewModel and CancellationHandle lifecycle",
         "Full compilation and automated verification pass across all targets"
       ],
-      "passes": true
+      "passes": false
     }
   ]
 }
