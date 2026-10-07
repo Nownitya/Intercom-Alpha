@@ -37,6 +37,24 @@ struct OfflineTrailCockpitSheet: View {
 
                     Spacer()
 
+                    Button(action: {
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        vm.showTrailManagerSheet = true
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "bolt.horizontal.fill")
+                                .font(.system(size: 10, weight: .bold))
+                            Text("OTA ROUTES")
+                                .font(.system(size: 9, weight: .black, design: .monospaced))
+                        }
+                        .foregroundColor(Color(red: 0.0, green: 0.9, blue: 0.46))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 5)
+                        .background(Color(red: 0.0, green: 0.9, blue: 0.46).opacity(0.15))
+                        .cornerRadius(6)
+                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color(red: 0.0, green: 0.9, blue: 0.46).opacity(0.35), lineWidth: 1))
+                    }
+
                     Button(action: { dismiss() }) {
                         Image(systemName: "xmark.circle.fill")
                             .font(.system(size: 20))
@@ -83,6 +101,9 @@ struct OfflineTrailCockpitSheet: View {
                     .padding(.bottom, 24)
                 }
             }
+        }
+        .sheet(isPresented: $vm.showTrailManagerSheet) {
+            TrailFileManagerSheet(vm: vm)
         }
     }
 

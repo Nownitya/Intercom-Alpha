@@ -51,6 +51,7 @@ class AppModuleTest {
         val blackboxRecorder: EmergencyBlackboxRecorder = koin.get()
         val bitrateController: AdaptiveBitrateController = koin.get()
         val trailMapManager: org.nowni.intercom_alpha.map.TrailMapManager = koin.get()
+        val fileTransferManager: org.nowni.intercom_alpha.map.MeshFileTransferManager = koin.get()
         val hardwareBridge: org.nowni.intercom_alpha.bridge.IntercomHardwareBridge = koin.get()
         val homeViewModel: HomeViewModel = koin.get()
 
@@ -62,6 +63,7 @@ class AppModuleTest {
         assertNotNull(blackboxRecorder)
         assertNotNull(bitrateController)
         assertNotNull(trailMapManager)
+        assertNotNull(fileTransferManager)
         assertNotNull(hardwareBridge)
         assertNotNull(homeViewModel)
     }

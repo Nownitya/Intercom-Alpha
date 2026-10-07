@@ -4,8 +4,11 @@ import org.nowni.intercom_alpha.audio.PriorityLevel
 import org.nowni.intercom_alpha.channel.ChannelState
 import org.nowni.intercom_alpha.common.AudioProfile
 import org.nowni.intercom_alpha.headset.HelmetAccessoryState
+import org.nowni.intercom_alpha.map.FileTransferProgress
+import org.nowni.intercom_alpha.map.FileTransferType
 import org.nowni.intercom_alpha.map.RadarRangeZoom
 import org.nowni.intercom_alpha.map.TrailMapSnapshot
+import org.nowni.intercom_alpha.map.TrailPolyline
 import org.nowni.intercom_alpha.mesh.Peer
 import org.nowni.intercom_alpha.mesh.RadarSnapshot
 import org.nowni.intercom_alpha.telemetry.ConvoyTelemetrySnapshot
@@ -50,7 +53,12 @@ data class HomeUiState(
 
     // Sprint 18 Offline Vector Terrain & Trail Map State (ICA-1802)
     val trailMapSnapshot: TrailMapSnapshot = TrailMapSnapshot(),
-    val showTrailSheet: Boolean = false
+    val showTrailSheet: Boolean = false,
+
+    // Sprint 19 Over-The-Air BLE Mesh GPX/GeoJSON Trail Sharing (ICA-1902)
+    val activeTransfers: List<FileTransferProgress> = emptyList(),
+    val storedTrails: List<TrailPolyline> = emptyList(),
+    val showTrailManagerSheet: Boolean = false
 )
 
 sealed interface HomeUiAction {
@@ -82,6 +90,14 @@ sealed interface HomeUiAction {
     data class ToggleTrailOverlay(val enabled: Boolean) : HomeUiAction
     data class ToggleTrailSheet(val show: Boolean) : HomeUiAction
     data object LoadSampleTrail : HomeUiAction
+
+    // Sprint 19 Trail File Sharing Actions (ICA-1902)
+    data class BeamActiveTrail(val type: FileTransferType = FileTransferType.GPX) : HomeUiAction
+    data class CancelTransfer(val transferId: String) : HomeUiAction
+    data class ImportTrailText(val text: String, val fileName: String, val format: FileTransferType = FileTransferType.GPX) : HomeUiAction
+    data class SelectStoredTrail(val trailId: String) : HomeUiAction
+    data class DeleteStoredTrail(val trailId: String) : HomeUiAction
+    data class ToggleTrailManagerSheet(val show: Boolean) : HomeUiAction
 }
 
 sealed interface HomeUiEvent {

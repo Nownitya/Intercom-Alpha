@@ -342,6 +342,22 @@ class IntercomForegroundService : Service() {
                                     AndroidPlatformBridge.instance.postIncomingRepeaterBeacon(beacon)
                                 }
                             }
+                            ControlType.FILE_CHUNK -> {
+                                try {
+                                    val chunk = org.nowni.intercom_alpha.map.MeshFileTransferEngine.deserializeChunk(controlPacket.payload)
+                                    AndroidPlatformBridge.instance.postIncomingFileChunk(chunk, controlPacket.senderId)
+                                } catch (e: Exception) {
+                                    Log.e(TAG, "Error decoding incoming file chunk", e)
+                                }
+                            }
+                            ControlType.FILE_ACK -> {
+                                try {
+                                    val ack = org.nowni.intercom_alpha.map.MeshFileTransferEngine.deserializeAck(controlPacket.payload)
+                                    AndroidPlatformBridge.instance.postIncomingFileAck(ack)
+                                } catch (e: Exception) {
+                                    Log.e(TAG, "Error decoding incoming file ack", e)
+                                }
+                            }
                             else -> {
                                 val payload = controlPacket.payload
                                 if (payload.isNotEmpty()) {

@@ -147,6 +147,9 @@ struct ContentView: View {
         .sheet(isPresented: $vm.showTrailSheet) {
             OfflineTrailCockpitSheet(vm: vm)
         }
+        .sheet(isPresented: $vm.showTrailManagerSheet) {
+            TrailFileManagerSheet(vm: vm)
+        }
         .alert("Intercom Alert", isPresented: Binding(
             get: { vm.errorMessage != nil },
             set: { if !$0 { vm.errorMessage = nil } }
@@ -444,6 +447,29 @@ struct TacticalAvionicsBar: View {
                     .background(vm.trailMapSnapshot?.isOverlayEnabled == true ? Color.cyan.opacity(0.2) : Color.white.opacity(0.12))
                     .clipShape(Circle())
                     .overlay(Circle().stroke(vm.trailMapSnapshot?.isOverlayEnabled == true ? Color.cyan.opacity(0.6) : Color.clear, lineWidth: 1.5))
+            }
+
+            // Over-The-Air BLE Mesh Trail Manager Button (Sprint 19 / ICA-1904)
+            Button(action: {
+                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                vm.showTrailManagerSheet = true
+            }) {
+                ZStack(alignment: .topTrailing) {
+                    Image(systemName: "arrow.triangle.2.circlepath.circle.fill")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(vm.activeTransfers.isEmpty ? .white : .orange)
+                        .padding(8)
+                        .background(vm.activeTransfers.isEmpty ? Color.white.opacity(0.12) : Color.orange.opacity(0.2))
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(vm.activeTransfers.isEmpty ? Color.clear : Color.orange.opacity(0.6), lineWidth: 1.5))
+
+                    if !vm.activeTransfers.isEmpty {
+                        Circle()
+                            .fill(Color.orange)
+                            .frame(width: 6, height: 6)
+                            .offset(x: 2, y: -2)
+                    }
+                }
             }
 
             // QR Share Button
