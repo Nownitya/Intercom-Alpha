@@ -15,8 +15,8 @@
 
 | Task ID | Item | Owner | Target Files | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **ICA-1901** | Pure KMP Chunked Mesh File Transfer & GPX/GeoJSON Protocol Engine | Ralph | `MeshFileModels.kt`, `MeshFileTransferEngine.kt`, `MeshFileTransferManager.kt` | 🟡 Ready for Dev |
-| **ICA-1902** | Subsystem Hardware Bridge Wiring & Reactive State Management | Ralph | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `HomeViewModel.kt` | ⚪ Queued |
+| **ICA-1901** | Pure KMP Chunked Mesh File Transfer & GPX/GeoJSON Protocol Engine | Ralph | `MeshFileModels.kt`, `MeshFileTransferEngine.kt`, `MeshFileTransferManager.kt` | ✅ Completed |
+| **ICA-1902** | Subsystem Hardware Bridge Wiring & Reactive State Management | Ralph | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `HomeViewModel.kt` | 🟡 Ready for Dev |
 | **ICA-1903** | Compose Multiplatform Trail File Manager & Over-The-Air Beam Cockpit Sheet | Ralph | `TrailFileManagerSheet.kt`, `OfflineTrailCockpitSheet.kt`, `HomeScreen.kt` | ⚪ Queued |
 | **ICA-1904** | Native iOS SwiftUI Trail File Manager & Over-The-Air Beam Sheet | Ralph | `TrailFileManagerSheet.swift`, `OfflineTrailCockpitSheet.swift`, `IntercomViewModel.swift` | ⚪ Queued |
 

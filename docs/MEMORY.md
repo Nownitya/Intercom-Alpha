@@ -526,6 +526,22 @@
     - Embedded tactile zoom range switcher badge in the radar corner.
     - Integrated "Trail" launcher button in `TacticalAvionicsBar`.
 
+### 2.54 Pure KMP Chunked Mesh File Transfer & GPX/GeoJSON Protocol Engine (Sprint 19 - ICA-1901)
+- **Challenge**: BLE mesh MTU limits (single packets ~128 bytes) prevent sending monolithic GPX track files (>10 KB to 100 KB) in a single packet. Third-party XML parsers or Java `java.util.zip.Adler32` break KMP purity across iOS Simulator and native targets (Rules 2 & 3). Flooding RF channels without pacing creates severe packet drops.
+- **Solution**:
+  - `MeshFileModels.kt`:
+    - Pure KMP RFC 1950 `Adler32` checksum using 16-bit low/high sum modulo 65521 arithmetic with zero Java/C platform dependencies.
+    - MTU-compliant 100-byte data slicing yielding total chunk packets safely under BLE characteristic limits.
+    - Defined `FileTransferType` (`GPX`, `GEOJSON`, `WAYPOINT_PACK`), `FileTransferProgress`, `FileTransferChunk`, and `FileTransferAck`.
+  - `MeshFileTransferEngine.kt`:
+    - Pure KMP GPX 1.1 exporter and regex-based track point / waypoint parser extracting `<trkpt lat="..." lon="...">`, `<ele>`, `<name>`, and `<wpt>`.
+    - RFC 7946 GeoJSON `FeatureCollection` LineString exporter.
+    - `ReassemblyBuffer`: Out-of-order chunk assembly, missing index tracking, and Adler32 payload validation upon completion.
+  - `MeshFileTransferManager.kt`:
+    - Mutex-protected transmission manager with reactive `activeTransfers: StateFlow<List<FileTransferProgress>>` and `storedTrails: StateFlow<List<TrailPolyline>>`.
+    - Sliding-window paced transmission queue with selective NACK retransmission for lossy mesh hops.
+    - Local trail storage library and direct text import.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

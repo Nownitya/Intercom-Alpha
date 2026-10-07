@@ -1091,5 +1091,29 @@
 - **Ready for Story 1 execution (`ICA-1901: Pure KMP Chunked Mesh File Transfer & GPX/GeoJSON Protocol Engine`)**.
 ---
 
-
-
+### [2026-10-07] - ICA-1901: Pure KMP Chunked Mesh File Transfer & GPX/GeoJSON Protocol Engine
+- **Branch**: `feature/ICA-1901-mesh-file-transfer`
+- **Objective**: Implement pure KMP chunked file transmission engine, GPX/GeoJSON protocol engine, sliding-window retransmission, and route storage manager in `commonMain` with zero Java/C dependencies (Rules 2 & 3).
+- **Implementation**:
+  - `MeshTransport.kt`:
+    - Added `FILE_CHUNK` (0x0B) and `FILE_ACK` (0x0C) control packet types to `ControlType`.
+  - `MeshFileModels.kt`:
+    - Implemented pure KMP RFC 1950 `Adler32` checksum (modulo 65521) without Java/C runtime dependencies.
+    - Defined `FileTransferType` (`GPX`, `GEOJSON`, `WAYPOINT_PACK`), `FileTransferDirection` (`OUTGOING`, `INCOMING`), `FileTransferStatus` (`QUEUED`, `TRANSFERRING`, `COMPLETED`, `FAILED`, `CANCELLED`).
+    - Implemented `FileTransferChunk`, `FileTransferAck`, `FileTransferProgress`, and `FileChunkEnvelope`.
+  - `MeshFileTransferEngine.kt`:
+    - Chunking into single-MTU slices (<= 100 bytes payload) with transfer IDs, chunk index/count, and Adler32 validation.
+    - `ReassemblyBuffer`: Handles out-of-order chunks, tracks missing indices, and reconstructs verified byte arrays upon completion.
+    - Pure KMP GPX 1.1 exporter and parser (extracting tracks, elevations, names, and waypoints via regex matching).
+    - RFC 7946 GeoJSON exporter.
+  - `MeshFileTransferManager.kt`:
+    - Mutex-guarded state manager with `activeTransfers: StateFlow<List<FileTransferProgress>>` and `storedTrails: StateFlow<List<TrailPolyline>>`.
+    - Sliding-window outgoing chunk queue with selective NACK retransmission over lossy mesh RF.
+    - Local trail library storage and direct text import.
+  - `MeshFileTransferTest.kt`:
+    - 6 unit test suites covering Adler32 checksum accuracy, GPX export/import roundtrip, GeoJSON export/import, chunking/reassembly, dropped chunk NACK recovery, and manager lifecycle.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-19-mesh-trail-sharing`).
+---

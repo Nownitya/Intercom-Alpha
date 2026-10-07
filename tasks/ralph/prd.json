@@ -23,7 +23,7 @@
         "Reassembles received chunks into typed TrailPolyline and TrailWaypoint models upon completion",
         "100% unit test pass on JVM and iOS Simulator targets"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-1902",
