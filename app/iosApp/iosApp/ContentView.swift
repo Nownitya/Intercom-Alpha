@@ -65,6 +65,11 @@ struct ContentView: View {
                     .padding(.horizontal, 14)
                 }
 
+                // Voice Command Feedback Badge (Sprint 21 / ICA-2103)
+                if let cmd = vm.latestVoiceCommand {
+                    TacticalVoiceCommandBadge(command: cmd, onDismiss: { vm.dismissVoiceCommandBadge() })
+                }
+
                 // 4. Tactical Vector Radar
                 TacticalVectorRadarView(
                     radarSnapshot: vm.radarSnapshot,
@@ -149,6 +154,15 @@ struct ContentView: View {
                 .padding(.horizontal, 14)
                 .padding(.bottom, 6)
             }
+
+            // Emergency Crash Countdown Card Overlay (Sprint 21 / ICA-2103)
+            if vm.showCrashCountdownCard {
+                CrashCountdownCardView(
+                    snapshot: vm.crashSnapshot,
+                    onCancel: { vm.cancelCrashCountdown() },
+                    onSosNow: { vm.triggerManualCrashSos() }
+                )
+            }
         }
         .sheet(isPresented: $vm.showQrScanner) {
             QrScannerView { scannedCode in vm.joinGroup(inviteCode: scannedCode) }
@@ -190,6 +204,112 @@ struct ContentView: View {
         if volume > 0.6 { return "speaker.wave.3.fill" }
         if volume > 0.2 { return "speaker.wave.2.fill" }
         return "speaker.wave.1.fill"
+    }
+}
+
+// --- Crash Countdown Emergency Card (Sprint 21 / ICA-2103) ---
+
+struct CrashCountdownCardView: View {
+    let snapshot: CrashCountdownSnapshot?
+    let onCancel: () -> Void
+    let onSosNow: () -> Void
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.85)
+                .ignoresSafeArea()
+
+            VStack(spacing: 16) {
+                HStack(spacing: 8) {
+                    Image(systemName: "exclamationmark.octagon.fill")
+                        .font(.system(size: 20, weight: .black))
+                        .foregroundColor(.red)
+                    Text("VEHICULAR CRASH DETECTED")
+                        .font(.system(size: 13, weight: .black, design: .monospaced))
+                        .foregroundColor(.red)
+                }
+
+                Text("\(snapshot?.remainingSeconds ?? 30)")
+                    .font(.system(size: 64, weight: .black, design: .monospaced))
+                    .foregroundColor(.white)
+
+                let peakG = snapshot?.peakGForce ?? 0.0
+                Text("SEVERITY: \(snapshot?.severity.name ?? "POTENTIAL_FALL_OVER") • PEAK: \(String(format: "%.1f", peakG))g")
+                    .font(.system(size: 11, weight: .bold, design: .monospaced))
+                    .foregroundColor(Color.red.opacity(0.85))
+
+                Text("Automatic eCall mesh emergency beacon dispatching in \(snapshot?.remainingSeconds ?? 30)s unless cancelled.")
+                    .font(.system(size: 11, weight: .medium))
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(.white.opacity(0.85))
+                    .padding(.horizontal, 8)
+
+                Button(action: {
+                    UIImpactFeedbackGenerator(style: .rigid).impactOccurred()
+                    onCancel()
+                }) {
+                    Text("I AM OK — CANCEL ALERT")
+                        .font(.system(size: 13, weight: .black, design: .monospaced))
+                        .foregroundColor(.black)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                        .background(Color.green)
+                        .cornerRadius(10)
+                }
+
+                Button(action: {
+                    UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+                    onSosNow()
+                }) {
+                    Text("DISPATCH SOS NOW")
+                        .font(.system(size: 11, weight: .bold, design: .monospaced))
+                        .foregroundColor(.red)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 38)
+                        .background(Color.red.opacity(0.15))
+                        .cornerRadius(8)
+                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.red, lineWidth: 1))
+                }
+            }
+            .padding(22)
+            .background(Color(red: 0.1, green: 0.04, blue: 0.04))
+            .cornerRadius(18)
+            .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.red, lineWidth: 2))
+            .padding(24)
+        }
+    }
+}
+
+// --- Offline Voice Command Feedback Badge (Sprint 21 / ICA-2103) ---
+
+struct TacticalVoiceCommandBadge: View {
+    let command: CommandDetection
+    let onDismiss: () -> Void
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "mic.fill")
+                .font(.system(size: 11, weight: .black))
+                .foregroundColor(.cyan)
+            Text("VOICE: \(command.command.phrase.uppercased())")
+                .font(.system(size: 10, weight: .black, design: .monospaced))
+                .foregroundColor(.cyan)
+            Text("(\(Int(command.confidence * 100))%)")
+                .font(.system(size: 9, weight: .bold, design: .monospaced))
+                .foregroundColor(.cyan.opacity(0.8))
+            Spacer()
+            Button(action: onDismiss) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundColor(.cyan.opacity(0.8))
+            }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 4)
+        .background(Color(red: 0.04, green: 0.12, blue: 0.16))
+        .cornerRadius(6)
+        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.cyan.opacity(0.6), lineWidth: 1))
+        .padding(.horizontal, 14)
     }
 }
 

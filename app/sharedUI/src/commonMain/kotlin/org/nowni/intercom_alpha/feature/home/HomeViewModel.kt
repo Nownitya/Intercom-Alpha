@@ -46,6 +46,8 @@ class HomeViewModel(
     val fileTransferManager: MeshFileTransferManager = MeshFileTransferManager(),
     val geofenceEngine: org.nowni.intercom_alpha.telemetry.ConvoyGeofenceEngine = org.nowni.intercom_alpha.telemetry.ConvoyGeofenceEngine(),
     val batteryGovernor: org.nowni.intercom_alpha.power.BatteryGovernor = org.nowni.intercom_alpha.power.BatteryGovernor("android-local"),
+    val crashDetector: org.nowni.intercom_alpha.safety.CrashDetector = org.nowni.intercom_alpha.safety.CrashDetector(),
+    val voiceCommandRecognizer: org.nowni.intercom_alpha.audio.VoiceCommandRecognizer = org.nowni.intercom_alpha.audio.VoiceCommandRecognizer(),
     val hardwareBridge: IntercomHardwareBridge = NoOpIntercomHardwareBridge()
 ) : ViewModel() {
 
@@ -67,7 +69,9 @@ class HomeViewModel(
             trailMapManager = trailMapManager,
             fileTransferManager = fileTransferManager,
             geofenceEngine = geofenceEngine,
-            batteryGovernor = batteryGovernor
+            batteryGovernor = batteryGovernor,
+            crashDetector = crashDetector,
+            voiceCommandRecognizer = voiceCommandRecognizer
         )
 
         viewModelScope.launch {
@@ -280,6 +284,7 @@ class HomeViewModel(
                         still = coord.speedKmh <= 2.0f,
                         timestampMs = coord.timestampMs
                     )
+                    crashDetector.processSpeedUpdate(coord.speedKmh.toDouble())
                 }
             }
         }
@@ -299,6 +304,28 @@ class HomeViewModel(
                         repeaterPingLatencyMs = latency,
                         isPingingRepeater = false
                     )
+                }
+            }
+        }
+
+        // 9. Synchronize Crash Detection state & Countdown HUD (ICA-2103)
+        viewModelScope.launch {
+            crashDetector.countdownSnapshot.collect { snapshot ->
+                _uiState.update {
+                    it.copy(
+                        crashSnapshot = snapshot,
+                        showCrashCountdownDialog = snapshot.state == org.nowni.intercom_alpha.safety.CrashState.COUNTDOWN_ACTIVE
+                    )
+                }
+            }
+        }
+
+        // 10. Synchronize Voice Command Recognizer & Dispatch Actions (ICA-2103)
+        viewModelScope.launch {
+            voiceCommandRecognizer.latestDetection.collect { detection ->
+                _uiState.update { it.copy(latestVoiceCommand = detection) }
+                if (detection != null) {
+                    handleVoiceCommand(detection.command)
                 }
             }
         }
@@ -535,6 +562,62 @@ class HomeViewModel(
                 viewModelScope.launch {
                     geofenceEngine.setLeadRider(action.leadPeerId)
                 }
+            }
+
+            HomeUiAction.CancelCrashCountdown -> {
+                viewModelScope.launch {
+                    crashDetector.cancelCountdown()
+                    hardwareBridge.cancelCrashCountdown()
+                }
+                _uiState.update { it.copy(showCrashCountdownDialog = false) }
+            }
+
+            HomeUiAction.TriggerManualCrashSos -> {
+                viewModelScope.launch {
+                    crashDetector.triggerManualCrashAlert()
+                    hardwareBridge.triggerManualCrashSos()
+                }
+                onAction(HomeUiAction.TriggerSos)
+                _uiState.update { it.copy(showCrashCountdownDialog = false) }
+            }
+
+            HomeUiAction.DismissVoiceCommandBadge -> {
+                _uiState.update { it.copy(latestVoiceCommand = null) }
+            }
+        }
+    }
+
+    private fun handleVoiceCommand(command: org.nowni.intercom_alpha.audio.VoiceCommand) {
+        when (command) {
+            org.nowni.intercom_alpha.audio.VoiceCommand.SOS_TRIGGER -> {
+                onAction(HomeUiAction.TriggerSos)
+                viewModelScope.launch {
+                    crashDetector.triggerManualCrashAlert()
+                }
+            }
+            org.nowni.intercom_alpha.audio.VoiceCommand.NEXT_CHANNEL -> {
+                val current = _uiState.value.channelState.activeChannelId
+                val next = if (current >= 8) 1 else current + 1
+                onAction(HomeUiAction.SelectChannel(next))
+            }
+            org.nowni.intercom_alpha.audio.VoiceCommand.PREV_CHANNEL -> {
+                val current = _uiState.value.channelState.activeChannelId
+                val prev = if (current <= 1) 8 else current - 1
+                onAction(HomeUiAction.SelectChannel(prev))
+            }
+            org.nowni.intercom_alpha.audio.VoiceCommand.MUTE_TOGGLE -> {
+                if (_uiState.value.isTransmitting) {
+                    onAction(HomeUiAction.StopTransmitting)
+                } else {
+                    onAction(HomeUiAction.StartTransmitting)
+                }
+            }
+            org.nowni.intercom_alpha.audio.VoiceCommand.CANCEL_ALERT -> {
+                onAction(HomeUiAction.CancelCrashCountdown)
+            }
+            org.nowni.intercom_alpha.audio.VoiceCommand.BATTERY_STATUS,
+            org.nowni.intercom_alpha.audio.VoiceCommand.STATUS_REPORT -> {
+                // Handled via UI badge and tone feedback
             }
         }
     }

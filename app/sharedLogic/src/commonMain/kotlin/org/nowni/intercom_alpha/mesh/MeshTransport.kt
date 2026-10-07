@@ -56,7 +56,8 @@ enum class ControlType {
     FILE_CHUNK,
     FILE_ACK,
     GEOFENCE_ALARM,
-    POWER_STATUS
+    POWER_STATUS,
+    CRASH_ALERT
 }
 
 @Serializable

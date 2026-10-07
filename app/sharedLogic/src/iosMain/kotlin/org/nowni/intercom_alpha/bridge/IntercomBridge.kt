@@ -87,6 +87,8 @@ class IntercomBridge(
     val fileTransferManager: MeshFileTransferManager = MeshFileTransferManager()
     val geofenceEngine: org.nowni.intercom_alpha.telemetry.ConvoyGeofenceEngine = org.nowni.intercom_alpha.telemetry.ConvoyGeofenceEngine()
     val batteryGovernor: org.nowni.intercom_alpha.power.BatteryGovernor = org.nowni.intercom_alpha.power.BatteryGovernor(nodeId = localPeerId)
+    val crashDetector: org.nowni.intercom_alpha.safety.CrashDetector = org.nowni.intercom_alpha.safety.CrashDetector()
+    val voiceCommandRecognizer: org.nowni.intercom_alpha.audio.VoiceCommandRecognizer = org.nowni.intercom_alpha.audio.VoiceCommandRecognizer()
 
     private val _isRepeaterModeActive = MutableStateFlow(false)
     val isRepeaterModeActive: StateFlow<Boolean> = _isRepeaterModeActive.asStateFlow()
@@ -214,6 +216,14 @@ class IntercomBridge(
                     trailMapManager.loadTrail(trail)
                 }
             }
+
+            // 10. Forward autonomous crash SOS alert packets over BLE Mesh
+            scope.launch {
+                crashDetector.alertPackets.collect { alert ->
+                    val payload = org.nowni.intercom_alpha.safety.CrashDetector.encodeAlertPayload(alert)
+                    meshTransport.sendControl(ControlType.CRASH_ALERT, payload)
+                }
+            }
         }
     }
 
@@ -243,6 +253,9 @@ class IntercomBridge(
         audioTxJob?.cancel()
         audioTxJob = scope.launch(Dispatchers.Default) {
             for (pcmShorts in audioEngine.recordedAudio) {
+                // Pipe local microphone PCM into offline keyword recognizer
+                voiceCommandRecognizer.processPcmSamples(pcmShorts, currentTimeMillis())
+
                 if (isPttActive) {
                     keepAlive.withKeepAlive("IntercomAudioTxBurst") {
                         val encoded = audioEngine.encode(pcmShorts, currentAudioProfile)
@@ -866,6 +879,64 @@ class IntercomBridge(
             trailMapManager.updateLocalPosition(lat, lon, alt, heading)
             geofenceEngine.updateLocalPosition(latitude = lat, longitude = lon, altitudeMeters = alt, speedKmh = speedKmh, headingDegrees = heading)
             batteryGovernor.updateMotion(speedKmh.toDouble(), speedKmh <= 2.0f)
+            crashDetector.processSpeedUpdate(speedKmh.toDouble())
+        }
+    }
+
+    // --- Swift-Friendly Crash Detection & Voice Command Observers & Controls (Sprint 21 / ICA-2103) ---
+
+    fun observeCrashSnapshot(onSnapshot: (org.nowni.intercom_alpha.safety.CrashCountdownSnapshot) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            crashDetector.countdownSnapshot.collect { snapshot ->
+                onSnapshot(snapshot)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun observeVoiceCommands(onCommand: (org.nowni.intercom_alpha.audio.CommandDetection?) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            voiceCommandRecognizer.latestDetection.collect { detection ->
+                onCommand(detection)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun cancelCrashCountdown() {
+        scope.launch(Dispatchers.Main) {
+            crashDetector.cancelCountdown()
+        }
+    }
+
+    fun triggerManualCrashSos() {
+        scope.launch(Dispatchers.Main) {
+            crashDetector.triggerManualCrashAlert()
+        }
+    }
+
+    fun processImuReading(
+        ax: Double, ay: Double, az: Double,
+        gx: Double = 0.0, gy: Double = 0.0, gz: Double = 0.0,
+        timestampMs: Long = currentTimeMillis()
+    ) {
+        scope.launch {
+            val reading = org.nowni.intercom_alpha.safety.ImuReading(
+                timestampMs = timestampMs,
+                accelX = ax.toFloat(),
+                accelY = ay.toFloat(),
+                accelZ = az.toFloat(),
+                gyroX = gx.toFloat(),
+                gyroY = gy.toFloat(),
+                gyroZ = gz.toFloat()
+            )
+            crashDetector.processImuReading(reading)
+        }
+    }
+
+    fun processVoiceAudio(samples: ShortArray, timestampMs: Long = currentTimeMillis()) {
+        scope.launch {
+            voiceCommandRecognizer.processPcmSamples(samples, timestampMs)
         }
     }
 }
