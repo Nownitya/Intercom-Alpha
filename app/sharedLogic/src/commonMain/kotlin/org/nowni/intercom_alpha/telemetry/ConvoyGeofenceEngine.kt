@@ -313,58 +313,87 @@ class ConvoyGeofenceEngine(
         allPoints.add(localCoord)
         activeRiders.forEach { allPoints.add(it.coordinate) }
 
-        // Find maximum gap in the minimum spanning distance between adjacent rider pairs
-        var maxGap = 0.0
-        var localClusterCount = 0
-        var remoteClusterCount = 0
+        // Find connected components using single-linkage threshold
+        val visited = BooleanArray(allPoints.size)
+        val components = mutableListOf<List<Int>>()
 
-        // Single-linkage clustering based on inter-rider distances
         for (i in allPoints.indices) {
-            var minNeighborDist = Double.MAX_VALUE
-            for (j in allPoints.indices) {
-                if (i == j) continue
-                val d = ConvoyGpsTracker.calculateHaversineDistance(
-                    allPoints[i].latitude, allPoints[i].longitude,
-                    allPoints[j].latitude, allPoints[j].longitude
-                )
-                if (d < minNeighborDist) minNeighborDist = d
-            }
-            if (minNeighborDist > maxGap && minNeighborDist != Double.MAX_VALUE) {
-                maxGap = minNeighborDist
+            if (!visited[i]) {
+                val comp = mutableListOf<Int>()
+                val queue = ArrayDeque<Int>()
+                queue.add(i)
+                visited[i] = true
+
+                while (queue.isNotEmpty()) {
+                    val curr = queue.removeFirst()
+                    comp.add(curr)
+
+                    for (next in allPoints.indices) {
+                        if (!visited[next]) {
+                            val dist = ConvoyGpsTracker.calculateHaversineDistance(
+                                allPoints[curr].latitude, allPoints[curr].longitude,
+                                allPoints[next].latitude, allPoints[next].longitude
+                            )
+                            if (dist < splitClusterMinDistanceMeters) {
+                                visited[next] = true
+                                queue.add(next)
+                            }
+                        }
+                    }
+                }
+                components.add(comp)
             }
         }
 
-        val isSplit = maxGap >= splitClusterMinDistanceMeters
+        val isSplit = components.size > 1
 
         if (isSplit) {
-            // Count riders in local cluster vs remote cluster relative to localCoord
-            allPoints.forEach { pt ->
-                val d = ConvoyGpsTracker.calculateHaversineDistance(
-                    localCoord.latitude, localCoord.longitude,
-                    pt.latitude, pt.longitude
-                )
-                if (d < splitClusterMinDistanceMeters) localClusterCount++
-                else remoteClusterCount++
+            val localIndices = components.first { it.contains(0) }
+            val remoteIndices = allPoints.indices.filter { !localIndices.contains(it) }
+
+            var minClusterGap = Double.MAX_VALUE
+            for (l in localIndices) {
+                for (r in remoteIndices) {
+                    val d = ConvoyGpsTracker.calculateHaversineDistance(
+                        allPoints[l].latitude, allPoints[l].longitude,
+                        allPoints[r].latitude, allPoints[r].longitude
+                    )
+                    if (d < minClusterGap) minClusterGap = d
+                }
             }
 
-            val gapInt = maxGap.toInt()
+            val gapInt = minClusterGap.toInt()
             val action = "Convoy split detected (Gap: ${gapInt}m). Sweep rider or stationary repeater recommended to bridge sub-clusters."
 
             return ConvoySplitWarning(
                 isSplitDetected = true,
-                clusterCount = 2,
-                clusterGapMeters = maxGap,
-                localClusterSize = localClusterCount,
-                remoteClusterSize = remoteClusterCount,
+                clusterCount = components.size,
+                clusterGapMeters = minClusterGap,
+                localClusterSize = localIndices.size,
+                remoteClusterSize = remoteIndices.size,
                 recommendedAction = action,
                 timestampMs = now
             )
         }
 
+        // Single component: calculate maximum adjacent step gap
+        var maxAdjacentGap = 0.0
+        for (i in allPoints.indices) {
+            for (j in i + 1 until allPoints.size) {
+                val d = ConvoyGpsTracker.calculateHaversineDistance(
+                    allPoints[i].latitude, allPoints[i].longitude,
+                    allPoints[j].latitude, allPoints[j].longitude
+                )
+                if (d < splitClusterMinDistanceMeters && d > maxAdjacentGap) {
+                    maxAdjacentGap = d
+                }
+            }
+        }
+
         return ConvoySplitWarning(
             isSplitDetected = false,
             clusterCount = 1,
-            clusterGapMeters = maxGap,
+            clusterGapMeters = maxAdjacentGap,
             localClusterSize = allPoints.size,
             remoteClusterSize = 0,
             recommendedAction = "Convoy unified in single cluster.",
