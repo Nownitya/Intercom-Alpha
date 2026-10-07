@@ -15,8 +15,8 @@
 
 | Task ID | Item | Owner | Target Files | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **ICA-2101** | Pure KMP Crash Detection, Fall-Over IMU State Machine & Countdown Arbiter | Ralph | `SensorModels.kt`, `CrashDetector.kt`, `CrashDetectorTest.kt` | 🟡 Ready for Dev |
-| **ICA-2102** | Pure KMP Offline Voice Command & Keyword Spotting DSP Engine | Ralph | `VoiceCommandModels.kt`, `VoiceCommandRecognizer.kt`, `VoiceCommandRecognizerTest.kt` | ⚪ Backlog |
+| **ICA-2101** | Pure KMP Crash Detection, Fall-Over IMU State Machine & Countdown Arbiter | Ralph | `SensorModels.kt`, `CrashDetector.kt`, `CrashDetectorTest.kt` | ✅ Completed |
+| **ICA-2102** | Pure KMP Offline Voice Command & Keyword Spotting DSP Engine | Ralph | `VoiceCommandModels.kt`, `VoiceCommandRecognizer.kt`, `VoiceCommandRecognizerTest.kt` | 🟡 Next Up |
 | **ICA-2103** | Subsystem Hardware Bridge Wiring & Multiplatform Emergency HUD Presentation | Ralph | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `HomeScreen.kt`, `ContentView.swift` | ⚪ Backlog |
 | **ICA-2104** | Crash Impact & Voice Command Multiplatform Simulation Harness & Benchmark Suite | Ralph | `CrashAndVoiceSimulationHarness.kt`, `intercom-alpha.architecture.json` | ⚪ Backlog |
 

@@ -667,6 +667,20 @@
     - Synchronized architecture specification with Sprint 18, 19, and 20 subsystems (`trail_engine`, `geofence_engine`, `battery_governor`).
     - Validated and delivered showcase HTML using Archify CLI (`node .agents/skills/archify/bin/archify.mjs deliver architecture ... --quality showcase --json`) with 9/9 checks passed, 0 errors, and 0 warnings.
 
+### 2.62 Autonomous Crash Impact Detection, Fall-Over IMU & Pre-Alert Countdown (Sprint 21 - ICA-2101)
+- **Challenge**: Accurately distinguishing true motorcycle crash impacts ($>4.5g$) and sustained tip-overs ($>60^\circ$ for $>8\text{s}$) from normal riding vibrations, road potholes, and aggressive curve lean angles, while providing an abortable pre-alert countdown window to prevent false emergency SOS broadcasts across the mesh.
+- **Solution**:
+  - `SensorModels.kt`:
+    - Defined `ImuReading` computing total resultant acceleration magnitude and G-force ($\frac{\sqrt{a_x^2 + a_y^2 + a_z^2}}{9.80665}$) and tilt angle from gravity vertical ($\arccos\left(\frac{|a_z|}{total}\right)$).
+    - Modeled `CrashSeverity` (`POTENTIAL_FALL_OVER`, `HARD_IMPACT`, `SEVERE_COLLISION`), `CrashState` (`NORMAL`, `COUNTDOWN_ACTIVE`, `EMERGENCY_DISPATCHED`, `CANCELLED_BY_RIDER`), and `CrashConfig`.
+  - `CrashDetector.kt`:
+    - Pure KMP thread-safe `Mutex` state machine with zero Java or platform dependencies.
+    - Transient lean rejection: sharp cornering tilts are ignored unless sustained for $>8,000\text{ms}$.
+    - Severe collision detection ($>7.0g$) and hard impact detection ($>4.5g$) initiate a 30-second abortable countdown (`tickCountdown`).
+    - Emergency deceleration monitor: detects $>35\text{ km/h}$ speed drop within $1.5\text{s}$ combined with bump shock.
+    - False alarm cancellation (`cancelCountdown`): rider can tap cancel during the 30-second window to abort emergency dispatch.
+    - Autonomous beacon dispatch: upon countdown zero expiry, generates `CrashAlertPacket` via `ControlType.CRASH_ALERT` carrying incident ID, peak G-force, severity, and GPS coordinates.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

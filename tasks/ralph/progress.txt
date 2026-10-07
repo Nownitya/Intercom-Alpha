@@ -1341,5 +1341,41 @@
   - `ICA-2002: Smart Battery Duty-Cycle Governor & Motion-Aware Power Mode` [PASSED]
   - `ICA-2003: Subsystem Hardware Bridge Wiring & Multiplatform Presentation HUD Integration` [PASSED]
   - `ICA-2004: 16-Node Concurrent Convoy Stress Simulation Harness & Archify Showcase Update` [PASSED]
-- **Release Status**: `v2.7.0` Ready for Production Tagging on `main`.
 ---
+
+## 🚀 Sprint 21 Launch: Autonomous Crash Impact Detection, eCall SOS & Offline Voice Command HUD (Phase 19 - v2.8 Roadmap)
+- **Milestone**: Phase 19 / Sprint 21
+- **Goal**: Implement pure KMP multi-axis IMU crash & fall-over impact detection with 30s abortable countdown, offline keyword-spotting voice commands (eCall SOS, next/prev channel, mute, battery), subsystem platform hardware bridge wiring, and emergency HUD integration across Compose Multiplatform and 100% Native iOS SwiftUI.
+- **Sprint Branch**: `sprint/sprint-21-crash-detection-voice-commands`
+- **Target Release**: `v2.8.0`
+
+### [2026-10-07] - ICA-2101: Pure KMP Crash Detection, Fall-Over IMU State Machine & Countdown Arbiter
+- **Branch**: `feature/ICA-2101-crash-detector`
+- **Objective**: Implement pure KMP `CrashDetector.kt` and `SensorModels.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/safety/`. Detect high-G vehicular impacts (>4.5g / >44.1 m/s²), persistent motorcycle fall-over tilt (>60° for >8 seconds), sudden deceleration spikes (>35 km/h drop in <1.5s), and initiate an autonomous 30-second pre-alert countdown with rider abort/cancel mechanism before dispatching priority SOS packet over the mesh with zero Java or C dependencies (Rules 2 & 3).
+- **Implementation**:
+  - `SensorModels.kt`:
+    - Defined `ImuReading` with resultant G-force (`totalGForce`), total acceleration magnitude (`totalAccelMps2`), and vertical tilt angle (`tiltAngleDegrees`).
+    - Defined `CrashSeverity` (`NONE`, `POTENTIAL_FALL_OVER`, `HARD_IMPACT`, `SEVERE_COLLISION`).
+    - Defined `CrashState` (`NORMAL`, `COUNTDOWN_ACTIVE`, `EMERGENCY_DISPATCHED`, `CANCELLED_BY_RIDER`).
+    - Defined `CrashConfig` with customizable impact G thresholds, fall-over tilt thresholds, deceleration window, and 30-second countdown duration.
+    - Defined `CrashCountdownSnapshot` and serializable `CrashAlertPacket`.
+  - `MeshTransport.kt`:
+    - Added `CRASH_ALERT` to `ControlType` enum for control frame multiplexing over BLE mesh.
+  - `CrashDetector.kt`:
+    - Thread-safe Mutex-protected state machine.
+    - Ingests accelerometer/gyroscope readings (`processImuReading`) and speed updates (`processSpeedUpdate`).
+    - High-G impact detection: immediately initiates 30s countdown upon severe collision (>=7.0g) or hard impact (>=4.5g).
+    - Motorcycle fall-over detection: tracks sustained tilt (>60° for >8 seconds), ignoring transient curve leans.
+    - Emergency deceleration watchdog: detects >35 km/h drops within 1.5s combined with impact bumps.
+    - 30-second pre-alert countdown arbiter (`tickCountdown`) emitting warning chime trigger ticks (30..1) and dispatching emergency SOS packet upon timer expiry.
+    - Rider abort mechanism (`cancelCountdown`): rider can dismiss false alarms, smoothly returning state to `CANCELLED_BY_RIDER` with 0 emergency alerts dispatched.
+    - Manual emergency crash SOS trigger (`triggerManualCrashAlert`).
+    - Wire packet serialization and deserialization (`encodeAlertPayload`, `parseAlertPayload`).
+  - `CrashDetectorTest.kt`:
+    - 10 comprehensive unit test suites validating normal riding bumps (<2.5g), hard impact (5.0g), severe collision (8.5g), curve lean vs sustained fall-over (>8s), countdown ticking, rider cancellation, countdown expiry with automatic SOS packet dispatch, emergency deceleration, manual SOS, wire serialization symmetry, and detector reset.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-21-crash-detection-voice-commands`).
+---
+
