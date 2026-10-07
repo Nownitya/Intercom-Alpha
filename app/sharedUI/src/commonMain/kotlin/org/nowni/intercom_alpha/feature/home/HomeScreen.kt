@@ -93,6 +93,22 @@ fun HomeScreen(
                         }
 
                         FilledTonalButton(
+                            onClick = { onAction(HomeUiAction.ToggleTrailManagerSheet(true)) },
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                            shape = RoundedCornerShape(6.dp),
+                            colors = ButtonDefaults.filledTonalButtonColors(
+                                containerColor = if (uiState.activeTransfers.isNotEmpty()) Color(0xFF1B3B32) else Color(0xFF1D2023),
+                                contentColor = if (uiState.activeTransfers.isNotEmpty()) Color(0xFF00E676) else Color(0xFF00E5FF)
+                            )
+                        ) {
+                            Text(
+                                if (uiState.activeTransfers.isNotEmpty()) "OTA (${uiState.activeTransfers.size})" else "Routes",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        FilledTonalButton(
                             onClick = onNavigateToRepeater,
                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
                             shape = RoundedCornerShape(6.dp),
@@ -398,7 +414,24 @@ fun HomeScreen(
                 onCycleZoom = { onAction(HomeUiAction.CycleRadarZoom) },
                 onToggleOverlay = { onAction(HomeUiAction.ToggleTrailOverlay(it)) },
                 onLoadSampleTrail = { onAction(HomeUiAction.LoadSampleTrail) },
+                onOpenTrailManager = { onAction(HomeUiAction.ToggleTrailManagerSheet(true)) },
                 onDismiss = { onAction(HomeUiAction.ToggleTrailSheet(false)) }
+            )
+        }
+
+        if (uiState.showTrailManagerSheet) {
+            TrailFileManagerSheet(
+                storedTrails = uiState.storedTrails,
+                activeTransfers = uiState.activeTransfers,
+                activeTrailId = uiState.trailMapSnapshot.activeTrail?.id,
+                onSelectTrail = { onAction(HomeUiAction.SelectStoredTrail(it)) },
+                onBeamTrail = { onAction(HomeUiAction.BeamActiveTrail(it)) },
+                onCancelTransfer = { onAction(HomeUiAction.CancelTransfer(it)) },
+                onImportTrail = { name, text, format ->
+                    onAction(HomeUiAction.ImportTrailText(text, name, format))
+                },
+                onDeleteTrail = { onAction(HomeUiAction.DeleteStoredTrail(it)) },
+                onDismiss = { onAction(HomeUiAction.ToggleTrailManagerSheet(false)) }
             )
         }
     }

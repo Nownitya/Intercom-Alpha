@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.0] - 2026-10-07 — Sprint 19: Over-The-Air BLE Mesh GPX/GeoJSON Trail Sharing & Storage Manager
+
+### Added
+- **Pure KMP Chunked Mesh File Transfer & GPX/GeoJSON Protocol Engine (`MeshFileModels.kt`, `MeshFileTransferEngine.kt`, `MeshFileTransferManager.kt`)**: Implemented pure KMP RFC 1950 Adler-32 checksum algorithm (modulo 65521), MTU chunking engine (<=100 bytes payload) guaranteeing zero packet fragmentation over BLE GATT characteristics, out-of-order `ReassemblyBuffer`, sliding-window queue with selective NACK retransmission over lossy RF hops, and pure KMP GPX 1.1 / RFC 7946 GeoJSON parsers and exporters with zero Java (`java.util.zip`) or external C/JNI dependencies (Rules 2 & 3).
+- **Subsystem Hardware Bridge Wiring & Reactive State Management (`IntercomHardwareBridge.kt`, `AndroidPlatformBridge.kt`, `IntercomBridge.kt`, `HomeViewModel.kt`, `AppModule.kt`)**: Injected `MeshFileTransferManager` into shared Koin DI graph, platform foreground service, and native iOS bridge. Connected wire chunk serialization into `ControlType.FILE_CHUNK` (0x0B) and `ControlType.FILE_ACK` (0x0C) control packets. Exposed `StateFlow<List<FileTransferProgress>>` and `StateFlow<List<TrailPolyline>>` with typed `CancellationHandle` observers (Rule 1). Connected `completedTrailReceived` to automatically load newly completed route downloads into `TrailMapManager` for instant vector radar cockpit HUD projection.
+- **Compose Multiplatform Trail File Manager & Over-The-Air Beam Cockpit Sheet (`TrailFileManagerSheet.kt`, `OfflineTrailCockpitSheet.kt`, `HomeScreen.kt`)**: Built tactical modal dialog displaying stored routes catalog with difficulty badges (EASY, MODERATE, HARD, EXPERT), distance, elevation ascent, and active route selection. Added live OTA transmission cards with progress bars, percent complete, chunk counters (`X / Y chunks`), direction badges (`OUTGOING` / `INCOMING`), format toggle (`GPX` / `GEOJSON`), 1-tap "⚡ BEAM TO CONVOY" actuator, and raw route text import dialog. Added "⚡ OTA ROUTES" quick launcher in the offline trail cockpit header and top quick action row honoring the zero-scroll handlebar ergonomic contract.
+- **100% Native iOS SwiftUI Trail File Manager & Over-The-Air Beam Sheet (`TrailFileManagerSheet.swift`, `OfflineTrailCockpitSheet.swift`, `IntercomViewModel.swift`, `ContentView.swift`)**: Built pure SwiftUI implementation adhering strictly to Rule 1 (zero Compose Multiplatform imports on iOS). Features high-contrast dark cockpit aesthetic, active route overview card, format selector, 1-tap beam to convoy with haptic feedback (`UIImpactFeedbackGenerator`), live chunk progress gauges, stored routes library with difficulty badges and active selection checks, raw GPX/GeoJSON text import modal, and seamless integration with `TacticalAvionicsBar` and `OfflineTrailCockpitSheet`.
+
+---
+
 ## [2.5.0] - 2026-10-07 — Sprint 18: Offline Vector Terrain & Trail Map Overlay
 
 ### Added

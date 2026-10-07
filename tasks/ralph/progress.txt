@@ -1079,5 +1079,146 @@
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`).
 ---
 
+## 2026-10-07 — Sprint 19 Initialized: Over-The-Air BLE Mesh GPX/GeoJSON Trail Sharing & Storage Manager (Phase 17)
+- **Sprint Goal**: Deliver an over-the-air BLE mesh chunked file transmission engine and storage manager for GPX/GeoJSON trail tracks and tactical waypoint packs across KMP shared logic, Compose Multiplatform (`sharedUI`), and 100% Native iOS SwiftUI (`iosApp`), allowing riders to beam and synchronize routes completely off-grid.
+- **Sprint Branch**: `sprint/sprint-19-mesh-trail-sharing`
+- **Target Release**: `v2.6.0`
+- **Stories**:
+  - `ICA-1901`: Pure KMP Chunked Mesh File Transfer & GPX/GeoJSON Protocol Engine (Priority 1)
+  - `ICA-1902`: Subsystem Hardware Bridge Wiring & Reactive State Management (Priority 2)
+  - `ICA-1903`: Compose Multiplatform Trail File Manager & Over-The-Air Beam Cockpit Sheet (Priority 3)
+  - `ICA-1904`: Native iOS SwiftUI Trail File Manager & Over-The-Air Beam Sheet (Priority 4)
+- **Ready for Story 1 execution (`ICA-1901: Pure KMP Chunked Mesh File Transfer & GPX/GeoJSON Protocol Engine`)**.
+---
+
+### [2026-10-07] - ICA-1901: Pure KMP Chunked Mesh File Transfer & GPX/GeoJSON Protocol Engine
+- **Branch**: `feature/ICA-1901-mesh-file-transfer`
+- **Objective**: Implement pure KMP chunked file transmission engine, GPX/GeoJSON protocol engine, sliding-window retransmission, and route storage manager in `commonMain` with zero Java/C dependencies (Rules 2 & 3).
+- **Implementation**:
+  - `MeshTransport.kt`:
+    - Added `FILE_CHUNK` (0x0B) and `FILE_ACK` (0x0C) control packet types to `ControlType`.
+  - `MeshFileModels.kt`:
+    - Implemented pure KMP RFC 1950 `Adler32` checksum (modulo 65521) without Java/C runtime dependencies.
+    - Defined `FileTransferType` (`GPX`, `GEOJSON`, `WAYPOINT_PACK`), `FileTransferDirection` (`OUTGOING`, `INCOMING`), `FileTransferStatus` (`QUEUED`, `TRANSFERRING`, `COMPLETED`, `FAILED`, `CANCELLED`).
+    - Implemented `FileTransferChunk`, `FileTransferAck`, `FileTransferProgress`, and `FileChunkEnvelope`.
+  - `MeshFileTransferEngine.kt`:
+    - Chunking into single-MTU slices (<= 100 bytes payload) with transfer IDs, chunk index/count, and Adler32 validation.
+    - `ReassemblyBuffer`: Handles out-of-order chunks, tracks missing indices, and reconstructs verified byte arrays upon completion.
+    - Pure KMP GPX 1.1 exporter and parser (extracting tracks, elevations, names, and waypoints via regex matching).
+    - RFC 7946 GeoJSON exporter.
+  - `MeshFileTransferManager.kt`:
+    - Mutex-guarded state manager with `activeTransfers: StateFlow<List<FileTransferProgress>>` and `storedTrails: StateFlow<List<TrailPolyline>>`.
+    - Sliding-window outgoing chunk queue with selective NACK retransmission over lossy mesh RF.
+    - Local trail library storage and direct text import.
+  - `MeshFileTransferTest.kt`:
+    - 6 unit test suites covering Adler32 checksum accuracy, GPX export/import roundtrip, GeoJSON export/import, chunking/reassembly, dropped chunk NACK recovery, and manager lifecycle.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-19-mesh-trail-sharing`).
+---
+
+### [2026-10-07] - ICA-1902: Subsystem Hardware Bridge Wiring & Reactive State Management
+- **Branch**: `feature/ICA-1902-bridge-wiring`
+- **Objective**: Wire `MeshFileTransferManager` into Koin DI (`AppModule.kt`), `IntercomHardwareBridge`, `AndroidPlatformBridge`, and `IntercomBridge` (`iosMain`) with typed `CancellationHandle` observers. Integrate into `HomeUiState.kt` and `HomeViewModel.kt`, managing active transfer progress, stored trail library, and actions to beam trail to convoy or import local GPX text.
+- **Implementation**:
+  - `IntercomHardwareBridge.kt`:
+    - Added `fileTransfers: StateFlow<List<FileTransferProgress>>` and `storedTrails: StateFlow<List<TrailPolyline>>`.
+    - Added `updateFileTransfers`, `updateStoredTrails`, `sendControlPacket`, and `fileTransferManager` attachment in `attachSubsystems()`.
+    - Implemented simulation helpers `simulateFileTransfers` and `simulateStoredTrails` in `NoOpIntercomHardwareBridge`.
+  - `AndroidPlatformBridge.kt`:
+    - Wired `fileTransferManager` into Android platform bridge lifecycle.
+    - Synchronized `activeTransfers` and `storedTrails` flows.
+    - Outbox hooks wired to serialize chunks/acks into `ControlType.FILE_CHUNK` (0x0B) and `ControlType.FILE_ACK` (0x0C) `MeshPacket.Control` packets.
+    - Exposed `postIncomingFileChunk` and `postIncomingFileAck`.
+  - `IntercomForegroundService.kt`:
+    - Dispatched incoming `ControlType.FILE_CHUNK` and `ControlType.FILE_ACK` control packets into `AndroidPlatformBridge`.
+  - `MeshFileTransferEngine.kt`:
+    - Implemented `serializeChunk`, `deserializeChunk`, `serializeAck`, and `deserializeAck` for JSON wire serialization.
+  - `IntercomBridge.kt` (`iosMain`):
+    - Instantiated `fileTransferManager` in Swift interop bridge.
+    - Wired outbox hooks and incoming control loop for chunk and ack handling.
+    - Exposed Swift-friendly reactive observers returning `CancellationHandle` (Rule 1): `observeFileTransfers` and `observeStoredTrails`.
+    - Added action controls: `sendTrailOverMesh`, `cancelFileTransfer`, `importTrailFromText`, `deleteStoredTrail`.
+  - `AppModule.kt`:
+    - Registered `single { MeshFileTransferManager() }` in shared Koin DI graph.
+  - `HomeUiState.kt`:
+    - Added `activeTransfers`, `storedTrails`, and `showTrailManagerSheet` to `HomeUiState`.
+    - Added `BeamActiveTrail`, `CancelTransfer`, `ImportTrailText`, `SelectStoredTrail`, `DeleteStoredTrail`, and `ToggleTrailManagerSheet` to `HomeUiAction`.
+  - `HomeViewModel.kt`:
+    - Injected `MeshFileTransferManager`, attached to `hardwareBridge`, synchronized state flows, and wired outbox delegates.
+    - Implemented action handlers for beaming, cancelling, importing, and selecting trails.
+  - Unit tests:
+    - `AppModuleTest.kt`: Verified Koin resolves `MeshFileTransferManager`.
+    - `HomeViewModelTest.kt`: Added 4 comprehensive test suites covering initial states, sheet toggle, beaming and cancelling transfers, text import, and hardware bridge sync.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (all 95 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-19-mesh-trail-sharing`).
+---
+
+### [2026-10-07] - ICA-1903: Compose Multiplatform Trail File Manager & Over-The-Air Beam Cockpit Sheet
+- **Branch**: `feature/ICA-1903-compose-trail-manager`
+- **Objective**: Build `TrailFileManagerSheet.kt` in `app/sharedUI` displaying stored trail library, active trail switch, live OTA progress bars for sending/receiving chunks, and 1-tap 'Beam to Convoy' actuator. Wire into `OfflineTrailCockpitSheet.kt` and `HomeScreen.kt` adhering to zero-scroll handlebar layout contract.
+- **Implementation**:
+  - `TrailFileManagerSheet.kt`:
+    - Created modal dialog displaying stored routes library with difficulty badges (EASY, MODERATE, HARD, EXPERT), total distance (km), elevation ascent (m), and active trail radio selection.
+    - Live OTA transmission progress cards displaying direction badge (OUTGOING / INCOMING), file name, percentage progress bar, chunk count (`X / Y chunks`), and cancel button.
+    - Top action bar featuring format switch (`GPX` / `GEOJSON`) and high-contrast tactical "⚡ BEAM TO CONVOY" button.
+    - Direct route import dialog ("Import Route Text") allowing paste of raw GPX/GeoJSON payloads for instant parsing and library ingestion.
+    - Responsive constraint sizing (capped to 88% viewport height, internal bounded `LazyColumn`) honoring zero-scroll motorcycle cockpit ergonomics.
+  - `OfflineTrailCockpitSheet.kt`:
+    - Added `onOpenTrailManager` callback parameter to header.
+    - Integrated prominent "⚡ OTA ROUTES" shortcut button next to radar overlay toggle, allowing instantaneous route library and beaming drawer invocation.
+  - `HomeScreen.kt`:
+    - Added "OTA / Routes" launcher button in the Top Quick Actions bar.
+    - Wired `TrailFileManagerSheet` modal presentation observing `uiState.showTrailManagerSheet`, `uiState.storedTrails`, and `uiState.activeTransfers`.
+    - Wired actions: `onDismissRequest`, `onBeamTrail`, `onCancelTransfer`, `onSelectTrail`, `onDeleteTrail`, `onImportTrail`.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (all 95 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-19-mesh-trail-sharing`).
+---
+
+### [2026-10-07] - ICA-1904: Native iOS SwiftUI Trail File Manager & Over-The-Air Beam Sheet
+- **Branch**: `feature/ICA-1904-swiftui-trail-manager`
+- **Objective**: Implement 100% native SwiftUI `TrailFileManagerSheet.swift` in `app/iosApp` (Rule 1). Wire `IntercomViewModel` observers with `CancellationHandle`, supporting trail library management, live OTA chunk transfer progress gauges, and 1-tap beam to mesh convoy.
+- **Implementation**:
+  - `TrailFileManagerSheet.swift`:
+    - 100% Native SwiftUI modal sheet adhering strictly to Architectural Rule 1 (zero Compose Multiplatform imports on iOS).
+    - Top header displaying glowing cyan title ("TRAIL FILE MANAGER"), high-contrast "OFF-GRID OTA" badge, and dismiss action.
+    - Active cockpit route card featuring format toggle (`GPX` vs `GEOJSON`), high-visibility 1-tap "BEAM TO CONVOY" actuator with tactile haptics (`UIImpactFeedbackGenerator`), and text import trigger.
+    - Live Over-The-Air file transfers section rendering dynamic progress bars, percentage indicators, chunk progress counters (`X / Y chunks`), direction badges (`OUTGOING` / `INCOMING`), and cancellation buttons.
+    - Stored routes library rendering active checkmark indicators, difficulty badges (`EASY`, `MODERATE`, `HARD`, `EXPERT`), total distance (`km`), elevation ascent (`m`), waypoint counts, 1-tap beam trigger, and deletion controls.
+    - Monospace raw GPX/GeoJSON text import modal sheet for rapid offline manual route entry.
+  - `IntercomViewModel.swift`:
+    - Exposed `@Published var activeTransfers: [FileTransferProgress] = []`, `@Published var storedTrails: [TrailPolyline] = []`, and `@Published var showTrailManagerSheet: Bool = false`.
+    - Wired reactive listeners `observeFileTransfers` and `observeStoredTrails` into `cancellables: [CancellationHandle]`.
+    - Added UI action handlers: `beamActiveTrail(format:)`, `beamTrail(trail:format:)`, `cancelTransfer(transferId:)`, `importTrailText(text:fileName:format:)`, `deleteStoredTrail(trailId:)`, `selectStoredTrail(trail:)`, and `toggleTrailManagerSheet()`.
+  - `OfflineTrailCockpitSheet.swift`:
+    - Added prominent "⚡ OTA ROUTES" shortcut button in cockpit header.
+    - Attached `.sheet(isPresented: $vm.showTrailManagerSheet) { TrailFileManagerSheet(vm: vm) }`.
+  - `ContentView.swift`:
+    - Added Over-The-Air BLE Mesh Trail Manager button in `TacticalAvionicsBar` with active transfer badge and border glow.
+    - Attached `.sheet(isPresented: $vm.showTrailManagerSheet) { TrailFileManagerSheet(vm: vm) }`.
+  - `IntercomBridge.kt`:
+    - Added `loadTrail(trail: TrailPolyline)` helper method.
+    - Connected `fileTransferManager.completedTrailReceived` to automatically load newly completed route downloads into `trailMapManager` for real-time HUD vector rendering.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-19-mesh-trail-sharing`).
+---
+
+## 🏆 Sprint 19 & Phase 17 Completion Summary
+- **Milestone**: Phase 17 / Sprint 19 (Over-The-Air BLE Mesh GPX/GeoJSON Trail Sharing & Storage Manager - v2.6 Roadmap)
+- **Result**: 100% Definition of Done (DoD) achieved across all 4 stories (`ICA-1901` through `ICA-1904`).
+- **All 4 Sprint 19 stories PASSED**:
+  - `ICA-1901: Pure KMP Chunked Mesh File Transfer & GPX/GeoJSON Protocol Engine` [PASSED]
+  - `ICA-1902: Subsystem Hardware Bridge Wiring & Reactive State Management` [PASSED]
+  - `ICA-1903: Compose Multiplatform Trail File Manager & Over-The-Air Beam Cockpit Sheet` [PASSED]
+  - `ICA-1904: Native iOS SwiftUI Trail File Manager & Over-The-Air Beam Sheet` [PASSED]
+- **Target Release**: `v2.6.0` Ready for Release Tagging.
+---
 
 

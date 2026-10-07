@@ -29,6 +29,7 @@ fun OfflineTrailCockpitSheet(
     onCycleZoom: () -> Unit,
     onToggleOverlay: (Boolean) -> Unit,
     onLoadSampleTrail: () -> Unit,
+    onOpenTrailManager: (() -> Unit)? = null,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -70,8 +71,27 @@ fun OfflineTrailCockpitSheet(
                         )
                     }
 
-                    TextButton(onClick = onDismiss) {
-                        Text("CLOSE", fontWeight = FontWeight.Bold, color = Color(0xFF00E5FF))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        if (onOpenTrailManager != null) {
+                            FilledTonalButton(
+                                onClick = onOpenTrailManager,
+                                shape = RoundedCornerShape(6.dp),
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                colors = ButtonDefaults.filledTonalButtonColors(
+                                    containerColor = Color(0xFF00E5FF).copy(alpha = 0.2f),
+                                    contentColor = Color(0xFF00E5FF)
+                                )
+                            ) {
+                                Text("⚡ OTA ROUTES", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+
+                        TextButton(onClick = onDismiss) {
+                            Text("CLOSE", fontWeight = FontWeight.Bold, color = Color(0xFF00E5FF))
+                        }
                     }
                 }
 

@@ -526,6 +526,70 @@
     - Embedded tactile zoom range switcher badge in the radar corner.
     - Integrated "Trail" launcher button in `TacticalAvionicsBar`.
 
+### 2.54 Pure KMP Chunked Mesh File Transfer & GPX/GeoJSON Protocol Engine (Sprint 19 - ICA-1901)
+- **Challenge**: BLE mesh MTU limits (single packets ~128 bytes) prevent sending monolithic GPX track files (>10 KB to 100 KB) in a single packet. Third-party XML parsers or Java `java.util.zip.Adler32` break KMP purity across iOS Simulator and native targets (Rules 2 & 3). Flooding RF channels without pacing creates severe packet drops.
+- **Solution**:
+  - `MeshFileModels.kt`:
+    - Pure KMP RFC 1950 `Adler32` checksum using 16-bit low/high sum modulo 65521 arithmetic with zero Java/C platform dependencies.
+    - MTU-compliant 100-byte data slicing yielding total chunk packets safely under BLE characteristic limits.
+    - Defined `FileTransferType` (`GPX`, `GEOJSON`, `WAYPOINT_PACK`), `FileTransferProgress`, `FileTransferChunk`, and `FileTransferAck`.
+  - `MeshFileTransferEngine.kt`:
+    - Pure KMP GPX 1.1 exporter and regex-based track point / waypoint parser extracting `<trkpt lat="..." lon="...">`, `<ele>`, `<name>`, and `<wpt>`.
+    - RFC 7946 GeoJSON `FeatureCollection` LineString exporter.
+    - `ReassemblyBuffer`: Out-of-order chunk assembly, missing index tracking, and Adler32 payload validation upon completion.
+  - `MeshFileTransferManager.kt`:
+    - Mutex-protected transmission manager with reactive `activeTransfers: StateFlow<List<FileTransferProgress>>` and `storedTrails: StateFlow<List<TrailPolyline>>`.
+    - Sliding-window paced transmission queue with selective NACK retransmission for lossy mesh hops.
+    - Local trail storage library and direct text import.
+
+### 2.55 Subsystem Hardware Bridge Wiring & Reactive State Management for Mesh Trail Sharing (Sprint 19 - ICA-1902)
+- **Challenge**: Integrating `MeshFileTransferManager` across Compose Multiplatform (`sharedUI`), Android platform foreground service, and 100% native iOS SwiftUI (`iosApp`) while enforcing Rule 1 (`CancellationHandle` observers tied to SwiftUI lifecycle, zero Compose imports on iOS) and maintaining non-blocking coroutines without thread locks during file reassembly.
+- **Solution**:
+  - `IntercomHardwareBridge.kt` & `AndroidPlatformBridge.kt`:
+    - Exposed reactive `fileTransfers: StateFlow<List<FileTransferProgress>>` and `storedTrails: StateFlow<List<TrailPolyline>>`.
+    - Wired bidirectional hooks: outbox converts typed `FileTransferChunk` and `FileTransferAck` into `MeshPacket.Control` with `ControlType.FILE_CHUNK` (0x0B) and `ControlType.FILE_ACK` (0x0C); inbound parser decodes payloads and feeds into `handleIncomingChunk` / `handleIncomingAck`.
+  - `IntercomBridge.kt` (`iosMain`):
+    - Instantiated `fileTransferManager` in Swift bridge with `observeFileTransfers` and `observeStoredTrails` returning `CancellationHandle` for safe SwiftUI lifecycle integration.
+    - Exposed Swift controls: `sendTrailOverMesh`, `cancelFileTransfer`, `importTrailFromText`, `deleteStoredTrail`.
+  - `HomeViewModel.kt` & `HomeUiState.kt`:
+    - Synchronized `activeTransfers`, `storedTrails`, and `showTrailManagerSheet`.
+    - Added UI actions: `BeamActiveTrail`, `CancelTransfer`, `ImportTrailText`, `SelectStoredTrail`, `DeleteStoredTrail`, `ToggleTrailManagerSheet`.
+    - On completed trail receipt, automatically loads into `trailMapManager` for real-time vector cockpit HUD projection.
+
+### 2.56 Compose Multiplatform Trail File Manager & Over-The-Air Beam Cockpit Sheet (Sprint 19 - ICA-1903)
+- **Challenge**: Displaying a multi-faceted off-grid file transfer center (stored GPX/GeoJSON trail catalog, live chunk-by-chunk transmission progress gauges, manual file import, and 1-tap beam trigger) within a handlebar RAM-mount mobile view without causing global scrolling conflicts or blocking essential intercom telemetry (Rule 1 & Zero-Scroll contract).
+- **Solution**:
+  - `TrailFileManagerSheet.kt`:
+    - Constrained dialog sheet height to `0.88f` with internal bounded `LazyColumn` for route cards.
+    - Rendered trail cards showing difficulty ratings (`EASY`, `MODERATE`, `HARD`, `EXPERT`), total distance (km), elevation ascent (m), waypoint counts, and active selection indicator.
+    - Live transmission cards with active progress bars, percent complete, chunk counters (`X / Y chunks`), direction badges (`OUTGOING` / `INCOMING`), and cancellation buttons.
+    - Top header actions featuring format selector (`GPX` vs `GEOJSON`) and 1-tap "BEAM TO CONVOY" actuator.
+    - Modal GPX/GeoJSON raw text import modal dialog for rapid offline route pasting.
+  - `OfflineTrailCockpitSheet.kt`:
+    - Integrated prominent "⚡ OTA ROUTES" launcher button in the cockpit header, offering instant routing drawer access alongside the radar overlay toggle.
+  - `HomeScreen.kt`:
+    - Exposed "OTA / Routes" launcher in the Top Quick Actions row.
+    - Full dialog orchestration binding ViewModel state and actions without blocking ongoing audio streaming.
+
+### 2.57 Native iOS SwiftUI Trail File Manager & Over-The-Air Beam Sheet (Sprint 19 - ICA-1904)
+- **Challenge**: Providing a 100% native SwiftUI file transmission and route management center without breaking Rule 1 (zero Compose Multiplatform imports on iOS), ensuring reactive UI binding to KMP flows without memory leaks, and automatically reflecting completed trail downloads onto the vector radar map.
+- **Solution**:
+  - `TrailFileManagerSheet.swift`:
+    - Pure SwiftUI view rendering stored trail catalog, active route card, live OTA chunk transmission cards, and raw GPX/GeoJSON text import modal.
+    - Dynamic progress gauges with percent and chunk count (`X / Y chunks`), direction badges (`OUTGOING` / `INCOMING`), and cancellation buttons.
+    - 1-tap "BEAM TO CONVOY" button with tactile feedback (`UIImpactFeedbackGenerator`).
+    - Difficulty rating badges, distance (`km`), elevation gain (`m`), and waypoint metrics.
+  - `IntercomViewModel.swift`:
+    - Exposed `@Published` state variables (`activeTransfers`, `storedTrails`, `showTrailManagerSheet`).
+    - Bound `observeFileTransfers` and `observeStoredTrails` via thread-safe `CancellationHandle` objects automatically cleaned up on `deinit`.
+    - Added UI action methods (`beamActiveTrail`, `beamTrail`, `cancelTransfer`, `importTrailText`, `deleteStoredTrail`, `selectStoredTrail`).
+  - `OfflineTrailCockpitSheet.swift` & `ContentView.swift`:
+    - Added "OTA ROUTES" quick launcher button in the cockpit header and `TacticalAvionicsBar`.
+    - Bound sheet presentation via `.sheet(isPresented: $vm.showTrailManagerSheet)`.
+  - `IntercomBridge.kt`:
+    - Added `loadTrail` helper method.
+    - Connected `fileTransferManager.completedTrailReceived` to automatically load newly completed trail downloads into `trailMapManager` for real-time vector HUD projection.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index
