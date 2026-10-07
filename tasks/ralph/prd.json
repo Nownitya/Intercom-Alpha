@@ -1,87 +1,88 @@
 {
   "project": "Intercom-Alpha",
-  "branchName": "sprint/sprint-20-geofence-power-stress",
-  "phase": "Phase 18: Tactical Convoy Geofencing, Autonomous Power Governor & Multi-Node Stress Benchmark Suite",
-  "sprint": "Sprint 20",
-  "updatedAt": "2026-10-07T07:05:00Z",
+  "branchName": "sprint/sprint-21-crash-detection-voice-commands",
+  "phase": "Phase 19: Autonomous Crash Impact Detection, eCall SOS & Offline Voice Command HUD",
+  "sprint": "Sprint 21",
+  "updatedAt": "2026-10-07T08:05:00Z",
   "stories": [
     {
-      "id": "ICA-2001",
+      "id": "ICA-2101",
       "priority": 1,
-      "title": "Pure KMP Convoy Geofencing, Hazard Waypoint Radar Alarms & Convoy Split Engine",
-      "description": "Implement pure KMP ConvoyGeofenceEngine.kt and ConvoyGeofenceModels.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/telemetry/. Provides distance tether monitoring (warn at >300m, breach at >600m from lead rider), waypoint proximity radar detection (entering hazard or mountain pass radius), convoy cluster bifurcation/split detection, and automatic control alarm emission with zero Java or C dependencies (Rules 2 & 3).",
+      "title": "Pure KMP Crash Detection, Fall-Over IMU State Machine & Countdown Arbiter",
+      "description": "Implement pure KMP CrashDetector.kt and SensorModels.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/safety/. Detects high-G vehicular impacts (>4.5g / >44.1 m/s²), persistent motorcycle fall-over tilt (>60° for >8 seconds), sudden deceleration spikes (>35 km/h drop in <1.5s), and initiates an autonomous 30-second pre-alert countdown with rider abort/cancel mechanism before dispatching priority SOS packet over the mesh with zero Java or C dependencies (Rules 2 & 3).",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/telemetry/ConvoyGeofenceModels.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/telemetry/ConvoyGeofenceEngine.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/telemetry/ConvoyGeofenceEngineTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/safety/SensorModels.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/safety/CrashDetector.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/safety/CrashDetectorTest.kt"
       ],
       "acceptanceCriteria": [
-        "Pure KMP implementation with zero Java, C, or external map SDK dependencies (Rules 2 & 3)",
-        "Calculates Great-Circle Haversine tether distances and evaluates warning/breach thresholds",
-        "Triggers obstacle hazard proximity alerts when within configured proximity threshold (e.g. 100m)",
-        "Detects convoy partition into bifurcated rider clusters and emits split warnings",
+        "Pure KMP implementation with zero Java, C, or platform-specific sensor dependencies in commonMain (Rules 2 & 3)",
+        "Accurately discriminates high-G shock and sustained tilt fall-over while rejecting transient speed bumps",
+        "Manages 30-second abortable countdown state machine with audible warning signal triggers",
+        "Emits autonomous priority emergency SOS beacon packet with GPS coordinates, peak G-force, and blackbox freeze trigger",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-2002",
+      "id": "ICA-2102",
       "priority": 2,
-      "title": "Smart Battery Duty-Cycle Governor & Motion-Aware Power Mode",
-      "description": "Implement pure KMP BatteryGovernor.kt and PowerStateModels.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/power/. Manages dynamic radio power policies (NORMAL, CONSERVATIVE, EXTREME_SURVIVAL, REST_STOP_SLEEP) evaluating battery percentage, motion stillness duration, and link margins. Immediately overrides power-saving upon emergency SOS preemption.",
+      "title": "Pure KMP Offline Voice Command & Keyword Spotting DSP Engine",
+      "description": "Implement pure KMP VoiceCommandRecognizer.kt and VoiceCommandModels.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/. Parses offline keyword voice commands from 48kHz audio streams (e.g. 'Intercom SOS', 'Intercom Next', 'Intercom Prev', 'Intercom Mute', 'Intercom Battery', 'Intercom Status') using acoustic energy envelope template matching and phonetic formant transitions without cloud dependencies or external ML runtimes.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/power/PowerStateModels.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/power/BatteryGovernor.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/power/BatteryGovernorTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/VoiceCommandModels.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/VoiceCommandRecognizer.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/VoiceCommandRecognizerTest.kt"
       ],
       "acceptanceCriteria": [
-        "Scales BLE radio duty cycles dynamically based on battery level (<30% conservative, <15% survival)",
-        "Detects motion stillness >10 min and shifts to rest-stop power saving, waking on motion or PTT",
-        "Unconditionally restores full power upon Emergency SOS or priority preemption",
+        "Zero-cloud offline voice command parser running on 48kHz PCM frames in pure KMP (Rules 2 & 3)",
+        "Supports hands-free tactical actions: SOS trigger, channel stepping, mute toggle, and battery status request",
+        "Robust noise rejection preventing false command triggers during ambient wind noise",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-2003",
+      "id": "ICA-2103",
       "priority": 3,
-      "title": "Subsystem Hardware Bridge Wiring & Multiplatform Presentation HUD Integration",
-      "description": "Wire ConvoyGeofenceEngine and BatteryGovernor into Koin DI (AppModule.kt), IntercomHardwareBridge, AndroidPlatformBridge, and IntercomBridge (iosMain) with typed CancellationHandle observers. Integrate geofence warning rings, hazard proximity banners, and power governor indicators across Compose Multiplatform (HomeScreen.kt, ProximityRadarView.kt) and 100% Native iOS SwiftUI (ContentView.swift) respecting Rule 1.",
+      "title": "Subsystem Hardware Bridge Wiring & Multiplatform Emergency HUD Presentation",
+      "description": "Wire CrashDetector and VoiceCommandRecognizer into Koin DI (AppModule.kt), IntercomHardwareBridge, AndroidPlatformBridge, and IntercomBridge (iosMain) with typed CancellationHandle observers. Integrate 30-second crash countdown banner with 1-tap abort button, audible alarm chime, and voice command recognition feedback badge across Compose Multiplatform (HomeScreen.kt) and 100% Native iOS SwiftUI (ContentView.swift) respecting Rule 1.",
       "targetFiles": [
         "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomHardwareBridge.kt",
         "app/sharedLogic/src/androidMain/kotlin/org/nowni/intercom_alpha/bridge/AndroidPlatformBridge.kt",
         "app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomBridge.kt",
-        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/HomeUiState.kt",
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/state/HomeUiState.kt",
         "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/HomeViewModel.kt",
-        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/ProximityRadarView.kt",
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/HomeScreen.kt",
         "app/iosApp/iosApp/IntercomViewModel.swift",
         "app/iosApp/iosApp/ContentView.swift"
       ],
       "acceptanceCriteria": [
-        "Hardware bridges and IntercomBridge expose reactive flows and CancellationHandle observers (Rule 1)",
-        "Compose Multiplatform displays geofence breach banner and power governor status indicator",
-        "Native iOS SwiftUI renders tether radius warning ring and battery governor indicator (100% native SwiftUI)",
+        "Hardware bridges stream platform IMU accelerometer/gyroscope readings into CrashDetector",
+        "Exposes reactive CancellationHandle observers for crash countdown and voice commands on iOS (Rule 1)",
+        "Compose Multiplatform renders emergency crash countdown dialog with 1-tap cancel button",
+        "100% Native iOS SwiftUI renders tactical countdown card with haptic alarm and abort button (Rule 1)",
         "Full compilation and automated verification pass across all targets"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-2004",
+      "id": "ICA-2104",
       "priority": 4,
-      "title": "16-Node Concurrent Convoy Stress Simulation Harness & Archify Showcase Update",
-      "description": "Implement ConvoyStressSimulationHarness.kt simulating 16 virtual riders exchanging voice ADPCM packets, OTA GPX route chunks, geofence alarms, and battery duty cycling over lossy multi-hop RF mesh. Benchmark latency, throughput, and memory bounds. Update Archify architecture diagram specification and generate showcase HTML.",
+      "title": "Crash Impact & Voice Command Multiplatform Simulation Harness & Benchmark Suite",
+      "description": "Implement CrashAndVoiceSimulationHarness.kt simulating motorcycle fall-over incidents, high-G collision impulses, road vibration noise profiles, and voice command recognition under simulated 80 km/h wind noise. Verify false-alarm rejection rates, countdown abort semantics, and memory bounds.",
       "targetFiles": [
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/simulation/ConvoyStressSimulationHarness.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/simulation/CrashAndVoiceSimulationHarness.kt",
         "docs/architecture/intercom-alpha.architecture.json",
         "docs/architecture/intercom-alpha-architecture.html"
       ],
       "acceptanceCriteria": [
-        "Simulates 16 concurrent convoy nodes with RF loss, out-of-order packets, and multi-hop forwarding",
-        "Verifies system memory stability (<80MB resident RAM) and zero coroutine leaks under high stress",
-        "Archify architecture diagram updated with Sprint 18, 19, and 20 subsystems and delivered with 0 errors",
+        "Simulates multi-axis IMU profiles: potholes vs high-G impact vs tip-over fall",
+        "Verifies 30s countdown abort safety window and automated SOS beacon dispatch upon countdown expiry",
+        "Verifies memory stability and zero coroutine leaks under continuous IMU stream processing",
         "Full test pass and clean release readiness sign-off"
       ],
-      "passes": true
+      "passes": false
     }
   ]
 }
