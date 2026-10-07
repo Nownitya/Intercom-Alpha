@@ -207,6 +207,11 @@ class IntercomBridge(
                 val bytes = MeshFileTransferEngine.serializeAck(ack)
                 meshTransport.sendControl(ControlType.FILE_ACK, bytes)
             }
+            scope.launch {
+                fileTransferManager.completedTrailReceived.collect { (trail, _) ->
+                    trailMapManager.loadTrail(trail)
+                }
+            }
         }
     }
 
@@ -804,4 +809,11 @@ class IntercomBridge(
             fileTransferManager.deleteStoredTrail(trailId)
         }
     }
+
+    fun loadTrail(trail: TrailPolyline) {
+        scope.launch {
+            trailMapManager.loadTrail(trail)
+        }
+    }
 }
+
