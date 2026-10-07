@@ -10,6 +10,10 @@ import org.nowni.intercom_alpha.bridge.NoOpIntercomHardwareBridge
 import org.nowni.intercom_alpha.channel.ChannelManager
 import org.nowni.intercom_alpha.common.AudioProfile
 import org.nowni.intercom_alpha.feature.home.state.HomeUiAction
+import org.nowni.intercom_alpha.map.FileTransferDirection
+import org.nowni.intercom_alpha.map.FileTransferProgress
+import org.nowni.intercom_alpha.map.FileTransferStatus
+import org.nowni.intercom_alpha.map.FileTransferType
 import org.nowni.intercom_alpha.mesh.Peer
 import org.nowni.intercom_alpha.mesh.ProximityRadar
 import org.nowni.intercom_alpha.mesh.RepeaterBeaconPayload
@@ -354,5 +358,98 @@ class HomeViewModelTest {
         assertNotNull(updatedSnap.activeTrail)
         assertEquals("Black Bear Pass Trail", updatedSnap.activeTrail?.name)
         assertTrue(updatedSnap.projectedWaypoints.isNotEmpty())
+    }
+
+    @Test
+    fun testFileTransferManagerInitialStateAndSheetToggle() = runTest(testDispatcher) {
+        val state = viewModel.uiState.value
+        assertTrue(state.activeTransfers.isEmpty())
+        assertTrue(state.storedTrails.isNotEmpty())
+        assertFalse(state.showTrailManagerSheet)
+
+        // Toggle sheet open
+        viewModel.onAction(HomeUiAction.ToggleTrailManagerSheet(true))
+        advanceUntilIdle()
+        assertTrue(viewModel.uiState.value.showTrailManagerSheet)
+
+        // Toggle sheet closed
+        viewModel.onAction(HomeUiAction.ToggleTrailManagerSheet(false))
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.showTrailManagerSheet)
+    }
+
+    @Test
+    fun testBeamActiveTrailAndCancelTransfer() = runTest(testDispatcher) {
+        // First load a trail into map
+        viewModel.onAction(HomeUiAction.LoadSampleTrail)
+        advanceUntilIdle()
+
+        // Beam active trail over mesh
+        viewModel.onAction(HomeUiAction.BeamActiveTrail(FileTransferType.GPX))
+        advanceUntilIdle()
+
+        val transfers = viewModel.uiState.value.activeTransfers
+        assertTrue(transfers.isNotEmpty())
+        val tx = transfers.first()
+        assertEquals(FileTransferDirection.OUTGOING, tx.direction)
+        assertEquals(FileTransferType.GPX, tx.fileType)
+        assertEquals(FileTransferStatus.IN_PROGRESS, tx.status)
+
+        // Cancel the transfer
+        viewModel.onAction(HomeUiAction.CancelTransfer(tx.transferId))
+        advanceUntilIdle()
+
+        val cancelledTx = viewModel.uiState.value.activeTransfers.find { it.transferId == tx.transferId }
+        assertNotNull(cancelledTx)
+        assertEquals(FileTransferStatus.CANCELLED, cancelledTx.status)
+    }
+
+    @Test
+    fun testImportTrailTextAndSelectStoredTrail() = runTest(testDispatcher) {
+        val sampleGpx = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <gpx version="1.1" creator="IntercomAlpha">
+              <trk>
+                <name>Slickrock Trail</name>
+                <trkseg>
+                  <trkpt lat="38.58" lon="-109.53"><ele>1200.0</ele></trkpt>
+                  <trkpt lat="38.59" lon="-109.54"><ele>1220.0</ele></trkpt>
+                </trkseg>
+              </trk>
+            </gpx>
+        """.trimIndent()
+
+        viewModel.onAction(HomeUiAction.ImportTrailText(sampleGpx, "Slickrock.gpx", FileTransferType.GPX))
+        advanceUntilIdle()
+
+        val stored = viewModel.uiState.value.storedTrails
+        val slickrock = stored.find { it.name == "Slickrock Trail" }
+        assertNotNull(slickrock)
+
+        // Select the newly imported trail
+        viewModel.onAction(HomeUiAction.SelectStoredTrail(slickrock.id))
+        advanceUntilIdle()
+
+        assertEquals("Slickrock Trail", viewModel.uiState.value.trailMapSnapshot.activeTrail?.name)
+    }
+
+    @Test
+    fun testHardwareBridgeFileTransfersAndStoredTrailsSync() = runTest(testDispatcher) {
+        val dummyProgress = FileTransferProgress(
+            transferId = "rx-test-1",
+            fileName = "Alpine.gpx",
+            fileType = FileTransferType.GPX,
+            direction = FileTransferDirection.INCOMING,
+            peerId = "peer-alpha",
+            chunksTransferred = 5,
+            totalChunks = 10,
+            bytesTransferred = 500L,
+            totalBytes = 1000L,
+            status = FileTransferStatus.IN_PROGRESS
+        )
+
+        hardwareBridge.simulateFileTransfers(listOf(dummyProgress))
+        assertEquals(1, hardwareBridge.fileTransfers.value.size)
+        assertEquals("rx-test-1", hardwareBridge.fileTransfers.value.first().transferId)
     }
 }

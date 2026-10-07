@@ -307,4 +307,18 @@ object MeshFileTransferEngine {
         .replace("&quot;", "\"")
         .replace("&apos;", "'")
         .replace("&amp;", "&")
+
+    private val json = Json { ignoreUnknownKeys = true }
+
+    fun serializeChunk(chunk: FileTransferChunk): ByteArray =
+        json.encodeToString(FileTransferChunk.serializer(), chunk).encodeToByteArray()
+
+    fun deserializeChunk(bytes: ByteArray): FileTransferChunk =
+        json.decodeFromString(FileTransferChunk.serializer(), bytes.decodeToString())
+
+    fun serializeAck(ack: FileTransferAck): ByteArray =
+        json.encodeToString(FileTransferAck.serializer(), ack).encodeToByteArray()
+
+    fun deserializeAck(bytes: ByteArray): FileTransferAck =
+        json.decodeFromString(FileTransferAck.serializer(), bytes.decodeToString())
 }

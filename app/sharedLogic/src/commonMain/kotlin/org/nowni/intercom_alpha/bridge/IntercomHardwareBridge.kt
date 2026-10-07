@@ -10,8 +10,11 @@ import org.nowni.intercom_alpha.audio.EmergencyBlackboxRecorder
 import org.nowni.intercom_alpha.channel.ChannelManager
 import org.nowni.intercom_alpha.headset.HelmetAccessoryManager
 import org.nowni.intercom_alpha.headset.HelmetAccessoryState
+import org.nowni.intercom_alpha.map.FileTransferProgress
+import org.nowni.intercom_alpha.map.MeshFileTransferManager
 import org.nowni.intercom_alpha.map.TrailMapManager
 import org.nowni.intercom_alpha.map.TrailMapSnapshot
+import org.nowni.intercom_alpha.map.TrailPolyline
 import org.nowni.intercom_alpha.mesh.MeshPacket
 import org.nowni.intercom_alpha.mesh.MeshRepeaterService
 import org.nowni.intercom_alpha.mesh.Peer
@@ -58,19 +61,27 @@ interface IntercomHardwareBridge {
     val incomingRepeaterPongs: SharedFlow<RepeaterPongPayload>
     val incomingRepeaterBeacons: SharedFlow<RepeaterBeaconPayload>
     val trailMapSnapshot: StateFlow<TrailMapSnapshot>
+    val fileTransfers: StateFlow<List<FileTransferProgress>>
+    val storedTrails: StateFlow<List<TrailPolyline>>
 
     fun setPttActive(active: Boolean)
     fun setRepeaterModeActive(active: Boolean)
     fun updateRepeaterTelemetry(telemetry: RepeaterTelemetry?)
     fun updateTrailMapSnapshot(snapshot: TrailMapSnapshot)
+    fun updateFileTransfers(transfers: List<FileTransferProgress>)
+    fun updateStoredTrails(trails: List<TrailPolyline>)
     fun sendRepeaterPacket(packet: MeshPacket.Control)
+    fun sendControlPacket(packet: MeshPacket.Control) {
+        sendRepeaterPacket(packet)
+    }
     fun sendControlPayload(tag: Byte, payload: ByteArray)
     fun attachSubsystems(
         channelManager: ChannelManager,
         blackboxRecorder: EmergencyBlackboxRecorder,
         helmetAccessoryManager: HelmetAccessoryManager? = null,
         repeaterService: MeshRepeaterService? = null,
-        trailMapManager: TrailMapManager? = null
+        trailMapManager: TrailMapManager? = null,
+        fileTransferManager: MeshFileTransferManager? = null
     ) {}
 }
 
@@ -128,6 +139,12 @@ open class NoOpIntercomHardwareBridge(
     protected val _trailMapSnapshot = MutableStateFlow(TrailMapSnapshot())
     override val trailMapSnapshot: StateFlow<TrailMapSnapshot> = _trailMapSnapshot.asStateFlow()
 
+    protected val _fileTransfers = MutableStateFlow<List<FileTransferProgress>>(emptyList())
+    override val fileTransfers: StateFlow<List<FileTransferProgress>> = _fileTransfers.asStateFlow()
+
+    protected val _storedTrails = MutableStateFlow<List<TrailPolyline>>(emptyList())
+    override val storedTrails: StateFlow<List<TrailPolyline>> = _storedTrails.asStateFlow()
+
     override fun setPttActive(active: Boolean) {
         _isTransmitting.value = active
     }
@@ -144,12 +161,32 @@ open class NoOpIntercomHardwareBridge(
         _trailMapSnapshot.value = snapshot
     }
 
+    override fun updateFileTransfers(transfers: List<FileTransferProgress>) {
+        _fileTransfers.value = transfers
+    }
+
+    override fun updateStoredTrails(trails: List<TrailPolyline>) {
+        _storedTrails.value = trails
+    }
+
     override fun sendRepeaterPacket(packet: MeshPacket.Control) {
+        // No-op for testing / previews
+    }
+
+    override fun sendControlPacket(packet: MeshPacket.Control) {
         // No-op for testing / previews
     }
 
     override fun sendControlPayload(tag: Byte, payload: ByteArray) {
         // No-op for testing / previews
+    }
+
+    fun simulateFileTransfers(transfers: List<FileTransferProgress>) {
+        _fileTransfers.value = transfers
+    }
+
+    fun simulateStoredTrails(trails: List<TrailPolyline>) {
+        _storedTrails.value = trails
     }
 
     fun updatePeers(peers: List<Peer>) {
