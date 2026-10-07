@@ -1,0 +1,311 @@
+package org.nowni.intercom_alpha.telemetry
+
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.serialization.json.Json
+import org.nowni.intercom_alpha.currentTimeMillis
+import org.nowni.intercom_alpha.map.TrailWaypoint
+import org.nowni.intercom_alpha.map.WaypointType
+
+/**
+ * Tactical engine for real-time convoy geofencing, obstacle waypoint proximity alerts,
+ * and convoy bifurcation / cluster split detection.
+ *
+ * Runs 100% in pure Kotlin Multiplatform with zero Java or platform dependencies (Rules 2 & 3).
+ */
+class ConvoyGeofenceEngine(
+    val warningThresholdMeters: Double = 300.0,
+    val breachThresholdMeters: Double = 600.0,
+    val hazardProximityRadiusMeters: Double = 150.0,
+    val splitClusterMinDistanceMeters: Double = 500.0
+) {
+    private val mutex = Mutex()
+
+    private val _geofenceState = MutableStateFlow(ConvoyGeofenceSnapshot())
+    val geofenceState: StateFlow<ConvoyGeofenceSnapshot> = _geofenceState.asStateFlow()
+
+    private val _outgoingAlarms = Channel<GeofenceAlarmPacket>(Channel.BUFFERED)
+    val outgoingAlarms: ReceiveChannel<GeofenceAlarmPacket> = _outgoingAlarms
+
+    // Cache of previous distances to waypoints for approaching/receding trend calculation
+    private val previousWaypointDistances = mutableMapOf<String, Double>()
+
+    // Set of currently active breach peer IDs to avoid spamming duplicate alarm packets
+    private val activeBreachPeerIds = mutableSetOf<String>()
+    private val activeHazardWaypointIds = mutableSetOf<String>()
+
+    companion object {
+        private val json = Json {
+            ignoreUnknownKeys = true
+            encodeDefaults = true
+        }
+
+        fun serializeAlarmPacket(packet: GeofenceAlarmPacket): ByteArray =
+            json.encodeToString(GeofenceAlarmPacket.serializer(), packet).encodeToByteArray()
+
+        fun deserializeAlarmPacket(bytes: ByteArray): GeofenceAlarmPacket =
+            json.decodeFromString(GeofenceAlarmPacket.serializer(), bytes.decodeToString())
+    }
+
+    /**
+     * Updates and re-evaluates the entire geofence state given current local telemetry,
+     * remote convoy riders, and loaded trail waypoints.
+     */
+    suspend fun evaluate(
+        localCoord: GpsCoordinate?,
+        remoteRiders: List<ConvoyRiderPosition>,
+        waypoints: List<TrailWaypoint> = emptyList(),
+        now: Long = currentTimeMillis()
+    ): ConvoyGeofenceSnapshot = mutex.withLock {
+        if (localCoord == null) {
+            val emptySnapshot = ConvoyGeofenceSnapshot(
+                overallStatus = GeofenceTetherStatus.IN_BOUNDS,
+                timestampMs = now
+            )
+            _geofenceState.value = emptySnapshot
+            return@withLock emptySnapshot
+        }
+
+        // 1. Evaluate Tether Bounds for Remote Riders
+        val tetherAlerts = mutableListOf<RiderTetherAlert>()
+        var furthestDist = 0.0
+        var worstStatus = GeofenceTetherStatus.IN_BOUNDS
+
+        for (rider in remoteRiders) {
+            if (rider.isStale) {
+                tetherAlerts.add(
+                    RiderTetherAlert(
+                        peerId = rider.peerId,
+                        peerName = rider.peerName,
+                        distanceMeters = rider.distanceMeters,
+                        status = GeofenceTetherStatus.DISCONNECTED,
+                        isTrailingBehind = rider.isBehind,
+                        timestampMs = now
+                    )
+                )
+                continue
+            }
+
+            val dist = rider.distanceMeters
+            if (dist > furthestDist) furthestDist = dist
+
+            val status = when {
+                dist > breachThresholdMeters -> GeofenceTetherStatus.BREACH
+                dist > warningThresholdMeters -> GeofenceTetherStatus.WARNING
+                else -> GeofenceTetherStatus.IN_BOUNDS
+            }
+
+            if (status == GeofenceTetherStatus.BREACH) {
+                worstStatus = GeofenceTetherStatus.BREACH
+                if (!activeBreachPeerIds.contains(rider.peerId)) {
+                    activeBreachPeerIds.add(rider.peerId)
+                    _outgoingAlarms.trySend(
+                        GeofenceAlarmPacket(
+                            senderId = "local-rider",
+                            alarmType = GeofenceAlarmType.TETHER_BREACH,
+                            targetId = rider.peerId,
+                            title = "CONVOY TETHER BREACH",
+                            details = "${rider.peerName} separated by ${dist.toInt()}m (> ${breachThresholdMeters.toInt()}m)",
+                            distanceMeters = dist,
+                            timestampMs = now
+                        )
+                    )
+                }
+            } else {
+                activeBreachPeerIds.remove(rider.peerId)
+                if (status == GeofenceTetherStatus.WARNING && worstStatus != GeofenceTetherStatus.BREACH) {
+                    worstStatus = GeofenceTetherStatus.WARNING
+                }
+            }
+
+            tetherAlerts.add(
+                RiderTetherAlert(
+                    peerId = rider.peerId,
+                    peerName = rider.peerName,
+                    distanceMeters = dist,
+                    status = status,
+                    isTrailingBehind = rider.isBehind,
+                    timestampMs = now
+                )
+            )
+        }
+
+        // 2. Evaluate Proximity to Hazard Waypoints
+        val hazardAlerts = mutableListOf<HazardProximityAlert>()
+        for (wp in waypoints) {
+            val dist = ConvoyGpsTracker.calculateHaversineDistance(
+                localCoord.latitude, localCoord.longitude,
+                wp.point.latitude, wp.point.longitude
+            )
+
+            if (dist <= hazardProximityRadiusMeters) {
+                val prevDist = previousWaypointDistances[wp.id] ?: (dist + 1.0)
+                val isApproaching = dist <= prevDist
+                previousWaypointDistances[wp.id] = dist
+
+                val forwardAzimuth = ConvoyGpsTracker.calculateForwardAzimuth(
+                    localCoord.latitude, localCoord.longitude,
+                    wp.point.latitude, wp.point.longitude
+                )
+                val relBearing = ConvoyGpsTracker.calculateRelativeBearing(forwardAzimuth, localCoord.headingDegrees)
+
+                val alert = HazardProximityAlert(
+                    waypointId = wp.id,
+                    waypointName = wp.name,
+                    waypointType = wp.type,
+                    distanceMeters = dist,
+                    relativeBearingDegrees = relBearing,
+                    elevationMeters = wp.point.altitudeMeters,
+                    isApproaching = isApproaching,
+                    timestampMs = now
+                )
+                hazardAlerts.add(alert)
+
+                // Emit over-the-air alarm on first detection of hazardous waypoint proximity
+                val isHazardousType = wp.type == WaypointType.OBSTACLE_HAZARD ||
+                        wp.type == WaypointType.MOUNTAIN_PASS
+                if (isHazardousType && !activeHazardWaypointIds.contains(wp.id)) {
+                    activeHazardWaypointIds.add(wp.id)
+                    _outgoingAlarms.trySend(
+                        GeofenceAlarmPacket(
+                            senderId = "local-rider",
+                            alarmType = GeofenceAlarmType.HAZARD_PROXIMITY,
+                            targetId = wp.id,
+                            title = "HAZARD AHEAD: ${wp.name.uppercase()}",
+                            details = "Approaching hazard waypoint (${dist.toInt()}m ahead)",
+                            distanceMeters = dist,
+                            timestampMs = now
+                        )
+                    )
+                }
+            } else {
+                previousWaypointDistances.remove(wp.id)
+                activeHazardWaypointIds.remove(wp.id)
+            }
+        }
+
+        // 3. Evaluate Convoy Cluster Partition / Split Detection
+        val splitWarning = detectConvoySplitInternal(localCoord, remoteRiders, now)
+        if (splitWarning?.isSplitDetected == true) {
+            _outgoingAlarms.trySend(
+                GeofenceAlarmPacket(
+                    senderId = "local-rider",
+                    alarmType = GeofenceAlarmType.CONVOY_SPLIT,
+                    title = "CONVOY SPLIT DETECTED",
+                    details = splitWarning.recommendedAction,
+                    distanceMeters = splitWarning.clusterGapMeters,
+                    timestampMs = now
+                )
+            )
+        }
+
+        val snapshot = ConvoyGeofenceSnapshot(
+            overallStatus = worstStatus,
+            furthestRiderDistanceMeters = furthestDist,
+            tetherAlerts = tetherAlerts.sortedByDescending { it.distanceMeters },
+            activeHazardAlerts = hazardAlerts.sortedBy { it.distanceMeters },
+            splitWarning = splitWarning,
+            timestampMs = now
+        )
+
+        _geofenceState.value = snapshot
+        return@withLock snapshot
+    }
+
+    /**
+     * Analyzes inter-rider distances to detect if the convoy has fractured into disconnected clusters.
+     */
+    private fun detectConvoySplitInternal(
+        localCoord: GpsCoordinate,
+        remoteRiders: List<ConvoyRiderPosition>,
+        now: Long
+    ): ConvoySplitWarning? {
+        val activeRiders = remoteRiders.filter { !it.isStale }
+        if (activeRiders.size < 2) return null
+
+        // Gather all rider locations including local rider
+        val allPoints = mutableListOf<GpsCoordinate>()
+        allPoints.add(localCoord)
+        activeRiders.forEach { allPoints.add(it.coordinate) }
+
+        // Find maximum gap in the minimum spanning distance between adjacent rider pairs
+        var maxGap = 0.0
+        var localClusterCount = 0
+        var remoteClusterCount = 0
+
+        // Single-linkage clustering based on inter-rider distances
+        for (i in allPoints.indices) {
+            var minNeighborDist = Double.MAX_VALUE
+            for (j in allPoints.indices) {
+                if (i == j) continue
+                val d = ConvoyGpsTracker.calculateHaversineDistance(
+                    allPoints[i].latitude, allPoints[i].longitude,
+                    allPoints[j].latitude, allPoints[j].longitude
+                )
+                if (d < minNeighborDist) minNeighborDist = d
+            }
+            if (minNeighborDist > maxGap && minNeighborDist != Double.MAX_VALUE) {
+                maxGap = minNeighborDist
+            }
+        }
+
+        val isSplit = maxGap >= splitClusterMinDistanceMeters
+
+        if (isSplit) {
+            // Count riders in local cluster vs remote cluster relative to localCoord
+            allPoints.forEach { pt ->
+                val d = ConvoyGpsTracker.calculateHaversineDistance(
+                    localCoord.latitude, localCoord.longitude,
+                    pt.latitude, pt.longitude
+                )
+                if (d < splitClusterMinDistanceMeters) localClusterCount++
+                else remoteClusterCount++
+            }
+
+            val gapInt = maxGap.toInt()
+            val action = "Convoy split detected (Gap: ${gapInt}m). Sweep rider or stationary repeater recommended to bridge sub-clusters."
+
+            return ConvoySplitWarning(
+                isSplitDetected = true,
+                clusterCount = 2,
+                clusterGapMeters = maxGap,
+                localClusterSize = localClusterCount,
+                remoteClusterSize = remoteClusterCount,
+                recommendedAction = action,
+                timestampMs = now
+            )
+        }
+
+        return ConvoySplitWarning(
+            isSplitDetected = false,
+            clusterCount = 1,
+            clusterGapMeters = maxGap,
+            localClusterSize = allPoints.size,
+            remoteClusterSize = 0,
+            recommendedAction = "Convoy unified in single cluster.",
+            timestampMs = now
+        )
+    }
+
+    /**
+     * Ingest an over-the-air alarm packet received from a peer node.
+     */
+    suspend fun handleIncomingAlarm(packet: GeofenceAlarmPacket) = mutex.withLock {
+        // Can be logged or updated into state if needed
+    }
+
+    /**
+     * Clear all cached states and active alert records.
+     */
+    suspend fun reset() = mutex.withLock {
+        previousWaypointDistances.clear()
+        activeBreachPeerIds.clear()
+        activeHazardWaypointIds.clear()
+        _geofenceState.value = ConvoyGeofenceSnapshot()
+    }
+}
