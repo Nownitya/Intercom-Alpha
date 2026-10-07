@@ -1,87 +1,87 @@
 {
   "project": "Intercom-Alpha",
-  "branchName": "sprint/sprint-19-mesh-trail-sharing",
-  "phase": "Phase 17: Over-The-Air BLE Mesh GPX/GeoJSON Trail Sharing & Storage Manager",
-  "sprint": "Sprint 19",
-  "updatedAt": "2026-10-07T06:10:00Z",
+  "branchName": "sprint/sprint-20-geofence-power-stress",
+  "phase": "Phase 18: Tactical Convoy Geofencing, Autonomous Power Governor & Multi-Node Stress Benchmark Suite",
+  "sprint": "Sprint 20",
+  "updatedAt": "2026-10-07T07:05:00Z",
   "stories": [
     {
-      "id": "ICA-1901",
+      "id": "ICA-2001",
       "priority": 1,
-      "title": "Pure KMP Chunked Mesh File Transfer & GPX/GeoJSON Protocol Engine",
-      "description": "Implement pure KMP chunked file transmission engine (MeshFileTransferEngine.kt and MeshFileModels.kt) in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/map/. Splits large GPX/GeoJSON payloads into single-MTU chunks (<=120 bytes) with transfer IDs, chunk index/count, Adler32 checksum, sliding-window ACK/NACK retransmission, in-memory reassembly, and pure KMP GPX/GeoJSON parsers and exporters with zero Java/C dependencies (Rules 2 & 3).",
+      "title": "Pure KMP Convoy Geofencing, Hazard Waypoint Radar Alarms & Convoy Split Engine",
+      "description": "Implement pure KMP ConvoyGeofenceEngine.kt and ConvoyGeofenceModels.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/telemetry/. Provides distance tether monitoring (warn at >300m, breach at >600m from lead rider), waypoint proximity radar detection (entering hazard or mountain pass radius), convoy cluster bifurcation/split detection, and automatic control alarm emission with zero Java or C dependencies (Rules 2 & 3).",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/map/MeshFileModels.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/map/MeshFileTransferEngine.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/map/MeshFileTransferManager.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/map/MeshFileTransferTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/telemetry/ConvoyGeofenceModels.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/telemetry/ConvoyGeofenceEngine.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/telemetry/ConvoyGeofenceEngineTest.kt"
       ],
       "acceptanceCriteria": [
-        "Pure KMP implementation with zero Java, C, or external serialization dependencies (Rules 2 & 3)",
-        "Splits arbitrary GPX/GeoJSON trail data into MTU-compliant 120-byte chunks with Adler32 integrity checks",
-        "Sliding-window transmission with selective NACK retransmission over simulated lossy RF",
-        "Reassembles received chunks into typed TrailPolyline and TrailWaypoint models upon completion",
-        "100% unit test pass on JVM and iOS Simulator targets"
+        "Pure KMP implementation with zero Java, C, or external map SDK dependencies (Rules 2 & 3)",
+        "Calculates Great-Circle Haversine tether distances and evaluates warning/breach thresholds",
+        "Triggers obstacle hazard proximity alerts when within configured proximity threshold (e.g. 100m)",
+        "Detects convoy partition into bifurcated rider clusters and emits split warnings",
+        "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-1902",
+      "id": "ICA-2002",
       "priority": 2,
-      "title": "Subsystem Hardware Bridge Wiring & Reactive State Management",
-      "description": "Wire MeshFileTransferManager into Koin DI (AppModule.kt), IntercomHardwareBridge, AndroidPlatformBridge, and IntercomBridge (iosMain) with typed CancellationHandle observers. Integrate into HomeUiState.kt and HomeViewModel.kt, managing active transfer progress, stored trail library, and actions to beam trail to convoy or import local GPX text.",
+      "title": "Smart Battery Duty-Cycle Governor & Motion-Aware Power Mode",
+      "description": "Implement pure KMP BatteryGovernor.kt and PowerStateModels.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/power/. Manages dynamic radio power policies (NORMAL, CONSERVATIVE, EXTREME_SURVIVAL, REST_STOP_SLEEP) evaluating battery percentage, motion stillness duration, and link margins. Immediately overrides power-saving upon emergency SOS preemption.",
+      "targetFiles": [
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/power/PowerStateModels.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/power/BatteryGovernor.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/power/BatteryGovernorTest.kt"
+      ],
+      "acceptanceCriteria": [
+        "Scales BLE radio duty cycles dynamically based on battery level (<30% conservative, <15% survival)",
+        "Detects motion stillness >10 min and shifts to rest-stop power saving, waking on motion or PTT",
+        "Unconditionally restores full power upon Emergency SOS or priority preemption",
+        "100% unit test pass across JVM, Android, and iOS Simulator targets"
+      ],
+      "passes": false
+    },
+    {
+      "id": "ICA-2003",
+      "priority": 3,
+      "title": "Subsystem Hardware Bridge Wiring & Multiplatform Presentation HUD Integration",
+      "description": "Wire ConvoyGeofenceEngine and BatteryGovernor into Koin DI (AppModule.kt), IntercomHardwareBridge, AndroidPlatformBridge, and IntercomBridge (iosMain) with typed CancellationHandle observers. Integrate geofence warning rings, hazard proximity banners, and power governor indicators across Compose Multiplatform (HomeScreen.kt, ProximityRadarView.kt) and 100% Native iOS SwiftUI (ContentView.swift) respecting Rule 1.",
       "targetFiles": [
         "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomHardwareBridge.kt",
         "app/sharedLogic/src/androidMain/kotlin/org/nowni/intercom_alpha/bridge/AndroidPlatformBridge.kt",
         "app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomBridge.kt",
         "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/HomeUiState.kt",
         "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/HomeViewModel.kt",
-        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/di/AppModule.kt",
-        "app/sharedUI/src/commonTest/kotlin/org/nowni/intercom_alpha/feature/home/HomeViewModelTest.kt"
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/ProximityRadarView.kt",
+        "app/iosApp/iosApp/IntercomViewModel.swift",
+        "app/iosApp/iosApp/ContentView.swift"
       ],
       "acceptanceCriteria": [
-        "Exposes reactive StateFlow<List<FileTransferProgress>> and StateFlow<List<TrailPolyline>>",
-        "Provides swift-friendly observeFileTransfers and observeStoredTrails callbacks with CancellationHandle (Rule 1)",
-        "HomeViewModel coordinates BeamActiveTrail, CancelTransfer, and LoadStoredTrail actions",
-        "Full test pass in sharedUI and sharedLogic modules"
-      ],
-      "passes": true
-    },
-    {
-      "id": "ICA-1903",
-      "priority": 3,
-      "title": "Compose Multiplatform Trail File Manager & Over-The-Air Beam Cockpit Sheet",
-      "description": "Build TrailFileManagerSheet.kt in app/sharedUI displaying stored trail library, active trail switch, live OTA progress bars for sending/receiving chunks, and 1-tap 'Beam to Convoy' actuator. Wire into OfflineTrailCockpitSheet.kt and HomeScreen.kt adhering to zero-scroll handlebar layout contract.",
-      "targetFiles": [
-        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/TrailFileManagerSheet.kt",
-        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/OfflineTrailCockpitSheet.kt",
-        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/HomeScreen.kt"
-      ],
-      "acceptanceCriteria": [
-        "Renders trail library with difficulty badges, total distance, elevation ascent, and active selection check",
-        "Renders dynamic transfer progress bars with percentage, chunk counter, and throughput",
-        "1-tap 'Beam to Convoy' broadcasts trail over mesh to all connected riders",
-        "Preserves single-viewport zero-scroll mobile handlebar layout constraint"
-      ],
-      "passes": true
-    },
-    {
-      "id": "ICA-1904",
-      "priority": 4,
-      "title": "Native iOS SwiftUI Trail File Manager & Over-The-Air Beam Sheet",
-      "description": "Implement 100% native SwiftUI TrailFileManagerSheet.swift in app/iosApp (Rule 1). Wire IntercomViewModel observers with CancellationHandle, supporting trail library management, live OTA chunk transfer progress gauges, and 1-tap beam to mesh convoy.",
-      "targetFiles": [
-        "app/iosApp/iosApp/TrailFileManagerSheet.swift",
-        "app/iosApp/iosApp/OfflineTrailCockpitSheet.swift",
-        "app/iosApp/iosApp/IntercomViewModel.swift"
-      ],
-      "acceptanceCriteria": [
-        "100% native SwiftUI with zero Compose Multiplatform imports (Rule 1)",
-        "Live transfer progress rings/bars showing outgoing and incoming trail chunks",
-        "Seamless integration with IntercomViewModel and CancellationHandle lifecycle",
+        "Hardware bridges and IntercomBridge expose reactive flows and CancellationHandle observers (Rule 1)",
+        "Compose Multiplatform displays geofence breach banner and power governor status indicator",
+        "Native iOS SwiftUI renders tether radius warning ring and battery governor indicator (100% native SwiftUI)",
         "Full compilation and automated verification pass across all targets"
       ],
-      "passes": true
+      "passes": false
+    },
+    {
+      "id": "ICA-2004",
+      "priority": 4,
+      "title": "16-Node Concurrent Convoy Stress Simulation Harness & Archify Showcase Update",
+      "description": "Implement ConvoyStressSimulationHarness.kt simulating 16 virtual riders exchanging voice ADPCM packets, OTA GPX route chunks, geofence alarms, and battery duty cycling over lossy multi-hop RF mesh. Benchmark latency, throughput, and memory bounds. Update Archify architecture diagram specification and generate showcase HTML.",
+      "targetFiles": [
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/simulation/ConvoyStressSimulationHarness.kt",
+        "docs/architecture/intercom-alpha.architecture.json",
+        "docs/architecture/intercom-alpha-architecture.html"
+      ],
+      "acceptanceCriteria": [
+        "Simulates 16 concurrent convoy nodes with RF loss, out-of-order packets, and multi-hop forwarding",
+        "Verifies system memory stability (<80MB resident RAM) and zero coroutine leaks under high stress",
+        "Archify architecture diagram updated with Sprint 18, 19, and 20 subsystems and delivered with 0 errors",
+        "Full test pass and clean release readiness sign-off"
+      ],
+      "passes": false
     }
   ]
 }

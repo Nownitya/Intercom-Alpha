@@ -243,6 +243,21 @@
 | **ICA-1903** | Compose Multiplatform Trail File Manager & Over-The-Air Beam Cockpit Sheet | `TrailFileManagerSheet.kt`, `OfflineTrailCockpitSheet.kt`, `HomeScreen.kt` | ✅ Completed |
 | **ICA-1904** | Native iOS SwiftUI Trail File Manager & Over-The-Air Beam Sheet | `TrailFileManagerSheet.swift`, `OfflineTrailCockpitSheet.swift`, `IntercomViewModel.swift` | ✅ Completed |
 
+---
+
+### 🚀 Sprint 20: Tactical Convoy Geofencing, Autonomous Power Governor & Multi-Node Stress Benchmark Suite (Phase 18 - v2.7 Roadmap)
+- **Sprint Goal**: Implement real-time convoy tether geofencing and waypoint proximity radar alarms, smart battery duty-cycle governing with motion-aware rest-stop sleep modes, multiplatform HUD presentation, and an automated 16-node virtual convoy stress harness with Archify showcase updates.
+- **Sprint Branch**: `sprint/sprint-20-geofence-power-stress`
+- **Status**: 🟡 In Progress (Story 1 Ready for Dev)
+
+| Task ID | Item | Target Files | Status |
+| :--- | :--- | :--- | :--- |
+| **ICA-2001** | Pure KMP Convoy Geofencing, Hazard Waypoint Radar Alarms & Convoy Split Engine | `ConvoyGeofenceModels.kt`, `ConvoyGeofenceEngine.kt`, `ConvoyGeofenceEngineTest.kt` | 🟡 Ready for Dev |
+| **ICA-2002** | Smart Battery Duty-Cycle Governor & Motion-Aware Power Mode | `PowerStateModels.kt`, `BatteryGovernor.kt`, `BatteryGovernorTest.kt` | ⚪ Queued |
+| **ICA-2003** | Subsystem Hardware Bridge Wiring & Multiplatform Presentation HUD Integration | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `HomeScreen.kt`, `ContentView.swift` | ⚪ Queued |
+| **ICA-2004** | 16-Node Concurrent Convoy Stress Simulation Harness & Archify Showcase Update | `ConvoyStressSimulationHarness.kt`, `intercom-alpha.architecture.json` | ⚪ Queued |
+
+
 
 
 
