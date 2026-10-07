@@ -1377,5 +1377,28 @@
   - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-21-crash-detection-voice-commands`).
+### [2026-10-07] - ICA-2102: Pure KMP Offline Voice Command & Keyword Spotting DSP Engine
+- **Branch**: `feature/ICA-2102-voice-command-dsp`
+- **Objective**: Implement pure KMP `VoiceCommandRecognizer.kt` and `VoiceCommandModels.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/`. Parses offline keyword voice commands from 48kHz audio streams (`SOS_TRIGGER`, `NEXT_CHANNEL`, `PREV_CHANNEL`, `MUTE_TOGGLE`, `BATTERY_STATUS`, `STATUS_REPORT`, `CANCEL_ALERT`) using acoustic energy envelope template matching, 1-pole spectral filter decomposition, syllable envelope peak detection, and phonetic formant transitions without cloud dependencies or external ML runtimes (Rules 2 & 3).
+- **Implementation**:
+  - `VoiceCommandModels.kt`:
+    - Defined `VoiceCommand` enum (`SOS_TRIGGER`, `NEXT_CHANNEL`, `PREV_CHANNEL`, `MUTE_TOGGLE`, `BATTERY_STATUS`, `STATUS_REPORT`, `CANCEL_ALERT`) with tactical spoken phrases and confirmation tones.
+    - Defined `CommandDetection` data class capturing detected command, confidence, timestamp, phrase, and utterance duration.
+    - Defined `VoiceCommandConfig` with sample rate (48000), frame size (960 / 20ms), energy threshold (-45 dB), confidence threshold (0.65), min/max utterance duration, cooldown window (1200ms), and wind noise suppression flag.
+    - Defined `AudioFeatureFrame` capturing timestamp, RMS dB, zero-crossing rate (ZCR), and 3-band energy ratios.
+  - `VoiceCommandRecognizer.kt`:
+    - Pure KMP DSP engine operating synchronously on raw PCM audio buffers or little-endian byte arrays (`processPcmSamples`, `processPcmBytes`).
+    - 1-pole recursive spectral filter decomposing 48kHz frames into Low (<300 Hz), Mid (300-2500 Hz), and High (>2500 Hz) band energies.
+    - Motorcycle helmet aerodynamic wind rumble suppression isolating <200 Hz buffeting turbulence (`lowBandEnergyRatio > 0.75` and `ZCR < 0.015`).
+    - Inter-syllable speech envelope retention with utterance boundary segmentation at 160ms silence gaps.
+    - Syllable peak detector counting energy envelope transitions above/below threshold and intra-utterance dips in continuous speech.
+    - Acoustic template classifier evaluating syllable counts, duration targets, formant ratios, and fricative/stop consonantal ZCR profiles.
+    - Emits detections through reactive `StateFlow<CommandDetection?>` and buffered `Channel<CommandDetection>`.
+    - Includes `simulateCommand()` for unit test injection and `reset()` for buffer clearing.
+  - `VoiceCommandRecognizerTest.kt`:
+    - 9 comprehensive unit tests covering silence, wind rumble suppression (60 Hz high-amplitude buffeting), simulated command flow emission, synthetic SOS keyword detection, synthetic Next Channel detection, synthetic Cancel Alert detection, sub-duration transient rejection (<300ms coughs/clicks), 16-bit PCM byte endian conversion symmetry, and buffer reset.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-21-crash-detection-voice-commands`).
 ---
-

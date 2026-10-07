@@ -40,7 +40,7 @@
         "Robust noise rejection preventing false command triggers during ambient wind noise",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-2103",

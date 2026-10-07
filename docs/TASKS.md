@@ -262,11 +262,11 @@
 ### 🚀 Sprint 21: Autonomous Crash Impact Detection, eCall SOS & Offline Voice Command HUD (Phase 19 - v2.8 Roadmap)
 - **Sprint Goal**: Implement pure KMP multi-axis IMU crash & fall-over impact detection with 30s abortable countdown, offline keyword-spotting voice commands (eCall SOS, next/prev channel, mute, battery), subsystem platform hardware bridge wiring, and emergency HUD integration across Compose Multiplatform and 100% Native iOS SwiftUI.
 - **Sprint Branch**: `sprint/sprint-21-crash-detection-voice-commands`
-- **Status**: 🟡 In Progress (Story 1 Ready for Dev)
+- **Status**: 🟡 In Progress (Stories ICA-2101 & ICA-2102 Complete)
 
 | Task ID | Item | Target Files | Status |
 | :--- | :--- | :--- | :--- |
 | **ICA-2101** | Pure KMP Crash Detection, Fall-Over IMU State Machine & Countdown Arbiter | `SensorModels.kt`, `CrashDetector.kt`, `CrashDetectorTest.kt` | ✅ Completed |
-| **ICA-2102** | Pure KMP Offline Voice Command & Keyword Spotting DSP Engine | `VoiceCommandModels.kt`, `VoiceCommandRecognizer.kt`, `VoiceCommandRecognizerTest.kt` | 🟡 Next Up |
-| **ICA-2103** | Subsystem Hardware Bridge Wiring & Multiplatform Emergency HUD Presentation | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `HomeScreen.kt`, `ContentView.swift` | ⚪ Backlog |
+| **ICA-2102** | Pure KMP Offline Voice Command & Keyword Spotting DSP Engine | `VoiceCommandModels.kt`, `VoiceCommandRecognizer.kt`, `VoiceCommandRecognizerTest.kt` | ✅ Completed |
+| **ICA-2103** | Subsystem Hardware Bridge Wiring & Multiplatform Emergency HUD Presentation | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `HomeScreen.kt`, `ContentView.swift` | 🟡 Next Up |
 | **ICA-2104** | Crash Impact & Voice Command Multiplatform Simulation Harness & Benchmark Suite | `CrashAndVoiceSimulationHarness.kt`, `intercom-alpha.architecture.json` | ⚪ Backlog |

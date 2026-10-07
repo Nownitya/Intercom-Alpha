@@ -681,6 +681,22 @@
     - False alarm cancellation (`cancelCountdown`): rider can tap cancel during the 30-second window to abort emergency dispatch.
     - Autonomous beacon dispatch: upon countdown zero expiry, generates `CrashAlertPacket` via `ControlType.CRASH_ALERT` carrying incident ID, peak G-force, severity, and GPS coordinates.
 
+### 2.63 Pure KMP Offline Voice Command & Keyword Spotting DSP Engine (Sprint 21 - ICA-2102)
+- **Challenge**: Recognizing tactical hands-free voice commands ("Intercom SOS", "Next Channel", "Prev Channel", "Toggle Mute", "Battery Status", "Status Report", "Cancel Alert") on low-power mobile hardware without cloud latency, internet connectivity, or heavy machine learning models (CoreML/TFLite/ONNX), while operating amidst aggressive motorcycle helmet wind noise buffeting.
+- **Solution**:
+  - `VoiceCommandModels.kt`:
+    - Defined `VoiceCommand` enum (`SOS_TRIGGER`, `NEXT_CHANNEL`, `PREV_CHANNEL`, `MUTE_TOGGLE`, `BATTERY_STATUS`, `STATUS_REPORT`, `CANCEL_ALERT`) with tactical spoken phrases and confirmation audio frequencies.
+    - Defined `CommandDetection` tracking command, confidence (0.0 to 1.0), timestamp, phrase, and utterance duration.
+    - Defined `VoiceCommandConfig` with 48kHz audio frames (20ms / 960 samples), speech threshold (-45 dB), min/max utterance duration (350ms - 2000ms), and 1200ms cooldown timer.
+    - Defined `AudioFeatureFrame` tracking RMS dB, Zero-Crossing Rate (ZCR), and 3-band energy ratios.
+  - `VoiceCommandRecognizer.kt`:
+    - Pure KMP DSP implementation in `commonMain` processing 48kHz PCM ShortArray or little-endian ByteArray audio frames.
+    - 1-Pole recursive IIR filter decomposing audio into Low (<300 Hz), Mid (300-2500 Hz), and High (>2500 Hz) spectral bands.
+    - Aerodynamic wind noise rejection isolating helmet buffeting rumble (<200 Hz, `lowBandEnergyRatio > 0.75` and `ZCR < 0.015`) to prevent false triggers during high-speed riding.
+    - Utterance capture retaining inter-syllable speech envelope dips with automatic boundary detection after 160ms silence gaps.
+    - Syllable peak counter detecting envelope energy transitions and intra-utterance dips in continuous speech.
+    - Phonetic template classifier measuring syllable counts, target durations, mid-band formant ratios, and fricative/stop consonantal ZCR profiles.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index
