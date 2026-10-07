@@ -1,31 +1,30 @@
-# Current Status: Sprint 20 (Phase 18: Tactical Convoy Geofencing, Autonomous Power Governor & Multi-Node Stress Benchmark Suite)
+# Current Status: Sprint 21 (Phase 19: Autonomous Crash Impact Detection, eCall SOS & Offline Voice Command HUD)
 
 > **Active Sprint Reference:** [TASKS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/TASKS.md) & [prd.json](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/tasks/ralph/prd.json)  
-> **Sprint Branch:** `sprint/sprint-20-geofence-power-stress`  
+> **Sprint Branch:** `sprint/sprint-21-crash-detection-voice-commands`  
 > **Sprint Governance Rules:** [SPRINT-RULES.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/SPRINT-RULES.md)  
 > **Engineering Contract:** [AGENTS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/AGENTS.md)  
 > **Knowledge Base:** [MEMORY.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/MEMORY.md)  
 
 ---
 
-## 🚀 Active Sprint: Sprint 20 (Phase 18: Tactical Convoy Geofencing, Autonomous Power Governor & Multi-Node Stress Benchmark Suite)
-**Goal:** Implement real-time convoy tether geofencing and waypoint proximity radar alarms, smart battery duty-cycle governing with motion-aware rest-stop sleep modes, multiplatform HUD presentation, and an automated 16-node virtual convoy stress harness with Archify showcase updates.  
-- **Sprint Branch:** `sprint/sprint-20-geofence-power-stress`  
-- **Target Release:** `v2.7.0`  
+## 🚀 Active Sprint: Sprint 21 (Phase 19: Autonomous Crash Impact Detection, eCall SOS & Offline Voice Command HUD)
+**Goal:** Implement pure KMP multi-axis IMU crash & fall-over impact detection with 30s abortable countdown, offline keyword-spotting voice commands (eCall SOS, next/prev channel, mute, battery), subsystem platform hardware bridge wiring, and emergency HUD integration across Compose Multiplatform and 100% Native iOS SwiftUI.  
+- **Sprint Branch:** `sprint/sprint-21-crash-detection-voice-commands`  
+- **Target Release:** `v2.8.0`  
 
 | Task ID | Item | Owner | Target Files | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **ICA-2001** | Pure KMP Convoy Geofencing, Hazard Waypoint Radar Alarms & Convoy Split Engine | Ralph | `ConvoyGeofenceModels.kt`, `ConvoyGeofenceEngine.kt`, `ConvoyGeofenceEngineTest.kt` | ✅ Completed |
-| **ICA-2002** | Smart Battery Duty-Cycle Governor & Motion-Aware Power Mode | Ralph | `PowerStateModels.kt`, `BatteryGovernor.kt`, `BatteryGovernorTest.kt` | ✅ Completed |
-| **ICA-2003** | Subsystem Hardware Bridge Wiring & Multiplatform Presentation HUD Integration | Ralph | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `HomeScreen.kt`, `ContentView.swift` | ✅ Completed |
-| **ICA-2004** | 16-Node Concurrent Convoy Stress Simulation Harness & Archify Showcase Update | Ralph | `ConvoyStressSimulationHarness.kt`, `intercom-alpha.architecture.json` | ✅ Completed |
+| **ICA-2101** | Pure KMP Crash Detection, Fall-Over IMU State Machine & Countdown Arbiter | Ralph | `SensorModels.kt`, `CrashDetector.kt`, `CrashDetectorTest.kt` | ✅ Completed |
+| **ICA-2102** | Pure KMP Offline Voice Command & Keyword Spotting DSP Engine | Ralph | `VoiceCommandModels.kt`, `VoiceCommandRecognizer.kt`, `VoiceCommandRecognizerTest.kt` | ✅ Completed |
+| **ICA-2103** | Subsystem Hardware Bridge Wiring & Multiplatform Emergency HUD Presentation | Ralph | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `HomeScreen.kt`, `ContentView.swift` | ✅ Completed |
+| **ICA-2104** | Crash Impact & Voice Command Multiplatform Simulation Harness & Benchmark Suite | Ralph | `CrashAndVoiceSimulationHarness.kt`, `intercom-alpha.architecture.json` | ✅ Completed |
 
 ---
 
-## 🏆 Sprint 20 Completion: 100% DoD Pass (Target Release: `v2.7.0`)
-All 4 stories (`ICA-2001`, `ICA-2002`, `ICA-2003`, `ICA-2004`) verified with 100% test pass, 0 OpenCodeReview findings, and verified release readiness. Ready for merge to `develop` and tagging on `main`.
-
 ## 📦 Historical Sprint Archive
+- ✅ **Sprint 21: Autonomous Crash Impact Detection, eCall SOS & Offline Voice Command HUD**: Completed 2026-10-07 (100% DoD, v2.8.0 Released).
+- ✅ **Sprint 20: Tactical Convoy Geofencing, Autonomous Power Governor & Multi-Node Stress Benchmark Suite**: Completed 2026-10-07 (100% DoD, v2.7.0 Released).
 - ✅ **Sprint 19: Over-The-Air BLE Mesh GPX/GeoJSON Trail Sharing & Storage Manager**: Completed 2026-10-07 (100% DoD, v2.6.0 Released).
 - ✅ **Sprint 18: Offline Vector Terrain & Trail Map Overlay**: Completed 2026-10-07 (100% DoD, v2.5.0 Released).
 - ✅ **Sprint 17: Basecamp Stationary Repeater UI & Low-Power Cockpit Mode**: Completed 2026-10-06 (100% DoD, v2.4.0 Released).

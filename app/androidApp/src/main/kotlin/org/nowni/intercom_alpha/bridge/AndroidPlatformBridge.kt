@@ -106,6 +106,12 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
     private val _powerGovernorState = MutableStateFlow(org.nowni.intercom_alpha.power.PowerGovernorState())
     override val powerGovernorState: StateFlow<org.nowni.intercom_alpha.power.PowerGovernorState> = _powerGovernorState.asStateFlow()
 
+    private val _crashSnapshot = MutableStateFlow(org.nowni.intercom_alpha.safety.CrashCountdownSnapshot())
+    override val crashSnapshot: StateFlow<org.nowni.intercom_alpha.safety.CrashCountdownSnapshot> = _crashSnapshot.asStateFlow()
+
+    private val _latestVoiceCommand = MutableStateFlow<org.nowni.intercom_alpha.audio.CommandDetection?>(null)
+    override val latestVoiceCommand: StateFlow<org.nowni.intercom_alpha.audio.CommandDetection?> = _latestVoiceCommand.asStateFlow()
+
     var channelManager: ChannelManager? = null
         private set
     var blackboxRecorder: EmergencyBlackboxRecorder? = null
@@ -121,6 +127,10 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
     var geofenceEngine: org.nowni.intercom_alpha.telemetry.ConvoyGeofenceEngine? = null
         private set
     var batteryGovernor: org.nowni.intercom_alpha.power.BatteryGovernor? = null
+        private set
+    var crashDetector: org.nowni.intercom_alpha.safety.CrashDetector? = null
+        private set
+    var voiceCommandRecognizer: org.nowni.intercom_alpha.audio.VoiceCommandRecognizer? = null
         private set
 
     private var boundService: IntercomForegroundService? = null
@@ -138,7 +148,9 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         trailMapManager: TrailMapManager?,
         fileTransferManager: MeshFileTransferManager?,
         geofenceEngine: org.nowni.intercom_alpha.telemetry.ConvoyGeofenceEngine?,
-        batteryGovernor: org.nowni.intercom_alpha.power.BatteryGovernor?
+        batteryGovernor: org.nowni.intercom_alpha.power.BatteryGovernor?,
+        crashDetector: org.nowni.intercom_alpha.safety.CrashDetector?,
+        voiceCommandRecognizer: org.nowni.intercom_alpha.audio.VoiceCommandRecognizer?
     ) {
         this.channelManager = channelManager
         this.blackboxRecorder = blackboxRecorder
@@ -148,6 +160,30 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         this.fileTransferManager = fileTransferManager
         this.geofenceEngine = geofenceEngine
         this.batteryGovernor = batteryGovernor
+        this.crashDetector = crashDetector
+        this.voiceCommandRecognizer = voiceCommandRecognizer
+
+        crashDetector?.let { detector ->
+            scope.launch {
+                detector.countdownSnapshot.collect { snapshot ->
+                    _crashSnapshot.value = snapshot
+                }
+            }
+            scope.launch {
+                detector.alertPackets.collect { alert ->
+                    val payload = org.nowni.intercom_alpha.safety.CrashDetector.encodeAlertPayload(alert)
+                    sendControlPacket(MeshPacket.Control(senderId = "android-local", type = ControlType.CRASH_ALERT, payload = payload))
+                }
+            }
+        }
+
+        voiceCommandRecognizer?.let { recognizer ->
+            scope.launch {
+                recognizer.latestDetection.collect { detection ->
+                    _latestVoiceCommand.value = detection
+                }
+            }
+        }
 
         geofenceEngine?.let { engine ->
             scope.launch {
@@ -293,6 +329,40 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
 
     override fun updatePowerGovernorState(state: org.nowni.intercom_alpha.power.PowerGovernorState) {
         _powerGovernorState.value = state
+    }
+
+    override fun updateCrashSnapshot(snapshot: org.nowni.intercom_alpha.safety.CrashCountdownSnapshot) {
+        _crashSnapshot.value = snapshot
+    }
+
+    override fun updateLatestVoiceCommand(detection: org.nowni.intercom_alpha.audio.CommandDetection?) {
+        _latestVoiceCommand.value = detection
+    }
+
+    override fun cancelCrashCountdown() {
+        Log.i(TAG, "cancelCrashCountdown requested from UI")
+        scope.launch {
+            crashDetector?.cancelCountdown()
+        }
+    }
+
+    override fun triggerManualCrashSos() {
+        Log.i(TAG, "triggerManualCrashSos requested from UI")
+        scope.launch {
+            crashDetector?.triggerManualCrashAlert()
+        }
+    }
+
+    override fun processImuReading(reading: org.nowni.intercom_alpha.safety.ImuReading) {
+        scope.launch {
+            crashDetector?.processImuReading(reading)
+        }
+    }
+
+    override fun processVoiceAudio(samples: ShortArray, timestampMs: Long) {
+        scope.launch {
+            voiceCommandRecognizer?.processPcmSamples(samples, timestampMs)
+        }
     }
 
     override fun sendRepeaterPacket(packet: MeshPacket.Control) {

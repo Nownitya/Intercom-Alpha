@@ -1341,5 +1341,141 @@
   - `ICA-2002: Smart Battery Duty-Cycle Governor & Motion-Aware Power Mode` [PASSED]
   - `ICA-2003: Subsystem Hardware Bridge Wiring & Multiplatform Presentation HUD Integration` [PASSED]
   - `ICA-2004: 16-Node Concurrent Convoy Stress Simulation Harness & Archify Showcase Update` [PASSED]
-- **Release Status**: `v2.7.0` Ready for Production Tagging on `main`.
 ---
+
+## 🚀 Sprint 21 Launch: Autonomous Crash Impact Detection, eCall SOS & Offline Voice Command HUD (Phase 19 - v2.8 Roadmap)
+- **Milestone**: Phase 19 / Sprint 21
+- **Goal**: Implement pure KMP multi-axis IMU crash & fall-over impact detection with 30s abortable countdown, offline keyword-spotting voice commands (eCall SOS, next/prev channel, mute, battery), subsystem platform hardware bridge wiring, and emergency HUD integration across Compose Multiplatform and 100% Native iOS SwiftUI.
+- **Sprint Branch**: `sprint/sprint-21-crash-detection-voice-commands`
+- **Target Release**: `v2.8.0`
+
+### [2026-10-07] - ICA-2101: Pure KMP Crash Detection, Fall-Over IMU State Machine & Countdown Arbiter
+- **Branch**: `feature/ICA-2101-crash-detector`
+- **Objective**: Implement pure KMP `CrashDetector.kt` and `SensorModels.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/safety/`. Detect high-G vehicular impacts (>4.5g / >44.1 m/s²), persistent motorcycle fall-over tilt (>60° for >8 seconds), sudden deceleration spikes (>35 km/h drop in <1.5s), and initiate an autonomous 30-second pre-alert countdown with rider abort/cancel mechanism before dispatching priority SOS packet over the mesh with zero Java or C dependencies (Rules 2 & 3).
+- **Implementation**:
+  - `SensorModels.kt`:
+    - Defined `ImuReading` with resultant G-force (`totalGForce`), total acceleration magnitude (`totalAccelMps2`), and vertical tilt angle (`tiltAngleDegrees`).
+    - Defined `CrashSeverity` (`NONE`, `POTENTIAL_FALL_OVER`, `HARD_IMPACT`, `SEVERE_COLLISION`).
+    - Defined `CrashState` (`NORMAL`, `COUNTDOWN_ACTIVE`, `EMERGENCY_DISPATCHED`, `CANCELLED_BY_RIDER`).
+    - Defined `CrashConfig` with customizable impact G thresholds, fall-over tilt thresholds, deceleration window, and 30-second countdown duration.
+    - Defined `CrashCountdownSnapshot` and serializable `CrashAlertPacket`.
+  - `MeshTransport.kt`:
+    - Added `CRASH_ALERT` to `ControlType` enum for control frame multiplexing over BLE mesh.
+  - `CrashDetector.kt`:
+    - Thread-safe Mutex-protected state machine.
+    - Ingests accelerometer/gyroscope readings (`processImuReading`) and speed updates (`processSpeedUpdate`).
+    - High-G impact detection: immediately initiates 30s countdown upon severe collision (>=7.0g) or hard impact (>=4.5g).
+    - Motorcycle fall-over detection: tracks sustained tilt (>60° for >8 seconds), ignoring transient curve leans.
+    - Emergency deceleration watchdog: detects >35 km/h drops within 1.5s combined with impact bumps.
+    - 30-second pre-alert countdown arbiter (`tickCountdown`) emitting warning chime trigger ticks (30..1) and dispatching emergency SOS packet upon timer expiry.
+    - Rider abort mechanism (`cancelCountdown`): rider can dismiss false alarms, smoothly returning state to `CANCELLED_BY_RIDER` with 0 emergency alerts dispatched.
+    - Manual emergency crash SOS trigger (`triggerManualCrashAlert`).
+    - Wire packet serialization and deserialization (`encodeAlertPayload`, `parseAlertPayload`).
+  - `CrashDetectorTest.kt`:
+    - 10 comprehensive unit test suites validating normal riding bumps (<2.5g), hard impact (5.0g), severe collision (8.5g), curve lean vs sustained fall-over (>8s), countdown ticking, rider cancellation, countdown expiry with automatic SOS packet dispatch, emergency deceleration, manual SOS, wire serialization symmetry, and detector reset.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-21-crash-detection-voice-commands`).
+### [2026-10-07] - ICA-2102: Pure KMP Offline Voice Command & Keyword Spotting DSP Engine
+- **Branch**: `feature/ICA-2102-voice-command-dsp`
+- **Objective**: Implement pure KMP `VoiceCommandRecognizer.kt` and `VoiceCommandModels.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/`. Parses offline keyword voice commands from 48kHz audio streams (`SOS_TRIGGER`, `NEXT_CHANNEL`, `PREV_CHANNEL`, `MUTE_TOGGLE`, `BATTERY_STATUS`, `STATUS_REPORT`, `CANCEL_ALERT`) using acoustic energy envelope template matching, 1-pole spectral filter decomposition, syllable envelope peak detection, and phonetic formant transitions without cloud dependencies or external ML runtimes (Rules 2 & 3).
+- **Implementation**:
+  - `VoiceCommandModels.kt`:
+    - Defined `VoiceCommand` enum (`SOS_TRIGGER`, `NEXT_CHANNEL`, `PREV_CHANNEL`, `MUTE_TOGGLE`, `BATTERY_STATUS`, `STATUS_REPORT`, `CANCEL_ALERT`) with tactical spoken phrases and confirmation tones.
+    - Defined `CommandDetection` data class capturing detected command, confidence, timestamp, phrase, and utterance duration.
+    - Defined `VoiceCommandConfig` with sample rate (48000), frame size (960 / 20ms), energy threshold (-45 dB), confidence threshold (0.65), min/max utterance duration, cooldown window (1200ms), and wind noise suppression flag.
+    - Defined `AudioFeatureFrame` capturing timestamp, RMS dB, zero-crossing rate (ZCR), and 3-band energy ratios.
+  - `VoiceCommandRecognizer.kt`:
+    - Pure KMP DSP engine operating synchronously on raw PCM audio buffers or little-endian byte arrays (`processPcmSamples`, `processPcmBytes`).
+    - 1-pole recursive spectral filter decomposing 48kHz frames into Low (<300 Hz), Mid (300-2500 Hz), and High (>2500 Hz) band energies.
+    - Motorcycle helmet aerodynamic wind rumble suppression isolating <200 Hz buffeting turbulence (`lowBandEnergyRatio > 0.75` and `ZCR < 0.015`).
+    - Inter-syllable speech envelope retention with utterance boundary segmentation at 160ms silence gaps.
+    - Syllable peak detector counting energy envelope transitions above/below threshold and intra-utterance dips in continuous speech.
+    - Acoustic template classifier evaluating syllable counts, duration targets, formant ratios, and fricative/stop consonantal ZCR profiles.
+    - Emits detections through reactive `StateFlow<CommandDetection?>` and buffered `Channel<CommandDetection>`.
+    - Includes `simulateCommand()` for unit test injection and `reset()` for buffer clearing.
+  - `VoiceCommandRecognizerTest.kt`:
+    - 9 comprehensive unit tests covering silence, wind rumble suppression (60 Hz high-amplitude buffeting), simulated command flow emission, synthetic SOS keyword detection, synthetic Next Channel detection, synthetic Cancel Alert detection, sub-duration transient rejection (<300ms coughs/clicks), 16-bit PCM byte endian conversion symmetry, and buffer reset.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-21-crash-detection-voice-commands`).
+---
+
+### [2026-10-07] - ICA-2103: Subsystem Hardware Bridge Wiring & Multiplatform Emergency HUD Presentation
+- **Branch**: `feature/ICA-2103-bridge-and-hud`
+- **Objective**: Wire `CrashDetector` and `VoiceCommandRecognizer` into Koin DI (`AppModule.kt`), `IntercomHardwareBridge`, `AndroidPlatformBridge`, and `IntercomBridge` (`iosMain`) with typed `CancellationHandle` observers. Integrate 30-second crash countdown banner with 1-tap abort button, audible alarm chime, and voice command recognition feedback badge across Compose Multiplatform (`HomeScreen.kt`) and 100% Native iOS SwiftUI (`ContentView.swift` & `IntercomViewModel.swift`) adhering to Rule 1.
+- **Implementation**:
+  - `IntercomHardwareBridge.kt`:
+    - Extended interface and `NoOpIntercomHardwareBridge` with `crashSnapshot: StateFlow<CrashCountdownSnapshot>` and `latestVoiceCommand: StateFlow<CommandDetection?>`.
+    - Added bridge action methods: `cancelCrashCountdown()`, `triggerManualCrashSos()`, `processImuReading(reading)`, and `processVoiceAudio(samples, timestampMs)`.
+    - Updated `attachSubsystems(...)` signature with optional `crashDetector` and `voiceCommandRecognizer`.
+    - Added `storedTrails: StateFlow<List<TrailPolyline>>` to base contract.
+  - `AndroidPlatformBridge.kt`:
+    - Wired attached `CrashDetector` and `VoiceCommandRecognizer` instances.
+    - Synchronized countdown snapshots to `_crashSnapshot` and forwarded autonomous `CrashAlertPacket` objects encoded via `CrashDetector.encodeAlertPayload` as `ControlType.CRASH_ALERT` over BLE mesh.
+    - Synchronized voice detections to `_latestVoiceCommand`.
+    - Added `processImuReading` and `processVoiceAudio` platform ingestion hooks.
+  - `IntercomBridge.kt` (`iosMain`):
+    - Added internal `CrashDetector` and `VoiceCommandRecognizer` singletons.
+    - Wired microphone PCM stream directly to `voiceCommandRecognizer.processPcmSamples(pcmShorts)`.
+    - Wired autonomous `crashDetector.alertPackets` to broadcast `ControlType.CRASH_ALERT` over iOS `MeshTransport`.
+    - Exposed Swift-friendly reactive observers returning `CancellationHandle`: `observeCrashSnapshot` and `observeVoiceCommands`.
+    - Exposed Swift action controls: `cancelCrashCountdown()`, `triggerManualCrashSos()`, `processImuReading(ax, ay, az, gx, gy, gz)`, and `processVoiceAudio(samples)`.
+  - `AppModule.kt`:
+    - Registered `single { CrashDetector() }` and `single { VoiceCommandRecognizer() }` in Koin `sharedUiModule`.
+    - Updated `AppModuleTest.kt` validating clean dependency resolution.
+  - `HomeUiState.kt` & `HomeViewModel.kt`:
+    - Added `crashSnapshot: CrashCountdownSnapshot`, `latestVoiceCommand: CommandDetection?`, and `showCrashCountdownDialog: Boolean`.
+    - Added UI actions: `HomeUiAction.CancelCrashCountdown`, `HomeUiAction.TriggerManualCrashSos`, and `HomeUiAction.DismissVoiceCommandBadge`.
+    - Injected `CrashDetector` and `VoiceCommandRecognizer`, synchronized state flows, and implemented `handleVoiceCommand(...)` for tactical hands-free controls (SOS, channel stepping, PTT mute toggle, countdown abort).
+  - `HomeScreen.kt`:
+    - Added `VoiceCommandFeedbackBadge` tactical ribbon displaying keyword, confidence percentage, and 1-tap dismiss.
+    - Added full-screen modal `CrashCountdownDialog` displaying remaining seconds (30..0), peak G-force, incident severity, 1-tap "I AM OK — CANCEL ALERT" button, and "SOS NOW" immediate override button.
+  - `IntercomViewModel.swift` & `ContentView.swift` (100% Native SwiftUI — Rule 1):
+    - Added `@Published var crashSnapshot`, `@Published var latestVoiceCommand`, and `@Published var showCrashCountdownCard`.
+    - Wired bridge observers with memory-safe `CancellationHandle` callbacks stored in lifecycle bag.
+    - Added `TacticalVoiceCommandBadge` overlay and `CrashCountdownCardView` bottom card with tactile abort controls.
+  - `HomeViewModelTest.kt`:
+    - Added comprehensive unit tests validating crash impact detection flow, countdown dialog presentation, rider 1-tap cancellation, manual crash SOS dispatch, offline voice command channel stepping, PTT mute toggle, and voice-activated alert abort.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-21-crash-detection-voice-commands`).
+---
+
+### [2026-10-07] - ICA-2104: Crash Impact & Voice Command Multiplatform Simulation Harness & Benchmark Suite
+- **Branch**: `feature/ICA-2104-simulation-harness`
+- **Objective**: Implement comprehensive multi-scenario simulation harness validating autonomous crash impact detection, 30-second pre-alert countdown, false-alarm rejection (potholes and aggressive curve lean angles), sustained motorcycle tip-over triggers, offline voice keyword spotting under aerodynamic wind noise, continuous streaming stress, and synchronize Archify interactive architecture specifications to showcase quality.
+- **Implementation**:
+  - `CrashAndVoiceSimulationHarness.kt`:
+    - Multi-axis IMU Kinematics & Baseline False-Alarm Rejection: 1,000 baseline cruising samples, 5 vertical pothole impulses (3.2g peak < 4.5g threshold), and 3.5s curve leans (up to 42° < 60° fall-over threshold) producing 0 false alarms.
+    - Severe Collision Impact & 1-Tap Rider Cancellation: 8.5g severe collision shock triggering COUNTDOWN_ACTIVE state; simulated rider 1-tap abort at remaining 18s transitions state to CANCELLED_BY_RIDER with 0 mesh broadcasts dispatched.
+    - Sustained Tip-Over & Autonomous eCall SOS Broadcast: Simulated 68° fall-over sustained for 8.5s triggering 30s countdown; full countdown expiry to 0s autonomously generating and dispatching `CrashAlertPacket` via `ControlType.CRASH_ALERT` over multi-hop mesh.
+    - Offline Voice Command Spotting Under Aerodynamic Wind Noise: Simulated 80–120 km/h helmet buffeting noise (<200 Hz rumble with low-frequency energy >75% and low ZCR) rejected with 0 false activations; clean and wind-mixed tactical phrases ("Intercom SOS", "Next Channel", "Cancel Alert", "Toggle Mute") correctly recognized.
+    - Continuous Streaming Stress & Memory Stability: 5,000 consecutive IMU and audio frames processed with zero memory leaks, bounded heap, and zero coroutine leaks.
+  - `docs/architecture/intercom-alpha.architecture.json`:
+    - Updated architecture specification with `crash_detector` and `voice_recognizer` components in `shared_logic`.
+    - Added clean layout positioning and connections (`imu_source` -> `crash_detector`, `mic_source` -> `voice_recognizer`, `crash_detector` -> `mesh_transport`, `voice_recognizer` -> `audio_engine`, `crash_detector` -> `cockpit_hud`).
+    - Added `crash-and-voice-hud` tactical cockpit view and updated `hud_info` card.
+  - `docs/architecture/intercom-alpha-architecture.html`:
+    - Recompiled and delivered via Archify CLI with all 9/9 verification checks passed, 0 errors, and 0 warnings at showcase quality.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-21-crash-detection-voice-commands`).
+---
+
+## 🏁 SPRINT 21 COMPLETION SUMMARY
+- **Sprint Name**: Sprint 21 - Autonomous Crash Impact Detection, eCall SOS & Offline Voice Command HUD
+- **Target Release**: `v2.8.0`
+- **Completed Stories**:
+  - `ICA-2101`: Pure KMP Crash Detection & Countdown Arbiter (100% COMPLETE & MERGED)
+  - `ICA-2102`: Pure KMP Offline Voice Command & Keyword Spotting DSP Engine (100% COMPLETE & MERGED)
+  - `ICA-2103`: Subsystem Hardware Bridge Wiring & Multiplatform Emergency HUD Presentation (100% COMPLETE & MERGED)
+  - `ICA-2104`: Crash Impact & Voice Command Multiplatform Simulation Harness & Benchmark Suite (100% COMPLETE & MERGED)
+- **DoD Compliance**: 100% of acceptance criteria verified across Android, iOS, and pure KMP commonMain.
+- **Build & Tests**: 125/125 Gradle tasks passed cleanly, OpenCodeReview 0 findings across all stories.
+
+
