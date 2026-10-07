@@ -67,6 +67,8 @@ interface IntercomHardwareBridge {
     val storedTrails: StateFlow<List<TrailPolyline>>
     val geofenceSnapshot: StateFlow<org.nowni.intercom_alpha.telemetry.ConvoyGeofenceSnapshot>
     val powerGovernorState: StateFlow<org.nowni.intercom_alpha.power.PowerGovernorState>
+    val crashSnapshot: StateFlow<org.nowni.intercom_alpha.safety.CrashCountdownSnapshot>
+    val latestVoiceCommand: StateFlow<org.nowni.intercom_alpha.audio.CommandDetection?>
 
     fun setPttActive(active: Boolean)
     fun setRepeaterModeActive(active: Boolean)
@@ -76,6 +78,12 @@ interface IntercomHardwareBridge {
     fun updateStoredTrails(trails: List<TrailPolyline>)
     fun updateGeofenceSnapshot(snapshot: org.nowni.intercom_alpha.telemetry.ConvoyGeofenceSnapshot)
     fun updatePowerGovernorState(state: org.nowni.intercom_alpha.power.PowerGovernorState)
+    fun updateCrashSnapshot(snapshot: org.nowni.intercom_alpha.safety.CrashCountdownSnapshot)
+    fun updateLatestVoiceCommand(detection: org.nowni.intercom_alpha.audio.CommandDetection?)
+    fun cancelCrashCountdown()
+    fun triggerManualCrashSos()
+    fun processImuReading(reading: org.nowni.intercom_alpha.safety.ImuReading) {}
+    fun processVoiceAudio(samples: ShortArray, timestampMs: Long) {}
     fun sendRepeaterPacket(packet: MeshPacket.Control)
     fun sendControlPacket(packet: MeshPacket.Control) {
         sendRepeaterPacket(packet)
@@ -89,7 +97,9 @@ interface IntercomHardwareBridge {
         trailMapManager: TrailMapManager? = null,
         fileTransferManager: MeshFileTransferManager? = null,
         geofenceEngine: org.nowni.intercom_alpha.telemetry.ConvoyGeofenceEngine? = null,
-        batteryGovernor: org.nowni.intercom_alpha.power.BatteryGovernor? = null
+        batteryGovernor: org.nowni.intercom_alpha.power.BatteryGovernor? = null,
+        crashDetector: org.nowni.intercom_alpha.safety.CrashDetector? = null,
+        voiceCommandRecognizer: org.nowni.intercom_alpha.audio.VoiceCommandRecognizer? = null
     ) {}
 }
 
@@ -159,6 +169,12 @@ open class NoOpIntercomHardwareBridge(
     protected val _powerGovernorState = MutableStateFlow(org.nowni.intercom_alpha.power.PowerGovernorState())
     override val powerGovernorState: StateFlow<org.nowni.intercom_alpha.power.PowerGovernorState> = _powerGovernorState.asStateFlow()
 
+    protected val _crashSnapshot = MutableStateFlow(org.nowni.intercom_alpha.safety.CrashCountdownSnapshot())
+    override val crashSnapshot: StateFlow<org.nowni.intercom_alpha.safety.CrashCountdownSnapshot> = _crashSnapshot.asStateFlow()
+
+    protected val _latestVoiceCommand = MutableStateFlow<org.nowni.intercom_alpha.audio.CommandDetection?>(null)
+    override val latestVoiceCommand: StateFlow<org.nowni.intercom_alpha.audio.CommandDetection?> = _latestVoiceCommand.asStateFlow()
+
     override fun setPttActive(active: Boolean) {
         _isTransmitting.value = active
     }
@@ -191,12 +207,42 @@ open class NoOpIntercomHardwareBridge(
         _powerGovernorState.value = state
     }
 
+    override fun updateCrashSnapshot(snapshot: org.nowni.intercom_alpha.safety.CrashCountdownSnapshot) {
+        _crashSnapshot.value = snapshot
+    }
+
+    override fun updateLatestVoiceCommand(detection: org.nowni.intercom_alpha.audio.CommandDetection?) {
+        _latestVoiceCommand.value = detection
+    }
+
+    override fun cancelCrashCountdown() {
+        _crashSnapshot.value = _crashSnapshot.value.copy(
+            state = org.nowni.intercom_alpha.safety.CrashState.CANCELLED_BY_RIDER,
+            remainingSeconds = 0
+        )
+    }
+
+    override fun triggerManualCrashSos() {
+        _crashSnapshot.value = _crashSnapshot.value.copy(
+            state = org.nowni.intercom_alpha.safety.CrashState.EMERGENCY_DISPATCHED,
+            remainingSeconds = 0
+        )
+    }
+
     fun simulateGeofenceSnapshot(snapshot: org.nowni.intercom_alpha.telemetry.ConvoyGeofenceSnapshot) {
         _geofenceSnapshot.value = snapshot
     }
 
     fun simulatePowerGovernorState(state: org.nowni.intercom_alpha.power.PowerGovernorState) {
         _powerGovernorState.value = state
+    }
+
+    fun simulateCrashSnapshot(snapshot: org.nowni.intercom_alpha.safety.CrashCountdownSnapshot) {
+        _crashSnapshot.value = snapshot
+    }
+
+    fun simulateVoiceCommand(detection: org.nowni.intercom_alpha.audio.CommandDetection?) {
+        _latestVoiceCommand.value = detection
     }
 
     override fun sendRepeaterPacket(packet: MeshPacket.Control) {

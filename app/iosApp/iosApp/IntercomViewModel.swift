@@ -72,6 +72,11 @@ final class IntercomViewModel: ObservableObject {
     @Published var geofenceSnapshot: ConvoyGeofenceSnapshot? = nil
     @Published var powerGovernorState: PowerGovernorState? = nil
 
+    // --- Autonomous Crash Detection & Voice Command Subsystems (Sprint 21 / ICA-2103) ---
+    @Published var crashSnapshot: CrashCountdownSnapshot? = nil
+    @Published var latestVoiceCommand: CommandDetection? = nil
+    @Published var showCrashCountdownCard: Bool = false
+
     private let bridge = IntercomBridge(localPeerId: "ios-lead", localPeerName: "iOS Lead")
     private var cancellables: [CancellationHandle] = []
     private var activeActivity: Activity<IntercomActivityAttributes>? = nil
@@ -208,6 +213,46 @@ final class IntercomViewModel: ObservableObject {
 
     func clearBlackboxCache() {
         bridge.clearBlackboxCache()
+    }
+
+    // --- Crash Detection & Voice Command Actions (Sprint 21 / ICA-2103) ---
+
+    func cancelCrashCountdown() {
+        bridge.cancelCrashCountdown()
+        showCrashCountdownCard = false
+    }
+
+    func triggerManualCrashSos() {
+        bridge.triggerManualCrashSos()
+        showCrashCountdownCard = false
+    }
+
+    func dismissVoiceCommandBadge() {
+        latestVoiceCommand = nil
+    }
+
+    private func handleVoiceCommand(_ command: VoiceCommand) {
+        switch command {
+        case .sosTrigger:
+            triggerEmergencySos()
+            bridge.triggerManualCrashSos()
+        case .nextChannel:
+            let next = (activeChannelId >= 8) ? 1 : activeChannelId + 1
+            selectChannel(next)
+        case .prevChannel:
+            let prev = (activeChannelId <= 1) ? 8 : activeChannelId - 1
+            selectChannel(prev)
+        case .muteToggle:
+            if isTransmitting {
+                stopPtt()
+            } else {
+                startPtt()
+            }
+        case .cancelAlert:
+            cancelCrashCountdown()
+        default:
+            break
+        }
     }
 
     // --- Adaptive Bitrate Profile ---
@@ -557,6 +602,25 @@ final class IntercomViewModel: ObservableObject {
             }
         }
         cancellables.append(powerGovernorSub)
+
+        // --- Autonomous Crash Detection & Voice Command Observers (Sprint 21 / ICA-2103) ---
+        let crashSub = bridge.observeCrashSnapshot { [weak self] snapshot in
+            Task { @MainActor in
+                self?.crashSnapshot = snapshot
+                self?.showCrashCountdownCard = (snapshot.state == CrashState.countdownActive)
+            }
+        }
+        cancellables.append(crashSub)
+
+        let voiceSub = bridge.observeVoiceCommands { [weak self] command in
+            Task { @MainActor in
+                self?.latestVoiceCommand = command
+                if let cmd = command {
+                    self?.handleVoiceCommand(cmd.command)
+                }
+            }
+        }
+        cancellables.append(voiceSub)
 
         isPfsRatchetActive = bridge.isPfsRatchetActive()
     }

@@ -52,6 +52,8 @@ class AppModuleTest {
         val bitrateController: AdaptiveBitrateController = koin.get()
         val trailMapManager: org.nowni.intercom_alpha.map.TrailMapManager = koin.get()
         val fileTransferManager: org.nowni.intercom_alpha.map.MeshFileTransferManager = koin.get()
+        val crashDetector: org.nowni.intercom_alpha.safety.CrashDetector = koin.get()
+        val voiceCommandRecognizer: org.nowni.intercom_alpha.audio.VoiceCommandRecognizer = koin.get()
         val hardwareBridge: org.nowni.intercom_alpha.bridge.IntercomHardwareBridge = koin.get()
         val homeViewModel: HomeViewModel = koin.get()
 
@@ -64,6 +66,8 @@ class AppModuleTest {
         assertNotNull(bitrateController)
         assertNotNull(trailMapManager)
         assertNotNull(fileTransferManager)
+        assertNotNull(crashDetector)
+        assertNotNull(voiceCommandRecognizer)
         assertNotNull(hardwareBridge)
         assertNotNull(homeViewModel)
     }

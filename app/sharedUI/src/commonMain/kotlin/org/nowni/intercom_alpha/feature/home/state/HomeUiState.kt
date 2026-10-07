@@ -62,7 +62,12 @@ data class HomeUiState(
 
     // Sprint 20 Tactical Convoy Geofencing & Battery Governor (ICA-2003)
     val geofenceSnapshot: org.nowni.intercom_alpha.telemetry.ConvoyGeofenceSnapshot = org.nowni.intercom_alpha.telemetry.ConvoyGeofenceSnapshot(),
-    val powerGovernorState: org.nowni.intercom_alpha.power.PowerGovernorState = org.nowni.intercom_alpha.power.PowerGovernorState()
+    val powerGovernorState: org.nowni.intercom_alpha.power.PowerGovernorState = org.nowni.intercom_alpha.power.PowerGovernorState(),
+
+    // Sprint 21 Autonomous Crash Impact Detection & Voice Command HUD (ICA-2103)
+    val crashSnapshot: org.nowni.intercom_alpha.safety.CrashCountdownSnapshot = org.nowni.intercom_alpha.safety.CrashCountdownSnapshot(),
+    val latestVoiceCommand: org.nowni.intercom_alpha.audio.CommandDetection? = null,
+    val showCrashCountdownDialog: Boolean = false
 )
 
 sealed interface HomeUiAction {
@@ -106,6 +111,11 @@ sealed interface HomeUiAction {
     // Sprint 20 Geofence & Power Governor Actions (ICA-2003)
     data class SetPowerPolicyOverride(val policy: org.nowni.intercom_alpha.power.PowerPolicy?) : HomeUiAction
     data class SetGeofenceLeadRider(val leadPeerId: String?) : HomeUiAction
+
+    // Sprint 21 Crash Impact & Voice Command Actions (ICA-2103)
+    data object CancelCrashCountdown : HomeUiAction
+    data object TriggerManualCrashSos : HomeUiAction
+    data object DismissVoiceCommandBadge : HomeUiAction
 }
 
 sealed interface HomeUiEvent {

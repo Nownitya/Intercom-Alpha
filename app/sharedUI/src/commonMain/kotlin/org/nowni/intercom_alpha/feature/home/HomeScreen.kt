@@ -284,6 +284,44 @@ fun HomeScreen(
                         }
                     }
                 }
+
+                // Offline Voice Command Feedback Badge (Sprint 21 - ICA-2103)
+                if (uiState.latestVoiceCommand != null) {
+                    val cmd = uiState.latestVoiceCommand
+                    Surface(
+                        onClick = { onAction(HomeUiAction.DismissVoiceCommandBadge) },
+                        shape = RoundedCornerShape(6.dp),
+                        color = Color(0xFF0B2228),
+                        border = BorderStroke(1.dp, Color(0xFF00E5FF))
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Text("🎙️", fontSize = 11.sp)
+                                Text(
+                                    text = "VOICE: ${cmd.command.phrase.uppercase()}",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color(0xFF00E5FF)
+                                )
+                                Text(
+                                    text = "(${kotlin.math.round(cmd.confidence * 100).toInt()}%)",
+                                    fontSize = 9.sp,
+                                    color = Color(0xFF80DEEA)
+                                )
+                            }
+                            Text("✕", fontSize = 10.sp, color = Color(0xFF80DEEA))
+                        }
+                    }
+                }
             }
 
             // ================= 2. EMERGENCY PREEMPTION BANNER =================
@@ -482,6 +520,97 @@ fun HomeScreen(
                 onDeleteTrail = { onAction(HomeUiAction.DeleteStoredTrail(it)) },
                 onDismiss = { onAction(HomeUiAction.ToggleTrailManagerSheet(false)) }
             )
+        }
+
+        // ================= CRASH COUNTDOWN DIALOG (Sprint 21 - ICA-2103) =================
+        if (uiState.showCrashCountdownDialog) {
+            CrashCountdownDialog(
+                snapshot = uiState.crashSnapshot,
+                onCancel = { onAction(HomeUiAction.CancelCrashCountdown) },
+                onSosNow = { onAction(HomeUiAction.TriggerManualCrashSos) }
+            )
+        }
+    }
+}
+
+@Composable
+fun CrashCountdownDialog(
+    snapshot: org.nowni.intercom_alpha.safety.CrashCountdownSnapshot,
+    onCancel: () -> Unit,
+    onSosNow: () -> Unit
+) {
+    val peakG = kotlin.math.round(snapshot.peakGForce * 10) / 10.0
+    androidx.compose.ui.window.Dialog(onDismissRequest = onCancel) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = Color(0xFF1A0A0A),
+            border = BorderStroke(2.dp, Color(0xFFFF1744)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                Text(
+                    text = "⚠️ VEHICULAR CRASH DETECTED",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Black,
+                    color = Color(0xFFFF1744),
+                    letterSpacing = 1.sp
+                )
+
+                Text(
+                    text = "${snapshot.remainingSeconds}",
+                    fontSize = 48.sp,
+                    fontWeight = FontWeight.Black,
+                    color = Color.White
+                )
+
+                Text(
+                    text = "SEVERITY: ${snapshot.severity.name} • PEAK: ${peakG}g",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFFF8A80)
+                )
+
+                Text(
+                    text = "Automatic eCall mesh emergency alert dispatching in ${snapshot.remainingSeconds}s unless aborted.",
+                    fontSize = 11.sp,
+                    color = Color(0xFFCFD8DC),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+
+                Button(
+                    onClick = onCancel,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E676)),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth().height(48.dp)
+                ) {
+                    Text(
+                        text = "I AM OK — CANCEL ALERT",
+                        fontWeight = FontWeight.Black,
+                        color = Color.Black,
+                        fontSize = 13.sp
+                    )
+                }
+
+                OutlinedButton(
+                    onClick = onSosNow,
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF5252)),
+                    border = BorderStroke(1.dp, Color(0xFFFF5252)),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth().height(40.dp)
+                ) {
+                    Text(
+                        text = "DISPATCH SOS NOW",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 11.sp
+                    )
+                }
+            }
         }
     }
 }

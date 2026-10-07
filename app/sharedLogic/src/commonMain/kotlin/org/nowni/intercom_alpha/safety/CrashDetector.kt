@@ -2,12 +2,15 @@ package org.nowni.intercom_alpha.safety
 
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
+import org.nowni.intercom_alpha.currentTimeMillis
 import org.nowni.intercom_alpha.telemetry.GpsCoordinate
 import kotlin.math.max
 
@@ -36,9 +39,11 @@ class CrashDetector(
 
     private val _snapshot = MutableStateFlow(CrashCountdownSnapshot())
     val snapshot: StateFlow<CrashCountdownSnapshot> = _snapshot.asStateFlow()
+    val countdownSnapshot: StateFlow<CrashCountdownSnapshot> get() = snapshot
 
     private val _outgoingAlerts = Channel<CrashAlertPacket>(Channel.BUFFERED)
     val outgoingAlerts: ReceiveChannel<CrashAlertPacket> = _outgoingAlerts
+    val alertPackets: Flow<CrashAlertPacket> = _outgoingAlerts.receiveAsFlow()
 
     private val _alertChimeTriggers = Channel<Int>(Channel.BUFFERED)
     val alertChimeTriggers: ReceiveChannel<Int> = _alertChimeTriggers
@@ -139,7 +144,7 @@ class CrashDetector(
      */
     suspend fun processSpeedUpdate(
         speedKmh: Float,
-        timestampMs: Long,
+        timestampMs: Long = currentTimeMillis(),
         currentGps: GpsCoordinate? = null
     ): CrashCountdownSnapshot = mutex.withLock {
         if (currentGps != null) {
@@ -172,6 +177,12 @@ class CrashDetector(
 
         _snapshot.value
     }
+
+    suspend fun processSpeedUpdate(
+        speedKmh: Double,
+        timestampMs: Long = currentTimeMillis(),
+        currentGps: GpsCoordinate? = null
+    ): CrashCountdownSnapshot = processSpeedUpdate(speedKmh.toFloat(), timestampMs, currentGps)
 
     /**
      * Advances the countdown timer based on the current wall-clock timestamp.
@@ -244,21 +255,33 @@ class CrashDetector(
     /**
      * Encodes a CrashAlertPacket into raw byte payload for ControlType.CRASH_ALERT.
      */
-    fun encodeAlertPayload(packet: CrashAlertPacket): ByteArray {
-        val jsonStr = json.encodeToString(CrashAlertPacket.serializer(), packet)
-        return jsonStr.encodeToByteArray()
-    }
+    fun encodeAlertPayload(packet: CrashAlertPacket): ByteArray = Companion.encodeAlertPayload(packet)
 
     /**
      * Parses an incoming ControlType.CRASH_ALERT payload from bytes.
      */
-    fun parseAlertPayload(payload: ByteArray): CrashAlertPacket? {
-        if (payload.isEmpty()) return null
-        return try {
-            val jsonStr = payload.decodeToString()
-            json.decodeFromString(CrashAlertPacket.serializer(), jsonStr)
-        } catch (_: Exception) {
-            null
+    fun parseAlertPayload(payload: ByteArray): CrashAlertPacket? = Companion.parseAlertPayload(payload)
+
+    companion object {
+        private val alertJson = Json {
+            classDiscriminator = "#type"
+            ignoreUnknownKeys = true
+            encodeDefaults = true
+        }
+
+        fun encodeAlertPayload(packet: CrashAlertPacket): ByteArray {
+            val jsonStr = alertJson.encodeToString(CrashAlertPacket.serializer(), packet)
+            return jsonStr.encodeToByteArray()
+        }
+
+        fun parseAlertPayload(payload: ByteArray): CrashAlertPacket? {
+            if (payload.isEmpty()) return null
+            return try {
+                val jsonStr = payload.decodeToString()
+                alertJson.decodeFromString(CrashAlertPacket.serializer(), jsonStr)
+            } catch (_: Exception) {
+                null
+            }
         }
     }
 
