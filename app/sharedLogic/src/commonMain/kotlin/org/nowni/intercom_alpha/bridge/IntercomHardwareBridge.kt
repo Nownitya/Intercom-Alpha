@@ -34,6 +34,8 @@ object ControlPayloadTag {
     const val TAG_EMERGENCY: Byte = 0x03
     const val TAG_REPEATER_PING: Byte = 0x04
     const val TAG_REPEATER_PONG: Byte = 0x05
+    const val TAG_GEOFENCE_ALARM: Byte = 0x06
+    const val TAG_POWER_STATUS: Byte = 0x07
 }
 
 /**
@@ -63,6 +65,8 @@ interface IntercomHardwareBridge {
     val trailMapSnapshot: StateFlow<TrailMapSnapshot>
     val fileTransfers: StateFlow<List<FileTransferProgress>>
     val storedTrails: StateFlow<List<TrailPolyline>>
+    val geofenceSnapshot: StateFlow<org.nowni.intercom_alpha.telemetry.ConvoyGeofenceSnapshot>
+    val powerGovernorState: StateFlow<org.nowni.intercom_alpha.power.PowerGovernorState>
 
     fun setPttActive(active: Boolean)
     fun setRepeaterModeActive(active: Boolean)
@@ -70,6 +74,8 @@ interface IntercomHardwareBridge {
     fun updateTrailMapSnapshot(snapshot: TrailMapSnapshot)
     fun updateFileTransfers(transfers: List<FileTransferProgress>)
     fun updateStoredTrails(trails: List<TrailPolyline>)
+    fun updateGeofenceSnapshot(snapshot: org.nowni.intercom_alpha.telemetry.ConvoyGeofenceSnapshot)
+    fun updatePowerGovernorState(state: org.nowni.intercom_alpha.power.PowerGovernorState)
     fun sendRepeaterPacket(packet: MeshPacket.Control)
     fun sendControlPacket(packet: MeshPacket.Control) {
         sendRepeaterPacket(packet)
@@ -81,7 +87,9 @@ interface IntercomHardwareBridge {
         helmetAccessoryManager: HelmetAccessoryManager? = null,
         repeaterService: MeshRepeaterService? = null,
         trailMapManager: TrailMapManager? = null,
-        fileTransferManager: MeshFileTransferManager? = null
+        fileTransferManager: MeshFileTransferManager? = null,
+        geofenceEngine: org.nowni.intercom_alpha.telemetry.ConvoyGeofenceEngine? = null,
+        batteryGovernor: org.nowni.intercom_alpha.power.BatteryGovernor? = null
     ) {}
 }
 
@@ -145,6 +153,12 @@ open class NoOpIntercomHardwareBridge(
     protected val _storedTrails = MutableStateFlow<List<TrailPolyline>>(emptyList())
     override val storedTrails: StateFlow<List<TrailPolyline>> = _storedTrails.asStateFlow()
 
+    protected val _geofenceSnapshot = MutableStateFlow(org.nowni.intercom_alpha.telemetry.ConvoyGeofenceSnapshot())
+    override val geofenceSnapshot: StateFlow<org.nowni.intercom_alpha.telemetry.ConvoyGeofenceSnapshot> = _geofenceSnapshot.asStateFlow()
+
+    protected val _powerGovernorState = MutableStateFlow(org.nowni.intercom_alpha.power.PowerGovernorState())
+    override val powerGovernorState: StateFlow<org.nowni.intercom_alpha.power.PowerGovernorState> = _powerGovernorState.asStateFlow()
+
     override fun setPttActive(active: Boolean) {
         _isTransmitting.value = active
     }
@@ -167,6 +181,22 @@ open class NoOpIntercomHardwareBridge(
 
     override fun updateStoredTrails(trails: List<TrailPolyline>) {
         _storedTrails.value = trails
+    }
+
+    override fun updateGeofenceSnapshot(snapshot: org.nowni.intercom_alpha.telemetry.ConvoyGeofenceSnapshot) {
+        _geofenceSnapshot.value = snapshot
+    }
+
+    override fun updatePowerGovernorState(state: org.nowni.intercom_alpha.power.PowerGovernorState) {
+        _powerGovernorState.value = state
+    }
+
+    fun simulateGeofenceSnapshot(snapshot: org.nowni.intercom_alpha.telemetry.ConvoyGeofenceSnapshot) {
+        _geofenceSnapshot.value = snapshot
+    }
+
+    fun simulatePowerGovernorState(state: org.nowni.intercom_alpha.power.PowerGovernorState) {
+        _powerGovernorState.value = state
     }
 
     override fun sendRepeaterPacket(packet: MeshPacket.Control) {

@@ -29,6 +29,8 @@ fun createSharedUiModule(
     single { MeshRepeaterService(repeaterId = "basecamp-relay-1", repeaterName = "Basecamp Relay Alpha") }
     single { org.nowni.intercom_alpha.map.TrailMapManager() }
     single { org.nowni.intercom_alpha.map.MeshFileTransferManager() }
+    single { org.nowni.intercom_alpha.telemetry.ConvoyGeofenceEngine() }
+    single { org.nowni.intercom_alpha.power.BatteryGovernor(nodeId = "android-local") }
     single<IntercomHardwareBridge> { hardwareBridge }
 
     viewModelOf(::HomeViewModel)

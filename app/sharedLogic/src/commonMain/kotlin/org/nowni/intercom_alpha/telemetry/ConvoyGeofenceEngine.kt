@@ -39,6 +39,86 @@ class ConvoyGeofenceEngine(
     private val activeBreachPeerIds = mutableSetOf<String>()
     private val activeHazardWaypointIds = mutableSetOf<String>()
 
+    private var currentLocalCoord: GpsCoordinate? = null
+    private val currentRemoteRiders = mutableMapOf<String, ConvoyRiderPosition>()
+    private var activeWaypoints: List<TrailWaypoint> = emptyList()
+    var leadRiderPeerId: String? = null
+        private set
+
+    fun setLeadRider(leadPeerId: String?) {
+        leadRiderPeerId = leadPeerId
+    }
+
+    fun setActiveWaypoints(waypoints: List<TrailWaypoint>) {
+        activeWaypoints = waypoints
+    }
+
+    suspend fun updateLocalPosition(
+        latitude: Double,
+        longitude: Double,
+        altitudeMeters: Double = 0.0,
+        speedKmh: Float = 0f,
+        headingDegrees: Float = 0f,
+        timestampMs: Long = currentTimeMillis()
+    ): ConvoyGeofenceSnapshot = updateLocalPosition(
+        GpsCoordinate(
+            latitude = latitude,
+            longitude = longitude,
+            altitudeMeters = altitudeMeters,
+            speedKmh = speedKmh,
+            headingDegrees = headingDegrees,
+            timestampMs = timestampMs
+        )
+    )
+
+    suspend fun updateLocalPosition(coord: GpsCoordinate): ConvoyGeofenceSnapshot {
+        val waypoints: List<TrailWaypoint>
+        val riders: List<ConvoyRiderPosition>
+        mutex.withLock {
+            currentLocalCoord = coord
+            waypoints = activeWaypoints
+            riders = currentRemoteRiders.values.toList()
+        }
+        return evaluate(coord, riders, waypoints, coord.timestampMs)
+    }
+
+    suspend fun handleRemoteTelemetry(frame: ConvoyTelemetryFrame) {
+        val coord: GpsCoordinate?
+        val waypoints: List<TrailWaypoint>
+        val riders: List<ConvoyRiderPosition>
+        mutex.withLock {
+            coord = currentLocalCoord
+            val dist = coord?.let {
+                ConvoyGpsTracker.calculateHaversineDistance(it.latitude, it.longitude, frame.coordinate.latitude, frame.coordinate.longitude)
+            } ?: 0.0
+            val absBearing = coord?.let {
+                ConvoyGpsTracker.calculateForwardAzimuth(it.latitude, it.longitude, frame.coordinate.latitude, frame.coordinate.longitude)
+            } ?: 0.0
+            val relBearing = coord?.let {
+                ConvoyGpsTracker.calculateRelativeBearing(absBearing, it.headingDegrees)
+            } ?: 0.0
+            val isAhead = relBearing >= -90.0 && relBearing <= 90.0
+
+            val rider = ConvoyRiderPosition(
+                peerId = frame.peerId,
+                peerName = frame.peerName,
+                coordinate = frame.coordinate,
+                distanceMeters = dist,
+                absoluteBearingDegrees = absBearing,
+                relativeBearingDegrees = relBearing,
+                isAhead = isAhead,
+                isBehind = !isAhead,
+                motionState = frame.motionState,
+                isEmergencyAlert = frame.isEmergencyAlert,
+                lastUpdatedMs = frame.coordinate.timestampMs
+            )
+            currentRemoteRiders[frame.peerId] = rider
+            waypoints = activeWaypoints
+            riders = currentRemoteRiders.values.toList()
+        }
+        evaluate(coord, riders, waypoints, frame.coordinate.timestampMs)
+    }
+
     companion object {
         private val json = Json {
             ignoreUnknownKeys = true
@@ -306,6 +386,10 @@ class ConvoyGeofenceEngine(
         previousWaypointDistances.clear()
         activeBreachPeerIds.clear()
         activeHazardWaypointIds.clear()
+        currentLocalCoord = null
+        currentRemoteRiders.clear()
+        activeWaypoints = emptyList()
+        leadRiderPeerId = null
         _geofenceState.value = ConvoyGeofenceSnapshot()
     }
 }
