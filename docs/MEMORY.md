@@ -697,6 +697,26 @@
     - Syllable peak counter detecting envelope energy transitions and intra-utterance dips in continuous speech.
     - Phonetic template classifier measuring syllable counts, target durations, mid-band formant ratios, and fricative/stop consonantal ZCR profiles.
 
+### 2.64 Subsystem Hardware Bridge Wiring & Multiplatform Emergency HUD Presentation (Sprint 21 - ICA-2103)
+- **Challenge**: Bridging autonomous high-G crash detection and offline keyword-spotting DSP into platform hardware sensor loops across Android and iOS while delivering an unmissable tactical emergency countdown HUD with 1-tap abort capabilities across Compose Multiplatform (`sharedUI`) and 100% Native SwiftUI (`iosApp`) respecting Rule 1.
+- **Solution**:
+  - `IntercomHardwareBridge.kt` & `AndroidPlatformBridge.kt`:
+    - Exposed `crashSnapshot: StateFlow<CrashCountdownSnapshot>` and `latestVoiceCommand: StateFlow<CommandDetection?>`.
+    - Automated forwarding of autonomous `CrashAlertPacket` objects encoded via `CrashDetector.encodeAlertPayload` as `ControlType.CRASH_ALERT` over BLE mesh upon countdown zero expiry.
+    - Added hardware bridge action dispatchers: `cancelCrashCountdown()`, `triggerManualCrashSos()`, `processImuReading(reading)`, and `processVoiceAudio(samples, timestampMs)`.
+  - `IntercomBridge.kt` (`iosMain`):
+    - Managed internal `CrashDetector` and `VoiceCommandRecognizer` singletons.
+    - Wired incoming mic PCM audio directly into `voiceCommandRecognizer.processPcmSamples(pcmShorts)`.
+    - Wired `crashDetector.alertPackets` to broadcast `ControlType.CRASH_ALERT` over `MeshTransport`.
+    - Exposed Swift-friendly reactive observers returning memory-safe `CancellationHandle` closures: `observeCrashSnapshot` and `observeVoiceCommands`.
+  - Compose Multiplatform (`HomeScreen.kt` & `HomeViewModel.kt`):
+    - Added `VoiceCommandFeedbackBadge` tactical ribbon displaying recognized keyword, confidence score, and dismiss action.
+    - Added full-screen modal `CrashCountdownDialog` displaying remaining seconds (30..0), peak G-force, incident severity, 1-tap "I AM OK — CANCEL ALERT" button, and "SOS NOW" immediate override button.
+    - Implemented `handleVoiceCommand(...)` handling hands-free tactical actions (SOS, channel increment/decrement, PTT mute toggle, countdown abort).
+  - 100% Native iOS SwiftUI (`ContentView.swift` & `IntercomViewModel.swift` — Rule 1):
+    - Added `@Published var crashSnapshot`, `@Published var latestVoiceCommand`, and `@Published var showCrashCountdownCard`.
+    - Implemented `TacticalVoiceCommandBadge` overlay and `CrashCountdownCardView` bottom card with tactile abort controls.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

@@ -1402,3 +1402,46 @@
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-21-crash-detection-voice-commands`).
 ---
+
+### [2026-10-07] - ICA-2103: Subsystem Hardware Bridge Wiring & Multiplatform Emergency HUD Presentation
+- **Branch**: `feature/ICA-2103-bridge-and-hud`
+- **Objective**: Wire `CrashDetector` and `VoiceCommandRecognizer` into Koin DI (`AppModule.kt`), `IntercomHardwareBridge`, `AndroidPlatformBridge`, and `IntercomBridge` (`iosMain`) with typed `CancellationHandle` observers. Integrate 30-second crash countdown banner with 1-tap abort button, audible alarm chime, and voice command recognition feedback badge across Compose Multiplatform (`HomeScreen.kt`) and 100% Native iOS SwiftUI (`ContentView.swift` & `IntercomViewModel.swift`) adhering to Rule 1.
+- **Implementation**:
+  - `IntercomHardwareBridge.kt`:
+    - Extended interface and `NoOpIntercomHardwareBridge` with `crashSnapshot: StateFlow<CrashCountdownSnapshot>` and `latestVoiceCommand: StateFlow<CommandDetection?>`.
+    - Added bridge action methods: `cancelCrashCountdown()`, `triggerManualCrashSos()`, `processImuReading(reading)`, and `processVoiceAudio(samples, timestampMs)`.
+    - Updated `attachSubsystems(...)` signature with optional `crashDetector` and `voiceCommandRecognizer`.
+    - Added `storedTrails: StateFlow<List<TrailPolyline>>` to base contract.
+  - `AndroidPlatformBridge.kt`:
+    - Wired attached `CrashDetector` and `VoiceCommandRecognizer` instances.
+    - Synchronized countdown snapshots to `_crashSnapshot` and forwarded autonomous `CrashAlertPacket` objects encoded via `CrashDetector.encodeAlertPayload` as `ControlType.CRASH_ALERT` over BLE mesh.
+    - Synchronized voice detections to `_latestVoiceCommand`.
+    - Added `processImuReading` and `processVoiceAudio` platform ingestion hooks.
+  - `IntercomBridge.kt` (`iosMain`):
+    - Added internal `CrashDetector` and `VoiceCommandRecognizer` singletons.
+    - Wired microphone PCM stream directly to `voiceCommandRecognizer.processPcmSamples(pcmShorts)`.
+    - Wired autonomous `crashDetector.alertPackets` to broadcast `ControlType.CRASH_ALERT` over iOS `MeshTransport`.
+    - Exposed Swift-friendly reactive observers returning `CancellationHandle`: `observeCrashSnapshot` and `observeVoiceCommands`.
+    - Exposed Swift action controls: `cancelCrashCountdown()`, `triggerManualCrashSos()`, `processImuReading(ax, ay, az, gx, gy, gz)`, and `processVoiceAudio(samples)`.
+  - `AppModule.kt`:
+    - Registered `single { CrashDetector() }` and `single { VoiceCommandRecognizer() }` in Koin `sharedUiModule`.
+    - Updated `AppModuleTest.kt` validating clean dependency resolution.
+  - `HomeUiState.kt` & `HomeViewModel.kt`:
+    - Added `crashSnapshot: CrashCountdownSnapshot`, `latestVoiceCommand: CommandDetection?`, and `showCrashCountdownDialog: Boolean`.
+    - Added UI actions: `HomeUiAction.CancelCrashCountdown`, `HomeUiAction.TriggerManualCrashSos`, and `HomeUiAction.DismissVoiceCommandBadge`.
+    - Injected `CrashDetector` and `VoiceCommandRecognizer`, synchronized state flows, and implemented `handleVoiceCommand(...)` for tactical hands-free controls (SOS, channel stepping, PTT mute toggle, countdown abort).
+  - `HomeScreen.kt`:
+    - Added `VoiceCommandFeedbackBadge` tactical ribbon displaying keyword, confidence percentage, and 1-tap dismiss.
+    - Added full-screen modal `CrashCountdownDialog` displaying remaining seconds (30..0), peak G-force, incident severity, 1-tap "I AM OK — CANCEL ALERT" button, and "SOS NOW" immediate override button.
+  - `IntercomViewModel.swift` & `ContentView.swift` (100% Native SwiftUI — Rule 1):
+    - Added `@Published var crashSnapshot`, `@Published var latestVoiceCommand`, and `@Published var showCrashCountdownCard`.
+    - Wired bridge observers with memory-safe `CancellationHandle` callbacks stored in lifecycle bag.
+    - Added `TacticalVoiceCommandBadge` overlay and `CrashCountdownCardView` bottom card with tactile abort controls.
+  - `HomeViewModelTest.kt`:
+    - Added comprehensive unit tests validating crash impact detection flow, countdown dialog presentation, rider 1-tap cancellation, manual crash SOS dispatch, offline voice command channel stepping, PTT mute toggle, and voice-activated alert abort.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-21-crash-detection-voice-commands`).
+---
+
