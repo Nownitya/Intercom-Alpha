@@ -1612,6 +1612,35 @@
   - `ICA-2203: Subsystem Hardware Bridge Wiring & Multiplatform Mesh Topology HUD Presentation` [PASSED]
   - `ICA-2204: 24-Node Large-Scale Directed Mesh RF Contention Benchmark & Archify Showcase Update` [PASSED]
 - **Target Release**: `v2.9.0`
+---
+
+### [2026-10-08] - ICA-2301: Pure KMP Multi-Group Gateway Engine & Cross-Mesh Federation Protocol
+- **Branch**: `feature/ICA-2301-gateway-engine`
+- **Objective**: Implement pure KMP `FederationModels.kt`, `InterGroupGateway.kt`, and `CrossMeshRelayEngine.kt` in `mesh/federation/`. Defines inter-group gateway contracts (`GroupFederationInvite`, `FederationBridgeState`, `CrossGroupPolicy`, `CrossMeshAudioPacket`). Implements gateway leader arbitration, policy-driven audio/hazard bridging between distinct cryptographic groups (Squad A vs Squad B) with key translation and re-encryption. Pure KMP with 0 Java/C dependencies (Rules 2 & 3).
+- **Implementation**:
+  - `MeshTransport.kt`: Added `FEDERATION_INVITE`, `FEDERATION_BRIDGE`, and `FEDERATION_AUDIO` to `ControlType` enum.
+  - `FederationModels.kt`:
+    - Defined `CrossGroupPolicy` (`CAPTAIN_ONLY`, `EMERGENCY_SOS_ONLY`, `ALL_MEMBERS_BRIDGED`, `DISABLED`).
+    - Defined `GroupFederationInvite` with `FEDERATION:v1:` Base64 URL/QR prefix and symmetric key derivation.
+    - Defined `FederationBridgeState` and `GatewayRole` (`PRIMARY`, `STANDBY`, `NON_GATEWAY`).
+    - Modeled `CrossMeshAudioPacket` with `pathTrace` loop prevention list and AEAD encrypted payload.
+    - Implemented `FederationSerializer` with `#type` class discriminator and pure Kotlin Base64 encoding.
+  - `CrossMeshRelayEngine.kt`:
+    - Managed multi-federation ciphers derived via SHA-256 (`PacketCipher.deriveKey(sharedSecret)`).
+    - Enforced policy authorization checks (`isTransmissionAllowed`).
+    - Added inbound anti-feedback loop guard (`DropFeedbackLoop` if `pathTrace.contains(localGroupId)`).
+    - Authenticated and decrypted incoming cross-mesh frames returning `InboundFederationDecision.Deliver`.
+  - `InterGroupGateway.kt`:
+    - Primary gateway state coordinator for local group.
+    - Automated invite generation (`createFederationInvite`) and validation/acceptance (`acceptFederationInvite`).
+    - Enforced gateway leader role: only `PRIMARY` gateway nodes broadcast outbound cross-mesh frames, suppressing duplicate storms from `STANDBY` nodes.
+    - Maintained active federated sibling table, relayed packet counters, and reactive `FederationSnapshot`.
+  - `InterGroupGatewayTest.kt`:
+    - 5 comprehensive tests validating invite encoding/decoding/expiry, policy enforcement (captain/emergency/all), end-to-end dual gateway translation, circular feedback loop suppression, standby gateway suppression, and tampered payload rejection.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly in 48s).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-23-multi-group-gateway`).
 
 
 

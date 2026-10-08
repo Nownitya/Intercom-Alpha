@@ -813,6 +813,23 @@
     - Added Sprint 22 showcase card (orange dot) highlighting AODV-Lite route discovery, ETX cost arbitration, and overhearing contention suppression.
     - Delivered via Archify CLI with 100% clean validation (9/9 checks passed, 0 errors, 0 warnings).
 
+### 2.70 Pure KMP Multi-Group Gateway Engine & Cross-Mesh Federation Protocol (Sprint 23 - ICA-2301)
+- **Challenge**: Bridging separate motorcycle riding squads ("Squad Alpha" vs "Squad Bravo") with disparate 256-bit AES/ChaCha20 group keys without forcing riders into one oversized group (which pollutes audio channels and leaks private chatter), while preventing circular feedback loops and unauthorized cross-group eavesdropping.
+- **Solution**:
+  - `MeshTransport.kt`: Extended `ControlType` with `FEDERATION_INVITE`, `FEDERATION_BRIDGE`, and `FEDERATION_AUDIO`.
+  - `FederationModels.kt`:
+    - Modeled `CrossGroupPolicy`: `CAPTAIN_ONLY` (road captains + emergency), `EMERGENCY_SOS_ONLY` (high-g crash / eCall alerts only), `ALL_MEMBERS_BRIDGED` (unrestricted two-way bridge), and `DISABLED`.
+    - Modeled `GroupFederationInvite` (`FEDERATION:v1:<base64(json)>`) with cryptographic HMAC/SHA-256 bridge key derivation.
+    - Defined `CrossMeshAudioPacket` embedding `pathTrace: List<String>` tracking visited group IDs to prevent circular relay loops.
+    - Implemented `FederationSerializer` with `#type` discriminator compatibility.
+  - `CrossMeshRelayEngine.kt`:
+    - Authenticates and re-encrypts audio frames using shared federation bridge ciphers (`PacketCipher`).
+    - Enforces policy authorization gates (`isTransmissionAllowed`).
+    - Detects circular loops and returns `DropFeedbackLoop` if incoming `pathTrace` includes `localGroupId`.
+  - `InterGroupGateway.kt`:
+    - Gateway state machine coordinating active federations, invite generation, and role arbitration.
+    - Enforced gateway leader role: only `PRIMARY` gateway nodes broadcast outbound cross-mesh frames, suppressing duplicate storms from `STANDBY` nodes.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

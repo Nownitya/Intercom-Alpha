@@ -23,7 +23,7 @@
         "Provides CrossMeshRelayEngine re-encrypting voice frames with destination group key",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-2302",
