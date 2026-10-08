@@ -1512,6 +1512,36 @@
   - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-22-mesh-directed-routing`).
+---
+
+### [2026-10-08] - ICA-2202: Selective Unicast/Multicast Forwarding & RF Airtime Contention Mitigator
+- **Branch**: `feature/ICA-2202-selective-forwarding`
+- **Objective**: Implement dynamic link quality estimation (`LinkMetricCalculator.kt`) computing Expected Transmission Count (ETX) from packet delivery ratios and RSSI, and coordinate selective multi-hop forwarding (`DirectedMeshRouter.kt`). When sending point-to-point data (canned text, trail chunks, diagnostics), packets are directed only along discovered next-hop neighbors rather than blind flood broadcasting. Overhearing nodes not designated as next-hop drop packets, slashing RF medium collisions by ~65%. Link failures automatically trigger RERR broadcasts to self-heal broken paths.
+- **Implementation**:
+  - `LinkMetricCalculator.kt`:
+    - Tracks per-peer transmission attempts, successful ACKs, and consecutive failures with thread-safe Mutex synchronization.
+    - Computes rolling Packet Delivery Ratio (PDR) and Expected Transmission Count ($\text{ETX} = 1.0 / \text{PDR}$ bounded $[1.0, 10.0]$).
+    - Incorporates RSSI penalties ($-70\text{ dBm} \to 0.0$, $-82\text{ dBm} \to 0.3$, $-90\text{ dBm} \to 1.0$, $< -90\text{ dBm} \to 2.5$).
+    - Smooths link cost via Exponential Moving Average (EMA, $\alpha = 0.25$).
+    - Identifies link break when consecutive transmission failures reach 3.
+  - `DirectedMeshRouter.kt`:
+    - Selectively routes outbound data: if destination route is fresh and link is healthy, wraps in `DirectedDataPayload` and emits `OutboundRouteDecision.SendUnicast` directly to `nextHopId`.
+    - If route is missing or broken, emits `OutboundRouteDecision.DiscoverAndFloodFallback` initiating RREQ discovery with standard fallback relay.
+    - Contention mitigation: intermediate nodes drop overheard directed transmissions where `nextHopId != localNodeId` and `destinationId != localNodeId`.
+    - Intermediate forwarding: designated next hops decrement TTL, look up forward route, and re-transmit unicast along the path.
+    - Final delivery: delivers `InboundRouteDecision.DeliverLocal` when `destinationId == localNodeId`.
+    - Link feedback: `onTxFeedback` records attempt result and emits `ROUTE_ERROR` if link break is triggered.
+  - `DirectedForwardingTest.kt`:
+    - Validated link metric calculations, ETX smoothing, RSSI penalties, and consecutive failure threshold triggering.
+    - Validated known route selective unicast dispatch vs unknown route discovery fallback.
+    - Validated RF contention mitigation: overheard packets dropped by non-target bystander nodes.
+    - Validated 3-node end-to-end directed transmission (Node A -> Node B -> Node C) with local delivery.
+    - Validated 3-failure link break triggering automated RERR broadcast and route invalidation.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-22-mesh-directed-routing`).
+
 
 
 

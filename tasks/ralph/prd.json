@@ -42,7 +42,7 @@
         "Suppresses redundant packet re-broadcasts on intermediate nodes not on the path",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-2203",

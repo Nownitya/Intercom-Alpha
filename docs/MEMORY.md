@@ -755,6 +755,20 @@
     - Implemented link break detection and RERR propagation to upstream precursor nodes.
     - Tracked real-time airtime efficiency percentage comparing directed packets to flooded fallback packets.
 
+### 2.67 Selective Unicast/Multicast Forwarding & RF Airtime Contention Mitigator (Sprint 22 - ICA-2202)
+- **Challenge**: In dense or multi-hop motorcycle convoys, standard blind packet flood relay causes severe RF medium saturation, packet collisions, and unnecessary radio transmission on intermediate nodes that are not between the communication endpoints.
+- **Solution**:
+  - `LinkMetricCalculator.kt`:
+    - Computed rolling Packet Delivery Ratio (PDR) and Expected Transmission Count ($\text{ETX} = 1.0 / \text{PDR}$ bounded $[1.0, 10.0]$).
+    - Modeled asymmetric RSSI penalties ($-70\text{ dBm} \to 0.0$, $-82\text{ dBm} \to 0.3$, $-90\text{ dBm} \to 1.0$, $< -90\text{ dBm} \to 2.5$) smoothed with Exponential Moving Average ($\alpha = 0.25$).
+    - Automated link break detection when consecutive transmission failures reach 3.
+  - `DirectedMeshRouter.kt`:
+    - Point-to-point data (text, trail chunks, remote diagnostics) is selectively dispatched via unicast along active AODV routes rather than broadcast flooded.
+    - Contention mitigation: intermediate nodes drop overheard directed transmissions where `nextHopId != localNodeId` and `destinationId != localNodeId`, eliminating redundant re-transmissions.
+    - Multi-hop forwarding: designated next-hop nodes decrement TTL, update next-hop pointers, and re-transmit unicast packets along the path.
+    - Fallback mechanism: if no active route exists, triggers on-demand RREQ discovery with standard fallback relay.
+    - Self-healing: transmission failure feedback (`onTxFeedback`) triggers link break detection and immediate RERR emission to notify upstream nodes.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index
