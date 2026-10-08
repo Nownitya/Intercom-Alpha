@@ -769,6 +769,32 @@
     - Fallback mechanism: if no active route exists, triggers on-demand RREQ discovery with standard fallback relay.
     - Self-healing: transmission failure feedback (`onTxFeedback`) triggers link break detection and immediate RERR emission to notify upstream nodes.
 
+### 2.68 Subsystem Hardware Bridge Wiring & Multiplatform Mesh Topology HUD Presentation (Sprint 22 - ICA-2203)
+- **Challenge**: Seamlessly wiring `DirectedMeshRouter` into platform hardware abstraction bridges (`AndroidPlatformBridge`, `IntercomBridge.kt` on iOS) and presenting live routing topology (active routes, next hops, link ETX costs, airtime savings %) on mobile handlebar HUDs across Compose Multiplatform (`sharedUI`) and 100% Native iOS SwiftUI (`iosApp`) without breaking Rule 1 (zero Compose on iOS) or cluttering the handlebar cockpit.
+- **Solution**:
+  - `IntercomHardwareBridge.kt` & `AndroidPlatformBridge.kt`:
+    - Exposed `routingSnapshot: StateFlow<RoutingSnapshot>` contract with default `NoOpIntercomHardwareBridge` simulation methods.
+    - Attached `directedRouter` in `attachSubsystems(...)` and added background polling loop periodically synchronizing routing snapshots.
+    - Added `initiateRouteDiscovery(destinationId)` creating and broadcasting `ROUTE_REQUEST` control packets.
+  - `IntercomBridge.kt` (`iosMain`):
+    - Instantiated `DirectedMeshRouter(localPeerId)` on iOS bridge.
+    - Exposed Swift-friendly `observeRoutingSnapshot(onSnapshot: (RoutingSnapshot) -> Unit): CancellationHandle` callback for memory-safe SwiftUI binding.
+    - Exposed `initiateRouteDiscovery(destinationId: String)`.
+  - `AppModule.kt`:
+    - Registered `DirectedMeshRouter(localNodeId = "android-local")` singleton in Koin dependency graph.
+  - `HomeUiState.kt` & `HomeViewModel.kt`:
+    - Added `routingSnapshot` and `showRoutingDiagnosticsSheet` state fields.
+    - Added `ToggleRoutingDiagnosticsSheet` and `InitiateRouteDiscovery` actions to `HomeUiAction`.
+    - Injected `directedRouter`, bound to bridge, and synchronized state flow.
+  - `HomeScreen.kt` (Compose Multiplatform):
+    - Added Directed AODV routing strip in top avionics cluster showing route count, airtime savings %, directed vs flooded packet counts, and a "DIAG" trigger.
+    - Implemented `RoutingDiagnosticsDialog` displaying detailed active route summaries (destination, next hop, hops, ETX, status) and RF airtime savings KPI.
+  - `IntercomViewModel.swift` & `ContentView.swift` (100% Native SwiftUI — Rule 1):
+    - Added `@Published var routingSnapshot` and `@Published var showRoutingSheet` in `IntercomViewModel.swift`.
+    - Bound `observeRoutingSnapshot` via `CancellationHandle` cleaned up in `deinit`.
+    - Added AODV routing pill in `TacticalAvionicsBar`.
+    - Implemented `RoutingDiagnosticsSheetView` presenting airtime savings summary card, packet counters, and active route inspector.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

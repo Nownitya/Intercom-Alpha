@@ -1541,6 +1541,45 @@
   - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-22-mesh-directed-routing`).
+---
+
+### [2026-10-08] - ICA-2203: Subsystem Hardware Bridge Wiring & Multiplatform Mesh Topology HUD Presentation
+- **Branch**: `feature/ICA-2203-bridge-and-hud`
+- **Objective**: Wire `DirectedMeshRouter` into `IntercomHardwareBridge`, `AndroidPlatformBridge`, and `IntercomBridge` (iosMain) with typed `CancellationHandle` observers. Expose reactive `RoutingSnapshot` (active routes, next hops, link ETX costs, RF airtime savings). Display routing indicators and vector path connections on `HomeScreen.kt` (Compose Multiplatform) and `ContentView.swift` (100% Native iOS SwiftUI) respecting Rule 1.
+- **Implementation**:
+  - `IntercomHardwareBridge.kt`:
+    - Added `routingSnapshot: StateFlow<RoutingSnapshot>` contract and `updateRoutingSnapshot(snapshot)` method.
+    - Added `initiateRouteDiscovery(destinationId: String)`.
+    - Added `directedRouter: DirectedMeshRouter? = null` parameter in `attachSubsystems(...)`.
+    - Implemented simulation helpers in `NoOpIntercomHardwareBridge`.
+  - `AndroidPlatformBridge.kt`:
+    - Added `_routingSnapshot` StateFlow and background polling loop updating snapshot every 2 seconds.
+    - Wired `initiateRouteDiscovery` building and sending `ROUTE_REQUEST` control packet.
+  - `IntercomBridge.kt` (`iosMain`):
+    - Added `directedRouter = DirectedMeshRouter(localPeerId)`.
+    - Added Swift-friendly `observeRoutingSnapshot(onSnapshot: (RoutingSnapshot) -> Unit): CancellationHandle`.
+    - Added `initiateRouteDiscovery(destinationId: String)` sending `ROUTE_REQUEST`.
+  - `AppModule.kt`:
+    - Registered `DirectedMeshRouter(localNodeId = "android-local")` in Koin dependency graph.
+  - `HomeUiState.kt` & `HomeViewModel.kt`:
+    - Added `routingSnapshot: RoutingSnapshot` and `showRoutingDiagnosticsSheet: Boolean` to state.
+    - Added `ToggleRoutingDiagnosticsSheet` and `InitiateRouteDiscovery` actions to `HomeUiAction`.
+    - Injected `directedRouter`, attached to `hardwareBridge`, and synchronized live snapshot updates.
+  - `HomeScreen.kt` (Compose Multiplatform):
+    - Added Directed AODV routing strip showing route count, airtime savings %, directed vs flooded packet counts, and a "DIAG" button.
+    - Implemented `RoutingDiagnosticsDialog` displaying detailed active route summaries (destination, next hop, hops, ETX, status) and airtime metrics.
+  - `IntercomViewModel.swift` & `ContentView.swift` (100% Native SwiftUI — Rule 1):
+    - Added `@Published var routingSnapshot: RoutingSnapshot?` and `@Published var showRoutingSheet: Bool`.
+    - Wired `bridge.observeRoutingSnapshot` observer into reactive view model lifecycle.
+    - Added tactical AODV routing badge in `TacticalAvionicsBar`.
+    - Implemented `RoutingDiagnosticsSheetView` presenting airtime savings KPI card, directed/flooded packet counters, and active route inspector list.
+  - `HomeViewModelTest.kt`:
+    - Validated routing snapshot state flow synchronization, diagnostics sheet toggle, and route discovery action dispatch.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-22-mesh-directed-routing`).
+
 
 
 
