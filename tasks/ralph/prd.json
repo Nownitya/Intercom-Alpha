@@ -23,7 +23,7 @@
         "Falls back to controlled flooding when route to target destination is unknown or expired",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-2202",

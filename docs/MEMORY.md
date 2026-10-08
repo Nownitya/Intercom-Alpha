@@ -735,6 +735,26 @@
     - Added dedicated `crash-and-voice-hud` tactical cockpit view and updated documentation info cards.
     - Validated and delivered interactive HTML architecture diagram via Archify CLI (all 9 checks passed, 0 errors, 0 warnings).
 
+### 2.66 Pure KMP AODV-Lite Directed Routing Engine & Route Table Arbiter (Sprint 22 - ICA-2201)
+- **Challenge**: Replacing unconstrained BLE flooding relay (which causes high packet collision rates and RF medium saturation as node count grows) with an on-demand directed routing protocol in pure KMP that operates strictly without central infrastructure, guarantees loop-freedom, adapts to dynamic mobile convoy topologies, and accounts for asymmetric link quality.
+- **Solution**:
+  - `RoutingModels.kt`:
+    - Modeled `RouteEntry` with destination sequence numbers (`destSeqNum`), hop counts, link metric costs, and soft-state lifetimes (default 30,000ms).
+    - Defined protocol payloads: `RouteRequestPayload` (RREQ), `RouteReplyPayload` (RREP), `RouteErrorPayload` (RERR), and `DirectedDataPayload`.
+    - Implemented binary/JSON serialization in `RoutingSerializer` with RFC 8439 and `#type` discriminator compatibility.
+  - `RoutingTable.kt`:
+    - Thread-safe Mutex-synchronized routing table arbiter.
+    - Implemented RFC 3561 loop-freedom invariants: routes updated only on strictly higher destination sequence number, or equal sequence number with strictly lower metric cost.
+    - Tracked reverse and forward precursor node sets for targeted RERR propagation upon link break.
+    - Implemented `invalidateRoute`, `invalidateRoutesViaNextHop`, and `pruneExpired`.
+  - `AodvRoutingEngine.kt`:
+    - Implemented on-demand route discovery with monotonic local sequence numbers and RREQ ID generation.
+    - Suppressed duplicate RREQs via sliding-window cache.
+    - Modeled RSSI-based link cost (`calculateHopCost`: -70 dBm = 1.0, -80 dBm = 1.5, -90 dBm = 2.5, < -90 dBm = 4.5) to favor reliable low-retry links over distant weak links.
+    - Supported intermediate node RREP answering when fresh routes exist, reducing route discovery latency.
+    - Implemented link break detection and RERR propagation to upstream precursor nodes.
+    - Tracked real-time airtime efficiency percentage comparing directed packets to flooded fallback packets.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

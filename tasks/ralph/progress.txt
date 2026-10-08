@@ -1478,4 +1478,40 @@
 - **DoD Compliance**: 100% of acceptance criteria verified across Android, iOS, and pure KMP commonMain.
 - **Build & Tests**: 125/125 Gradle tasks passed cleanly, OpenCodeReview 0 findings across all stories.
 
+---
+
+### [2026-10-08] - ICA-2201: Pure KMP AODV-Lite Directed Routing Engine & Route Table Arbiter
+- **Branch**: `feature/ICA-2201-aodv-routing-engine`
+- **Objective**: Implement pure KMP AODV-Lite on-demand directed routing protocol engine (`AodvRoutingEngine.kt`), loop-free routing table arbiter (`RoutingTable.kt`), and serializable protocol messages (`RoutingModels.kt`) in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/routing/`. Enables on-demand route discovery via RREQ, RREP, and RERR with monotonic destination sequence numbering, link quality metric cost (ETX derived from RSSI), and soft-state route expiration, avoiding RF packet collisions from blind flooding relay.
+- **Implementation**:
+  - `MeshTransport.kt`:
+    - Extended `ControlType` enum with `ROUTE_REQUEST`, `ROUTE_REPLY`, `ROUTE_ERROR`, and `DIRECTED_DATA`.
+  - `RoutingModels.kt`:
+    - Defined `RouteStatus` (`ACTIVE`, `EXPIRED`, `DISCOVERING`, `INVALID`), `RouteEntry`, `RouteRequestPayload`, `RouteReplyPayload`, `RouteErrorPayload`, `UnreachableNode`, `DirectedDataPayload`, `RouteSummary`, and `RoutingSnapshot`.
+    - Implemented binary/JSON serialization utilities in `RoutingSerializer` with RFC 8439 and `#type` discriminator compatibility.
+  - `RoutingTable.kt`:
+    - Thread-safe Mutex-synchronized routing table arbiter.
+    - Enforced RFC 3561 loop-freedom rules: updates accepted only if sequence number is strictly greater, or equal with strictly lower metric cost, or previous route was expired/invalid.
+    - Maintained reverse and forward precursor node sets for targeted RERR propagation upon link break.
+    - Implemented `invalidateRoute`, `invalidateRoutesViaNextHop`, and `pruneExpired`.
+  - `AodvRoutingEngine.kt`:
+    - Pure KMP AODV-Lite protocol engine with monotonic local sequence numbers and RREQ ID generation.
+    - Duplicate RREQ suppression using a 5-second sliding-window cache.
+    - Hop cost calculation based on link RSSI (`-70 dBm` = 1.0, `-80 dBm` = 1.5, `-90 dBm` = 2.5, `< -90 dBm` = 4.5).
+    - Reverse path establishment on RREQ traversal; intermediate node RREP response if fresh route exists; destination node RREP generation with incremented sequence numbers.
+    - Link break detection with automated RERR generation listing unreachable destinations.
+    - Dynamic airtime efficiency tracking computing bandwidth savings percentage vs flooding.
+  - `AodvRoutingEngineTest.kt`:
+    - Validated full serialization round-trips for RREQ, RREP, RERR, and DirectedData.
+    - Validated loop-freedom and metric comparison rules in `RoutingTable`.
+    - Validated direct 2-node and multi-hop 3-node route discovery (Node A -> Node B -> Node C).
+    - Validated duplicate RREQ suppression and intermediate node caching.
+    - Validated link break detection, RERR emission, and upstream route invalidation.
+    - Validated soft-state expiration and airtime efficiency metric calculation.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-22-mesh-directed-routing`).
+
+
 
