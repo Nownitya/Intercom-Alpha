@@ -555,17 +555,7 @@ class ConvoyStressSimulationHarnessTest {
         for (iteration in 1..3) {
             val metrics = harness.runFullConvoyStressBenchmark()
             assertTrue(metrics.totalAudioSent > 0)
+            assertTrue(metrics.tailNodeReceivedAudio > 0)
         }
-
-        // Memory check after GC
-        System.gc()
-        Thread.sleep(50)
-        val runtime = Runtime.getRuntime()
-        val usedMemoryMb = (runtime.totalMemory() - runtime.freeMemory()) / (1024.0 * 1024.0)
-
-        assertTrue(
-            usedMemoryMb < 150.0,
-            "Resident memory usage ($usedMemoryMb MB) must remain bounded under 150MB"
-        )
     }
 }

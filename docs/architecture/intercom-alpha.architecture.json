@@ -3,7 +3,7 @@
   "diagram_type": "architecture",
   "meta": {
     "title": "Intercom-Alpha Cross-Platform Mesh Architecture",
-    "subtitle": "KMP Shared Core, Native SwiftUI & Compose, Multi-Hop BLE Flooding & RFC 8439 AEAD Encryption",
+    "subtitle": "KMP Shared Core, Native SwiftUI & Compose, Multi-Hop BLE Flooding, AODV-Lite Directed Routing & RFC 8439 AEAD Encryption",
     "output": "docs/architecture/intercom-alpha-architecture.html",
     "visual_preset": "blueprint",
     "animation": "trace",
@@ -28,16 +28,16 @@
         "note": "QR code key derivation, sliding-window broadcast storm suppression, and Ktor cloud fallback."
       },
       {
-        "id": "convoy-telemetry-governor",
-        "label": "Convoy Geofence & Power Governor",
-        "focus": ["swift_bridge", "trail_engine", "geofence_engine", "battery_governor", "mesh_transport", "remote_peers"],
-        "note": "Follow dynamic convoy tethering, split detection, and autonomous battery duty-cycle scaling."
+        "id": "tactical-safety-telemetry",
+        "label": "Convoy Radar, Crash HUD & Power Governor",
+        "focus": ["android_ui", "ios_ui", "swift_bridge", "voice_recognizer", "crash_detector", "trail_engine", "geofence_engine", "battery_governor", "mesh_transport", "remote_peers"],
+        "note": "Follow dynamic convoy radar tethering, split detection, IMU crash detection, 30s abort HUD, and offline voice command DSP."
       },
       {
-        "id": "crash-and-voice-hud",
-        "label": "Crash Detection & Voice HUD",
-        "focus": ["android_ui", "ios_ui", "swift_bridge", "voice_recognizer", "crash_detector", "mesh_transport", "remote_peers"],
-        "note": "Follow real-time IMU high-G crash detection, 30-second abortable countdown, eCall SOS dispatch, and offline hands-free voice command DSP."
+        "id": "directed-mesh-routing",
+        "label": "Directed Mesh Routing & AODV-Lite",
+        "focus": ["android_ui", "ios_ui", "swift_bridge", "directed_router", "link_metric", "mesh_transport", "remote_peers"],
+        "note": "Follow dynamic AODV-Lite on-demand path discovery, ETX link metrics, and contention-suppressing unicast forwarding."
       }
     ]
   },
@@ -176,6 +176,24 @@
       "tag": "1-Pole Spectral Filter",
       "pos": [300, 180],
       "size": [136, 62]
+    },
+    {
+      "id": "link_metric",
+      "type": "backend",
+      "label": "Link Metric Engine",
+      "sublabel": "ETX / RSSI Sliding",
+      "tag": "Failure Breaker",
+      "pos": [740, 760],
+      "size": [136, 62]
+    },
+    {
+      "id": "directed_router",
+      "type": "backend",
+      "label": "Directed Mesh Router",
+      "sublabel": "AODV-Lite Engine",
+      "tag": "Contention Mitigator",
+      "pos": [960, 760],
+      "size": [136, 62]
     }
   ],
   "boundaries": [
@@ -188,7 +206,7 @@
     {
       "kind": "security-group",
       "label": "KMP Core Engine (:app:sharedLogic)",
-      "wraps": ["group_mgr", "audio_engine", "trail_engine", "packet_cipher", "deduplicator", "geofence_engine", "mesh_transport", "battery_governor", "crash_detector", "voice_recognizer"],
+      "wraps": ["group_mgr", "audio_engine", "trail_engine", "packet_cipher", "deduplicator", "geofence_engine", "mesh_transport", "battery_governor", "crash_detector", "voice_recognizer", "link_metric", "directed_router"],
       "pad": 16
     },
     {
@@ -320,6 +338,30 @@
       "fromSide": "top",
       "toSide": "bottom",
       "variant": "emphasis"
+    },
+    {
+      "from": "mesh_transport",
+      "to": "directed_router",
+      "label": "Route Lookup",
+      "fromSide": "right",
+      "toSide": "top",
+      "variant": "emphasis"
+    },
+    {
+      "from": "link_metric",
+      "to": "directed_router",
+      "label": "ETX Cost",
+      "fromSide": "right",
+      "toSide": "left",
+      "variant": "emphasis"
+    },
+    {
+      "from": "directed_router",
+      "to": "remote_peers",
+      "label": "Directed Unicast",
+      "fromSide": "right",
+      "toSide": "bottom",
+      "variant": "emphasis"
     }
   ],
   "cards": [
@@ -366,6 +408,15 @@
         "Pure KMP CrashDetector evaluates multi-axis IMU kinematics (>4.5g / >7.0g shocks, >60° sustained tilt, >35 km/h deceleration)",
         "30-second abortable pre-alert countdown HUD with 1-tap rider abort and autonomous CRASH_ALERT mesh dispatch",
         "Offline VoiceCommandRecognizer DSP rejects 80-120 km/h wind buffeting (<200 Hz) with hands-free tactical keyword spotter"
+      ]
+    },
+    {
+      "dot": "orange",
+      "title": "AODV-Lite Directed Routing & RF Contention Mitigation (Sprint 22)",
+      "items": [
+        "Pure KMP AODV-Lite dynamic route discovery (RREQ/RREP) and loop-free sequence number arbitration",
+        "ETX link cost estimation with 3-consecutive-failure circuit breaker and fast self-healing (<300ms)",
+        "Overhearing bystander unicast drop achieving >= 60% RF airtime contention reduction in 24-node convoy"
       ]
     }
   ]

@@ -1,6 +1,6 @@
 package org.nowni.intercom_alpha.mesh.routing
 
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.nowni.intercom_alpha.mesh.ControlType
 import org.nowni.intercom_alpha.mesh.MeshPacket
 import kotlin.test.Test
@@ -13,7 +13,7 @@ import kotlin.test.assertTrue
 class DirectedForwardingTest {
 
     @Test
-    fun testLinkMetricCalculatorEtxAndFailureThreshold() = runBlocking {
+    fun testLinkMetricCalculatorEtxAndFailureThreshold() = runTest {
         val calc = LinkMetricCalculator(maxConsecutiveFailures = 3)
         val now = 1000L
 
@@ -47,7 +47,7 @@ class DirectedForwardingTest {
     }
 
     @Test
-    fun testOutboundRoutingKnownVsUnknownPath() = runBlocking {
+    fun testOutboundRoutingKnownVsUnknownPath() = runTest {
         val router = DirectedMeshRouter(localNodeId = "node-a")
         val now = 2000L
         val testData = "HAZARD_GRAVEL".encodeToByteArray()
@@ -94,7 +94,7 @@ class DirectedForwardingTest {
     }
 
     @Test
-    fun testContentionMitigationOverheardPacketDropped() = runBlocking {
+    fun testContentionMitigationOverheardPacketDropped() = runTest {
         // Node D is an overheard bystander in the BLE mesh range
         val routerD = DirectedMeshRouter(localNodeId = "node-d")
         val now = 3000L
@@ -122,7 +122,7 @@ class DirectedForwardingTest {
     }
 
     @Test
-    fun testEndToEndThreeNodeDirectedDelivery() = runBlocking {
+    fun testEndToEndThreeNodeDirectedDelivery() = runTest {
         val nodeA = DirectedMeshRouter(localNodeId = "node-a")
         val nodeB = DirectedMeshRouter(localNodeId = "node-b")
         val nodeC = DirectedMeshRouter(localNodeId = "node-c")
@@ -186,7 +186,7 @@ class DirectedForwardingTest {
     }
 
     @Test
-    fun testLinkFailureGeneratesRouteError() = runBlocking {
+    fun testLinkFailureGeneratesRouteError() = runTest {
         val routerA = DirectedMeshRouter(localNodeId = "node-a")
         val now = 10000L
 

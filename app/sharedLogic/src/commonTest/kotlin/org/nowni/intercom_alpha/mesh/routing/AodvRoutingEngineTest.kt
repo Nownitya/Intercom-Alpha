@@ -1,6 +1,6 @@
 package org.nowni.intercom_alpha.mesh.routing
 
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -77,7 +77,7 @@ class AodvRoutingEngineTest {
     }
 
     @Test
-    fun testRoutingTableLoopFreedomAndMetrics() = runBlocking {
+    fun testRoutingTableLoopFreedomAndMetrics() = runTest {
         val table = RoutingTable()
         val now = 1000L
 
@@ -151,7 +151,7 @@ class AodvRoutingEngineTest {
     }
 
     @Test
-    fun testDirectTwoNodeDiscovery() = runBlocking {
+    fun testDirectTwoNodeDiscovery() = runTest {
         val nodeA = AodvRoutingEngine(localNodeId = "node-a")
         val nodeB = AodvRoutingEngine(localNodeId = "node-b")
         val now = 2000L
@@ -185,7 +185,7 @@ class AodvRoutingEngineTest {
     }
 
     @Test
-    fun testMultiHopThreeNodeDiscovery() = runBlocking {
+    fun testMultiHopThreeNodeDiscovery() = runTest {
         val nodeA = AodvRoutingEngine(localNodeId = "node-a")
         val nodeB = AodvRoutingEngine(localNodeId = "node-b")
         val nodeC = AodvRoutingEngine(localNodeId = "node-c")
@@ -233,7 +233,7 @@ class AodvRoutingEngineTest {
     }
 
     @Test
-    fun testDuplicateRreqIsDropped() = runBlocking {
+    fun testDuplicateRreqIsDropped() = runTest {
         val nodeB = AodvRoutingEngine(localNodeId = "node-b")
         val now = 3000L
 
@@ -257,7 +257,7 @@ class AodvRoutingEngineTest {
     }
 
     @Test
-    fun testLinkBreakAndRouteErrorPropagation() = runBlocking {
+    fun testLinkBreakAndRouteErrorPropagation() = runTest {
         val nodeA = AodvRoutingEngine(localNodeId = "node-a")
         val nodeB = AodvRoutingEngine(localNodeId = "node-b")
         val now = 10000L
@@ -299,7 +299,7 @@ class AodvRoutingEngineTest {
     }
 
     @Test
-    fun testRouteExpirationAndPruning() = runBlocking {
+    fun testRouteExpirationAndPruning() = runTest {
         val node = AodvRoutingEngine(
             localNodeId = "node-a",
             config = AodvConfig(routeLifetimeMs = 5000L)
@@ -328,7 +328,7 @@ class AodvRoutingEngineTest {
     }
 
     @Test
-    fun testAirtimeEfficiencyMetrics() = runBlocking {
+    fun testAirtimeEfficiencyMetrics() = runTest {
         val node = AodvRoutingEngine(localNodeId = "node-a")
         val now = 1000L
 
