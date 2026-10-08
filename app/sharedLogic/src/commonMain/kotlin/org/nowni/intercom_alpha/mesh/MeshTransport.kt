@@ -61,7 +61,10 @@ enum class ControlType {
     ROUTE_REQUEST,
     ROUTE_REPLY,
     ROUTE_ERROR,
-    DIRECTED_DATA
+    DIRECTED_DATA,
+    FEDERATION_INVITE,
+    FEDERATION_BRIDGE,
+    FEDERATION_AUDIO
 }
 
 @Serializable
