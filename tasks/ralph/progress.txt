@@ -1701,6 +1701,32 @@
   - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly in 1m 26s).
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-23-multi-group-gateway`).
+---
+
+### [2026-10-08] - ICA-2304: Dual-Convoy 32-Node Cross-Mesh Simulation Harness & Archify Showcase Update
+- **Branch**: `feature/ICA-2304-federation-simulation-showcase`
+- **Objective**: Implement `MultiGroupFederationSimulationHarness.kt` simulating a dual-squad convoy (Squad Alpha 16 nodes, Squad Bravo 16 nodes) with dual gateway nodes (Lead & Sweep). Validates sub-group isolation (channels 2..15 stay intra-squad), <25ms gateway re-encryption latency, zero broadcast loops across redundant gateways, and emergency all-call preemption across both meshes. Update Archify interactive architecture specifications to showcase quality.
+- **Implementation**:
+  - `MultiGroupFederationSimulationHarness.kt`:
+    - Modeled `VirtualSquadNode` (16 riders per squad across `squad-alpha` and `squad-bravo`) with individual deduplicators, ciphers, and gateways.
+    - Verified `testDualConvoy32NodeSubGroupAudioIsolation`: Channel 2 scout intra-squad audio received by all 16 Alpha nodes, exactly 0 packets leaked to Bravo; Road Captain Channel 1 voice bridged across gateway to Bravo Lead Captain.
+    - Verified `testEmergencySosUniversalPreemptionAcross32Nodes`: Deep-trail rider CRASH_ALERT / SOS overrides channel isolation and policy, universally broadcasting to all 32 nodes across both squads.
+    - Verified `testZeroCircularFeedbackLoopsWithDualConcurrentGateways`: Both Lead and Sweep gateways active in parallel under `ALL_MEMBERS_BRIDGED`; loop detector and deduplicator dropped circular returns and duplicate arrivals with exactly 25 relayed frames and zero infinite relay amplification.
+    - Verified `testGatewayReEncryptionLatencyUnder25ms`: Benchmarked 100 frames across pure Kotlin ChaCha20-Poly1305 gateway transformation achieving 0.39ms average latency (peak 1.74ms), beating the <25ms acceptance threshold.
+  - `FederationModels.kt` & `InterGroupGateway.kt`:
+    - Added `federationId` parameter to `FederatedGroupInfo`.
+    - Registered bridge ciphers for both `federationId` and `initiatorGroupId`, ensuring bi-directional outbound and inbound gateway demuxing.
+  - Archify Architecture Specification & Showcase (`docs/architecture/intercom-alpha.architecture.json` & `docs/architecture/intercom-alpha-architecture.html`):
+    - Added `cross_mesh_arbiter` (Cross-Mesh Arbiter) and `federation_gateway` (Inter-Group Gateway) to KMP Core Engine.
+    - Added `cross-mesh-federation` view (Inter-Convoy Gateway & Federation) with dynamic trace animations.
+    - Added non-crossing horizontal routing connections across row y=760 (`cross_mesh_arbiter` -> `federation_gateway` -> `link_metric` -> `directed_router` -> `remote_peers`).
+    - Added Sprint 23 showcase card (slate dot) highlighting dual-layer ChaCha20-Poly1305 re-encryption, sub-group isolation, and loop detector verification.
+    - Delivered via Archify CLI with 100% showcase quality pass (9/9 checks passed, 0 errors, 0 warnings).
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64 :app:sharedLogic:jvmTest`: BUILD SUCCESSFUL (127 actionable tasks passed cleanly in 1m 41s).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-23-multi-group-gateway`).
+
 
 
 

@@ -861,6 +861,22 @@
     - Integrated `@Published var federationSnapshot` bound via `IntercomBridge.shared.observeFederationSnapshot`.
     - Built native SwiftUI `FederationDiagnosticsSheetView` with glassmorphic tactical cards, real-time RSSI/packet counters, policy selection picker, and invite share/redeem controls.
 
+### 2.73 Dual-Convoy 32-Node Cross-Mesh Simulation Harness & Archify Showcase Update (Sprint 23 - ICA-2304)
+- **Challenge**: Validating complex inter-convoy gateway topologies across 32 heterogeneous nodes with 2 independent cryptographic groups, proving zero audio leakage across isolated sub-groups, sub-25ms re-encryption latency, emergency all-call SOS preemption, and zero circular feedback loops with dual parallel gateways.
+- **Solution**:
+  - `MultiGroupFederationSimulationHarness.kt`:
+    - Simulated 32 nodes across 2 squads (`squad-alpha` riders 00..15 and `squad-bravo` riders 00..15) with dual gateway nodes (Road Captain at index 0 and Sweep at index 15).
+    - Verified sub-group isolation: Channel 2 scout intra-squad audio received by all 16 Alpha riders, exactly 0 packets leaked to Bravo; Road Captain Channel 1 voice bridged across gateway to Bravo Lead Captain.
+    - Verified emergency preemption: deep-trail rider CRASH_ALERT / SOS overrides channel isolation and policy, universally broadcasting to all 32 nodes across both squads.
+    - Verified loop prevention: both Lead and Sweep gateways active in parallel under `ALL_MEMBERS_BRIDGED`; loop detector and deduplicator dropped circular returns and duplicate arrivals with zero feedback amplification.
+    - Benchmarked pure Kotlin ChaCha20-Poly1305 gateway re-encryption: 0.39ms average latency (peak 1.74ms) across 100 frames, beating the <25ms acceptance threshold.
+  - Archify Architecture Specification & Showcase (`docs/architecture/intercom-alpha.architecture.json` & `docs/architecture/intercom-alpha-architecture.html`):
+    - Added `cross_mesh_arbiter` (Cross-Mesh Arbiter) and `federation_gateway` (Inter-Group Gateway) components to KMP Core Engine.
+    - Added `cross-mesh-federation` view (Inter-Convoy Gateway & Federation) with dynamic trace animations.
+    - Added non-crossing horizontal routing connections across row y=760 (`cross_mesh_arbiter` -> `federation_gateway` -> `link_metric` -> `directed_router` -> `remote_peers`).
+    - Added Sprint 23 showcase card (slate dot) highlighting dual-layer ChaCha20-Poly1305 re-encryption, sub-group isolation, and loop detector verification.
+    - Delivered via Archify CLI with 100% showcase quality pass (9/9 checks passed, 0 errors, 0 warnings).
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index
