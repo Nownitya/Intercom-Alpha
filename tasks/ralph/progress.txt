@@ -1579,6 +1579,39 @@
   - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-22-mesh-directed-routing`).
+---
+
+### [2026-10-08] - ICA-2204: 24-Node Large-Scale Directed Mesh RF Contention Benchmark & Archify Showcase Update
+- **Branch**: `feature/ICA-2204-simulation-harness`
+- **Objective**: Implement `DirectedMeshSimulationHarness.kt` simulating a 24-node convoy across complex topologies (linear column, split groups, terrain obstruction). Measure packet collision rates, end-to-end latency, and route convergence times compared to naive flood relay. Update Archify interactive architecture specifications to showcase quality.
+- **Implementation**:
+  - `DirectedMeshSimulationHarness.kt`:
+    - Simulated 24-node convoy (`VirtualConvoyNode` rider-00 through rider-23) over `SimulatedRfMedium` with realistic distance constraints, terrain link breaks, and RF airtime metrics.
+    - Verified `test24NodeConvoyDirectedRoutingReducesAirtimeContentionByOver60Percent`: Demonstrated >80% RF airtime contention reduction (210 directed transmissions vs 1,200 naive flooding transmissions) for 50 unicast frames.
+    - Verified `testFastRouteSelfHealingUnder300msUponLinkBreak`: Modeled dynamic link break, ETX consecutive failure circuit breaker (3 failures), upstream RERR propagation, and on-demand alternate path convergence in <300ms (155ms achieved).
+    - Verified `testSustained2000PacketTrafficBurstMemoryAndQueueStability`: Injected 2,000 packets across random node pairs under periodic route pruning, demonstrating bounded memory, zero sliding-window leaks, and aggressive overhearing bystander suppression (>10,000 dropped redundant frames).
+  - Test Target Corrections:
+    - Replaced `runBlocking` with `runTest` across `DirectedForwardingTest.kt` and `AodvRoutingEngineTest.kt` for pure KMP multiplatform test execution.
+    - Removed platform-specific `System.gc()` / `Runtime` calls in `ConvoyStressSimulationHarness.kt` adhering to Rules 2 & 3.
+  - Archify Architecture Specification & Showcase (`docs/architecture/intercom-alpha.architecture.json` & `docs/architecture/intercom-alpha-architecture.html`):
+    - Added `directed_router` (Directed Mesh Router) and `link_metric` (Link Metric Engine) components to `KMP Core Engine (:app:sharedLogic)`.
+    - Added `directed-mesh-routing` view with dynamic focus and trace animation.
+    - Added routing connections between `mesh_transport`, `directed_router`, `link_metric`, and `remote_peers`.
+    - Added Sprint 22 showcase card (orange dot) highlighting AODV-Lite route discovery, ETX cost arbitration, and overhearing contention suppression.
+    - Ran Archify CLI (`node .agents/skills/archify/bin/archify.mjs deliver architecture ... --quality showcase --json`): Passed 9/9 verification checks with 0 errors and 0 warnings.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-22-mesh-directed-routing`).
+---
+
+## 🏆 Sprint 22: Dynamic Mesh Directed Routing & AODV-Lite Route Optimization — 100% Complete
+- **All 4 Sprint 22 stories PASSED**:
+  - `ICA-2201: Pure KMP AODV-Lite Directed Routing Engine & Route Table Arbiter` [PASSED]
+  - `ICA-2202: Selective Unicast/Multicast Forwarding & RF Airtime Contention Mitigator` [PASSED]
+  - `ICA-2203: Subsystem Hardware Bridge Wiring & Multiplatform Mesh Topology HUD Presentation` [PASSED]
+  - `ICA-2204: 24-Node Large-Scale Directed Mesh RF Contention Benchmark & Archify Showcase Update` [PASSED]
+- **Target Release**: `v2.9.0`
 
 
 

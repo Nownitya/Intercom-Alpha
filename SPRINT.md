@@ -18,7 +18,7 @@
 | **ICA-2201** | Pure KMP AODV-Lite Directed Routing Engine & Route Table Arbiter | Ralph | `RoutingModels.kt`, `RoutingTable.kt`, `AodvRoutingEngine.kt`, `AodvRoutingEngineTest.kt` | ✅ Completed |
 | **ICA-2202** | Selective Unicast/Multicast Forwarding & RF Airtime Contention Mitigator | Ralph | `LinkMetricCalculator.kt`, `MeshTransport.kt`, `DirectedForwardingTest.kt` | ✅ Completed |
 | **ICA-2203** | Subsystem Hardware Bridge Wiring & Multiplatform Mesh Topology HUD Presentation | Ralph | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `HomeScreen.kt`, `ContentView.swift` | ✅ Completed |
-| **ICA-2204** | 24-Node Large-Scale Directed Mesh RF Contention Benchmark & Archify Showcase Update | Ralph | `DirectedMeshSimulationHarness.kt`, `intercom-alpha.architecture.json` | ⏳ Pending |
+| **ICA-2204** | 24-Node Large-Scale Directed Mesh RF Contention Benchmark & Archify Showcase Update | Ralph | `DirectedMeshSimulationHarness.kt`, `intercom-alpha.architecture.json` | ✅ Completed |
 
 ---
 
