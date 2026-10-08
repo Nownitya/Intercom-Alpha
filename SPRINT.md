@@ -1,28 +1,29 @@
-# Current Status: Sprint 22 (Phase 20: Dynamic Mesh Directed Routing, AODV-Lite Route Optimization & RF Collision Reduction)
+# Current Status: Sprint 23 (Phase 21: Multi-Group Inter-Convoy Gateway & Cross-Mesh Federation)
 
 > **Active Sprint Reference:** [TASKS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/TASKS.md) & [prd.json](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/tasks/ralph/prd.json)  
-> **Sprint Branch:** `sprint/sprint-22-mesh-directed-routing`  
+> **Sprint Branch:** `sprint/sprint-23-multi-group-gateway`  
 > **Sprint Governance Rules:** [SPRINT-RULES.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/SPRINT-RULES.md)  
 > **Engineering Contract:** [AGENTS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/AGENTS.md)  
 > **Knowledge Base:** [MEMORY.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/MEMORY.md)  
 
 ---
 
-## 🚀 Active Sprint: Sprint 22 (Phase 20: Dynamic Mesh Directed Routing, AODV-Lite Route Optimization & RF Collision Reduction)
-**Goal:** Implement pure KMP AODV-Lite on-demand directed routing, dynamic link quality cost metrics (ETX), selective unicast/multicast forwarding, route error self-healing, multiplatform routing topology HUD presentation, and a 24-node RF contention reduction simulation harness.  
-- **Sprint Branch:** `sprint/sprint-22-mesh-directed-routing`  
-- **Target Release:** `v2.9.0`  
+## 🚀 Active Sprint: Sprint 23 (Phase 21: Multi-Group Inter-Convoy Gateway & Cross-Mesh Federation)
+**Goal:** Implement pure KMP inter-group gateway contracts, cross-mesh audio bridging, sub-group isolation, anti-feedback loop guard, multiplatform federation HUD presentation, and a dual-convoy 32-node simulation benchmark.  
+- **Sprint Branch:** `sprint/sprint-23-multi-group-gateway`  
+- **Target Release:** `v2.10.0`  
 
 | Task ID | Item | Owner | Target Files | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **ICA-2201** | Pure KMP AODV-Lite Directed Routing Engine & Route Table Arbiter | Ralph | `RoutingModels.kt`, `RoutingTable.kt`, `AodvRoutingEngine.kt`, `AodvRoutingEngineTest.kt` | ✅ Completed |
-| **ICA-2202** | Selective Unicast/Multicast Forwarding & RF Airtime Contention Mitigator | Ralph | `LinkMetricCalculator.kt`, `MeshTransport.kt`, `DirectedForwardingTest.kt` | ✅ Completed |
-| **ICA-2203** | Subsystem Hardware Bridge Wiring & Multiplatform Mesh Topology HUD Presentation | Ralph | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `HomeScreen.kt`, `ContentView.swift` | ✅ Completed |
-| **ICA-2204** | 24-Node Large-Scale Directed Mesh RF Contention Benchmark & Archify Showcase Update | Ralph | `DirectedMeshSimulationHarness.kt`, `intercom-alpha.architecture.json` | ✅ Completed |
+| **ICA-2301** | Pure KMP Multi-Group Gateway Engine & Cross-Mesh Federation Protocol | Ralph | `FederationModels.kt`, `InterGroupGateway.kt`, `CrossMeshRelayEngine.kt`, `InterGroupGatewayTest.kt` | ⏳ In Progress |
+| **ICA-2302** | Selective Inter-Group Audio Demuxing, Sub-Group Isolation & Anti-Feedback Loop Guard | Ralph | `FederationLoopDetector.kt`, `CrossMeshForwardingArbiter.kt`, `CrossMeshForwardingTest.kt` | ⏳ Pending |
+| **ICA-2303** | Subsystem Hardware Bridge Wiring & Multiplatform Federation HUD Presentation | Ralph | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `HomeScreen.kt`, `ContentView.swift` | ⏳ Pending |
+| **ICA-2304** | Dual-Convoy 32-Node Cross-Mesh Simulation Harness & Archify Showcase Update | Ralph | `MultiGroupFederationSimulationHarness.kt`, `intercom-alpha.architecture.json` | ⏳ Pending |
 
 ---
 
 ## 📦 Historical Sprint Archive
+- ✅ **Sprint 22: Dynamic Mesh Directed Routing, AODV-Lite Route Optimization & RF Collision Reduction**: Completed 2026-10-08 (100% DoD, v2.9.0 Released).
 - ✅ **Sprint 21: Autonomous Crash Impact Detection, eCall SOS & Offline Voice Command HUD**: Completed 2026-10-07 (100% DoD, v2.8.0 Released).
 - ✅ **Sprint 20: Tactical Convoy Geofencing, Autonomous Power Governor & Multi-Node Stress Benchmark Suite**: Completed 2026-10-07 (100% DoD, v2.7.0 Released).
 - ✅ **Sprint 19: Over-The-Air BLE Mesh GPX/GeoJSON Trail Sharing & Storage Manager**: Completed 2026-10-07 (100% DoD, v2.6.0 Released).

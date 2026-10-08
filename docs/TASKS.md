@@ -286,3 +286,19 @@
 | **ICA-2203** | Subsystem Hardware Bridge Wiring & Multiplatform Mesh Topology HUD Presentation | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `HomeScreen.kt`, `ContentView.swift` | ✅ Completed |
 | **ICA-2204** | 24-Node Large-Scale Directed Mesh RF Contention Benchmark & Archify Showcase Update | `DirectedMeshSimulationHarness.kt`, `intercom-alpha.architecture.json` | ✅ Completed |
 
+---
+
+### 🚀 Sprint 23: Multi-Group Inter-Convoy Gateway & Cross-Mesh Federation (Phase 21 - v2.10 Roadmap)
+- **Sprint Goal**: Implement pure KMP inter-group gateway contracts, cross-mesh audio bridging, sub-group isolation, anti-feedback loop guard, multiplatform federation HUD presentation, and a dual-convoy 32-node simulation benchmark.
+- **Sprint Branch**: `sprint/sprint-23-multi-group-gateway`
+- **Target Release**: `v2.10.0`
+- **Status**: ⏳ In Progress (0/4 Stories Passed)
+
+| Task ID | Item | Target Files | Status |
+| :--- | :--- | :--- | :--- |
+| **ICA-2301** | Pure KMP Multi-Group Gateway Engine & Cross-Mesh Federation Protocol | `FederationModels.kt`, `InterGroupGateway.kt`, `CrossMeshRelayEngine.kt`, `InterGroupGatewayTest.kt` | ⏳ In Progress |
+| **ICA-2302** | Selective Inter-Group Audio Demuxing, Sub-Group Isolation & Anti-Feedback Loop Guard | `FederationLoopDetector.kt`, `CrossMeshForwardingArbiter.kt`, `CrossMeshForwardingTest.kt` | ⏳ Pending |
+| **ICA-2303** | Subsystem Hardware Bridge Wiring & Multiplatform Federation HUD Presentation | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `HomeScreen.kt`, `ContentView.swift` | ⏳ Pending |
+| **ICA-2304** | Dual-Convoy 32-Node Cross-Mesh Simulation Harness & Archify Showcase Update | `MultiGroupFederationSimulationHarness.kt`, `intercom-alpha.architecture.json` | ⏳ Pending |
+
+
