@@ -270,3 +270,19 @@
 | **ICA-2102** | Pure KMP Offline Voice Command & Keyword Spotting DSP Engine | `VoiceCommandModels.kt`, `VoiceCommandRecognizer.kt`, `VoiceCommandRecognizerTest.kt` | ✅ Completed |
 | **ICA-2103** | Subsystem Hardware Bridge Wiring & Multiplatform Emergency HUD Presentation | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `HomeScreen.kt`, `ContentView.swift` | ✅ Completed |
 | **ICA-2104** | Crash Impact & Voice Command Multiplatform Simulation Harness & Benchmark Suite | `CrashAndVoiceSimulationHarness.kt`, `intercom-alpha.architecture.json` | ✅ Completed |
+
+---
+
+### 🚀 Sprint 22: Dynamic Mesh Directed Routing, AODV-Lite Route Optimization & RF Collision Reduction (Phase 20 - v2.9 Roadmap)
+- **Sprint Goal**: Implement pure KMP AODV-Lite on-demand directed routing, dynamic link quality cost metrics (ETX), selective unicast/multicast forwarding, route error self-healing, multiplatform routing topology HUD presentation, and a 24-node RF contention reduction simulation harness.
+- **Sprint Branch**: `sprint/sprint-22-mesh-directed-routing`
+- **Target Release**: `v2.9.0`
+- **Status**: ⏳ In Progress (0/4 Stories Passed)
+
+| Task ID | Item | Target Files | Status |
+| :--- | :--- | :--- | :--- |
+| **ICA-2201** | Pure KMP AODV-Lite Directed Routing Engine & Route Table Arbiter | `RoutingModels.kt`, `RoutingTable.kt`, `AodvRoutingEngine.kt`, `AodvRoutingEngineTest.kt` | ⏳ Pending |
+| **ICA-2202** | Selective Unicast/Multicast Forwarding & RF Airtime Contention Mitigator | `LinkMetricCalculator.kt`, `MeshTransport.kt`, `DirectedForwardingTest.kt` | ⏳ Pending |
+| **ICA-2203** | Subsystem Hardware Bridge Wiring & Multiplatform Mesh Topology HUD Presentation | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `HomeScreen.kt`, `ContentView.swift` | ⏳ Pending |
+| **ICA-2204** | 24-Node Large-Scale Directed Mesh RF Contention Benchmark & Archify Showcase Update | `DirectedMeshSimulationHarness.kt`, `intercom-alpha.architecture.json` | ⏳ Pending |
+

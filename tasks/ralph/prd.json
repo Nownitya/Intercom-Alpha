@@ -1,52 +1,54 @@
 {
   "project": "Intercom-Alpha",
-  "branchName": "sprint/sprint-21-crash-detection-voice-commands",
-  "phase": "Phase 19: Autonomous Crash Impact Detection, eCall SOS & Offline Voice Command HUD",
-  "sprint": "Sprint 21",
-  "updatedAt": "2026-10-07T08:05:00Z",
+  "branchName": "sprint/sprint-22-mesh-directed-routing",
+  "phase": "Phase 20: Dynamic Mesh Directed Routing, AODV-Lite Route Optimization & RF Collision Reduction",
+  "sprint": "Sprint 22",
+  "updatedAt": "2026-10-08T00:45:00Z",
   "stories": [
     {
-      "id": "ICA-2101",
+      "id": "ICA-2201",
       "priority": 1,
-      "title": "Pure KMP Crash Detection, Fall-Over IMU State Machine & Countdown Arbiter",
-      "description": "Implement pure KMP CrashDetector.kt and SensorModels.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/safety/. Detects high-G vehicular impacts (>4.5g / >44.1 m/s²), persistent motorcycle fall-over tilt (>60° for >8 seconds), sudden deceleration spikes (>35 km/h drop in <1.5s), and initiates an autonomous 30-second pre-alert countdown with rider abort/cancel mechanism before dispatching priority SOS packet over the mesh with zero Java or C dependencies (Rules 2 & 3).",
+      "title": "Pure KMP AODV-Lite Directed Routing Engine & Route Table Arbiter",
+      "description": "Implement pure KMP RoutingModels.kt, RoutingTable.kt, and AodvRoutingEngine.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/routing/. Implements on-demand route discovery via RouteRequest (RREQ), RouteReply (RREP), and RouteError (RERR) control frames, monotonic destination sequence numbering for loop-freedom, dynamic link quality cost metrics (ETX derived from RSSI and hop count), and route table expiry with zero Java, C, or platform-specific dependencies (Rules 2 & 3).",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/safety/SensorModels.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/safety/CrashDetector.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/safety/CrashDetectorTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/routing/RoutingModels.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/routing/RoutingTable.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/routing/AodvRoutingEngine.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/routing/AodvRoutingEngineTest.kt"
       ],
       "acceptanceCriteria": [
-        "Pure KMP implementation with zero Java, C, or platform-specific sensor dependencies in commonMain (Rules 2 & 3)",
-        "Accurately discriminates high-G shock and sustained tilt fall-over while rejecting transient speed bumps",
-        "Manages 30-second abortable countdown state machine with audible warning signal triggers",
-        "Emits autonomous priority emergency SOS beacon packet with GPS coordinates, peak G-force, and blackbox freeze trigger",
+        "Pure KMP implementation with zero Java, C, or platform-specific dependencies in commonMain (Rules 2 & 3)",
+        "Generates, propagates, and processes RREQ, RREP, and RERR protocol messages",
+        "Maintains loop-free routing table with destination sequence numbers, next-hop pointers, and hop metrics",
+        "Falls back to controlled flooding when route to target destination is unknown or expired",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-2102",
+      "id": "ICA-2202",
       "priority": 2,
-      "title": "Pure KMP Offline Voice Command & Keyword Spotting DSP Engine",
-      "description": "Implement pure KMP VoiceCommandRecognizer.kt and VoiceCommandModels.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/. Parses offline keyword voice commands from 48kHz audio streams (e.g. 'Intercom SOS', 'Intercom Next', 'Intercom Prev', 'Intercom Mute', 'Intercom Battery', 'Intercom Status') using acoustic energy envelope template matching and phonetic formant transitions without cloud dependencies or external ML runtimes.",
+      "title": "Selective Unicast/Multicast Forwarding & RF Airtime Contention Mitigator",
+      "description": "Integrate AodvRoutingEngine and LinkMetricCalculator.kt into MeshTransport.kt / forwarding pipeline. Allows unicast packets (canned hazard text, trail file chunks, remote diagnostics) and channel-scoped multi-hop packets to selectively transmit via optimal next-hop nodes rather than blind broadcast flooding. Implements link break detection and triggers RERR broadcast to self-heal broken mesh paths.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/VoiceCommandModels.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/VoiceCommandRecognizer.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/VoiceCommandRecognizerTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/routing/LinkMetricCalculator.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/MeshTransport.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/routing/DirectedForwardingTest.kt"
       ],
       "acceptanceCriteria": [
-        "Zero-cloud offline voice command parser running on 48kHz PCM frames in pure KMP (Rules 2 & 3)",
-        "Supports hands-free tactical actions: SOS trigger, channel stepping, mute toggle, and battery status request",
-        "Robust noise rejection preventing false command triggers during ambient wind noise",
+        "Selectively directs packet transmission along discovered optimal paths when available",
+        "Tracks link delivery ratios and RSSI to dynamically update link cost metrics",
+        "Detects next-hop transmission failures and triggers automatic RERR route invalidation",
+        "Suppresses redundant packet re-broadcasts on intermediate nodes not on the path",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-2103",
+      "id": "ICA-2203",
       "priority": 3,
-      "title": "Subsystem Hardware Bridge Wiring & Multiplatform Emergency HUD Presentation",
-      "description": "Wire CrashDetector and VoiceCommandRecognizer into Koin DI (AppModule.kt), IntercomHardwareBridge, AndroidPlatformBridge, and IntercomBridge (iosMain) with typed CancellationHandle observers. Integrate 30-second crash countdown banner with 1-tap abort button, audible alarm chime, and voice command recognition feedback badge across Compose Multiplatform (HomeScreen.kt) and 100% Native iOS SwiftUI (ContentView.swift) respecting Rule 1.",
+      "title": "Subsystem Hardware Bridge Wiring & Multiplatform Mesh Topology HUD Presentation",
+      "description": "Wire AodvRoutingEngine into IntercomHardwareBridge, AndroidPlatformBridge, and IntercomBridge (iosMain) with typed CancellationHandle observers. Expose reactive RoutingSnapshot (active routes, next hops, link ETX costs, RF airtime savings). Display routing indicators and vector path connections on ProximityRadarView.kt / HomeScreen.kt (Compose Multiplatform) and ContentView.swift / TacticalVectorRadarView (100% Native iOS SwiftUI) respecting Rule 1.",
       "targetFiles": [
         "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomHardwareBridge.kt",
         "app/sharedLogic/src/androidMain/kotlin/org/nowni/intercom_alpha/bridge/AndroidPlatformBridge.kt",
@@ -58,31 +60,32 @@
         "app/iosApp/iosApp/ContentView.swift"
       ],
       "acceptanceCriteria": [
-        "Hardware bridges stream platform IMU accelerometer/gyroscope readings into CrashDetector",
-        "Exposes reactive CancellationHandle observers for crash countdown and voice commands on iOS (Rule 1)",
-        "Compose Multiplatform renders emergency crash countdown dialog with 1-tap cancel button",
-        "100% Native iOS SwiftUI renders tactical countdown card with haptic alarm and abort button (Rule 1)",
+        "Hardware bridges expose routing snapshot flow and route control hooks",
+        "Exposes reactive CancellationHandle observers for routing state on iOS (Rule 1)",
+        "Compose Multiplatform displays mesh routing topology status badge and radar vector links",
+        "100% Native iOS SwiftUI displays tactical routing efficiency badge and multi-hop paths (Rule 1)",
         "Full compilation and automated verification pass across all targets"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-2104",
+      "id": "ICA-2204",
       "priority": 4,
-      "title": "Crash Impact & Voice Command Multiplatform Simulation Harness & Benchmark Suite",
-      "description": "Implement CrashAndVoiceSimulationHarness.kt simulating motorcycle fall-over incidents, high-G collision impulses, road vibration noise profiles, and voice command recognition under simulated 80 km/h wind noise. Verify false-alarm rejection rates, countdown abort semantics, and memory bounds.",
+      "title": "24-Node Large-Scale Directed Mesh RF Contention Benchmark & Archify Showcase Update",
+      "description": "Implement DirectedMeshSimulationHarness.kt simulating a 24-node convoy across complex topologies (linear column, split groups, terrain obstruction). Measure packet collision rates, end-to-end latency, and route convergence times compared to naive flood relay. Update Archify interactive architecture specifications to showcase quality.",
       "targetFiles": [
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/simulation/CrashAndVoiceSimulationHarness.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/simulation/DirectedMeshSimulationHarness.kt",
         "docs/architecture/intercom-alpha.architecture.json",
         "docs/architecture/intercom-alpha-architecture.html"
       ],
       "acceptanceCriteria": [
-        "Simulates multi-axis IMU profiles: potholes vs high-G impact vs tip-over fall",
-        "Verifies 30s countdown abort safety window and automated SOS beacon dispatch upon countdown expiry",
-        "Verifies memory stability and zero coroutine leaks under continuous IMU stream processing",
-        "Full test pass and clean release readiness sign-off"
+        "Simulates 24-node convoy under varying RF link quality, packet loss, and node mobility",
+        "Demonstrates >= 60% reduction in total forwarded packets for unicast and route-directed traffic",
+        "Verifies fast route self-healing (<300ms) upon simulated link break or node dropout",
+        "Archify architecture specification and HTML showcase updated with 9/9 verification pass",
+        "Full multiplatform test suite pass across all targets"
       ],
-      "passes": true
+      "passes": false
     }
   ]
 }
