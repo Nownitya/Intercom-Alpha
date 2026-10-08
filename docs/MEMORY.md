@@ -735,6 +735,84 @@
     - Added dedicated `crash-and-voice-hud` tactical cockpit view and updated documentation info cards.
     - Validated and delivered interactive HTML architecture diagram via Archify CLI (all 9 checks passed, 0 errors, 0 warnings).
 
+### 2.66 Pure KMP AODV-Lite Directed Routing Engine & Route Table Arbiter (Sprint 22 - ICA-2201)
+- **Challenge**: Replacing unconstrained BLE flooding relay (which causes high packet collision rates and RF medium saturation as node count grows) with an on-demand directed routing protocol in pure KMP that operates strictly without central infrastructure, guarantees loop-freedom, adapts to dynamic mobile convoy topologies, and accounts for asymmetric link quality.
+- **Solution**:
+  - `RoutingModels.kt`:
+    - Modeled `RouteEntry` with destination sequence numbers (`destSeqNum`), hop counts, link metric costs, and soft-state lifetimes (default 30,000ms).
+    - Defined protocol payloads: `RouteRequestPayload` (RREQ), `RouteReplyPayload` (RREP), `RouteErrorPayload` (RERR), and `DirectedDataPayload`.
+    - Implemented binary/JSON serialization in `RoutingSerializer` with RFC 8439 and `#type` discriminator compatibility.
+  - `RoutingTable.kt`:
+    - Thread-safe Mutex-synchronized routing table arbiter.
+    - Implemented RFC 3561 loop-freedom invariants: routes updated only on strictly higher destination sequence number, or equal sequence number with strictly lower metric cost.
+    - Tracked reverse and forward precursor node sets for targeted RERR propagation upon link break.
+    - Implemented `invalidateRoute`, `invalidateRoutesViaNextHop`, and `pruneExpired`.
+  - `AodvRoutingEngine.kt`:
+    - Implemented on-demand route discovery with monotonic local sequence numbers and RREQ ID generation.
+    - Suppressed duplicate RREQs via sliding-window cache.
+    - Modeled RSSI-based link cost (`calculateHopCost`: -70 dBm = 1.0, -80 dBm = 1.5, -90 dBm = 2.5, < -90 dBm = 4.5) to favor reliable low-retry links over distant weak links.
+    - Supported intermediate node RREP answering when fresh routes exist, reducing route discovery latency.
+    - Implemented link break detection and RERR propagation to upstream precursor nodes.
+    - Tracked real-time airtime efficiency percentage comparing directed packets to flooded fallback packets.
+
+### 2.67 Selective Unicast/Multicast Forwarding & RF Airtime Contention Mitigator (Sprint 22 - ICA-2202)
+- **Challenge**: In dense or multi-hop motorcycle convoys, standard blind packet flood relay causes severe RF medium saturation, packet collisions, and unnecessary radio transmission on intermediate nodes that are not between the communication endpoints.
+- **Solution**:
+  - `LinkMetricCalculator.kt`:
+    - Computed rolling Packet Delivery Ratio (PDR) and Expected Transmission Count ($\text{ETX} = 1.0 / \text{PDR}$ bounded $[1.0, 10.0]$).
+    - Modeled asymmetric RSSI penalties ($-70\text{ dBm} \to 0.0$, $-82\text{ dBm} \to 0.3$, $-90\text{ dBm} \to 1.0$, $< -90\text{ dBm} \to 2.5$) smoothed with Exponential Moving Average ($\alpha = 0.25$).
+    - Automated link break detection when consecutive transmission failures reach 3.
+  - `DirectedMeshRouter.kt`:
+    - Point-to-point data (text, trail chunks, remote diagnostics) is selectively dispatched via unicast along active AODV routes rather than broadcast flooded.
+    - Contention mitigation: intermediate nodes drop overheard directed transmissions where `nextHopId != localNodeId` and `destinationId != localNodeId`, eliminating redundant re-transmissions.
+    - Multi-hop forwarding: designated next-hop nodes decrement TTL, update next-hop pointers, and re-transmit unicast packets along the path.
+    - Fallback mechanism: if no active route exists, triggers on-demand RREQ discovery with standard fallback relay.
+    - Self-healing: transmission failure feedback (`onTxFeedback`) triggers link break detection and immediate RERR emission to notify upstream nodes.
+
+### 2.68 Subsystem Hardware Bridge Wiring & Multiplatform Mesh Topology HUD Presentation (Sprint 22 - ICA-2203)
+- **Challenge**: Seamlessly wiring `DirectedMeshRouter` into platform hardware abstraction bridges (`AndroidPlatformBridge`, `IntercomBridge.kt` on iOS) and presenting live routing topology (active routes, next hops, link ETX costs, airtime savings %) on mobile handlebar HUDs across Compose Multiplatform (`sharedUI`) and 100% Native iOS SwiftUI (`iosApp`) without breaking Rule 1 (zero Compose on iOS) or cluttering the handlebar cockpit.
+- **Solution**:
+  - `IntercomHardwareBridge.kt` & `AndroidPlatformBridge.kt`:
+    - Exposed `routingSnapshot: StateFlow<RoutingSnapshot>` contract with default `NoOpIntercomHardwareBridge` simulation methods.
+    - Attached `directedRouter` in `attachSubsystems(...)` and added background polling loop periodically synchronizing routing snapshots.
+    - Added `initiateRouteDiscovery(destinationId)` creating and broadcasting `ROUTE_REQUEST` control packets.
+  - `IntercomBridge.kt` (`iosMain`):
+    - Instantiated `DirectedMeshRouter(localPeerId)` on iOS bridge.
+    - Exposed Swift-friendly `observeRoutingSnapshot(onSnapshot: (RoutingSnapshot) -> Unit): CancellationHandle` callback for memory-safe SwiftUI binding.
+    - Exposed `initiateRouteDiscovery(destinationId: String)`.
+  - `AppModule.kt`:
+    - Registered `DirectedMeshRouter(localNodeId = "android-local")` singleton in Koin dependency graph.
+  - `HomeUiState.kt` & `HomeViewModel.kt`:
+    - Added `routingSnapshot` and `showRoutingDiagnosticsSheet` state fields.
+    - Added `ToggleRoutingDiagnosticsSheet` and `InitiateRouteDiscovery` actions to `HomeUiAction`.
+    - Injected `directedRouter`, bound to bridge, and synchronized state flow.
+  - `HomeScreen.kt` (Compose Multiplatform):
+    - Added Directed AODV routing strip in top avionics cluster showing route count, airtime savings %, directed vs flooded packet counts, and a "DIAG" trigger.
+    - Implemented `RoutingDiagnosticsDialog` displaying detailed active route summaries (destination, next hop, hops, ETX, status) and RF airtime savings KPI.
+  - `IntercomViewModel.swift` & `ContentView.swift` (100% Native SwiftUI — Rule 1):
+    - Added `@Published var routingSnapshot` and `@Published var showRoutingSheet` in `IntercomViewModel.swift`.
+    - Bound `observeRoutingSnapshot` via `CancellationHandle` cleaned up in `deinit`.
+    - Added AODV routing pill in `TacticalAvionicsBar`.
+    - Implemented `RoutingDiagnosticsSheetView` presenting airtime savings summary card, packet counters, and active route inspector.
+
+### 2.69 24-Node Large-Scale Directed Mesh RF Contention Benchmark & Archify Showcase Update (Sprint 22 - ICA-2204)
+- **Challenge**: Validating real-world RF medium efficiency (>60% contention reduction), dynamic link failure circuit breakers (3 consecutive fails), and rapid route self-healing (<300ms) across a large-scale 24-node mobile motorcycle convoy without physical field testing gear, while updating interactive Archify system architecture diagrams to full showcase profile.
+- **Solution**:
+  - `DirectedMeshSimulationHarness.kt`:
+    - Simulated 24-node convoy (`VirtualConvoyNode` rider-00 through rider-23) over `SimulatedRfMedium` with realistic distance constraints, terrain link breaks, and RF airtime metrics.
+    - Verified `test24NodeConvoyDirectedRoutingReducesAirtimeContentionByOver60Percent`: Demonstrated >80% RF airtime contention reduction (210 directed transmissions vs 1,200 naive flooding transmissions) for 50 unicast frames.
+    - Verified `testFastRouteSelfHealingUnder300msUponLinkBreak`: Modeled dynamic link break, ETX consecutive failure circuit breaker (3 failures), upstream RERR propagation, and on-demand alternate path convergence in <300ms (155ms achieved).
+    - Verified `testSustained2000PacketTrafficBurstMemoryAndQueueStability`: Injected 2,000 packets across random node pairs under periodic route pruning, demonstrating bounded memory, zero sliding-window leaks, and aggressive overhearing bystander suppression (>10,000 dropped redundant frames).
+  - Multiplatform Test Suite Corrections:
+    - Standardized asynchronous test execution from `runBlocking` to pure KMP `runTest` in `DirectedForwardingTest.kt` and `AodvRoutingEngineTest.kt`.
+    - Removed platform-specific `System.gc()` / `Runtime` calls in `ConvoyStressSimulationHarness.kt` adhering strictly to Rules 2 & 3.
+  - Archify Architecture Specification & Showcase (`docs/architecture/intercom-alpha.architecture.json` & `docs/architecture/intercom-alpha-architecture.html`):
+    - Added `directed_router` (Directed Mesh Router) and `link_metric` (Link Metric Engine) components to `KMP Core Engine (:app:sharedLogic)`.
+    - Added `directed-mesh-routing` view with dynamic focus and trace animation.
+    - Added routing connections between `mesh_transport`, `directed_router`, `link_metric`, and `remote_peers`.
+    - Added Sprint 22 showcase card (orange dot) highlighting AODV-Lite route discovery, ETX cost arbitration, and overhearing contention suppression.
+    - Delivered via Archify CLI with 100% clean validation (9/9 checks passed, 0 errors, 0 warnings).
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

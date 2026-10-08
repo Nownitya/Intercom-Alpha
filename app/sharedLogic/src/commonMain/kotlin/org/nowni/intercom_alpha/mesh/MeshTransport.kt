@@ -57,7 +57,11 @@ enum class ControlType {
     FILE_ACK,
     GEOFENCE_ALARM,
     POWER_STATUS,
-    CRASH_ALERT
+    CRASH_ALERT,
+    ROUTE_REQUEST,
+    ROUTE_REPLY,
+    ROUTE_ERROR,
+    DIRECTED_DATA
 }
 
 @Serializable
