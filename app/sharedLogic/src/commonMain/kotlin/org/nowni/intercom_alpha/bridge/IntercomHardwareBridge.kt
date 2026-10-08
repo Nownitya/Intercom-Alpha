@@ -69,6 +69,7 @@ interface IntercomHardwareBridge {
     val powerGovernorState: StateFlow<org.nowni.intercom_alpha.power.PowerGovernorState>
     val crashSnapshot: StateFlow<org.nowni.intercom_alpha.safety.CrashCountdownSnapshot>
     val latestVoiceCommand: StateFlow<org.nowni.intercom_alpha.audio.CommandDetection?>
+    val routingSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.routing.RoutingSnapshot>
 
     fun setPttActive(active: Boolean)
     fun setRepeaterModeActive(active: Boolean)
@@ -80,6 +81,8 @@ interface IntercomHardwareBridge {
     fun updatePowerGovernorState(state: org.nowni.intercom_alpha.power.PowerGovernorState)
     fun updateCrashSnapshot(snapshot: org.nowni.intercom_alpha.safety.CrashCountdownSnapshot)
     fun updateLatestVoiceCommand(detection: org.nowni.intercom_alpha.audio.CommandDetection?)
+    fun updateRoutingSnapshot(snapshot: org.nowni.intercom_alpha.mesh.routing.RoutingSnapshot)
+    fun initiateRouteDiscovery(destinationId: String) {}
     fun cancelCrashCountdown()
     fun triggerManualCrashSos()
     fun processImuReading(reading: org.nowni.intercom_alpha.safety.ImuReading) {}
@@ -99,7 +102,8 @@ interface IntercomHardwareBridge {
         geofenceEngine: org.nowni.intercom_alpha.telemetry.ConvoyGeofenceEngine? = null,
         batteryGovernor: org.nowni.intercom_alpha.power.BatteryGovernor? = null,
         crashDetector: org.nowni.intercom_alpha.safety.CrashDetector? = null,
-        voiceCommandRecognizer: org.nowni.intercom_alpha.audio.VoiceCommandRecognizer? = null
+        voiceCommandRecognizer: org.nowni.intercom_alpha.audio.VoiceCommandRecognizer? = null,
+        directedRouter: org.nowni.intercom_alpha.mesh.routing.DirectedMeshRouter? = null
     ) {}
 }
 
@@ -175,6 +179,18 @@ open class NoOpIntercomHardwareBridge(
     protected val _latestVoiceCommand = MutableStateFlow<org.nowni.intercom_alpha.audio.CommandDetection?>(null)
     override val latestVoiceCommand: StateFlow<org.nowni.intercom_alpha.audio.CommandDetection?> = _latestVoiceCommand.asStateFlow()
 
+    protected val _routingSnapshot = MutableStateFlow(
+        org.nowni.intercom_alpha.mesh.routing.RoutingSnapshot(
+            localNodeId = "local-rider",
+            activeRoutes = emptyList(),
+            totalDirectedPackets = 0L,
+            totalFloodedPackets = 0L,
+            airtimeSavingsPercentage = 0.0,
+            timestampMs = 0L
+        )
+    )
+    override val routingSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.routing.RoutingSnapshot> = _routingSnapshot.asStateFlow()
+
     override fun setPttActive(active: Boolean) {
         _isTransmitting.value = active
     }
@@ -213,6 +229,14 @@ open class NoOpIntercomHardwareBridge(
 
     override fun updateLatestVoiceCommand(detection: org.nowni.intercom_alpha.audio.CommandDetection?) {
         _latestVoiceCommand.value = detection
+    }
+
+    override fun updateRoutingSnapshot(snapshot: org.nowni.intercom_alpha.mesh.routing.RoutingSnapshot) {
+        _routingSnapshot.value = snapshot
+    }
+
+    fun simulateRoutingSnapshot(snapshot: org.nowni.intercom_alpha.mesh.routing.RoutingSnapshot) {
+        _routingSnapshot.value = snapshot
     }
 
     override fun cancelCrashCountdown() {
