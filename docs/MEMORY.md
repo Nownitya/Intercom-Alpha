@@ -830,6 +830,22 @@
     - Gateway state machine coordinating active federations, invite generation, and role arbitration.
     - Enforced gateway leader role: only `PRIMARY` gateway nodes broadcast outbound cross-mesh frames, suppressing duplicate storms from `STANDBY` nodes.
 
+### 2.71 Selective Inter-Group Audio Demuxing, Sub-Group Isolation & Anti-Feedback Loop Guard (Sprint 23 - ICA-2302)
+- **Challenge**: In a multi-convoy federation where multiple gateway nodes exist in proximity (e.g. Squad Alpha Lead and Sweep both bridging to Squad Bravo), duplicate frame storms, runaway multi-hop circular relay cycles, acoustic self-monitoring echo feedback, and private intra-squad conversation leakage (such as rider-to-pillion private chat or tactical scout chatter) would degrade safety and voice quality.
+- **Solution**:
+  - `FederationLoopDetector.kt`:
+    - Implemented self-origin acoustic echo suppression (`originalSenderId == localPeerId`).
+    - Verified monotonic `pathTrace` loop prevention (`pathTrace.contains(localGroupId)` and internal cyclic group detection).
+    - Enforced `maxHops` boundary (default 3 hops) for multi-convoy relay limits.
+    - Implemented composite sliding-window deduplication cache (`seenPackets` with 5,000ms window and LRU pruning) suppressing redundant concurrent gateway deliveries.
+  - `CrossMeshForwardingArbiter.kt`:
+    - Enforced sub-group isolation: isolated squad channels (channels 2..15, e.g. scouts, sweep, support vehicle, rider-to-pillion) remain strictly internal to the local squad and are blocked from cross-mesh bridging.
+    - Enforced emergency preemption: Emergency SOS frames (and Channel 16) override channel restrictions and pass across meshes under `EMERGENCY_SOS_ONLY`, `CAPTAIN_ONLY`, and `ALL_MEMBERS_BRIDGED`.
+    - Enforced pre-decryption inbound gate: rejects unauthorized, non-captain, or unverified cross-group frames before executing AEAD cryptographic decryption, saving battery and CPU cycles.
+    - Integrated audit telemetry snapshot (`ForwardingAuditSnapshot`) tracking inbound/outbound packets, delivery counts, and classified drops.
+  - `CrossMeshForwardingTest.kt`:
+    - 9 comprehensive tests validating acoustic self-echo suppression, circular relay loop detection, cyclic path trace rejection, hop count limits, concurrent gateway deduplication, sub-group isolation, captain-only policy, emergency preemption, standby gateway suppression, pre-decryption security gating, end-to-end ingestion pipeline, and audit metrics.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

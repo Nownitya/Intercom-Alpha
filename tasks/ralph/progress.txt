@@ -1641,6 +1641,34 @@
   - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly in 48s).
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-23-multi-group-gateway`).
+---
+
+### [2026-10-08] - ICA-2302: Selective Inter-Group Audio Demuxing, Sub-Group Isolation & Anti-Feedback Loop Guard
+- **Branch**: `feature/ICA-2302-audio-demux-loop-guard`
+- **Objective**: Implement `FederationLoopDetector.kt` and `CrossMeshForwardingArbiter.kt` in `mesh/federation/`. Integrates cross-mesh audio bridging into MeshTransport and audio pipeline. Prevents acoustic and relay feedback loops across redundant gateway bridges via monotonic `federationPathTrace` and cross-group deduplication. Enforces sub-group isolation (e.g. private squad chatter remains internal; only designated Captain PTT or Emergency SOS bridges across convoys). Pure KMP with 0 Java/C dependencies (Rules 2 & 3).
+- **Implementation**:
+  - `FederationLoopDetector.kt`:
+    - Modeled `LoopCheckResult` (`Accept`, `DropCircularLoop`, `DropHopLimitExceeded`, `DropDuplicate`, `DropSelfEcho`).
+    - Implemented self-origin acoustic echo suppression (`packet.originalSenderId == localPeerId`).
+    - Verified monotonic `pathTrace` loop prevention (`pathTrace.contains(localGroupId)` or internal cyclic hops).
+    - Enforced `maxHops` threshold (default 3 hops) for transit relay boundaries.
+    - Implemented thread-safe sliding-window deduplication cache (`seenPackets` with 5s time-window and LRU purge) to suppress duplicate arrivals from redundant concurrent gateways.
+  - `CrossMeshForwardingArbiter.kt`:
+    - Modeled `OutboundForwardingDecision`, `InboundForwardingDecision`, `InboundRelayResult`, and `DropCategory`.
+    - Enforced sub-group isolation: isolated squad channels (channels 2..15, e.g. scouts, sweep, support vehicle, rider-to-pillion) remain strictly internal to the local squad and are blocked from cross-mesh bridging.
+    - Enforced emergency preemption: Emergency SOS frames (and Channel 16) override channel restrictions and pass across meshes under `EMERGENCY_SOS_ONLY`, `CAPTAIN_ONLY`, and `ALL_MEMBERS_BRIDGED`.
+    - Enforced pre-decryption inbound gate: rejects unauthorized, non-captain, or unverified cross-group frames before executing AEAD cryptographic decryption, saving battery and CPU cycles.
+    - Added comprehensive audit telemetry (`ForwardingAuditSnapshot`) tracking inbound/outbound packets, delivery counts, and classified drops.
+  - `CrossMeshRelayEngine.kt` & `InterGroupGateway.kt`:
+    - Exposed `getCipher(federationId)` and integrated `FederationLoopDetector` + `CrossMeshForwardingArbiter` into `InterGroupGateway`.
+  - `CrossMeshForwardingTest.kt`:
+    - 9 comprehensive tests validating acoustic self-echo suppression, circular relay loop detection, cyclic path trace rejection, hop count limits, concurrent gateway deduplication, sub-group isolation, captain-only policy, emergency preemption, standby gateway suppression, pre-decryption security gating, end-to-end ingestion pipeline, and audit metrics.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly in 1m 23s).
+  - Cleaned redundant cast warnings in `CrossMeshForwardingArbiter.kt`; verified `./gradlew test` (91 actionable tasks passed in 40s with 0 warnings).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-23-multi-group-gateway`).
+
 
 
 

@@ -41,7 +41,7 @@
         "Drops unauthorized or unverified cross-group packets without decrypting payload",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-2303",
