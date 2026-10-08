@@ -846,6 +846,21 @@
   - `CrossMeshForwardingTest.kt`:
     - 9 comprehensive tests validating acoustic self-echo suppression, circular relay loop detection, cyclic path trace rejection, hop count limits, concurrent gateway deduplication, sub-group isolation, captain-only policy, emergency preemption, standby gateway suppression, pre-decryption security gating, end-to-end ingestion pipeline, and audit metrics.
 
+### 2.72 Subsystem Hardware Bridge Wiring & Multiplatform Federation HUD Presentation (Sprint 23 - ICA-2303)
+- **Challenge**: Seamlessly exposing pure KMP multi-group gateway state (`InterGroupGateway`) across all platforms (Android Compose Multiplatform and 100% Native iOS SwiftUI) without leaking Compose runtime dependencies onto iOS (violating Rule 1), ensuring motorcycle-glove tactile usability for cross-convoy policy switching and invite generation.
+- **Solution**:
+  - `IntercomHardwareBridge.kt` & Platform Bridges:
+    - Extended `IntercomHardwareBridge` interface with reactive `federationSnapshot: StateFlow<FederationSnapshot>` and control methods (`setFederationPolicy`, `createFederationInvite`, `acceptFederationInvite`).
+    - Wired `InterGroupGateway` into `AndroidPlatformBridge` with a 2-second periodic state polling coroutine.
+    - Added Swift-friendly `observeFederationSnapshot(callback: (FederationSnapshot) -> Unit): CancellationHandle` in `IntercomBridge.kt` (`iosMain`) with memory-safe cancellation lifecycle.
+  - Compose Multiplatform Tactical HUD (`HomeScreen.kt`):
+    - Added high-contrast avionics telemetry pill `🌐 FEDERATION: N SQUADS` alerting rider to active inter-convoy gateway links.
+    - Implemented modal `FederationDiagnosticsDialog` with direct policy toggling (`CAPTAIN_ONLY`, `ALL_MEMBERS_BRIDGED`, `EMERGENCY_SOS_ONLY`, `DISABLED`), invite creation (`FEDERATION:v1:` QR code / alphanumeric token), and input field with instant join capability.
+  - 100% Native iOS SwiftUI (`ContentView.swift` & `IntercomViewModel.swift` - Rule 1):
+    - Zero Compose runtime footprint in `app/iosApp`.
+    - Integrated `@Published var federationSnapshot` bound via `IntercomBridge.shared.observeFederationSnapshot`.
+    - Built native SwiftUI `FederationDiagnosticsSheetView` with glassmorphic tactical cards, real-time RSSI/packet counters, policy selection picker, and invite share/redeem controls.
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

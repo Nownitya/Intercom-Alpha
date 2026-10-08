@@ -1668,6 +1668,40 @@
   - Cleaned redundant cast warnings in `CrossMeshForwardingArbiter.kt`; verified `./gradlew test` (91 actionable tasks passed in 40s with 0 warnings).
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-23-multi-group-gateway`).
+---
+
+### [2026-10-08] - ICA-2303: Subsystem Hardware Bridge Wiring & Multiplatform Federation HUD Presentation
+- **Branch**: `feature/ICA-2303-hardware-bridge-hud`
+- **Objective**: Wire `InterGroupGateway` into `IntercomHardwareBridge`, `AndroidPlatformBridge`, and `IntercomBridge` (`iosMain`) with typed `CancellationHandle` observers. Expose reactive `FederationSnapshot` (connected sibling groups, bridge policy, gateway link RSSI, relayed packet counts) and gateway control hooks. Present Multi-Group Federation badge and diagnostics sheet in Compose Multiplatform (`HomeScreen.kt`) and 100% Native iOS SwiftUI (`ContentView.swift` / `IntercomViewModel.swift` strictly respecting Rule 1).
+- **Implementation**:
+  - `IntercomHardwareBridge.kt`:
+    - Added `federationSnapshot: StateFlow<FederationSnapshot>` contract and default snapshot.
+    - Added `updateFederationSnapshot(snapshot)`, `setFederationPolicy(policy)`, `createFederationInvite(targetGroupId)`, and `acceptFederationInvite(invitePayload)`.
+    - Wired optional `interGroupGateway: InterGroupGateway?` into `attachSubsystems(...)` and `NoOpIntercomHardwareBridge`.
+  - `AndroidPlatformBridge.kt`:
+    - Instantiated and wired `interGroupGateway` into `_federationSnapshot` pipeline.
+    - Launched 2-second periodic polling loop synchronizing snapshot with live `interGroupGateway` metrics.
+    - Wired `setFederationPolicy`, `createFederationInvite`, and `acceptFederationInvite` delegating directly to gateway.
+  - `IntercomBridge.kt` (`iosMain`):
+    - Instantiated pure KMP `InterGroupGateway` for iOS platform bridge.
+    - Added Swift-friendly `observeFederationSnapshot(callback: (FederationSnapshot) -> Unit): CancellationHandle` adhering to Rule 1.
+    - Exposed `setFederationPolicy`, `createFederationInvite`, and `acceptFederationInvite` methods.
+  - `HomeUiState.kt` & `HomeViewModel.kt`:
+    - Added `federationSnapshot: FederationSnapshot`, `showFederationSheet: Boolean`, and `generatedFederationInvite: String?`.
+    - Modeled `ToggleFederationSheet`, `SetFederationPolicy`, `CreateFederationInvite`, `AcceptFederationInvite`, `DismissFederationInviteDialog` in `HomeUiAction`.
+    - Wired `hardwareBridge.federationSnapshot` subscription into `viewModelScope` and routed all UI actions.
+  - `HomeScreen.kt`:
+    - Added tactile `🌐 FEDERATION: N SQUADS` avionics HUD banner pill.
+    - Implemented full zero-scroll motorcycle glove friendly `FederationDiagnosticsDialog` with real-time squad cards, policy cycling button, QR/text invite generator, and invite token join bar.
+  - `IntercomViewModel.swift` & `ContentView.swift` (100% Native SwiftUI, Rule 1):
+    - Added `@Published var federationSnapshot`, `@Published var showFederationSheet`, `@Published var generatedFederationInvite`.
+    - Registered `observeFederationSnapshot` with lifecycle cancellation handle.
+    - Implemented `FederationBadgeButton` in status header and modal `FederationDiagnosticsSheetView` presenting connected squads, link metrics, policy selector, invite generation, and token redemption in pure native SwiftUI.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly in 1m 26s).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-23-multi-group-gateway`).
+
 
 
 
