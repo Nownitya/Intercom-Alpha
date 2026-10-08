@@ -78,7 +78,22 @@ data class HomeUiState(
         airtimeSavingsPercentage = 0.0,
         timestampMs = 0L
     ),
-    val showRoutingDiagnosticsSheet: Boolean = false
+    val showRoutingDiagnosticsSheet: Boolean = false,
+
+    // Sprint 23 Multi-Group Inter-Convoy Federation State (ICA-2303)
+    val federationSnapshot: org.nowni.intercom_alpha.mesh.federation.FederationSnapshot = org.nowni.intercom_alpha.mesh.federation.FederationSnapshot(
+        localGroupId = "squad-alpha",
+        localRole = org.nowni.intercom_alpha.mesh.federation.GatewayRole.PRIMARY,
+        bridgeState = org.nowni.intercom_alpha.mesh.federation.FederationBridgeState.DISCONNECTED,
+        federatedGroups = emptyList(),
+        activePolicy = org.nowni.intercom_alpha.mesh.federation.CrossGroupPolicy.CAPTAIN_ONLY,
+        totalRelayedPacketsIn = 0L,
+        totalRelayedPacketsOut = 0L,
+        totalDroppedPolicyViolations = 0L,
+        lastRelayedTimestampMs = 0L
+    ),
+    val showFederationSheet: Boolean = false,
+    val generatedFederationInvite: String? = null
 )
 
 sealed interface HomeUiAction {
@@ -131,6 +146,13 @@ sealed interface HomeUiAction {
     // Sprint 22 Directed Mesh Routing Actions (ICA-2203)
     data class ToggleRoutingDiagnosticsSheet(val show: Boolean) : HomeUiAction
     data class InitiateRouteDiscovery(val destinationId: String) : HomeUiAction
+
+    // Sprint 23 Multi-Group Inter-Convoy Federation Actions (ICA-2303)
+    data class ToggleFederationSheet(val show: Boolean) : HomeUiAction
+    data class SetFederationPolicy(val groupId: String, val policy: org.nowni.intercom_alpha.mesh.federation.CrossGroupPolicy) : HomeUiAction
+    data object CreateFederationInvite : HomeUiAction
+    data class AcceptFederationInvite(val inviteCode: String) : HomeUiAction
+    data object DismissFederationInviteDialog : HomeUiAction
 }
 
 sealed interface HomeUiEvent {
