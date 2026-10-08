@@ -90,6 +90,12 @@ class IntercomBridge(
     val crashDetector: org.nowni.intercom_alpha.safety.CrashDetector = org.nowni.intercom_alpha.safety.CrashDetector()
     val voiceCommandRecognizer: org.nowni.intercom_alpha.audio.VoiceCommandRecognizer = org.nowni.intercom_alpha.audio.VoiceCommandRecognizer()
     val directedRouter: org.nowni.intercom_alpha.mesh.routing.DirectedMeshRouter = org.nowni.intercom_alpha.mesh.routing.DirectedMeshRouter(localPeerId)
+    val interGroupGateway: org.nowni.intercom_alpha.mesh.federation.InterGroupGateway = org.nowni.intercom_alpha.mesh.federation.InterGroupGateway(
+        localGroupId = "squad-ios",
+        localGroupName = "$localPeerName Squad",
+        localPeerId = localPeerId,
+        isLocalLeader = true
+    )
 
     private val _isRepeaterModeActive = MutableStateFlow(false)
     val isRepeaterModeActive: StateFlow<Boolean> = _isRepeaterModeActive.asStateFlow()
@@ -960,6 +966,33 @@ class IntercomBridge(
             val payload = org.nowni.intercom_alpha.mesh.routing.RoutingSerializer.encodeRreq(rreq)
             meshTransport.sendControl(ControlType.ROUTE_REQUEST, payload)
         }
+    }
+
+    // --- Swift-Friendly Multi-Group Federation Gateway Observers & Controls (Sprint 23 / ICA-2303) ---
+
+    fun observeFederationSnapshot(onSnapshot: (org.nowni.intercom_alpha.mesh.federation.FederationSnapshot) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            while (isActive) {
+                val snapshot = interGroupGateway.getSnapshot(currentTimeMillis())
+                onSnapshot(snapshot)
+                delay(2000L)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun setFederationPolicy(groupId: String, policy: org.nowni.intercom_alpha.mesh.federation.CrossGroupPolicy) {
+        interGroupGateway.setCrossGroupPolicy(groupId, policy)
+    }
+
+    fun createFederationInvite(): String {
+        val invite = interGroupGateway.createFederationInvite(currentTimeMs = currentTimeMillis())
+        return org.nowni.intercom_alpha.mesh.federation.FederationSerializer.encodeInvite(invite)
+    }
+
+    fun acceptFederationInvite(inviteCode: String): Boolean {
+        val invite = org.nowni.intercom_alpha.mesh.federation.FederationSerializer.decodeInvite(inviteCode) ?: return false
+        return interGroupGateway.acceptFederationInvite(invite, currentTimeMillis())
     }
 }
 

@@ -70,6 +70,7 @@ interface IntercomHardwareBridge {
     val crashSnapshot: StateFlow<org.nowni.intercom_alpha.safety.CrashCountdownSnapshot>
     val latestVoiceCommand: StateFlow<org.nowni.intercom_alpha.audio.CommandDetection?>
     val routingSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.routing.RoutingSnapshot>
+    val federationSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.federation.FederationSnapshot>
 
     fun setPttActive(active: Boolean)
     fun setRepeaterModeActive(active: Boolean)
@@ -82,6 +83,10 @@ interface IntercomHardwareBridge {
     fun updateCrashSnapshot(snapshot: org.nowni.intercom_alpha.safety.CrashCountdownSnapshot)
     fun updateLatestVoiceCommand(detection: org.nowni.intercom_alpha.audio.CommandDetection?)
     fun updateRoutingSnapshot(snapshot: org.nowni.intercom_alpha.mesh.routing.RoutingSnapshot)
+    fun updateFederationSnapshot(snapshot: org.nowni.intercom_alpha.mesh.federation.FederationSnapshot)
+    fun setFederationPolicy(groupId: String, policy: org.nowni.intercom_alpha.mesh.federation.CrossGroupPolicy) {}
+    fun createFederationInvite(): String? = null
+    fun acceptFederationInvite(inviteCode: String): Boolean = false
     fun initiateRouteDiscovery(destinationId: String) {}
     fun cancelCrashCountdown()
     fun triggerManualCrashSos()
@@ -103,7 +108,8 @@ interface IntercomHardwareBridge {
         batteryGovernor: org.nowni.intercom_alpha.power.BatteryGovernor? = null,
         crashDetector: org.nowni.intercom_alpha.safety.CrashDetector? = null,
         voiceCommandRecognizer: org.nowni.intercom_alpha.audio.VoiceCommandRecognizer? = null,
-        directedRouter: org.nowni.intercom_alpha.mesh.routing.DirectedMeshRouter? = null
+        directedRouter: org.nowni.intercom_alpha.mesh.routing.DirectedMeshRouter? = null,
+        interGroupGateway: org.nowni.intercom_alpha.mesh.federation.InterGroupGateway? = null
     ) {}
 }
 
@@ -191,6 +197,21 @@ open class NoOpIntercomHardwareBridge(
     )
     override val routingSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.routing.RoutingSnapshot> = _routingSnapshot.asStateFlow()
 
+    protected val _federationSnapshot = MutableStateFlow(
+        org.nowni.intercom_alpha.mesh.federation.FederationSnapshot(
+            localGroupId = "squad-main",
+            localRole = org.nowni.intercom_alpha.mesh.federation.GatewayRole.PRIMARY,
+            bridgeState = org.nowni.intercom_alpha.mesh.federation.FederationBridgeState.DISCONNECTED,
+            federatedGroups = emptyList(),
+            activePolicy = org.nowni.intercom_alpha.mesh.federation.CrossGroupPolicy.CAPTAIN_ONLY,
+            totalRelayedPacketsIn = 0L,
+            totalRelayedPacketsOut = 0L,
+            totalDroppedPolicyViolations = 0L,
+            lastRelayedTimestampMs = 0L
+        )
+    )
+    override val federationSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.federation.FederationSnapshot> = _federationSnapshot.asStateFlow()
+
     override fun setPttActive(active: Boolean) {
         _isTransmitting.value = active
     }
@@ -237,6 +258,22 @@ open class NoOpIntercomHardwareBridge(
 
     fun simulateRoutingSnapshot(snapshot: org.nowni.intercom_alpha.mesh.routing.RoutingSnapshot) {
         _routingSnapshot.value = snapshot
+    }
+
+    override fun updateFederationSnapshot(snapshot: org.nowni.intercom_alpha.mesh.federation.FederationSnapshot) {
+        _federationSnapshot.value = snapshot
+    }
+
+    fun simulateFederationSnapshot(snapshot: org.nowni.intercom_alpha.mesh.federation.FederationSnapshot) {
+        _federationSnapshot.value = snapshot
+    }
+
+    override fun setFederationPolicy(groupId: String, policy: org.nowni.intercom_alpha.mesh.federation.CrossGroupPolicy) {
+        val current = _federationSnapshot.value
+        val updatedList = current.federatedGroups.map {
+            if (it.groupId == groupId) it.copy(policy = policy) else it
+        }
+        _federationSnapshot.value = current.copy(federatedGroups = updatedList, activePolicy = policy)
     }
 
     override fun cancelCrashCountdown() {
