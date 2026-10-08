@@ -71,7 +71,8 @@ data class FederatedGroupInfo(
     val state: FederationBridgeState,
     val lastHeartbeatMs: Long,
     val linkRssi: Int = -70,
-    val relayedPacketsCount: Long = 0L
+    val relayedPacketsCount: Long = 0L,
+    val federationId: String = ""
 )
 
 /**

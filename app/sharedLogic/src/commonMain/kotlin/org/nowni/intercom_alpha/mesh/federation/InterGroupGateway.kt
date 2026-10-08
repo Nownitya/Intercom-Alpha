@@ -70,6 +70,7 @@ class InterGroupGateway(
         }
 
         relayEngine.registerFederationCipher(invite.federationId, invite.sharedSecret)
+        relayEngine.registerFederationCipher(invite.initiatorGroupId, invite.sharedSecret)
 
         val info = FederatedGroupInfo(
             groupId = invite.initiatorGroupId,
@@ -80,7 +81,8 @@ class InterGroupGateway(
             state = FederationBridgeState.BRIDGED,
             lastHeartbeatMs = currentTimeMs,
             linkRssi = -70,
-            relayedPacketsCount = 0L
+            relayedPacketsCount = 0L,
+            federationId = invite.federationId
         )
 
         federatedGroups[invite.initiatorGroupId] = info
@@ -123,8 +125,9 @@ class InterGroupGateway(
         for ((targetGroupId, info) in federatedGroups) {
             if (info.state != FederationBridgeState.BRIDGED) continue
 
+            val fedId = if (info.federationId.isNotEmpty()) info.federationId else targetGroupId
             val controlPacket = relayEngine.createOutboundCrossMeshPacket(
-                federationId = info.groupId, // using groupId as identifier mapping
+                federationId = fedId,
                 targetGroupId = targetGroupId,
                 rawAudioData = rawAudioData,
                 isCaptain = isLocalLeader,

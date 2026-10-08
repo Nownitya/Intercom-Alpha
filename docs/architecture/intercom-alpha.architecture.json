@@ -3,7 +3,7 @@
   "diagram_type": "architecture",
   "meta": {
     "title": "Intercom-Alpha Cross-Platform Mesh Architecture",
-    "subtitle": "KMP Shared Core, Native SwiftUI & Compose, Multi-Hop BLE Flooding, AODV-Lite Directed Routing & RFC 8439 AEAD Encryption",
+    "subtitle": "KMP Shared Core, Native SwiftUI & Compose, Multi-Hop BLE Flooding, AODV-Lite Directed Routing, Inter-Convoy Gateway & RFC 8439 AEAD Encryption",
     "output": "docs/architecture/intercom-alpha-architecture.html",
     "visual_preset": "blueprint",
     "animation": "trace",
@@ -28,16 +28,16 @@
         "note": "QR code key derivation, sliding-window broadcast storm suppression, and Ktor cloud fallback."
       },
       {
-        "id": "tactical-safety-telemetry",
-        "label": "Convoy Radar, Crash HUD & Power Governor",
-        "focus": ["android_ui", "ios_ui", "swift_bridge", "voice_recognizer", "crash_detector", "trail_engine", "geofence_engine", "battery_governor", "mesh_transport", "remote_peers"],
-        "note": "Follow dynamic convoy radar tethering, split detection, IMU crash detection, 30s abort HUD, and offline voice command DSP."
+        "id": "tactical-safety-and-routing",
+        "label": "Convoy Radar, Crash HUD & Directed Routing",
+        "focus": ["android_ui", "ios_ui", "swift_bridge", "voice_recognizer", "crash_detector", "trail_engine", "geofence_engine", "battery_governor", "directed_router", "link_metric", "mesh_transport", "remote_peers"],
+        "note": "Follow dynamic convoy radar tethering, split detection, IMU crash eCall HUD, offline voice DSP, and AODV-Lite route discovery."
       },
       {
-        "id": "directed-mesh-routing",
-        "label": "Directed Mesh Routing & AODV-Lite",
-        "focus": ["android_ui", "ios_ui", "swift_bridge", "directed_router", "link_metric", "mesh_transport", "remote_peers"],
-        "note": "Follow dynamic AODV-Lite on-demand path discovery, ETX link metrics, and contention-suppressing unicast forwarding."
+        "id": "cross-mesh-federation",
+        "label": "Inter-Convoy Gateway & Federation",
+        "focus": ["android_ui", "ios_ui", "swift_bridge", "cross_mesh_arbiter", "federation_gateway", "mesh_transport", "remote_peers"],
+        "note": "Follow cross-convoy federation invite onboarding, sub-group audio demuxing, anti-feedback loop guard, and emergency all-call preemption."
       }
     ]
   },
@@ -194,6 +194,24 @@
       "tag": "Contention Mitigator",
       "pos": [960, 760],
       "size": [136, 62]
+    },
+    {
+      "id": "cross_mesh_arbiter",
+      "type": "backend",
+      "label": "Cross-Mesh Arbiter",
+      "sublabel": "Anti-Feedback Guard",
+      "tag": "Sub-Group Isolation",
+      "pos": [300, 760],
+      "size": [136, 62]
+    },
+    {
+      "id": "federation_gateway",
+      "type": "security",
+      "label": "Inter-Group Gateway",
+      "sublabel": "Cross-Mesh Bridge",
+      "tag": "FEDERATION:v1:",
+      "pos": [520, 760],
+      "size": [136, 62]
     }
   ],
   "boundaries": [
@@ -206,7 +224,7 @@
     {
       "kind": "security-group",
       "label": "KMP Core Engine (:app:sharedLogic)",
-      "wraps": ["group_mgr", "audio_engine", "trail_engine", "packet_cipher", "deduplicator", "geofence_engine", "mesh_transport", "battery_governor", "crash_detector", "voice_recognizer", "link_metric", "directed_router"],
+      "wraps": ["group_mgr", "audio_engine", "trail_engine", "packet_cipher", "deduplicator", "geofence_engine", "mesh_transport", "battery_governor", "crash_detector", "voice_recognizer", "link_metric", "directed_router", "cross_mesh_arbiter", "federation_gateway"],
       "pad": 16
     },
     {
@@ -362,6 +380,31 @@
       "fromSide": "right",
       "toSide": "bottom",
       "variant": "emphasis"
+    },
+    {
+      "from": "crash_detector",
+      "to": "cross_mesh_arbiter",
+      "label": "SOS Preempt",
+      "labelAt": [368, 656],
+      "fromSide": "bottom",
+      "toSide": "top",
+      "variant": "emphasis"
+    },
+    {
+      "from": "cross_mesh_arbiter",
+      "to": "federation_gateway",
+      "label": "Policy Demux",
+      "fromSide": "right",
+      "toSide": "left",
+      "variant": "emphasis"
+    },
+    {
+      "from": "federation_gateway",
+      "to": "link_metric",
+      "label": "Bridge Metric",
+      "fromSide": "right",
+      "toSide": "left",
+      "variant": "emphasis"
     }
   ],
   "cards": [
@@ -417,6 +460,15 @@
         "Pure KMP AODV-Lite dynamic route discovery (RREQ/RREP) and loop-free sequence number arbitration",
         "ETX link cost estimation with 3-consecutive-failure circuit breaker and fast self-healing (<300ms)",
         "Overhearing bystander unicast drop achieving >= 60% RF airtime contention reduction in 24-node convoy"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "Inter-Convoy Gateway & Cross-Mesh Federation (Sprint 23)",
+      "items": [
+        "Pure KMP InterGroupGateway & CrossMeshRelayEngine bridging disparate motorcycle convoys with dual-layer ChaCha20-Poly1305 re-encryption (<25ms latency)",
+        "CrossMeshForwardingArbiter enforces sub-group isolation (channels 2..15 stay intra-squad) with universal Emergency SOS all-call preemption across 32 nodes",
+        "FederationLoopDetector prevents circular relay loops via monotonic pathTrace tracking and sliding-window deduplication with zero feedback amplification"
       ]
     }
   ]
