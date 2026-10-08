@@ -33,6 +33,7 @@ fun createSharedUiModule(
     single { org.nowni.intercom_alpha.power.BatteryGovernor(nodeId = "android-local") }
     single { org.nowni.intercom_alpha.safety.CrashDetector() }
     single { org.nowni.intercom_alpha.audio.VoiceCommandRecognizer() }
+    single { org.nowni.intercom_alpha.mesh.routing.DirectedMeshRouter(localNodeId = "android-local") }
     single<IntercomHardwareBridge> { hardwareBridge }
 
     viewModelOf(::HomeViewModel)

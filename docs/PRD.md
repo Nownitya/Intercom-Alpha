@@ -1,8 +1,8 @@
 # Product Requirements Document (PRD) — Intercom-Alpha
 
-> **Document Version:** 2.3  
-> **Status:** Production Release Tagged (`v2.3.0`)  
-> **Last Updated:** 2026-10-06  
+> **Document Version:** 2.9  
+> **Status:** Production Release Tagged (`v2.9.0`)  
+> **Last Updated:** 2026-10-08  
 > **Repository:** `Intercom-Alpha`  
 > **Obsidian Reference:** `03_Specifications/` & `PROJECT-SPEC.md`
 
@@ -105,7 +105,8 @@ Rider opens app ➔ Creates or scans QR code ➔ Pairs Bluetooth helmet headset 
 - **Offline Vector Terrain & Trail Map Overlay**: Pure KMP offline vector geometry projection, trail tracks, topographic elevation contours, waypoint breadcrumbs, and seamless radar integration across Compose Multiplatform (`ProximityRadarView.kt`, `OfflineTrailCockpitSheet.kt`) and 100% Native iOS SwiftUI (`ContentView.swift`, `OfflineTrailCockpitSheet.swift`) with zero cellular data (Sprint 18 - v2.5.0 Release).
 - **Over-The-Air BLE Mesh GPX/GeoJSON Trail Sharing & Storage Manager**: Pure KMP chunked file transmission engine (Adler-32, sliding-window retransmission, MTU <= 100 bytes), GPX 1.1 and RFC 7946 GeoJSON parsers/exporters, and seamless 1-tap route beaming across Compose Multiplatform (`TrailFileManagerSheet.kt`) and 100% Native iOS SwiftUI (`TrailFileManagerSheet.swift`) with offline route catalog management (Sprint 19 - v2.6.0 Release).
 - **Tactical Convoy Geofencing, Autonomous Power Governor & Multi-Node Stress Benchmark Suite**: Pure KMP Haversine tether geofencing and waypoint proximity radar alarms, BFS connected-component convoy cluster split detection, autonomous multi-tier battery duty-cycle governor (NORMAL, CONSERVATIVE, EXTREME_SURVIVAL, REST_STOP_SLEEP) with instant PTT/motion wake and Emergency SOS preemption, multiplatform cockpit HUD presentation (tether boundary rings, breach banners, power pills), and automated 16-node virtual convoy stress benchmark harness with Archify showcase diagram synchronization (Sprint 20 - v2.7.0 Release).
-
+- **Autonomous Crash Impact Detection, eCall SOS & Offline Voice Command HUD**: Pure KMP multi-axis IMU crash impact detection (8.5g severe collision shock, 4.5g hard impact, >60° sustained fall-over) with 30s abortable pre-alert countdown, offline acoustic DSP keyword spotting ("Intercom SOS", "Next Channel", "Prev Channel", "Toggle Mute", "Battery Status", "Cancel Alert") under 80–120 km/h aerodynamic wind noise, platform hardware sensor loops across Android and iOS, full multiplatform emergency HUD presentation, and 5,000-sample streaming simulation harness with Archify showcase diagram synchronization (Sprint 21 - v2.8.0 Release).
+- **Dynamic Mesh Directed Routing, AODV-Lite Route Optimization & RF Collision Reduction**: Pure KMP AODV-Lite on-demand route discovery (RREQ/RREP/RERR) with monotonic sequence numbers, link delivery ratio & RSSI-based ETX metrics, 3-failure link break circuit breaker, selective unicast/multicast forwarding, overhearing bystander contention suppression (>80% RF airtime reduction in 24-node convoy), reactive multiplatform routing HUD presentation across Compose Multiplatform and 100% Native iOS SwiftUI, and 24-node large-scale convoy simulation harness with Archify showcase diagram synchronization (Sprint 22 - v2.9.0 Release).
 
 ---
 

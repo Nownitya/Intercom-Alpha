@@ -557,4 +557,52 @@ class HomeViewModelTest {
 
         assertNull(viewModel.uiState.value.latestVoiceCommand)
     }
+
+    @Test
+    fun testRoutingSnapshotAndDiagnosticsActions() = runTest(testDispatcher) {
+        val initialSnapshot = viewModel.uiState.value.routingSnapshot
+        assertEquals(0, initialSnapshot.activeRoutes.size)
+        assertFalse(viewModel.uiState.value.showRoutingDiagnosticsSheet)
+
+        // 1. Toggle diagnostics sheet open
+        viewModel.onAction(HomeUiAction.ToggleRoutingDiagnosticsSheet(true))
+        advanceUntilIdle()
+        assertTrue(viewModel.uiState.value.showRoutingDiagnosticsSheet)
+
+        // 2. Simulate new routing snapshot via hardware bridge
+        val mockSnapshot = org.nowni.intercom_alpha.mesh.routing.RoutingSnapshot(
+            localNodeId = "android-local",
+            activeRoutes = listOf(
+                org.nowni.intercom_alpha.mesh.routing.RouteSummary(
+                    destinationId = "rider-2",
+                    nextHopId = "rider-1",
+                    hopCount = 2,
+                    metricCost = 1.8,
+                    isValid = true,
+                    ageMs = 500L
+                )
+            ),
+            totalDirectedPackets = 14L,
+            totalFloodedPackets = 4L,
+            airtimeSavingsPercentage = 77.78,
+            timestampMs = 5000L
+        )
+        hardwareBridge.simulateRoutingSnapshot(mockSnapshot)
+        advanceUntilIdle()
+
+        val updatedState = viewModel.uiState.value
+        assertEquals(1, updatedState.routingSnapshot.activeRoutes.size)
+        assertEquals("rider-2", updatedState.routingSnapshot.activeRoutes.first().destinationId)
+        assertEquals(77.78, updatedState.routingSnapshot.airtimeSavingsPercentage)
+        assertEquals(14L, updatedState.routingSnapshot.totalDirectedPackets)
+
+        // 3. Initiate route discovery action
+        viewModel.onAction(HomeUiAction.InitiateRouteDiscovery("rider-3"))
+        advanceUntilIdle()
+
+        // 4. Toggle diagnostics sheet closed
+        viewModel.onAction(HomeUiAction.ToggleRoutingDiagnosticsSheet(false))
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.showRoutingDiagnosticsSheet)
+    }
 }
