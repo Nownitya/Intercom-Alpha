@@ -190,6 +190,9 @@ struct ContentView: View {
         .sheet(isPresented: $vm.showTrailManagerSheet) {
             TrailFileManagerSheet(vm: vm)
         }
+        .sheet(isPresented: $vm.showRoutingSheet) {
+            RoutingDiagnosticsSheetView(vm: vm)
+        }
         .alert("Intercom Alert", isPresented: Binding(
             get: { vm.errorMessage != nil },
             set: { if !$0 { vm.errorMessage = nil } }
@@ -550,6 +553,31 @@ struct TacticalAvionicsBar: View {
                 .background((power.policy == .restStopSleep ? Color.yellow : (power.dutyCycle.dutyCyclePercent < 50 ? Color.orange : (power.policy == .emergencyOverride ? Color.red : Color.green))).opacity(0.15))
                 .cornerRadius(5)
                 .overlay(RoundedRectangle(cornerRadius: 5).stroke((power.policy == .restStopSleep ? Color.yellow : (power.dutyCycle.dutyCyclePercent < 50 ? Color.orange : (power.policy == .emergencyOverride ? Color.red : Color.green))).opacity(0.3), lineWidth: 1))
+            }
+
+            // Directed Mesh Routing Pill (Sprint 22 - ICA-2203)
+            if let routing = vm.routingSnapshot {
+                Button(action: {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    vm.showRoutingSheet = true
+                }) {
+                    HStack(spacing: 3) {
+                        Image(systemName: "point.3.filled.connected.trianglepath.dotted")
+                            .font(.system(size: 8, weight: .bold))
+                        Text("AODV \(routing.activeRoutes.count)R")
+                            .font(.system(size: 8, weight: .black, design: .monospaced))
+                        if routing.airtimeSavingsPercentage > 0 {
+                            Text("• \(Int(routing.airtimeSavingsPercentage))%")
+                                .font(.system(size: 7, weight: .heavy, design: .monospaced))
+                        }
+                    }
+                    .foregroundColor(.cyan)
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 3)
+                    .background(Color.cyan.opacity(0.15))
+                    .cornerRadius(5)
+                    .overlay(RoundedRectangle(cornerRadius: 5).stroke(Color.cyan.opacity(0.35), lineWidth: 1))
+                }
             }
 
             // Peers Sheet Button
@@ -1307,5 +1335,117 @@ struct ContentView_Previews: PreviewProvider {
 extension String {
     func ifBlank(_ fallback: () -> String) -> String {
         self.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? fallback() : self
+    }
+}
+
+// --- Directed Mesh Routing Diagnostics Sheet (Sprint 22 / ICA-2203) ---
+
+struct RoutingDiagnosticsSheetView: View {
+    @ObservedObject var vm: IntercomViewModel
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color(red: 0.05, green: 0.07, blue: 0.1).ignoresSafeArea()
+
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        // Summary Card
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("RF AIRTIME CONTENTION MITIGATION")
+                                .font(.system(size: 11, weight: .black, design: .monospaced))
+                                .foregroundColor(.cyan)
+
+                            let savings = Int(vm.routingSnapshot?.airtimeSavingsPercentage ?? 0)
+                            HStack {
+                                Text("\(savings)%")
+                                    .font(.system(size: 36, weight: .black, design: .monospaced))
+                                    .foregroundColor(.green)
+                                Text("Airtime Savings Over Flooding")
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundColor(.secondary)
+                            }
+
+                            HStack(spacing: 16) {
+                                VStack(alignment: .leading) {
+                                    Text("DIRECTED")
+                                        .font(.system(size: 9, weight: .black, design: .monospaced))
+                                        .foregroundColor(.secondary)
+                                    Text("\(vm.routingSnapshot?.totalDirectedPackets ?? 0)")
+                                        .font(.system(size: 14, weight: .bold, design: .monospaced))
+                                        .foregroundColor(.white)
+                                }
+                                VStack(alignment: .leading) {
+                                    Text("FLOODED")
+                                        .font(.system(size: 9, weight: .black, design: .monospaced))
+                                        .foregroundColor(.secondary)
+                                    Text("\(vm.routingSnapshot?.totalFloodedPackets ?? 0)")
+                                        .font(.system(size: 14, weight: .bold, design: .monospaced))
+                                        .foregroundColor(.white)
+                                }
+                                VStack(alignment: .leading) {
+                                    Text("ACTIVE ROUTES")
+                                        .font(.system(size: 9, weight: .black, design: .monospaced))
+                                        .foregroundColor(.secondary)
+                                    Text("\(vm.routingSnapshot?.activeRoutes.count ?? 0)")
+                                        .font(.system(size: 14, weight: .bold, design: .monospaced))
+                                        .foregroundColor(.cyan)
+                                }
+                            }
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color.white.opacity(0.06))
+                        .cornerRadius(12)
+
+                        // Active Routes Table
+                        Text("ACTIVE AODV-LITE ROUTES")
+                            .font(.system(size: 11, weight: .black, design: .monospaced))
+                            .foregroundColor(.secondary)
+
+                        if let routes = vm.routingSnapshot?.activeRoutes, !routes.isEmpty {
+                            ForEach(routes, id: \.destinationId) { route in
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("DEST: \(route.destinationId)")
+                                            .font(.system(size: 13, weight: .bold, design: .monospaced))
+                                            .foregroundColor(.white)
+                                        Text("Next Hop: \(route.nextHopId) • Hops: \(route.hopCount)")
+                                            .font(.system(size: 11, weight: .medium, design: .monospaced))
+                                            .foregroundColor(.secondary)
+                                    }
+                                    Spacer()
+                                    VStack(alignment: .trailing, spacing: 2) {
+                                        Text(route.isValid ? "ACTIVE" : "INVALID")
+                                            .font(.system(size: 10, weight: .black, design: .monospaced))
+                                            .foregroundColor(route.isValid ? .green : .red)
+                                        Text(String(format: "ETX %.1f", route.metricCost))
+                                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                            .foregroundColor(.cyan)
+                                    }
+                                }
+                                .padding()
+                                .background(Color.white.opacity(0.04))
+                                .cornerRadius(8)
+                            }
+                        } else {
+                            Text("No active directed routes currently established. Broadcast discovery triggers automatically when sending directed frames.")
+                                .font(.system(size: 12))
+                                .foregroundColor(.secondary)
+                                .padding()
+                        }
+                    }
+                    .padding()
+                }
+            }
+            .navigationTitle("AODV Routing HUD")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") { dismiss() }
+                }
+            }
+        }
     }
 }

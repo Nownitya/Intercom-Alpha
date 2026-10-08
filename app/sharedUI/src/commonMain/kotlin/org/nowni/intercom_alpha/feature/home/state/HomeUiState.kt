@@ -67,7 +67,18 @@ data class HomeUiState(
     // Sprint 21 Autonomous Crash Impact Detection & Voice Command HUD (ICA-2103)
     val crashSnapshot: org.nowni.intercom_alpha.safety.CrashCountdownSnapshot = org.nowni.intercom_alpha.safety.CrashCountdownSnapshot(),
     val latestVoiceCommand: org.nowni.intercom_alpha.audio.CommandDetection? = null,
-    val showCrashCountdownDialog: Boolean = false
+    val showCrashCountdownDialog: Boolean = false,
+
+    // Sprint 22 Directed Mesh Routing State (ICA-2203)
+    val routingSnapshot: org.nowni.intercom_alpha.mesh.routing.RoutingSnapshot = org.nowni.intercom_alpha.mesh.routing.RoutingSnapshot(
+        localNodeId = "android-local",
+        activeRoutes = emptyList(),
+        totalDirectedPackets = 0L,
+        totalFloodedPackets = 0L,
+        airtimeSavingsPercentage = 0.0,
+        timestampMs = 0L
+    ),
+    val showRoutingDiagnosticsSheet: Boolean = false
 )
 
 sealed interface HomeUiAction {
@@ -116,6 +127,10 @@ sealed interface HomeUiAction {
     data object CancelCrashCountdown : HomeUiAction
     data object TriggerManualCrashSos : HomeUiAction
     data object DismissVoiceCommandBadge : HomeUiAction
+
+    // Sprint 22 Directed Mesh Routing Actions (ICA-2203)
+    data class ToggleRoutingDiagnosticsSheet(val show: Boolean) : HomeUiAction
+    data class InitiateRouteDiscovery(val destinationId: String) : HomeUiAction
 }
 
 sealed interface HomeUiEvent {

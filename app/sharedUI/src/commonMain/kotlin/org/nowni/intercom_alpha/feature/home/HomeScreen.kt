@@ -322,6 +322,66 @@ fun HomeScreen(
                         }
                     }
                 }
+
+                // Directed AODV-Lite Mesh Routing Strip (Sprint 22 - ICA-2203)
+                Surface(
+                    onClick = { onAction(HomeUiAction.ToggleRoutingDiagnosticsSheet(true)) },
+                    shape = RoundedCornerShape(6.dp),
+                    color = Color(0xFF0F1A15),
+                    border = BorderStroke(1.dp, Color(0xFF00E676))
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 3.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text("⚡", fontSize = 11.sp)
+                            Text(
+                                text = "AODV ROUTING: ${uiState.routingSnapshot.activeRoutes.size} ROUTES",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            val savings = kotlin.math.round(uiState.routingSnapshot.airtimeSavingsPercentage).toInt()
+                            Text(
+                                text = "• $savings% RF SAVED",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF00E676)
+                            )
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = "${uiState.routingSnapshot.totalDirectedPackets} DIR / ${uiState.routingSnapshot.totalFloodedPackets} FLD",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Black,
+                                color = Color(0xFF00E5FF)
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(4.dp),
+                                color = Color(0xFF1B5E20)
+                            ) {
+                                Text(
+                                    text = "DIAG",
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color.White,
+                                    modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
             // ================= 2. EMERGENCY PREEMPTION BANNER =================
@@ -529,6 +589,143 @@ fun HomeScreen(
                 onCancel = { onAction(HomeUiAction.CancelCrashCountdown) },
                 onSosNow = { onAction(HomeUiAction.TriggerManualCrashSos) }
             )
+        }
+
+        // ================= ROUTING DIAGNOSTICS DIALOG (Sprint 22 - ICA-2203) =================
+        if (uiState.showRoutingDiagnosticsSheet) {
+            RoutingDiagnosticsDialog(
+                snapshot = uiState.routingSnapshot,
+                onDismiss = { onAction(HomeUiAction.ToggleRoutingDiagnosticsSheet(false)) },
+                onDiscoverRoute = { destId -> onAction(HomeUiAction.InitiateRouteDiscovery(destId)) }
+            )
+        }
+    }
+}
+
+@Composable
+fun RoutingDiagnosticsDialog(
+    snapshot: org.nowni.intercom_alpha.mesh.routing.RoutingSnapshot,
+    onDismiss: () -> Unit,
+    onDiscoverRoute: (String) -> Unit
+) {
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = Color(0xFF10151B),
+            border = BorderStroke(1.dp, Color(0xFF00E5FF)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "⚡ AODV-LITE ROUTING HUD",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Black,
+                        color = Color(0xFF00E5FF),
+                        letterSpacing = 0.5.sp
+                    )
+                    IconButton(onClick = onDismiss, modifier = Modifier.size(24.dp)) {
+                        Text("✕", fontSize = 12.sp, color = Color.White)
+                    }
+                }
+
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFF17202A),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        val savings = kotlin.math.round(snapshot.airtimeSavingsPercentage).toInt()
+                        Text(
+                            text = "AIRTIME SAVINGS OVER FLOODING: $savings%",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Black,
+                            color = Color(0xFF00E676)
+                        )
+                        Text(
+                            text = "Directed Packets: ${snapshot.totalDirectedPackets} • Flooded: ${snapshot.totalFloodedPackets}",
+                            fontSize = 10.sp,
+                            color = Color(0xFFB0BEC5)
+                        )
+                    }
+                }
+
+                Text(
+                    text = "ACTIVE ROUTING ENTRIES (${snapshot.activeRoutes.size})",
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF90A4AE)
+                )
+
+                if (snapshot.activeRoutes.isEmpty()) {
+                    Text(
+                        text = "No active directed routes currently established. Unicast data frames initiate on-demand RREQ discovery automatically.",
+                        fontSize = 10.sp,
+                        color = Color(0xFF78909C)
+                    )
+                } else {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        for (route in snapshot.activeRoutes) {
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = Color(0xFF141A22),
+                                border = BorderStroke(0.5.dp, Color(0xFF263238)),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(8.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column {
+                                        Text(
+                                            text = "DEST: ${route.destinationId}",
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White
+                                        )
+                                        Text(
+                                            text = "Next: ${route.nextHopId} • Hops: ${route.hopCount} • ETX: ${route.metricCost}",
+                                            fontSize = 9.sp,
+                                            color = Color(0xFF80DEEA)
+                                        )
+                                    }
+                                    Surface(
+                                        shape = RoundedCornerShape(4.dp),
+                                        color = if (route.isValid) Color(0xFF1B5E20) else Color(0xFFB71C1C)
+                                    ) {
+                                        Text(
+                                            text = if (route.isValid) "ACTIVE" else "INVALID",
+                                            fontSize = 8.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White,
+                                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Button(
+                    onClick = onDismiss,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF263238)),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth().height(36.dp)
+                ) {
+                    Text("CLOSE HUD", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                }
+            }
         }
     }
 }

@@ -48,6 +48,7 @@ class HomeViewModel(
     val batteryGovernor: org.nowni.intercom_alpha.power.BatteryGovernor = org.nowni.intercom_alpha.power.BatteryGovernor("android-local"),
     val crashDetector: org.nowni.intercom_alpha.safety.CrashDetector = org.nowni.intercom_alpha.safety.CrashDetector(),
     val voiceCommandRecognizer: org.nowni.intercom_alpha.audio.VoiceCommandRecognizer = org.nowni.intercom_alpha.audio.VoiceCommandRecognizer(),
+    val directedRouter: org.nowni.intercom_alpha.mesh.routing.DirectedMeshRouter = org.nowni.intercom_alpha.mesh.routing.DirectedMeshRouter("android-local"),
     val hardwareBridge: IntercomHardwareBridge = NoOpIntercomHardwareBridge()
 ) : ViewModel() {
 
@@ -71,7 +72,8 @@ class HomeViewModel(
             geofenceEngine = geofenceEngine,
             batteryGovernor = batteryGovernor,
             crashDetector = crashDetector,
-            voiceCommandRecognizer = voiceCommandRecognizer
+            voiceCommandRecognizer = voiceCommandRecognizer,
+            directedRouter = directedRouter
         )
 
         viewModelScope.launch {
@@ -329,6 +331,13 @@ class HomeViewModel(
                 }
             }
         }
+
+        // 11. Synchronize Directed Mesh Routing Snapshot (ICA-2203)
+        viewModelScope.launch {
+            hardwareBridge.routingSnapshot.collect { snapshot ->
+                _uiState.update { it.copy(routingSnapshot = snapshot) }
+            }
+        }
     }
 
     fun onAction(action: HomeUiAction) {
@@ -583,6 +592,14 @@ class HomeViewModel(
 
             HomeUiAction.DismissVoiceCommandBadge -> {
                 _uiState.update { it.copy(latestVoiceCommand = null) }
+            }
+
+            is HomeUiAction.ToggleRoutingDiagnosticsSheet -> {
+                _uiState.update { it.copy(showRoutingDiagnosticsSheet = action.show) }
+            }
+
+            is HomeUiAction.InitiateRouteDiscovery -> {
+                hardwareBridge.initiateRouteDiscovery(action.destinationId)
             }
         }
     }

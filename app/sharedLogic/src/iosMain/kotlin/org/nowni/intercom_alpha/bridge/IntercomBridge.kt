@@ -89,6 +89,7 @@ class IntercomBridge(
     val batteryGovernor: org.nowni.intercom_alpha.power.BatteryGovernor = org.nowni.intercom_alpha.power.BatteryGovernor(nodeId = localPeerId)
     val crashDetector: org.nowni.intercom_alpha.safety.CrashDetector = org.nowni.intercom_alpha.safety.CrashDetector()
     val voiceCommandRecognizer: org.nowni.intercom_alpha.audio.VoiceCommandRecognizer = org.nowni.intercom_alpha.audio.VoiceCommandRecognizer()
+    val directedRouter: org.nowni.intercom_alpha.mesh.routing.DirectedMeshRouter = org.nowni.intercom_alpha.mesh.routing.DirectedMeshRouter(localPeerId)
 
     private val _isRepeaterModeActive = MutableStateFlow(false)
     val isRepeaterModeActive: StateFlow<Boolean> = _isRepeaterModeActive.asStateFlow()
@@ -937,6 +938,27 @@ class IntercomBridge(
     fun processVoiceAudio(samples: ShortArray, timestampMs: Long = currentTimeMillis()) {
         scope.launch {
             voiceCommandRecognizer.processPcmSamples(samples, timestampMs)
+        }
+    }
+
+    // --- Swift-Friendly Directed Mesh Routing Observers & Controls (Sprint 22 / ICA-2203) ---
+
+    fun observeRoutingSnapshot(onSnapshot: (org.nowni.intercom_alpha.mesh.routing.RoutingSnapshot) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            while (isActive) {
+                val snapshot = directedRouter.getSnapshot(currentTimeMillis())
+                onSnapshot(snapshot)
+                delay(2000L)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun initiateRouteDiscovery(destinationId: String) {
+        scope.launch {
+            val rreq = directedRouter.routingEngine.initiateRouteDiscovery(destinationId, currentTimeMillis())
+            val payload = org.nowni.intercom_alpha.mesh.routing.RoutingSerializer.encodeRreq(rreq)
+            meshTransport.sendControl(ControlType.ROUTE_REQUEST, payload)
         }
     }
 }

@@ -37,6 +37,9 @@ import org.nowni.intercom_alpha.service.IntercomForegroundService
 import org.nowni.intercom_alpha.telemetry.ConvoyTelemetryFrame
 import org.nowni.intercom_alpha.telemetry.GpsCoordinate
 import org.nowni.intercom_alpha.text.MeshTextWireFrame
+import org.nowni.intercom_alpha.mesh.routing.DirectedMeshRouter
+import org.nowni.intercom_alpha.mesh.routing.RoutingSerializer
+import org.nowni.intercom_alpha.mesh.routing.RoutingSnapshot
 
 /**
  * Concrete Android implementation of [IntercomHardwareBridge].
@@ -112,7 +115,21 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
     private val _latestVoiceCommand = MutableStateFlow<org.nowni.intercom_alpha.audio.CommandDetection?>(null)
     override val latestVoiceCommand: StateFlow<org.nowni.intercom_alpha.audio.CommandDetection?> = _latestVoiceCommand.asStateFlow()
 
+    private val _routingSnapshot = MutableStateFlow(
+        RoutingSnapshot(
+            localNodeId = "android-local",
+            activeRoutes = emptyList(),
+            totalDirectedPackets = 0L,
+            totalFloodedPackets = 0L,
+            airtimeSavingsPercentage = 0.0,
+            timestampMs = 0L
+        )
+    )
+    override val routingSnapshot: StateFlow<RoutingSnapshot> = _routingSnapshot.asStateFlow()
+
     var channelManager: ChannelManager? = null
+        private set
+    var directedRouter: DirectedMeshRouter? = null
         private set
     var blackboxRecorder: EmergencyBlackboxRecorder? = null
         private set
@@ -150,7 +167,8 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         geofenceEngine: org.nowni.intercom_alpha.telemetry.ConvoyGeofenceEngine?,
         batteryGovernor: org.nowni.intercom_alpha.power.BatteryGovernor?,
         crashDetector: org.nowni.intercom_alpha.safety.CrashDetector?,
-        voiceCommandRecognizer: org.nowni.intercom_alpha.audio.VoiceCommandRecognizer?
+        voiceCommandRecognizer: org.nowni.intercom_alpha.audio.VoiceCommandRecognizer?,
+        directedRouter: DirectedMeshRouter?
     ) {
         this.channelManager = channelManager
         this.blackboxRecorder = blackboxRecorder
@@ -162,6 +180,17 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         this.batteryGovernor = batteryGovernor
         this.crashDetector = crashDetector
         this.voiceCommandRecognizer = voiceCommandRecognizer
+        this.directedRouter = directedRouter
+
+        directedRouter?.let { router ->
+            scope.launch {
+                while (isActive) {
+                    val snapshot = router.getSnapshot(System.currentTimeMillis())
+                    _routingSnapshot.value = snapshot
+                    kotlinx.coroutines.delay(2000L)
+                }
+            }
+        }
 
         crashDetector?.let { detector ->
             scope.launch {
@@ -337,6 +366,19 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
 
     override fun updateLatestVoiceCommand(detection: org.nowni.intercom_alpha.audio.CommandDetection?) {
         _latestVoiceCommand.value = detection
+    }
+
+    override fun updateRoutingSnapshot(snapshot: RoutingSnapshot) {
+        _routingSnapshot.value = snapshot
+    }
+
+    override fun initiateRouteDiscovery(destinationId: String) {
+        scope.launch {
+            directedRouter?.routingEngine?.initiateRouteDiscovery(destinationId, System.currentTimeMillis())?.let { rreq ->
+                val payload = RoutingSerializer.encodeRreq(rreq)
+                sendControlPacket(MeshPacket.Control("android-local", ControlType.ROUTE_REQUEST, payload))
+            }
+        }
     }
 
     override fun cancelCrashCountdown() {

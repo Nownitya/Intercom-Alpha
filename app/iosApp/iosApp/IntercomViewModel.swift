@@ -77,6 +77,10 @@ final class IntercomViewModel: ObservableObject {
     @Published var latestVoiceCommand: CommandDetection? = nil
     @Published var showCrashCountdownCard: Bool = false
 
+    // --- Directed Mesh Routing Subsystem (Sprint 22 / ICA-2203) ---
+    @Published var routingSnapshot: RoutingSnapshot? = nil
+    @Published var showRoutingSheet: Bool = false
+
     private let bridge = IntercomBridge(localPeerId: "ios-lead", localPeerName: "iOS Lead")
     private var cancellables: [CancellationHandle] = []
     private var activeActivity: Activity<IntercomActivityAttributes>? = nil
@@ -386,6 +390,10 @@ final class IntercomViewModel: ObservableObject {
         bridge.updateBattery(percent: Int32(percent), isCharging: isCharging)
     }
 
+    func initiateRouteDiscovery(destinationId: String) {
+        bridge.initiateRouteDiscovery(destinationId: destinationId)
+    }
+
     // --- Reactive Observers Setup ---
 
     private func setupObservers() {
@@ -621,6 +629,14 @@ final class IntercomViewModel: ObservableObject {
             }
         }
         cancellables.append(voiceSub)
+
+        // --- Directed Mesh Routing Observers (Sprint 22 / ICA-2203) ---
+        let routingSub = bridge.observeRoutingSnapshot { [weak self] snapshot in
+            Task { @MainActor in
+                self?.routingSnapshot = snapshot
+            }
+        }
+        cancellables.append(routingSub)
 
         isPfsRatchetActive = bridge.isPfsRatchetActive()
     }
