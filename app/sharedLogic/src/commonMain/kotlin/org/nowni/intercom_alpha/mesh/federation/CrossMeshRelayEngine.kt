@@ -70,6 +70,8 @@ class CrossMeshRelayEngine(
         federationCiphers.remove(federationId)
     }
 
+    fun getCipher(federationId: String): PacketCipher? = federationCiphers[federationId]
+
     /**
      * Evaluates whether audio transmission is permitted under the given policy.
      */

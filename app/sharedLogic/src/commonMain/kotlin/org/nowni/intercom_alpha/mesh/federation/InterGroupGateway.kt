@@ -19,6 +19,8 @@ class InterGroupGateway(
 ) {
     var localRole: GatewayRole = if (isLocalLeader) GatewayRole.PRIMARY else GatewayRole.STANDBY
     val relayEngine: CrossMeshRelayEngine = CrossMeshRelayEngine(localGroupId, localPeerId)
+    val loopDetector: FederationLoopDetector = FederationLoopDetector(localGroupId, localPeerId)
+    val forwardingArbiter: CrossMeshForwardingArbiter = CrossMeshForwardingArbiter(localGroupId, localPeerId, loopDetector)
 
     private val federatedGroups = mutableMapOf<String, FederatedGroupInfo>()
     private var sequenceNumber: Long = 0L
