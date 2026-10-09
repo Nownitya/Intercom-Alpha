@@ -34,10 +34,10 @@
         "note": "Follow dynamic convoy radar tethering, split detection, IMU crash eCall HUD, offline voice DSP, and AODV-Lite route discovery."
       },
       {
-        "id": "federation-and-qos",
-        "label": "Federation & Airtime QoS Preemption",
-        "focus": ["android_ui", "ios_ui", "swift_bridge", "cross_mesh_arbiter", "federation_gateway", "qos_scheduler", "qos_queue", "mesh_transport", "remote_peers"],
-        "note": "Follow inter-convoy federation bridging, 4-tier strict QoS preemption, DRR anti-starvation, and bulk file airtime throttling."
+        "id": "qos-and-failover",
+        "label": "QoS & Multi-Path Failover",
+        "focus": ["cross_mesh_arbiter", "failover_arbiter", "hybrid_router", "qos_scheduler", "qos_queue", "mesh_transport", "signaling_server", "remote_peers"],
+        "note": "Follow 4-tier strict QoS preemption, RF degradation failover to MULTI_PATH_HEDGED, and cellular SFU relay fallback."
       }
     ]
   },
@@ -230,6 +230,24 @@
       "tag": "Anti-Starvation",
       "pos": [960, 940],
       "size": [136, 62]
+    },
+    {
+      "id": "failover_arbiter",
+      "type": "backend",
+      "label": "Failover Arbiter",
+      "sublabel": "MultiPathFailover",
+      "tag": "Hysteresis Machine",
+      "pos": [300, 940],
+      "size": [136, 62]
+    },
+    {
+      "id": "hybrid_router",
+      "type": "backend",
+      "label": "Hybrid Router",
+      "sublabel": "Transport Router",
+      "tag": "Dual-Stream Hedger",
+      "pos": [520, 940],
+      "size": [136, 62]
     }
   ],
   "boundaries": [
@@ -242,7 +260,7 @@
     {
       "kind": "security-group",
       "label": "KMP Core Engine (:app:sharedLogic)",
-      "wraps": ["group_mgr", "audio_engine", "trail_engine", "packet_cipher", "deduplicator", "geofence_engine", "mesh_transport", "battery_governor", "crash_detector", "voice_recognizer", "link_metric", "directed_router", "cross_mesh_arbiter", "federation_gateway", "qos_scheduler", "qos_queue"],
+      "wraps": ["group_mgr", "audio_engine", "trail_engine", "packet_cipher", "deduplicator", "geofence_engine", "mesh_transport", "battery_governor", "crash_detector", "voice_recognizer", "link_metric", "directed_router", "cross_mesh_arbiter", "federation_gateway", "qos_scheduler", "qos_queue", "failover_arbiter", "hybrid_router"],
       "pad": 16
     },
     {
@@ -426,9 +444,26 @@
     },
     {
       "from": "cross_mesh_arbiter",
-      "to": "qos_scheduler",
-      "label": "Priority Rate",
+      "to": "failover_arbiter",
+      "label": "Failover Hook",
+      "labelAt": [368, 836],
       "fromSide": "bottom",
+      "toSide": "top",
+      "variant": "emphasis"
+    },
+    {
+      "from": "failover_arbiter",
+      "to": "hybrid_router",
+      "label": "Failover Mode",
+      "fromSide": "right",
+      "toSide": "left",
+      "variant": "emphasis"
+    },
+    {
+      "from": "hybrid_router",
+      "to": "qos_scheduler",
+      "label": "Hedged Queue",
+      "fromSide": "right",
       "toSide": "left",
       "variant": "emphasis"
     },
@@ -521,6 +556,15 @@
         "Dynamic 400ms conversational voice hangover window preventing ping-pong flapping during speech pauses",
         "Deficit Round-Robin anti-starvation tokens guaranteeing bounded latency for routing control during continuous voice",
         "Bulk file transfer duty-cycle throttling (>=150ms delay, <=10% airtime) maintaining Voice PDR >= 92% across 32 congested nodes"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Automated Multi-Path Mesh Failover & Hybrid Relay (Sprint 25)",
+      "items": [
+        "Pure KMP MultiPathFailoverArbiter evaluates ETX, RSSI, and PDR with discrete modes (BLE_DIRECT, MULTI_PATH_HEDGED, CLOUD_RELAY_ONLY, RESTRICTED_OFFLINE)",
+        "Zero-dropout MULTI_PATH_HEDGED dual-stream voice packet hedging with receiver PacketDeduplicator transparent suppression",
+        "5,000ms hysteresis dampening preventing RF boundary flapping during highway convoy drift, mountain split, and tunnel dead zones"
       ]
     }
   ]
