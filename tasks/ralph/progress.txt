@@ -1868,6 +1868,43 @@
   - Graphify Knowledge Sync (`graphify update .`): 3,571 nodes, 7,769 edges, 252 communities (Rule 7).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-25-multipath-mesh-failover`).
 
+### [2026-10-09] - ICA-2503: Subsystem Hardware Bridge Wiring & Multiplatform Tactical Transport Handover HUD Presentation
+- **Branch**: `feature/ICA-2503-bridge-hud-presentation`
+- **Objective**: Wire `MultiPathFailoverArbiter` and `HybridTransportRouter` into `IntercomHardwareBridge`, `AndroidPlatformBridge`, and `IntercomBridge` (`iosMain`) with typed `CancellationHandle` observers, register singletons in Koin `AppModule.kt`, expose reactive `failoverSnapshot` flow in `HomeUiState`, and present tactical transport status badge and handover diagnostic sheet in Compose Multiplatform (`HomeScreen.kt`) and 100% Native iOS SwiftUI (`ContentView.swift` / `IntercomViewModel.swift` respecting Rule 1).
+- **Implementation**:
+  - `IntercomHardwareBridge.kt`:
+    - Added `failoverSnapshot` state flow, `updateFailoverSnapshot`, `setFailoverModeOverride`, and `failoverArbiter` parameter to `attachSubsystems`.
+    - Implemented simulation helpers `simulateFailoverSnapshot` in `NoOpIntercomHardwareBridge`.
+  - `AndroidPlatformBridge.kt`:
+    - Added `failoverArbiter` reference and wired continuous metric collection to `_failoverSnapshot`.
+    - Added `setFailoverModeOverride` dispatching `forceMode` on the arbiter.
+  - `IntercomBridge.kt` (`iosMain`):
+    - Added `failoverArbiter` singleton property.
+    - Implemented `observeFailoverSnapshot(onSnapshot: (FailoverMetrics) -> Unit): CancellationHandle` providing Swift-friendly reactive observation.
+    - Implemented `setFailoverModeOverride(mode: FailoverMode?)`.
+  - `AppModule.kt`:
+    - Registered `single { MultiPathFailoverArbiter() }` in `sharedUiModule`.
+  - `HomeUiState.kt` & `HomeViewModel.kt`:
+    - Added `failoverSnapshot: FailoverMetrics` and `showFailoverSheet: Boolean` to `HomeUiState`.
+    - Added `HomeUiAction.ToggleFailoverSheet` and `HomeUiAction.SetFailoverModeOverride`.
+    - Injected `MultiPathFailoverArbiter` into `HomeViewModel` constructor, forwarded to `hardwareBridge.attachSubsystems()`, and collected snapshot into `_uiState`.
+  - `HomeScreen.kt`:
+    - Added tactical transport failover pill in the avionics bar displaying current mode (`BLE`, `HEDGED`, `CLOUD`, `OFFLINE`), ETX, and handover count.
+    - Implemented `FailoverDiagnosticsDialog` modal presenting comprehensive link quality metrics (peer count, ETX, PDR, cloud relay state, handovers, hedged frames) and manual mode override actuators.
+  - `IntercomViewModel.swift` & `ContentView.swift` (100% Native SwiftUI — Rule 1):
+    - Added `@Published var failoverSnapshot: FailoverMetrics?` and `@Published var showFailoverSheet: Bool`.
+    - Subscribed via `bridge.observeFailoverSnapshot` with lifecycle cancellation handle.
+    - Added tactical transport pill in `TacticalAvionicsBar`.
+    - Implemented `TacticalTransportHandoverSheetView` with telemetry cards, degradation warning banner, and auto/manual routing actuators.
+  - `AppModuleTest.kt` & `HomeViewModelTest.kt`:
+    - Verified Koin dependency resolution and state machine interactions across UI actions and hardware bridge emissions.
+- **Verification**:
+  - `./gradlew test`: 100% test pass across multiplatform targets.
+  - `./gradlew :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+  - Graphify Knowledge Sync (`graphify update .`): 3,593 nodes, 7,832 edges, 248 communities (Rule 7).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-25-multipath-mesh-failover`).
+
 
 
 
