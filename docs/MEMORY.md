@@ -877,7 +877,7 @@
     - Added Sprint 23 showcase card (slate dot) highlighting dual-layer ChaCha20-Poly1305 re-encryption, sub-group isolation, and loop detector verification.
     - Delivered via Archify CLI with 100% showcase quality pass (9/9 checks passed, 0 errors, 0 warnings).
 
-### 2.24 Sprint 24: Mesh Airtime QoS Traffic Shaping & Preemption Arbiter (Phase 22 / ICA-2401–2403)
+### 2.24 Sprint 24: Mesh Airtime QoS Traffic Shaping & Preemption Arbiter (Phase 22 / ICA-2401–2404)
 - **Challenge**: BLE 2.4GHz RF bandwidth is strictly airtime-constrained (<125 kbps nominal throughput over Bluetooth LE 4.2 / 5.0 PHY). Concurrent transmission of large background OTA trail files (GPX/GeoJSON chunks) alongside real-time voice streams causes severe packet collisions, high jitter, and buffer bloat resulting in voice frame loss and clipped conversations.
 - **Solution**:
   - `QoSModels.kt` & `MeshQoSQueue.kt`:
@@ -891,6 +891,16 @@
   - Multiplatform Hardware Bridge & Tactical HUD:
     - Wired `qosSnapshot` flow into `IntercomHardwareBridge`, `AndroidPlatformBridge`, and `IntercomBridge` (`iosMain`) with reactive typed `CancellationHandle` observers.
     - Displayed real-time QoS airtime indicator pill and channel congestion alert banner on Compose Multiplatform (`HomeScreen.kt`) and 100% native iOS SwiftUI (`ContentView.swift` in `TacticalAvionicsBar` and `TacticalQoSDiagnosticsSheetView` respecting Rule 1).
+  - 32-Node Congested Mesh Simulation Harness & Benchmarks (`CongestedMeshQoSSimulationHarness.kt`):
+    - Validated 32 nodes under 40% RF contention with 80 bulk file chunks and 50 voice frames.
+    - Demonstrated QoS traffic shaping maintaining Voice PDR >= 96% (vs < 60% unshaped baseline, > 36% absolute gain).
+    - Verified routing control deficit round-robin starvation protection and instant Emergency SOS preemption.
+  - Runtime Gotchas & Platform Fixes:
+    - **Koin Multiplatform ViewModelOf Resolution**: When using `viewModelOf(::HomeViewModel)`, Koin expects definitions for all constructor arguments. Added explicit `single` registrations for `InterGroupGateway` and `MeshQoSScheduler` in `createSharedUiModule`, resolving `NoDefinitionFoundException`.
+    - **BLE 31-Byte Legacy Advertisement Frame Limits**: Legacy BLE connectable advertising packets are strictly capped at 31 bytes (Flags 3 bytes + Manufacturer Data header 4 bytes + Payload 24 bytes). Adjusted `buildAdvertiseData` to 24 bytes (1 byte version + 8 bytes groupId + 15 bytes peerName) and disabled `setIncludeDeviceName`, eliminating `BufferOverflowException` and Android `Legacy advertising data too large` failure.
+  - Archify Architecture Specification & Showcase:
+    - Added `qos_scheduler` (QoS Scheduler), `qos_queue` (QoS Queue), unified `federation-and-qos` view, and Sprint 24 card in `docs/architecture/intercom-alpha.architecture.json`.
+    - Delivered HTML showcase diagram with 9/9 verification pass via Archify CLI (0 errors, 0 warnings).
 
 ---
 

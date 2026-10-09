@@ -1804,6 +1804,26 @@
   - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks in 3m 17s).
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
   - Graphify sync (`graphify update .`): 3,502 nodes, 7,562 edges, 268 communities.
+---
+
+### [2026-10-09] - ICA-2404: 32-Node Congested RF Mesh QoS Simulation Harness & Archify Showcase Update
+- **Branch**: `feature/ICA-2404-congested-mesh-simulation-showcase`
+- **Objective**: Implement `CongestedMeshQoSSimulationHarness.kt` simulating 32-node motorcycle convoy under 40% RF contention and heavy background OTA route data beaming. Validate strict 4-tier QoS voice preemption and airtime throttling maintaining >= 92% Voice Packet Delivery Ratio (PDR). Fix Koin multiplatform DI definition errors and BLE advertising 31-byte legacy packet buffer overflow. Update Archify interactive architecture specifications to showcase quality.
+- **Implementation**:
+  - `CongestedMeshQoSSimulationHarness.kt`:
+    - Simulated 32-node convoy cluster with 40% channel contention, 80 bulk file chunks (20KB trail partition), and 50 conversational voice packets.
+    - Verified strict priority preemption, voice hangover hold across conversational pauses, DRR anti-starvation tokens (servicing routing control within 8 voice packets), and emergency SOS zero-loss preemption.
+    - Validated Voice PDR > 96% under shaped QoS vs < 60% unshaped baseline (> 36% absolute improvement).
+  - Bug Fixes:
+    - `AppModule.kt`: Registered missing Koin single definitions for `InterGroupGateway` and `MeshQoSScheduler`, resolving runtime `NoDefinitionFoundException` in `HomeViewModel`.
+    - `MeshTransport.android.kt`: Fixed `buildAdvertiseData` to fit legacy BLE 31-byte advertising frame limit (24-byte payload = 1 byte version + 8 bytes groupId + 15 bytes peerName) and disabled `setIncludeDeviceName`, eliminating `BufferOverflowException` and `Legacy advertising data too large` crash.
+  - Archify Architecture Specification & Showcase:
+    - Updated `docs/architecture/intercom-alpha.architecture.json` with `qos_scheduler` (QoS Scheduler), `qos_queue` (QoS Queue), unified `federation-and-qos` view, and Sprint 24 documentation card.
+    - Delivered showcase HTML artifact with 9/9 verification pass via Archify CLI (0 errors, 0 warnings).
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - `./gradlew :app:sharedLogic:jvmTest`: All unit tests passed.
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-24-adaptive-bitrate-qos`).
 
 
