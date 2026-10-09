@@ -1,8 +1,8 @@
 # Master Tasks & Engineering Roadmap — Intercom-Alpha
 
-> **Document Version:** 1.0  
+> **Document Version:** 2.12  
 > **Status:** Active / Tracked  
-> **Current Sprint:** Sprint 07 Completed ➔ Sprint 08 Backlog  
+> **Current Sprint:** Sprint 24 Completed (v2.11.0 Released) ➔ Sprint 25 Active (`sprint/sprint-25-multipath-mesh-failover`)  
 > **Obsidian Reference:** `01_Management/Roadmap.md` & `01_Management/Kanban.md`
 
 ---
@@ -288,7 +288,7 @@
 
 ---
 
-### 🚀 Sprint 23: Multi-Group Inter-Convoy Gateway & Cross-Mesh Federation (Phase 21 - v2.10 Roadmap)
+### ✅ Sprint 23: Multi-Group Inter-Convoy Gateway & Cross-Mesh Federation (Phase 21 - v2.10 Roadmap)
 - **Sprint Goal**: Implement pure KMP inter-group gateway contracts, cross-mesh audio bridging, sub-group isolation, anti-feedback loop guard, multiplatform federation HUD presentation, and a dual-convoy 32-node simulation benchmark.
 - **Sprint Branch**: `sprint/sprint-23-multi-group-gateway`
 - **Target Release**: `v2.10.0`
@@ -300,5 +300,36 @@
 | **ICA-2302** | Selective Inter-Group Audio Demuxing, Sub-Group Isolation & Anti-Feedback Loop Guard | `FederationLoopDetector.kt`, `CrossMeshForwardingArbiter.kt`, `CrossMeshForwardingTest.kt` | ✅ Completed |
 | **ICA-2303** | Subsystem Hardware Bridge Wiring & Multiplatform Federation HUD Presentation | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `HomeScreen.kt`, `ContentView.swift` | ✅ Completed |
 | **ICA-2304** | Dual-Convoy 32-Node Cross-Mesh Simulation Harness & Archify Showcase Update | `MultiGroupFederationSimulationHarness.kt`, `intercom-alpha.architecture.json` | ✅ Completed |
+
+---
+
+### ✅ Sprint 24: Mesh Airtime QoS Traffic Shaping & Airtime Contention Mitigator (Phase 22 - v2.11 Roadmap)
+- **Sprint Goal**: Implement pure KMP 4-tier strict priority voice QoS traffic shaping, preemption arbiter, MeshTransport & file airtime duty-cycle throttling, multiplatform HUD presentation, and a 32-node congested mesh simulation harness.
+- **Sprint Branch**: `sprint/sprint-24-adaptive-bitrate-qos`
+- **Target Release**: `v2.11.0`
+- **Status**: ✅ 100% Complete (All 4 Stories Passed & Released under `v2.11.0`)
+
+| Task ID | Item | Target Files | Status |
+| :--- | :--- | :--- | :--- |
+| **ICA-2401** | Pure KMP Mesh Priority QoS Traffic Scheduler & Preemption Arbiter | `QoSModels.kt`, `MeshQoSQueue.kt`, `MeshQoSScheduler.kt`, `MeshQoSSchedulerTest.kt` | ✅ Completed |
+| **ICA-2402** | MeshTransport Wire Integration & Bulk File Airtime Throttling | `MeshTransport.kt`, `MeshFileTransferManager.kt`, `MeshTransportQoSTest.kt` | ✅ Completed |
+| **ICA-2403** | Subsystem Hardware Bridge Wiring & Multiplatform Tactical QoS HUD Presentation | `IntercomHardwareBridge.kt`, `AndroidPlatformBridge.kt`, `IntercomBridge.kt`, `HomeScreen.kt`, `ContentView.swift` | ✅ Completed |
+| **ICA-2404** | 32-Node Congested RF Mesh QoS Simulation Harness & Archify Showcase Update | `CongestedMeshQoSSimulationHarness.kt`, `intercom-alpha.architecture.json` | ✅ Completed |
+
+---
+
+### 🚀 Sprint 25: Automated Multi-Path Mesh Failover & Hybrid Cellular/SFU Relay Handover (Phase 23 - v2.12 Roadmap)
+- **Sprint Goal**: Implement pure KMP multi-path link quality arbiter, automated BLE-to-Cellular failover state machine, packet sequence stream hedging to ensure zero audio frame drops during RF disconnects, multiplatform avionics HUD presentation, and a highway split simulation harness.
+- **Sprint Branch**: `sprint/sprint-25-multipath-mesh-failover`
+- **Target Release**: `v2.12.0`
+- **Status**: ⏳ In Planning / Ready for Implementation
+
+| Task ID | Item | Target Files | Status |
+| :--- | :--- | :--- | :--- |
+| **ICA-2501** | Pure KMP Multi-Path Link Quality Arbiter & Automated Failover State Machine | `FailoverModels.kt`, `MultiPathFailoverArbiter.kt`, `MultiPathFailoverArbiterTest.kt` | ⏳ Ready |
+| **ICA-2502** | Transport Handover Wire Integration & Seamless Voice Stream Hedging | `CloudRelayBridge.kt`, `HybridTransportRouter.kt`, `HybridTransportRouterTest.kt` | ⏳ Pending |
+| **ICA-2503** | Subsystem Hardware Bridge Wiring & Multiplatform Tactical Transport Handover HUD | `IntercomHardwareBridge.kt`, `AndroidPlatformBridge.kt`, `IntercomBridge.kt`, `HomeScreen.kt`, `ContentView.swift` | ⏳ Pending |
+| **ICA-2504** | Highway Convoy Out-of-Range Handover Simulation Harness & Archify Showcase Update | `MultiPathHandoverSimulationHarness.kt`, `intercom-alpha.architecture.json` | ⏳ Pending |
+
 
 

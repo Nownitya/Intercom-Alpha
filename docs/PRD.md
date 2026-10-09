@@ -1,8 +1,8 @@
 # Product Requirements Document (PRD) — Intercom-Alpha
 
-> **Document Version:** 2.9  
-> **Status:** Production Release Tagged (`v2.9.0`)  
-> **Last Updated:** 2026-10-08  
+> **Document Version:** 2.12  
+> **Status:** Production Release Tagged (`v2.11.0`) / Sprint 25 Active  
+> **Last Updated:** 2026-10-09  
 > **Repository:** `Intercom-Alpha`  
 > **Obsidian Reference:** `03_Specifications/` & `PROJECT-SPEC.md`
 
@@ -107,6 +107,9 @@ Rider opens app ➔ Creates or scans QR code ➔ Pairs Bluetooth helmet headset 
 - **Tactical Convoy Geofencing, Autonomous Power Governor & Multi-Node Stress Benchmark Suite**: Pure KMP Haversine tether geofencing and waypoint proximity radar alarms, BFS connected-component convoy cluster split detection, autonomous multi-tier battery duty-cycle governor (NORMAL, CONSERVATIVE, EXTREME_SURVIVAL, REST_STOP_SLEEP) with instant PTT/motion wake and Emergency SOS preemption, multiplatform cockpit HUD presentation (tether boundary rings, breach banners, power pills), and automated 16-node virtual convoy stress benchmark harness with Archify showcase diagram synchronization (Sprint 20 - v2.7.0 Release).
 - **Autonomous Crash Impact Detection, eCall SOS & Offline Voice Command HUD**: Pure KMP multi-axis IMU crash impact detection (8.5g severe collision shock, 4.5g hard impact, >60° sustained fall-over) with 30s abortable pre-alert countdown, offline acoustic DSP keyword spotting ("Intercom SOS", "Next Channel", "Prev Channel", "Toggle Mute", "Battery Status", "Cancel Alert") under 80–120 km/h aerodynamic wind noise, platform hardware sensor loops across Android and iOS, full multiplatform emergency HUD presentation, and 5,000-sample streaming simulation harness with Archify showcase diagram synchronization (Sprint 21 - v2.8.0 Release).
 - **Dynamic Mesh Directed Routing, AODV-Lite Route Optimization & RF Collision Reduction**: Pure KMP AODV-Lite on-demand route discovery (RREQ/RREP/RERR) with monotonic sequence numbers, link delivery ratio & RSSI-based ETX metrics, 3-failure link break circuit breaker, selective unicast/multicast forwarding, overhearing bystander contention suppression (>80% RF airtime reduction in 24-node convoy), reactive multiplatform routing HUD presentation across Compose Multiplatform and 100% Native iOS SwiftUI, and 24-node large-scale convoy simulation harness with Archify showcase diagram synchronization (Sprint 22 - v2.9.0 Release).
+- **Multi-Group Inter-Convoy Gateway & Cross-Mesh Federation**: Pure KMP multi-group gateway contracts, cross-mesh audio demuxing, sub-group isolation, anti-feedback loop guard, multiplatform federation HUD presentation, and dual-convoy 32-node simulation benchmark (Sprint 23 - v2.10.0 Release).
+- **Mesh Airtime QoS Traffic Shaping & Airtime Contention Mitigator**: Pure KMP 4-tier strict priority voice QoS traffic shaping, preemption arbiter, MeshTransport wire integration with bulk file airtime throttling, multiplatform HUD presentation, and 32-node congested RF mesh simulation harness with Archify showcase diagram synchronization (Sprint 24 - v2.11.0 Release).
+- **Automated Multi-Path Mesh Failover & Hybrid Cellular/SFU Relay Handover**: Pure KMP multi-path link quality monitoring, automated BLE-to-Cellular failover state machine, packet sequence stream hedging to ensure zero audio frame drops during RF disconnects, multiplatform avionics HUD presentation, and highway split simulation harness (Sprint 25 - v2.12.0 Roadmap).
 
 ---
 

@@ -1,28 +1,29 @@
-# Current Status: Sprint 24 (Phase 22: Adaptive Bitrate & Dynamic RF Airtime QoS Throttle)
+# Current Status: Sprint 25 (Phase 23: Automated Multi-Path Mesh Failover & Hybrid Cellular/SFU Relay Handover)
 
 > **Active Sprint Reference:** [TASKS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/TASKS.md) & [prd.json](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/tasks/ralph/prd.json)  
-> **Sprint Branch:** `sprint/sprint-24-adaptive-bitrate-qos`  
+> **Sprint Branch:** `sprint/sprint-25-multipath-mesh-failover`  
 > **Sprint Governance Rules:** [SPRINT-RULES.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/SPRINT-RULES.md)  
 > **Engineering Contract:** [AGENTS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/AGENTS.md)  
 > **Knowledge Base:** [MEMORY.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/MEMORY.md)  
 
 ---
 
-## 🚀 Active Sprint: Sprint 24 (Phase 22: Adaptive Bitrate & Dynamic RF Airtime QoS Throttle)
-**Goal:** Implement pure KMP dynamic Adaptive Bitrate (ABR) codec scaling, multi-tier priority voice QoS traffic shaping, subsystem platform bridge wiring, multiplatform HUD presentation, and a 32-node congested RF mesh simulation harness.  
-- **Sprint Branch:** `sprint/sprint-24-adaptive-bitrate-qos`  
-- **Target Release:** `v2.11.0`  
+## 🚀 Active Sprint: Sprint 25 (Phase 23: Automated Multi-Path Mesh Failover & Hybrid Cellular/SFU Relay Handover)
+**Goal:** Implement pure KMP multi-path link quality monitoring, automated BLE-to-Cellular failover state machine, packet sequence stream hedging to ensure zero audio frame drops during RF disconnects, multiplatform avionics HUD presentation, and a highway split simulation harness.  
+- **Sprint Branch:** `sprint/sprint-25-multipath-mesh-failover`  
+- **Target Release:** `v2.12.0`  
 
 | Task ID | Item | Owner | Target Files | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **ICA-2401** | Pure KMP Adaptive Bitrate (ABR) Engine & Multi-Tier Codec Scaling | Ralph | `BitrateProfileModels.kt`, `AdaptiveBitrateEngine.kt`, `AdaptiveBitrateEngineTest.kt` | ⏳ Ready |
-| **ICA-2402** | Pure KMP Priority Voice QoS Traffic Scheduler & Preemption Arbiter | Ralph | `QoSModels.kt`, `PriorityQoSQueue.kt`, `PriorityQoSQueueTest.kt` | ⏳ Pending |
-| **ICA-2403** | Subsystem Hardware Bridge Wiring & Multiplatform ABR/QoS HUD Integration | Ralph | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `HomeScreen.kt`, `ContentView.swift` | ⏳ Pending |
-| **ICA-2404** | 32-Node Congested RF Mesh ABR & QoS Simulation Harness & Archify Showcase Update | Ralph | `CongestedMeshQoSSimulationHarness.kt`, `intercom-alpha.architecture.json` | ⏳ Pending |
+| **ICA-2501** | Pure KMP Multi-Path Link Quality Arbiter & Automated Failover State Machine | Ralph | `FailoverModels.kt`, `MultiPathFailoverArbiter.kt`, `MultiPathFailoverArbiterTest.kt` | ⏳ Ready |
+| **ICA-2502** | Transport Handover Wire Integration & Seamless Voice Stream Hedging | Ralph | `CloudRelayBridge.kt`, `HybridTransportRouter.kt`, `HybridTransportRouterTest.kt` | ⏳ Pending |
+| **ICA-2503** | Subsystem Hardware Bridge Wiring & Multiplatform Tactical Transport Handover HUD | Ralph | `IntercomHardwareBridge.kt`, `AndroidPlatformBridge.kt`, `IntercomBridge.kt`, `HomeScreen.kt`, `ContentView.swift` | ⏳ Pending |
+| **ICA-2504** | Highway Convoy Out-of-Range Handover Simulation Harness & Archify Showcase Update | Ralph | `MultiPathHandoverSimulationHarness.kt`, `intercom-alpha.architecture.json` | ⏳ Pending |
 
 ---
 
 ## 📦 Historical Sprint Archive
+- ✅ **Sprint 24: Mesh Airtime QoS Traffic Shaping & Airtime Contention Mitigator**: Completed 2026-10-09 (100% DoD, v2.11.0 Released).
 - ✅ **Sprint 23: Multi-Group Inter-Convoy Gateway & Cross-Mesh Federation**: Completed 2026-10-09 (100% DoD, v2.10.0 Released).
 - ✅ **Sprint 22: Dynamic Mesh Directed Routing, AODV-Lite Route Optimization & RF Collision Reduction**: Completed 2026-10-08 (100% DoD, v2.9.0 Released).
 - ✅ **Sprint 21: Autonomous Crash Impact Detection, eCall SOS & Offline Voice Command HUD**: Completed 2026-10-07 (100% DoD, v2.8.0 Released).
