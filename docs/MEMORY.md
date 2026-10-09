@@ -902,6 +902,16 @@
     - Added `qos_scheduler` (QoS Scheduler), `qos_queue` (QoS Queue), unified `federation-and-qos` view, and Sprint 24 card in `docs/architecture/intercom-alpha.architecture.json`.
     - Delivered HTML showcase diagram with 9/9 verification pass via Archify CLI (0 errors, 0 warnings).
 
+### 2.18 Multi-Path Mesh Failover & Hybrid Handover State Machine (Sprint 25 - ICA-2501)
+- **Challenge**: In motorcycle convoys traversing undulating terrain or highway splits, BLE mesh links degrade gradually before breaking entirely. Abrupt binary disconnects cause clipped speech and lost sentences. Conversely, rapid switching back and forth between cellular and BLE ("ping-pong handover flapping") drains battery, causes audio jitter, and burns cellular data.
+- **Solution Blueprint**:
+  - Implemented pure KMP `MultiPathFailoverArbiter.kt` with a 4-tier state machine:
+    - `BLE_DIRECT`: High-quality local BLE link (ETX <= 2.5, loss <= 20%, RSSI >= -88 dBm). 0% cellular data consumed.
+    - `MULTI_PATH_HEDGED`: Intermediate link degradation. Audio frames are dual-cast / hedged over both local BLE mesh and Ktor Cloud Relay WebSocket. Receiver-side `PacketDeduplicator` discards duplicates transparently, ensuring 0% audio dropout across RF boundary transitions.
+    - `CLOUD_RELAY_ONLY`: Local BLE link timed out (>4000ms) or 0 peers in range; all voice frames route through Cloud Relay WebSocket.
+    - `RESTRICTED_OFFLINE`: Neither BLE nor Cloud Relay is available.
+  - Implemented directional hysteresis dampening: Link degradation immediately escalates to `MULTI_PATH_HEDGED` or `CLOUD_RELAY_ONLY` (zero audio dropouts), but de-escalation back to `BLE_DIRECT` requires a sustained 5,000ms window of continuously stable BLE metrics (`stableBleStartTimeMs`).
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

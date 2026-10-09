@@ -1824,7 +1824,28 @@
   - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
   - `./gradlew :app:sharedLogic:jvmTest`: All unit tests passed.
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
-- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-24-adaptive-bitrate-qos`).
+### [2026-10-09] - ICA-2501: Pure KMP Multi-Path Link Quality Arbiter & Automated Failover State Machine
+- **Branch**: `feature/ICA-2501-multipath-failover-arbiter`
+- **Objective**: Implement pure KMP multi-path link quality monitoring, automated BLE-to-Cellular failover state machine, and hysteresis dampening to ensure zero audio packet dropouts and prevent handover flutter.
+- **Implementation**:
+  - `FailoverModels.kt`:
+    - Defined `FailoverMode` (BLE_DIRECT, MULTI_PATH_HEDGED, CLOUD_RELAY_ONLY, RESTRICTED_OFFLINE).
+    - Defined `FailoverConfig` with configurable thresholds (ETX 2.5, packet loss 20%, RSSI -88 dBm, BLE timeout 4000ms, hysteresis 5000ms).
+    - Defined `FailoverMetrics` with active link health, handover counters, hedged frame statistics, and degraded flags.
+  - `MultiPathFailoverArbiter.kt`:
+    - Pure KMP implementation with zero Java/platform dependencies (Rules 2 & 3).
+    - Thread-safe state machine using `kotlinx.coroutines.sync.Mutex` and `MutableStateFlow<FailoverMetrics>`.
+    - Instant escalation to `MULTI_PATH_HEDGED` or `CLOUD_RELAY_ONLY` on link degradation/loss.
+    - Hysteresis timing requiring 5000ms of stable BLE telemetry before de-escalating to `BLE_DIRECT`.
+    - Manual mode override (`forceMode`) and hedged frame tracking (`recordHedgedPacket`).
+  - `MultiPathFailoverArbiterTest.kt`:
+    - Comprehensive unit test suite covering initial offline state, healthy BLE, immediate escalation on high ETX/loss/weak RSSI, escalation on peer loss / timeout, 5000ms hysteresis dampening, manual override, and offline fallback.
+- **Verification**:
+  - `./gradlew test`: 100% test pass across multiplatform targets.
+  - `./gradlew :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+  - Graphify Knowledge Sync (`graphify update .`): 3,546 nodes, 7,680 edges, 262 communities (Rule 7).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-25-multipath-mesh-failover`).
 
 
 
