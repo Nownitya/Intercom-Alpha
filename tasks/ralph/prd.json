@@ -23,7 +23,7 @@
         "Implements hysteresis timer preventing rapid oscillation/flutter between modes",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-2502",
@@ -42,7 +42,7 @@
         "Integrates with MeshQoSScheduler so hedged voice frames retain top priority",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-2503",
@@ -67,7 +67,7 @@
         "100% Native iOS SwiftUI displays tactical transport pill in TacticalAvionicsBar (Rule 1)",
         "Full compilation and automated verification pass across all targets"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-2504",
@@ -86,7 +86,7 @@
         "Archify architecture specification and HTML showcase updated with 9/9 verification pass",
         "Full multiplatform test suite pass across all targets"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }

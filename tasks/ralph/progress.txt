@@ -1824,7 +1824,121 @@
   - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
   - `./gradlew :app:sharedLogic:jvmTest`: All unit tests passed.
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
-- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-24-adaptive-bitrate-qos`).
+### [2026-10-09] - ICA-2501: Pure KMP Multi-Path Link Quality Arbiter & Automated Failover State Machine
+- **Branch**: `feature/ICA-2501-multipath-failover-arbiter`
+- **Objective**: Implement pure KMP multi-path link quality monitoring, automated BLE-to-Cellular failover state machine, and hysteresis dampening to ensure zero audio packet dropouts and prevent handover flutter.
+- **Implementation**:
+  - `FailoverModels.kt`:
+    - Defined `FailoverMode` (BLE_DIRECT, MULTI_PATH_HEDGED, CLOUD_RELAY_ONLY, RESTRICTED_OFFLINE).
+    - Defined `FailoverConfig` with configurable thresholds (ETX 2.5, packet loss 20%, RSSI -88 dBm, BLE timeout 4000ms, hysteresis 5000ms).
+    - Defined `FailoverMetrics` with active link health, handover counters, hedged frame statistics, and degraded flags.
+  - `MultiPathFailoverArbiter.kt`:
+    - Pure KMP implementation with zero Java/platform dependencies (Rules 2 & 3).
+    - Thread-safe state machine using `kotlinx.coroutines.sync.Mutex` and `MutableStateFlow<FailoverMetrics>`.
+    - Instant escalation to `MULTI_PATH_HEDGED` or `CLOUD_RELAY_ONLY` on link degradation/loss.
+    - Hysteresis timing requiring 5000ms of stable BLE telemetry before de-escalating to `BLE_DIRECT`.
+    - Manual mode override (`forceMode`) and hedged frame tracking (`recordHedgedPacket`).
+  - `MultiPathFailoverArbiterTest.kt`:
+    - Comprehensive unit test suite covering initial offline state, healthy BLE, immediate escalation on high ETX/loss/weak RSSI, escalation on peer loss / timeout, 5000ms hysteresis dampening, manual override, and offline fallback.
+- **Verification**:
+  - `./gradlew test`: 100% test pass across multiplatform targets.
+  - `./gradlew :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+  - Graphify Knowledge Sync (`graphify update .`): 3,546 nodes, 7,680 edges, 262 communities (Rule 7).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-25-multipath-mesh-failover`).
+
+### [2026-10-09] - ICA-2502: Transport Handover Wire Integration & Seamless Voice Stream Hedging
+- **Branch**: `feature/ICA-2502-transport-handover-hedging`
+- **Objective**: Implement pure KMP `HybridTransportRouter.kt` integrating multi-path failover, wire routing across `MeshTransport` and `CloudRelayBridge`, stream hedging with receiver deduplication, and integration with `MeshQoSScheduler`.
+- **Implementation**:
+  - `CloudRelayBridge.kt`:
+    - Updated constructor to accept optional `failoverArbiter: MultiPathFailoverArbiter?`.
+    - Enforced `FALLBACK_ONLY` operating mode: automatically suppresses cloud forwarding when `failoverArbiter` reports `BLE_DIRECT` and permits forwarding upon degradation or handover.
+  - `HybridTransportRouter.kt`:
+    - Pure KMP router coordinating outbound packet dispatches based on `FailoverMode`.
+    - In `MULTI_PATH_HEDGED` mode, concurrently dispatches outbound frames to both BLE mesh and Cloud Relay WebSocket while incrementing hedged packet counters.
+    - Preserves packet sequence synchronization so receiver-side `PacketDeduplicator` transparently suppresses second arrivals, guaranteeing zero dropped voice frames.
+    - Seamlessly routes through `MeshQoSScheduler` when available, respecting 4-tier QoS priorities.
+  - `HybridTransportRouterTest.kt`:
+    - Comprehensive unit test suite covering `BLE_DIRECT` isolation, `MULTI_PATH_HEDGED` dual-path dispatching, receiver deduplication with 0 duplicate playback, `CLOUD_RELAY_ONLY` diversion, `RESTRICTED_OFFLINE` best-effort fallback, and QoS priority queue integration.
+- **Verification**:
+  - `./gradlew test`: 100% test pass across multiplatform targets.
+  - `./gradlew :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+  - Graphify Knowledge Sync (`graphify update .`): 3,571 nodes, 7,769 edges, 252 communities (Rule 7).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-25-multipath-mesh-failover`).
+
+### [2026-10-09] - ICA-2503: Subsystem Hardware Bridge Wiring & Multiplatform Tactical Transport Handover HUD Presentation
+- **Branch**: `feature/ICA-2503-bridge-hud-presentation`
+- **Objective**: Wire `MultiPathFailoverArbiter` and `HybridTransportRouter` into `IntercomHardwareBridge`, `AndroidPlatformBridge`, and `IntercomBridge` (`iosMain`) with typed `CancellationHandle` observers, register singletons in Koin `AppModule.kt`, expose reactive `failoverSnapshot` flow in `HomeUiState`, and present tactical transport status badge and handover diagnostic sheet in Compose Multiplatform (`HomeScreen.kt`) and 100% Native iOS SwiftUI (`ContentView.swift` / `IntercomViewModel.swift` respecting Rule 1).
+- **Implementation**:
+  - `IntercomHardwareBridge.kt`:
+    - Added `failoverSnapshot` state flow, `updateFailoverSnapshot`, `setFailoverModeOverride`, and `failoverArbiter` parameter to `attachSubsystems`.
+    - Implemented simulation helpers `simulateFailoverSnapshot` in `NoOpIntercomHardwareBridge`.
+  - `AndroidPlatformBridge.kt`:
+    - Added `failoverArbiter` reference and wired continuous metric collection to `_failoverSnapshot`.
+    - Added `setFailoverModeOverride` dispatching `forceMode` on the arbiter.
+  - `IntercomBridge.kt` (`iosMain`):
+    - Added `failoverArbiter` singleton property.
+    - Implemented `observeFailoverSnapshot(onSnapshot: (FailoverMetrics) -> Unit): CancellationHandle` providing Swift-friendly reactive observation.
+    - Implemented `setFailoverModeOverride(mode: FailoverMode?)`.
+  - `AppModule.kt`:
+    - Registered `single { MultiPathFailoverArbiter() }` in `sharedUiModule`.
+  - `HomeUiState.kt` & `HomeViewModel.kt`:
+    - Added `failoverSnapshot: FailoverMetrics` and `showFailoverSheet: Boolean` to `HomeUiState`.
+    - Added `HomeUiAction.ToggleFailoverSheet` and `HomeUiAction.SetFailoverModeOverride`.
+    - Injected `MultiPathFailoverArbiter` into `HomeViewModel` constructor, forwarded to `hardwareBridge.attachSubsystems()`, and collected snapshot into `_uiState`.
+  - `HomeScreen.kt`:
+    - Added tactical transport failover pill in the avionics bar displaying current mode (`BLE`, `HEDGED`, `CLOUD`, `OFFLINE`), ETX, and handover count.
+    - Implemented `FailoverDiagnosticsDialog` modal presenting comprehensive link quality metrics (peer count, ETX, PDR, cloud relay state, handovers, hedged frames) and manual mode override actuators.
+  - `IntercomViewModel.swift` & `ContentView.swift` (100% Native SwiftUI — Rule 1):
+    - Added `@Published var failoverSnapshot: FailoverMetrics?` and `@Published var showFailoverSheet: Bool`.
+    - Subscribed via `bridge.observeFailoverSnapshot` with lifecycle cancellation handle.
+    - Added tactical transport pill in `TacticalAvionicsBar`.
+    - Implemented `TacticalTransportHandoverSheetView` with telemetry cards, degradation warning banner, and auto/manual routing actuators.
+  - `AppModuleTest.kt` & `HomeViewModelTest.kt`:
+    - Verified Koin dependency resolution and state machine interactions across UI actions and hardware bridge emissions.
+- **Verification**:
+  - `./gradlew test`: 100% test pass across multiplatform targets.
+  - `./gradlew :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+  - Graphify Knowledge Sync (`graphify update .`): 3,593 nodes, 7,832 edges, 248 communities (Rule 7).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-25-multipath-mesh-failover`).
+
+### [2026-10-09] - ICA-2504: Highway Convoy Handover Simulation Harness & Archify Architecture Showcase
+- **Branch**: `feature/ICA-2504-convoy-simulation-showcase`
+- **Objective**: Implement comprehensive 16-node convoy split simulation harness (`MultiPathHandoverSimulationHarness.kt`) covering nominal BLE direct routing, highway drift RF degradation, seamless dual-stream packet hedging with receiver deduplication (0% audio frame loss), out-of-range cloud relay handover, dead zone traversal, and 5,000ms hysteresis dampening. Update Archify interactive architecture specifications (`intercom-alpha.architecture.json` and `intercom-alpha-architecture.html`) and verify with 9/9 verification pass.
+- **Implementation**:
+  - `MultiPathHandoverSimulationHarness.kt`:
+    - Simulated 16-node motorcycle convoy split into Lead Squad (0..7) and Tail Squad (8..15).
+    - Validated Stage 1 (Nominal BLE Direct): 100% voice packets routed over local BLE with zero cellular usage.
+    - Validated Stage 2 (Highway Drift & Degradation): Immediate escalation to `MULTI_PATH_HEDGED` on ETX 3.4 / RSSI -89 dBm / PDR 65%; dual-cast over BLE and Cloud Relay; receiver `PacketDeduplicator` eliminated duplicates with 0% dropped audio frames.
+    - Validated Stage 3 (Convoy Split): Seamless transition to `CLOUD_RELAY_ONLY` via Ktor WebSocket relay maintaining uninterrupted cross-squad voice communication across >1 km radio horizon separation.
+    - Validated Stage 4 (Dead Zone Traversal): Graceful transition to `RESTRICTED_OFFLINE` in cellular/BLE dead zones without crashing or memory leaks while maintaining intra-squad communications.
+    - Validated Stage 5 (Re-convergence & Hysteresis): Strict 5,000ms hysteresis dampening window enforced; remained in `MULTI_PATH_HEDGED` for 5,000ms of stable metrics before de-escalating to `BLE_DIRECT`.
+    - Validated rapid boundary fluctuation test verifying 0 flapping or rapid mode oscillation despite continuous RSSI flutter.
+    - Validated continuous speech handover delivering 50/50 consecutive speech frames with zero dropouts and zero duplicates.
+  - `intercom-alpha.architecture.json` & `intercom-alpha-architecture.html`:
+    - Modeled `failover_arbiter` (`[300, 940]`) and `hybrid_router` (`[520, 940]`) in KMP Core Engine.
+    - Added dedicated `qos-and-failover` guided view and Sprint 25 interactive telemetry card.
+    - Validated and delivered showcase HTML using Archify CLI (`node .agents/skills/archify/bin/archify.mjs deliver architecture ... --quality showcase --json`): Passed 9/9 verification checks with 0 errors and 0 warnings.
+- **Verification**:
+  - `./gradlew test`: 100% test pass across multiplatform targets.
+  - `./gradlew :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+  - Graphify Knowledge Sync (`graphify update .`): 3,605 nodes, 7,865 edges, 281 communities (Rule 7).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-25-multipath-mesh-failover`).
+
+---
+
+## 🏆 Sprint 25: Automated Multi-Path Mesh Failover & Hybrid Cellular/SFU Relay Handover — 100% Complete
+- **All 4 Sprint 25 stories PASSED**:
+  - `ICA-2501`: Pure KMP Multi-Path Link Quality Arbiter & Automated Failover State Machine [PASSED]
+  - `ICA-2502`: Transport Handover Wire Integration & Seamless Voice Stream Hedging [PASSED]
+  - `ICA-2503`: Subsystem Hardware Bridge Wiring & Multiplatform Tactical Transport Handover HUD Presentation [PASSED]
+  - `ICA-2504`: Highway Convoy Out-of-Range Handover Simulation Harness & Archify Showcase Update [PASSED]
+- **Milestone Version Tag**: `v2.12.0`
+
 
 
 

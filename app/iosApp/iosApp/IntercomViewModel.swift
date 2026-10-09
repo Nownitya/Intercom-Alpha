@@ -90,6 +90,10 @@ final class IntercomViewModel: ObservableObject {
     @Published var qosSnapshot: QoSSnapshot? = nil
     @Published var showQoSSheet: Bool = false
 
+    // --- Multi-Path Failover & Hybrid Handover Subsystem (Sprint 25 / ICA-2503) ---
+    @Published var failoverSnapshot: FailoverMetrics? = nil
+    @Published var showFailoverSheet: Bool = false
+
     private let bridge = IntercomBridge(localPeerId: "ios-lead", localPeerName: "iOS Lead")
     private var cancellables: [CancellationHandle] = []
     private var activeActivity: Activity<IntercomActivityAttributes>? = nil
@@ -427,6 +431,16 @@ final class IntercomViewModel: ObservableObject {
         showQoSSheet.toggle()
     }
 
+    // --- Multi-Path Failover Controls (Sprint 25 / ICA-2503) ---
+
+    func setFailoverModeOverride(_ mode: FailoverMode?) {
+        bridge.setFailoverModeOverride(mode: mode)
+    }
+
+    func toggleFailoverSheet() {
+        showFailoverSheet.toggle()
+    }
+
     // --- Reactive Observers Setup ---
 
     private func setupObservers() {
@@ -686,6 +700,14 @@ final class IntercomViewModel: ObservableObject {
             }
         }
         cancellables.append(qosSub)
+
+        // --- Multi-Path Failover & Hybrid Handover Observers (Sprint 25 / ICA-2503) ---
+        let failoverSub = bridge.observeFailoverSnapshot { [weak self] snapshot in
+            Task { @MainActor in
+                self?.failoverSnapshot = snapshot
+            }
+        }
+        cancellables.append(failoverSub)
 
         isPfsRatchetActive = bridge.isPfsRatchetActive()
     }

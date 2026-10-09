@@ -318,18 +318,19 @@
 
 ---
 
-### 🚀 Sprint 25: Automated Multi-Path Mesh Failover & Hybrid Cellular/SFU Relay Handover (Phase 23 - v2.12 Roadmap)
+### ✅ Sprint 25: Automated Multi-Path Mesh Failover & Hybrid Cellular/SFU Relay Handover (Phase 23 - v2.12 Roadmap)
 - **Sprint Goal**: Implement pure KMP multi-path link quality arbiter, automated BLE-to-Cellular failover state machine, packet sequence stream hedging to ensure zero audio frame drops during RF disconnects, multiplatform avionics HUD presentation, and a highway split simulation harness.
 - **Sprint Branch**: `sprint/sprint-25-multipath-mesh-failover`
 - **Target Release**: `v2.12.0`
-- **Status**: ⏳ In Planning / Ready for Implementation
+- **Status**: ✅ 100% Complete (All 4 Stories Passed & Released under `v2.12.0`)
 
 | Task ID | Item | Target Files | Status |
 | :--- | :--- | :--- | :--- |
-| **ICA-2501** | Pure KMP Multi-Path Link Quality Arbiter & Automated Failover State Machine | `FailoverModels.kt`, `MultiPathFailoverArbiter.kt`, `MultiPathFailoverArbiterTest.kt` | ⏳ Ready |
-| **ICA-2502** | Transport Handover Wire Integration & Seamless Voice Stream Hedging | `CloudRelayBridge.kt`, `HybridTransportRouter.kt`, `HybridTransportRouterTest.kt` | ⏳ Pending |
-| **ICA-2503** | Subsystem Hardware Bridge Wiring & Multiplatform Tactical Transport Handover HUD | `IntercomHardwareBridge.kt`, `AndroidPlatformBridge.kt`, `IntercomBridge.kt`, `HomeScreen.kt`, `ContentView.swift` | ⏳ Pending |
-| **ICA-2504** | Highway Convoy Out-of-Range Handover Simulation Harness & Archify Showcase Update | `MultiPathHandoverSimulationHarness.kt`, `intercom-alpha.architecture.json` | ⏳ Pending |
+| **ICA-2501** | Pure KMP Multi-Path Link Quality Arbiter & Automated Failover State Machine | `FailoverModels.kt`, `MultiPathFailoverArbiter.kt`, `MultiPathFailoverArbiterTest.kt` | ✅ Completed |
+| **ICA-2502** | Transport Handover Wire Integration & Seamless Voice Stream Hedging | `CloudRelayBridge.kt`, `HybridTransportRouter.kt`, `HybridTransportRouterTest.kt` | ✅ Completed |
+| **ICA-2503** | Subsystem Hardware Bridge Wiring & Multiplatform Tactical Transport Handover HUD | `IntercomHardwareBridge.kt`, `AndroidPlatformBridge.kt`, `IntercomBridge.kt`, `HomeScreen.kt`, `ContentView.swift` | ✅ Completed |
+| **ICA-2504** | Highway Convoy Out-of-Range Handover Simulation Harness & Archify Showcase Update | `MultiPathHandoverSimulationHarness.kt`, `intercom-alpha.architecture.json` | ✅ Completed |
+
 
 
 

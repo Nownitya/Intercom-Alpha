@@ -56,6 +56,7 @@ class HomeViewModel(
         isLocalLeader = true
     ),
     val qosScheduler: org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler = org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler(),
+    val failoverArbiter: org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter = org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter(),
     val hardwareBridge: IntercomHardwareBridge = NoOpIntercomHardwareBridge()
 ) : ViewModel() {
 
@@ -82,8 +83,15 @@ class HomeViewModel(
             voiceCommandRecognizer = voiceCommandRecognizer,
             directedRouter = directedRouter,
             interGroupGateway = interGroupGateway,
-            qosScheduler = qosScheduler
+            qosScheduler = qosScheduler,
+            failoverArbiter = failoverArbiter
         )
+
+        viewModelScope.launch {
+            failoverArbiter.metrics.collect { snapshot ->
+                _uiState.update { it.copy(failoverSnapshot = snapshot) }
+            }
+        }
 
         viewModelScope.launch {
             hardwareBridge.federationSnapshot.collect { snapshot ->
@@ -660,6 +668,16 @@ class HomeViewModel(
 
             is HomeUiAction.ToggleQoSSheet -> {
                 _uiState.update { it.copy(showQoSSheet = action.show) }
+            }
+
+            is HomeUiAction.ToggleFailoverSheet -> {
+                _uiState.update { it.copy(showFailoverSheet = action.show) }
+            }
+
+            is HomeUiAction.SetFailoverModeOverride -> {
+                viewModelScope.launch {
+                    failoverArbiter.forceMode(action.mode, currentTimeMillis())
+                }
             }
         }
     }

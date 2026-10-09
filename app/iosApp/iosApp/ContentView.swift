@@ -199,6 +199,9 @@ struct ContentView: View {
         .sheet(isPresented: $vm.showQoSSheet) {
             TacticalQoSDiagnosticsSheetView(vm: vm)
         }
+        .sheet(isPresented: $vm.showFailoverSheet) {
+            TacticalTransportHandoverSheetView(vm: vm)
+        }
         .alert("Intercom Alert", isPresented: Binding(
             get: { vm.errorMessage != nil },
             set: { if !$0 { vm.errorMessage = nil } }
@@ -635,6 +638,40 @@ struct TacticalAvionicsBar: View {
                     .background((qos.isChannelCongested ? Color.red : (qos.estimatedAirtimeUtilizationPercent > 50 ? Color.orange : Color.green)).opacity(0.15))
                     .cornerRadius(5)
                     .overlay(RoundedRectangle(cornerRadius: 5).stroke((qos.isChannelCongested ? Color.red : (qos.estimatedAirtimeUtilizationPercent > 50 ? Color.orange : Color.green)).opacity(0.35), lineWidth: 1))
+                }
+            }
+
+            // Multi-Path Failover Pill (Sprint 25 - ICA-2503)
+            if let failover = vm.failoverSnapshot {
+                Button(action: {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    vm.showFailoverSheet = true
+                }) {
+                    HStack(spacing: 3) {
+                        Image(systemName: "arrow.triangle.branch")
+                            .font(.system(size: 8, weight: .bold))
+                        let modeTag: String = {
+                            switch failover.currentMode {
+                            case .bleDirect: return "BLE"
+                            case .multiPathHedged: return "HEDGE"
+                            case .cloudRelayOnly: return "SFU"
+                            case .restrictedOffline: return "OFF"
+                            default: return "PATH"
+                            }
+                        }()
+                        Text(modeTag)
+                            .font(.system(size: 8, weight: .black, design: .monospaced))
+                        if failover.isCloudConnected {
+                            Text("• CLOUD")
+                                .font(.system(size: 7, weight: .heavy, design: .monospaced))
+                        }
+                    }
+                    .foregroundColor(failover.currentMode == .bleDirect ? .green : (failover.currentMode == .multiPathHedged ? .orange : .purple))
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 3)
+                    .background((failover.currentMode == .bleDirect ? Color.green : (failover.currentMode == .multiPathHedged ? Color.orange : Color.purple)).opacity(0.15))
+                    .cornerRadius(5)
+                    .overlay(RoundedRectangle(cornerRadius: 5).stroke((failover.currentMode == .bleDirect ? Color.green : (failover.currentMode == .multiPathHedged ? Color.orange : Color.purple)).opacity(0.35), lineWidth: 1))
                 }
             }
 
@@ -1844,6 +1881,225 @@ struct TacticalQoSDiagnosticsSheetView: View {
             Text(value)
                 .font(.system(size: 11, weight: .black, design: .monospaced))
                 .foregroundColor(isWarning ? .red : .white)
+        }
+    }
+}
+
+// --- Tactical Transport Handover & Multi-Path Failover HUD Sheet (Sprint 25 / ICA-2503) ---
+
+struct TacticalTransportHandoverSheetView: View {
+    @ObservedObject var vm: IntercomViewModel
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 16) {
+                    let failover = vm.failoverSnapshot ?? FailoverMetrics(
+                        currentMode: .restrictedOffline,
+                        meshPeerCount: 0,
+                        averageEtx: 1.0,
+                        averageDeliveryRatio: 1.0,
+                        lastBleActivityMs: 0,
+                        isCloudConnected: false,
+                        timeInCurrentModeMs: 0,
+                        totalHandovers: 0,
+                        hedgedPacketsCount: 0,
+                        isBleDegraded: false
+                    )
+
+                    // 1. Current Active Path Banner
+                    HStack(spacing: 12) {
+                        Image(systemName: modeIcon(failover.currentMode))
+                            .font(.system(size: 26, weight: .bold))
+                            .foregroundColor(modeColor(failover.currentMode))
+
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(modeTitle(failover.currentMode))
+                                .font(.system(size: 15, weight: .black, design: .monospaced))
+                                .foregroundColor(.white)
+                            Text(modeDescription(failover.currentMode))
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                    }
+                    .padding()
+                    .background(modeColor(failover.currentMode).opacity(0.12))
+                    .cornerRadius(12)
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(modeColor(failover.currentMode).opacity(0.35), lineWidth: 1.5))
+
+                    // 2. Link Quality Warning Banner
+                    if failover.isBleDegraded {
+                        HStack(spacing: 8) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(.orange)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("BLE RF DEGRADATION DETECTED")
+                                    .font(.system(size: 11, weight: .black, design: .monospaced))
+                                    .foregroundColor(.orange)
+                                Text("Dual-stream packet hedging active to protect voice continuity")
+                                    .font(.system(size: 10, weight: .medium))
+                                    .foregroundColor(.white.opacity(0.85))
+                            }
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color.orange.opacity(0.18))
+                        .cornerRadius(10)
+                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.orange.opacity(0.4), lineWidth: 1))
+                    }
+
+                    // 3. Telemetry & Link Metrics
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("TELEMETRY & LINK METRICS")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.secondary)
+
+                        VStack(spacing: 6) {
+                            metricRow(title: "BLE Mesh Peers in Range", value: "\(failover.meshPeerCount)")
+                            metricRow(
+                                title: "Average Expected Transmissions (ETX)",
+                                value: String(format: "%.2f", failover.averageEtx),
+                                isWarning: failover.isBleDegraded
+                            )
+                            metricRow(
+                                title: "Packet Delivery Ratio (PDR)",
+                                value: "\(Int(failover.averageDeliveryRatio * 100))%"
+                            )
+                            metricRow(
+                                title: "Cloud Relay WebSocket Status",
+                                value: failover.isCloudConnected ? "CONNECTED" : "DISCONNECTED",
+                                isWarning: !failover.isCloudConnected
+                            )
+                            metricRow(
+                                title: "Total Handover Transitions",
+                                value: "\(failover.totalHandovers)"
+                            )
+                            metricRow(
+                                title: "Dual-Stream Hedged Frames",
+                                value: "\(failover.hedgedPacketsCount)"
+                            )
+                        }
+                    }
+                    .padding()
+                    .background(Color.white.opacity(0.04))
+                    .cornerRadius(10)
+
+                    // 4. Manual Routing Policy Override
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("MANUAL ROUTING OVERRIDE")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.secondary)
+
+                        HStack(spacing: 8) {
+                            overrideButton(
+                                title: "BLE DIRECT",
+                                isSelected: failover.currentMode == .bleDirect,
+                                color: .green
+                            ) {
+                                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                vm.setFailoverModeOverride(.bleDirect)
+                            }
+
+                            overrideButton(
+                                title: "CLOUD ONLY",
+                                isSelected: failover.currentMode == .cloudRelayOnly,
+                                color: .purple
+                            ) {
+                                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                vm.setFailoverModeOverride(.cloudRelayOnly)
+                            }
+
+                            overrideButton(
+                                title: "AUTO (ARBITER)",
+                                isSelected: false,
+                                color: .blue
+                            ) {
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                vm.setFailoverModeOverride(nil)
+                            }
+                        }
+                    }
+                    .padding()
+                    .background(Color.white.opacity(0.04))
+                    .cornerRadius(10)
+                }
+                .padding()
+            }
+            .navigationTitle("Transport Handover HUD")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") { dismiss() }
+                }
+            }
+        }
+    }
+
+    private func modeIcon(_ mode: FailoverMode) -> String {
+        switch mode {
+        case .bleDirect: return "antenna.radiowaves.left.and.right"
+        case .multiPathHedged: return "arrow.triangle.branch"
+        case .cloudRelayOnly: return "cloud.fill"
+        case .restrictedOffline: return "bolt.slash.fill"
+        default: return "network"
+        }
+    }
+
+    private func modeColor(_ mode: FailoverMode) -> Color {
+        switch mode {
+        case .bleDirect: return .green
+        case .multiPathHedged: return .orange
+        case .cloudRelayOnly: return .purple
+        case .restrictedOffline: return .gray
+        default: return .cyan
+        }
+    }
+
+    private func modeTitle(_ mode: FailoverMode) -> String {
+        switch mode {
+        case .bleDirect: return "BLE DIRECT (OFFLINE)"
+        case .multiPathHedged: return "MULTI-PATH HEDGED"
+        case .cloudRelayOnly: return "CLOUD RELAY (SFU)"
+        case .restrictedOffline: return "RESTRICTED OFFLINE"
+        default: return "UNKNOWN"
+        }
+    }
+
+    private func modeDescription(_ mode: FailoverMode) -> String {
+        switch mode {
+        case .bleDirect: return "Zero cellular usage • 100% peer-to-peer BLE mesh."
+        case .multiPathHedged: return "Degraded RF link • Hedging frames across BLE & Cloud Relay."
+        case .cloudRelayOnly: return "Local mesh unreachable • Cellular SFU websocket fallback."
+        case .restrictedOffline: return "No active mesh or cloud paths available."
+        default: return "Arbitrating..."
+        }
+    }
+
+    private func metricRow(title: String, value: String, isWarning: Bool = false) -> some View {
+        HStack {
+            Text(title)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(.secondary)
+            Spacer()
+            Text(value)
+                .font(.system(size: 11, weight: .black, design: .monospaced))
+                .foregroundColor(isWarning ? .orange : .white)
+        }
+    }
+
+    private func overrideButton(title: String, isSelected: Bool, color: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 9, weight: .bold, design: .monospaced))
+                .foregroundColor(isSelected ? .black : color)
+                .frame(maxWidth: .infinity)
+                .frame(height: 34)
+                .background(isSelected ? color : color.opacity(0.15))
+                .cornerRadius(6)
+                .overlay(RoundedRectangle(cornerRadius: 6).stroke(color.opacity(0.5), lineWidth: 1))
         }
     }
 }
