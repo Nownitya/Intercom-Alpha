@@ -1747,6 +1747,30 @@
   - `./gradlew test`: BUILD SUCCESSFUL (91 actionable tasks passed cleanly).
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-24-adaptive-bitrate-qos`).
+---
+
+### [2026-10-09] - ICA-2402: MeshTransport Wire Integration & Bulk File Airtime Throttling
+- **Branch**: `feature/ICA-2402-mesh-transport-qos-integration`
+- **Objective**: Wire `MeshQoSScheduler` into `MeshTransport` interface, Android & iOS platform transport implementations, pure KMP decorator `QoSAwareMeshTransport`, and `MeshFileTransferManager`. Throttle background GPX/GeoJSON trail file transmission to <=10% airtime duty cycle during active voice or heavy RF congestion, eliminating packet collisions and buffer bloat.
+- **Implementation**:
+  - `MeshTransport.kt`:
+    - Added `val qosScheduler: MeshQoSScheduler? get() = null` property.
+    - Added `suspend fun sendPacket(packet: MeshPacket)` default dispatcher.
+  - `QoSAwareMeshTransport.kt`:
+    - Pure KMP transport decorator coordinating asynchronous priority dispatch worker with strict QoS queue ordering (Emergency > Voice > Control > Bulk) and dynamic airtime pacing delays.
+  - `MeshTransport.android.kt` & `MeshTransport.ios.kt`:
+    - Wired `qosScheduler` instance into Android and iOS GATT stacks, recording outbound voice and control packet events with pacing delays.
+  - `MeshFileTransferManager.kt`:
+    - Injected optional `MeshQoSScheduler`, exposed `isThrottled: Boolean` property.
+    - Added `applyQoSPacing()` enforcing $\ge 150\text{ms}$ inter-chunk delay ($\le 10\%$ airtime duty cycle) during active voice or heavy RF congestion.
+    - Added `continueTransfer(transferId, batchSize)` batch dispatcher.
+  - `MeshTransportQoSTest.kt`:
+    - 6 unit test suites verifying outbound packet routing through QoS scheduler, bulk file transfer throttling during active voice, zero dropped voice packets during concurrent file beaming, deficit anti-starvation protection, voice hangover decay, and instant emergency preemption.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly in 1m 11s).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-24-adaptive-bitrate-qos`).
+
 
 
 

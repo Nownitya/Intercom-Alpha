@@ -92,11 +92,28 @@ interface MeshTransport {
     val incomingControl: ReceiveChannel<MeshPacket.Control>
     val connectionState: ReceiveChannel<ConnectionState>
 
+    val qosScheduler: org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler? get() = null
+
     suspend fun start(groupId: String, peerName: String, config: MeshConfig)
     suspend fun stop()
     suspend fun sendAudio(data: ByteArray, profile: AudioProfile)
     suspend fun sendControl(type: ControlType, payload: ByteArray)
     fun updateConfig(config: MeshConfig)
+
+    suspend fun sendPacket(packet: MeshPacket) {
+        when (packet) {
+            is MeshPacket.Audio -> sendAudio(packet.data, packet.profile)
+            is MeshPacket.Control -> sendControl(packet.type, packet.payload)
+            is MeshPacket.Discovery -> {}
+            is MeshPacket.Relay -> {
+                when (val inner = packet.packet) {
+                    is MeshPacket.Audio -> sendAudio(inner.data, inner.profile)
+                    is MeshPacket.Control -> sendControl(inner.type, inner.payload)
+                    else -> {}
+                }
+            }
+        }
+    }
 
     companion object {
         const val GATT_SERVICE_UUID = "0000180d-0000-1000-8000-00805f9b34fb"
