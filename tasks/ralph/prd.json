@@ -23,7 +23,7 @@
         "Provides starvation protection ensuring routing control packets are serviced within bounded delay",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-2402",

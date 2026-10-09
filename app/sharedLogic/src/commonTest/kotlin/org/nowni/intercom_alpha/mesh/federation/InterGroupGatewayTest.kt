@@ -281,7 +281,15 @@ class InterGroupGatewayTest {
         tamperedPayload[tamperedPayload.size / 2] = (tamperedPayload[tamperedPayload.size / 2] + 1).toByte()
         val tamperedControl = validPacket.copy(payload = tamperedPayload)
 
-        val decision = gateway.relayEngine.processInboundCrossMeshPacket(
+        val gatewayBravo = InterGroupGateway(
+            localGroupId = "group-bravo",
+            localGroupName = "Squad Bravo",
+            localPeerId = "captain-bravo",
+            isLocalLeader = true
+        )
+        gatewayBravo.acceptFederationInvite(invite, currentTimeMs = 1000L)
+
+        val decision = gatewayBravo.relayEngine.processInboundCrossMeshPacket(
             tamperedControl,
             CrossGroupPolicy.ALL_MEMBERS_BRIDGED
         )
