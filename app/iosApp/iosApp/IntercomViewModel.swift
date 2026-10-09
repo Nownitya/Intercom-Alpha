@@ -81,6 +81,11 @@ final class IntercomViewModel: ObservableObject {
     @Published var routingSnapshot: RoutingSnapshot? = nil
     @Published var showRoutingSheet: Bool = false
 
+    // --- Multi-Group Federation Gateway Subsystem (Sprint 23 / ICA-2303) ---
+    @Published var federationSnapshot: FederationSnapshot? = nil
+    @Published var showFederationSheet: Bool = false
+    @Published var generatedFederationInvite: String? = nil
+
     private let bridge = IntercomBridge(localPeerId: "ios-lead", localPeerName: "iOS Lead")
     private var cancellables: [CancellationHandle] = []
     private var activeActivity: Activity<IntercomActivityAttributes>? = nil
@@ -394,6 +399,24 @@ final class IntercomViewModel: ObservableObject {
         bridge.initiateRouteDiscovery(destinationId: destinationId)
     }
 
+    // --- Multi-Group Federation Gateway Controls (Sprint 23 / ICA-2303) ---
+
+    func setFederationPolicy(groupId: String, policy: CrossGroupPolicy) {
+        bridge.setFederationPolicy(groupId: groupId, policy: policy)
+    }
+
+    func createFederationInvite() {
+        generatedFederationInvite = bridge.createFederationInvite()
+    }
+
+    func acceptFederationInvite(code: String) -> Bool {
+        return bridge.acceptFederationInvite(inviteCode: code)
+    }
+
+    func dismissFederationInviteDialog() {
+        generatedFederationInvite = nil
+    }
+
     // --- Reactive Observers Setup ---
 
     private func setupObservers() {
@@ -637,6 +660,14 @@ final class IntercomViewModel: ObservableObject {
             }
         }
         cancellables.append(routingSub)
+
+        // --- Multi-Group Federation Gateway Observers (Sprint 23 / ICA-2303) ---
+        let fedSub = bridge.observeFederationSnapshot { [weak self] snapshot in
+            Task { @MainActor in
+                self?.federationSnapshot = snapshot
+            }
+        }
+        cancellables.append(fedSub)
 
         isPfsRatchetActive = bridge.isPfsRatchetActive()
     }

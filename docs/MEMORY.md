@@ -813,6 +813,70 @@
     - Added Sprint 22 showcase card (orange dot) highlighting AODV-Lite route discovery, ETX cost arbitration, and overhearing contention suppression.
     - Delivered via Archify CLI with 100% clean validation (9/9 checks passed, 0 errors, 0 warnings).
 
+### 2.70 Pure KMP Multi-Group Gateway Engine & Cross-Mesh Federation Protocol (Sprint 23 - ICA-2301)
+- **Challenge**: Bridging separate motorcycle riding squads ("Squad Alpha" vs "Squad Bravo") with disparate 256-bit AES/ChaCha20 group keys without forcing riders into one oversized group (which pollutes audio channels and leaks private chatter), while preventing circular feedback loops and unauthorized cross-group eavesdropping.
+- **Solution**:
+  - `MeshTransport.kt`: Extended `ControlType` with `FEDERATION_INVITE`, `FEDERATION_BRIDGE`, and `FEDERATION_AUDIO`.
+  - `FederationModels.kt`:
+    - Modeled `CrossGroupPolicy`: `CAPTAIN_ONLY` (road captains + emergency), `EMERGENCY_SOS_ONLY` (high-g crash / eCall alerts only), `ALL_MEMBERS_BRIDGED` (unrestricted two-way bridge), and `DISABLED`.
+    - Modeled `GroupFederationInvite` (`FEDERATION:v1:<base64(json)>`) with cryptographic HMAC/SHA-256 bridge key derivation.
+    - Defined `CrossMeshAudioPacket` embedding `pathTrace: List<String>` tracking visited group IDs to prevent circular relay loops.
+    - Implemented `FederationSerializer` with `#type` discriminator compatibility.
+  - `CrossMeshRelayEngine.kt`:
+    - Authenticates and re-encrypts audio frames using shared federation bridge ciphers (`PacketCipher`).
+    - Enforces policy authorization gates (`isTransmissionAllowed`).
+    - Detects circular loops and returns `DropFeedbackLoop` if incoming `pathTrace` includes `localGroupId`.
+  - `InterGroupGateway.kt`:
+    - Gateway state machine coordinating active federations, invite generation, and role arbitration.
+    - Enforced gateway leader role: only `PRIMARY` gateway nodes broadcast outbound cross-mesh frames, suppressing duplicate storms from `STANDBY` nodes.
+
+### 2.71 Selective Inter-Group Audio Demuxing, Sub-Group Isolation & Anti-Feedback Loop Guard (Sprint 23 - ICA-2302)
+- **Challenge**: In a multi-convoy federation where multiple gateway nodes exist in proximity (e.g. Squad Alpha Lead and Sweep both bridging to Squad Bravo), duplicate frame storms, runaway multi-hop circular relay cycles, acoustic self-monitoring echo feedback, and private intra-squad conversation leakage (such as rider-to-pillion private chat or tactical scout chatter) would degrade safety and voice quality.
+- **Solution**:
+  - `FederationLoopDetector.kt`:
+    - Implemented self-origin acoustic echo suppression (`originalSenderId == localPeerId`).
+    - Verified monotonic `pathTrace` loop prevention (`pathTrace.contains(localGroupId)` and internal cyclic group detection).
+    - Enforced `maxHops` boundary (default 3 hops) for multi-convoy relay limits.
+    - Implemented composite sliding-window deduplication cache (`seenPackets` with 5,000ms window and LRU pruning) suppressing redundant concurrent gateway deliveries.
+  - `CrossMeshForwardingArbiter.kt`:
+    - Enforced sub-group isolation: isolated squad channels (channels 2..15, e.g. scouts, sweep, support vehicle, rider-to-pillion) remain strictly internal to the local squad and are blocked from cross-mesh bridging.
+    - Enforced emergency preemption: Emergency SOS frames (and Channel 16) override channel restrictions and pass across meshes under `EMERGENCY_SOS_ONLY`, `CAPTAIN_ONLY`, and `ALL_MEMBERS_BRIDGED`.
+    - Enforced pre-decryption inbound gate: rejects unauthorized, non-captain, or unverified cross-group frames before executing AEAD cryptographic decryption, saving battery and CPU cycles.
+    - Integrated audit telemetry snapshot (`ForwardingAuditSnapshot`) tracking inbound/outbound packets, delivery counts, and classified drops.
+  - `CrossMeshForwardingTest.kt`:
+    - 9 comprehensive tests validating acoustic self-echo suppression, circular relay loop detection, cyclic path trace rejection, hop count limits, concurrent gateway deduplication, sub-group isolation, captain-only policy, emergency preemption, standby gateway suppression, pre-decryption security gating, end-to-end ingestion pipeline, and audit metrics.
+
+### 2.72 Subsystem Hardware Bridge Wiring & Multiplatform Federation HUD Presentation (Sprint 23 - ICA-2303)
+- **Challenge**: Seamlessly exposing pure KMP multi-group gateway state (`InterGroupGateway`) across all platforms (Android Compose Multiplatform and 100% Native iOS SwiftUI) without leaking Compose runtime dependencies onto iOS (violating Rule 1), ensuring motorcycle-glove tactile usability for cross-convoy policy switching and invite generation.
+- **Solution**:
+  - `IntercomHardwareBridge.kt` & Platform Bridges:
+    - Extended `IntercomHardwareBridge` interface with reactive `federationSnapshot: StateFlow<FederationSnapshot>` and control methods (`setFederationPolicy`, `createFederationInvite`, `acceptFederationInvite`).
+    - Wired `InterGroupGateway` into `AndroidPlatformBridge` with a 2-second periodic state polling coroutine.
+    - Added Swift-friendly `observeFederationSnapshot(callback: (FederationSnapshot) -> Unit): CancellationHandle` in `IntercomBridge.kt` (`iosMain`) with memory-safe cancellation lifecycle.
+  - Compose Multiplatform Tactical HUD (`HomeScreen.kt`):
+    - Added high-contrast avionics telemetry pill `🌐 FEDERATION: N SQUADS` alerting rider to active inter-convoy gateway links.
+    - Implemented modal `FederationDiagnosticsDialog` with direct policy toggling (`CAPTAIN_ONLY`, `ALL_MEMBERS_BRIDGED`, `EMERGENCY_SOS_ONLY`, `DISABLED`), invite creation (`FEDERATION:v1:` QR code / alphanumeric token), and input field with instant join capability.
+  - 100% Native iOS SwiftUI (`ContentView.swift` & `IntercomViewModel.swift` - Rule 1):
+    - Zero Compose runtime footprint in `app/iosApp`.
+    - Integrated `@Published var federationSnapshot` bound via `IntercomBridge.shared.observeFederationSnapshot`.
+    - Built native SwiftUI `FederationDiagnosticsSheetView` with glassmorphic tactical cards, real-time RSSI/packet counters, policy selection picker, and invite share/redeem controls.
+
+### 2.73 Dual-Convoy 32-Node Cross-Mesh Simulation Harness & Archify Showcase Update (Sprint 23 - ICA-2304)
+- **Challenge**: Validating complex inter-convoy gateway topologies across 32 heterogeneous nodes with 2 independent cryptographic groups, proving zero audio leakage across isolated sub-groups, sub-25ms re-encryption latency, emergency all-call SOS preemption, and zero circular feedback loops with dual parallel gateways.
+- **Solution**:
+  - `MultiGroupFederationSimulationHarness.kt`:
+    - Simulated 32 nodes across 2 squads (`squad-alpha` riders 00..15 and `squad-bravo` riders 00..15) with dual gateway nodes (Road Captain at index 0 and Sweep at index 15).
+    - Verified sub-group isolation: Channel 2 scout intra-squad audio received by all 16 Alpha riders, exactly 0 packets leaked to Bravo; Road Captain Channel 1 voice bridged across gateway to Bravo Lead Captain.
+    - Verified emergency preemption: deep-trail rider CRASH_ALERT / SOS overrides channel isolation and policy, universally broadcasting to all 32 nodes across both squads.
+    - Verified loop prevention: both Lead and Sweep gateways active in parallel under `ALL_MEMBERS_BRIDGED`; loop detector and deduplicator dropped circular returns and duplicate arrivals with zero feedback amplification.
+    - Benchmarked pure Kotlin ChaCha20-Poly1305 gateway re-encryption: 0.39ms average latency (peak 1.74ms) across 100 frames, beating the <25ms acceptance threshold.
+  - Archify Architecture Specification & Showcase (`docs/architecture/intercom-alpha.architecture.json` & `docs/architecture/intercom-alpha-architecture.html`):
+    - Added `cross_mesh_arbiter` (Cross-Mesh Arbiter) and `federation_gateway` (Inter-Group Gateway) components to KMP Core Engine.
+    - Added `cross-mesh-federation` view (Inter-Convoy Gateway & Federation) with dynamic trace animations.
+    - Added non-crossing horizontal routing connections across row y=760 (`cross_mesh_arbiter` -> `federation_gateway` -> `link_metric` -> `directed_router` -> `remote_peers`).
+    - Added Sprint 23 showcase card (slate dot) highlighting dual-layer ChaCha20-Poly1305 re-encryption, sub-group isolation, and loop detector verification.
+    - Delivered via Archify CLI with 100% showcase quality pass (9/9 checks passed, 0 errors, 0 warnings).
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

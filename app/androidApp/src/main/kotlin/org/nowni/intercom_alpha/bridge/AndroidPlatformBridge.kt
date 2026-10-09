@@ -127,9 +127,26 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
     )
     override val routingSnapshot: StateFlow<RoutingSnapshot> = _routingSnapshot.asStateFlow()
 
+    private val _federationSnapshot = MutableStateFlow(
+        org.nowni.intercom_alpha.mesh.federation.FederationSnapshot(
+            localGroupId = "squad-android",
+            localRole = org.nowni.intercom_alpha.mesh.federation.GatewayRole.PRIMARY,
+            bridgeState = org.nowni.intercom_alpha.mesh.federation.FederationBridgeState.DISCONNECTED,
+            federatedGroups = emptyList(),
+            activePolicy = org.nowni.intercom_alpha.mesh.federation.CrossGroupPolicy.CAPTAIN_ONLY,
+            totalRelayedPacketsIn = 0L,
+            totalRelayedPacketsOut = 0L,
+            totalDroppedPolicyViolations = 0L,
+            lastRelayedTimestampMs = 0L
+        )
+    )
+    override val federationSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.federation.FederationSnapshot> = _federationSnapshot.asStateFlow()
+
     var channelManager: ChannelManager? = null
         private set
     var directedRouter: DirectedMeshRouter? = null
+        private set
+    var interGroupGateway: org.nowni.intercom_alpha.mesh.federation.InterGroupGateway? = null
         private set
     var blackboxRecorder: EmergencyBlackboxRecorder? = null
         private set
@@ -168,7 +185,8 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         batteryGovernor: org.nowni.intercom_alpha.power.BatteryGovernor?,
         crashDetector: org.nowni.intercom_alpha.safety.CrashDetector?,
         voiceCommandRecognizer: org.nowni.intercom_alpha.audio.VoiceCommandRecognizer?,
-        directedRouter: DirectedMeshRouter?
+        directedRouter: DirectedMeshRouter?,
+        interGroupGateway: org.nowni.intercom_alpha.mesh.federation.InterGroupGateway?
     ) {
         this.channelManager = channelManager
         this.blackboxRecorder = blackboxRecorder
@@ -181,6 +199,17 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         this.crashDetector = crashDetector
         this.voiceCommandRecognizer = voiceCommandRecognizer
         this.directedRouter = directedRouter
+        this.interGroupGateway = interGroupGateway
+
+        interGroupGateway?.let { gateway ->
+            scope.launch {
+                while (isActive) {
+                    val snapshot = gateway.getSnapshot(System.currentTimeMillis())
+                    _federationSnapshot.value = snapshot
+                    kotlinx.coroutines.delay(2000L)
+                }
+            }
+        }
 
         directedRouter?.let { router ->
             scope.launch {
@@ -405,6 +434,33 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         scope.launch {
             voiceCommandRecognizer?.processPcmSamples(samples, timestampMs)
         }
+    }
+
+    override fun updateFederationSnapshot(snapshot: org.nowni.intercom_alpha.mesh.federation.FederationSnapshot) {
+        _federationSnapshot.value = snapshot
+    }
+
+    override fun setFederationPolicy(groupId: String, policy: org.nowni.intercom_alpha.mesh.federation.CrossGroupPolicy) {
+        interGroupGateway?.setCrossGroupPolicy(groupId, policy)
+        val current = _federationSnapshot.value
+        val updated = current.federatedGroups.map { if (it.groupId == groupId) it.copy(policy = policy) else it }
+        _federationSnapshot.value = current.copy(federatedGroups = updated, activePolicy = policy)
+    }
+
+    override fun createFederationInvite(): String? {
+        val gateway = interGroupGateway ?: return null
+        val invite = gateway.createFederationInvite(currentTimeMs = System.currentTimeMillis())
+        return org.nowni.intercom_alpha.mesh.federation.FederationSerializer.encodeInvite(invite)
+    }
+
+    override fun acceptFederationInvite(inviteCode: String): Boolean {
+        val gateway = interGroupGateway ?: return false
+        val invite = org.nowni.intercom_alpha.mesh.federation.FederationSerializer.decodeInvite(inviteCode) ?: return false
+        val ok = gateway.acceptFederationInvite(invite, System.currentTimeMillis())
+        if (ok) {
+            _federationSnapshot.value = gateway.getSnapshot(System.currentTimeMillis())
+        }
+        return ok
     }
 
     override fun sendRepeaterPacket(packet: MeshPacket.Control) {

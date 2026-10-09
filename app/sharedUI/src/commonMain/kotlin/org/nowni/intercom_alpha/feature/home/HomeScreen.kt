@@ -7,6 +7,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -382,6 +384,77 @@ fun HomeScreen(
                         }
                     }
                 }
+
+                // Multi-Group Federation Strip (Sprint 23 - ICA-2303)
+                Surface(
+                    onClick = { onAction(HomeUiAction.ToggleFederationSheet(true)) },
+                    shape = RoundedCornerShape(6.dp),
+                    color = Color(0xFF101A24),
+                    border = BorderStroke(1.dp, Color(0xFF29B6F6))
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 3.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text("🌐", fontSize = 11.sp)
+                            Text(
+                                text = "FEDERATION: ${uiState.federationSnapshot.federatedGroups.size} SQUADS",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(3.dp),
+                                color = if (uiState.federationSnapshot.localRole == org.nowni.intercom_alpha.mesh.federation.GatewayRole.PRIMARY) Color(0xFF0288D1) else Color(0xFF455A64)
+                            ) {
+                                Text(
+                                    text = uiState.federationSnapshot.localRole.name,
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color.White,
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                )
+                            }
+                            Text(
+                                text = "• ${uiState.federationSnapshot.activePolicy.name}",
+                                fontSize = 8.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF81D4FA)
+                            )
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = "${uiState.federationSnapshot.totalRelayedPacketsIn}↓ / ${uiState.federationSnapshot.totalRelayedPacketsOut}↑",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Black,
+                                color = Color(0xFF80D8FF)
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(4.dp),
+                                color = Color(0xFF0277BD)
+                            ) {
+                                Text(
+                                    text = "HUD",
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color.White,
+                                    modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
             // ================= 2. EMERGENCY PREEMPTION BANNER =================
@@ -599,6 +672,19 @@ fun HomeScreen(
                 onDiscoverRoute = { destId -> onAction(HomeUiAction.InitiateRouteDiscovery(destId)) }
             )
         }
+
+        // ================= FEDERATION DIAGNOSTICS DIALOG (Sprint 23 - ICA-2303) =================
+        if (uiState.showFederationSheet) {
+            FederationDiagnosticsDialog(
+                snapshot = uiState.federationSnapshot,
+                generatedInvite = uiState.generatedFederationInvite,
+                onDismiss = { onAction(HomeUiAction.ToggleFederationSheet(false)) },
+                onSetPolicy = { gid, policy -> onAction(HomeUiAction.SetFederationPolicy(gid, policy)) },
+                onCreateInvite = { onAction(HomeUiAction.CreateFederationInvite) },
+                onAcceptInvite = { code -> onAction(HomeUiAction.AcceptFederationInvite(code)) },
+                onDismissInvite = { onAction(HomeUiAction.DismissFederationInviteDialog) }
+            )
+        }
     }
 }
 
@@ -806,6 +892,243 @@ fun CrashCountdownDialog(
                         fontWeight = FontWeight.Bold,
                         fontSize = 11.sp
                     )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun FederationDiagnosticsDialog(
+    snapshot: org.nowni.intercom_alpha.mesh.federation.FederationSnapshot,
+    generatedInvite: String?,
+    onDismiss: () -> Unit,
+    onSetPolicy: (String, org.nowni.intercom_alpha.mesh.federation.CrossGroupPolicy) -> Unit,
+    onCreateInvite: () -> Unit,
+    onAcceptInvite: (String) -> Unit,
+    onDismissInvite: () -> Unit
+) {
+    var inviteInputText by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("") }
+
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = Color(0xFF10151B),
+            border = BorderStroke(1.dp, Color(0xFF29B6F6)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text("🌐", fontSize = 14.sp)
+                        Text(
+                            text = "FEDERATION GATEWAY HUD",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Black,
+                            color = Color(0xFF29B6F6),
+                            letterSpacing = 0.5.sp
+                        )
+                    }
+                    IconButton(onClick = onDismiss, modifier = Modifier.size(24.dp)) {
+                        Text("✕", fontSize = 12.sp, color = Color.White)
+                    }
+                }
+
+                // Gateway Node Status Card
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFF17202A),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "LOCAL SQUAD: ${snapshot.localGroupId}",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(3.dp),
+                                color = if (snapshot.localRole == org.nowni.intercom_alpha.mesh.federation.GatewayRole.PRIMARY) Color(0xFF0288D1) else Color(0xFF546E7A)
+                            ) {
+                                Text(
+                                    text = snapshot.localRole.name,
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color.White,
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                        Text(
+                            text = "Relayed In: ${snapshot.totalRelayedPacketsIn} • Relayed Out: ${snapshot.totalRelayedPacketsOut} • Policy Drops: ${snapshot.totalDroppedPolicyViolations}",
+                            fontSize = 9.sp,
+                            color = Color(0xFF81D4FA)
+                        )
+                    }
+                }
+
+                // Federated Sibling Groups List
+                Text(
+                    text = "FEDERATED SIBLING CONVOYS (${snapshot.federatedGroups.size})",
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF90A4AE)
+                )
+
+                if (snapshot.federatedGroups.isEmpty()) {
+                    Text(
+                        text = "No active sibling convoys connected. Create or accept a federation invite code below to link disparate squads.",
+                        fontSize = 10.sp,
+                        color = Color(0xFF78909C)
+                    )
+                } else {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        for (grp in snapshot.federatedGroups) {
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = Color(0xFF141A22),
+                                border = BorderStroke(0.5.dp, Color(0xFF263238)),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = grp.groupName,
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White
+                                        )
+                                        Text(
+                                            text = "${grp.linkRssi} dBm",
+                                            fontSize = 9.sp,
+                                            color = Color(0xFF00E676)
+                                        )
+                                    }
+                                    Text(
+                                        text = "ID: ${grp.groupId} • Gateway: ${grp.gatewayPeerId} • Relayed: ${grp.relayedPacketsCount}",
+                                        fontSize = 9.sp,
+                                        color = Color(0xFFB0BEC5)
+                                    )
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        for (policy in org.nowni.intercom_alpha.mesh.federation.CrossGroupPolicy.entries) {
+                                            val isSelected = grp.policy == policy
+                                            Surface(
+                                                onClick = { onSetPolicy(grp.groupId, policy) },
+                                                shape = RoundedCornerShape(3.dp),
+                                                color = if (isSelected) Color(0xFF0288D1) else Color(0xFF263238)
+                                            ) {
+                                                Text(
+                                                    text = policy.name.replace("_", " ").take(10),
+                                                    fontSize = 7.sp,
+                                                    fontWeight = if (isSelected) FontWeight.Black else FontWeight.Normal,
+                                                    color = Color.White,
+                                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Generated Invite Display
+                if (generatedInvite != null) {
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = Color(0xFF003756),
+                        border = BorderStroke(1.dp, Color(0xFF00E5FF)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text(
+                                text = "ACTIVE FEDERATION INVITE CODE",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF80D8FF)
+                            )
+                            Text(
+                                text = generatedInvite,
+                                fontSize = 8.sp,
+                                color = Color.White
+                            )
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                                OutlinedButton(
+                                    onClick = onDismissInvite,
+                                    modifier = Modifier.height(26.dp)
+                                ) {
+                                    Text("DONE", fontSize = 8.sp, color = Color.White)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Action Buttons: Create Invite & Accept Code
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Button(
+                        onClick = onCreateInvite,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0288D1)),
+                        shape = RoundedCornerShape(6.dp),
+                        modifier = Modifier.weight(1f).height(36.dp)
+                    ) {
+                        Text("CREATE INVITE", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    androidx.compose.material3.OutlinedTextField(
+                        value = inviteInputText,
+                        onValueChange = { inviteInputText = it },
+                        placeholder = { Text("Paste FEDERATION:v1: code...", fontSize = 9.sp, color = Color(0xFF78909C)) },
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        singleLine = true
+                    )
+                    Button(
+                        onClick = {
+                            if (inviteInputText.isNotBlank()) {
+                                onAcceptInvite(inviteInputText.trim())
+                                inviteInputText = ""
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E676)),
+                        shape = RoundedCornerShape(6.dp),
+                        modifier = Modifier.height(44.dp)
+                    ) {
+                        Text("JOIN", fontSize = 10.sp, fontWeight = FontWeight.Black, color = Color.Black)
+                    }
                 }
             }
         }

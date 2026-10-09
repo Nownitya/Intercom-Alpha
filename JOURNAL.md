@@ -3,6 +3,54 @@
 > **Obsidian Source:** `D:\ObsidianVault\Vault1\ObsidianVault\Android\Projects\Intercom-Alpha\10-Daily-Notes\`  
 > **MemPalace Integration:** Wing `intercom_alpha` (2,426 drawers)
 
+## 📅 2026-10-09: Sprint 23 — Multi-Group Inter-Convoy Gateway & Cross-Mesh Federation (Phase 21)
+
+### Summary
+1. **Pure KMP Multi-Group Gateway Engine & Cross-Mesh Protocol (`InterGroupGateway.kt`, `FederationModels.kt`, `CrossMeshRelayEngine.kt`)**:
+   - Implemented inter-group gateway contracts (`GroupFederationInvite`, `FederationBridgeState`, `CrossGroupPolicy`, `CrossMeshAudioPacket`).
+   - Policy-driven audio and hazard bridging between distinct cryptographic groups with destination group re-encryption.
+2. **Selective Inter-Group Audio Demuxing & Loop Guard (`FederationLoopDetector.kt`, `CrossMeshForwardingArbiter.kt`)**:
+   - Monotonic `federationPathTrace` and cross-group deduplication eliminating circular feedback loops across redundant gateways.
+   - Enforced sub-group isolation policies (`CAPTAIN_ONLY`, `EMERGENCY_SOS_ONLY`, `ALL_MEMBER_BRIDGED`).
+3. **Subsystem Hardware Bridge Wiring & Multiplatform Presentation HUD**:
+   - Integrated into `IntercomHardwareBridge`, `AndroidPlatformBridge`, and `IntercomBridge` (`iosMain`) with `CancellationHandle` closures.
+   - Dynamic Federation badge and diagnostics sheet in Compose Multiplatform and 100% Native iOS SwiftUI (Rule 1).
+4. **Dual-Convoy 32-Node Cross-Mesh Simulation Harness & Archify Showcase (`MultiGroupFederationSimulationHarness.kt`)**:
+   - Simulated 32 virtual nodes across dual squads with redundant dual-gateway arbitration.
+   - Verified zero feedback loops, sub-group isolation, and emergency all-call preemption.
+5. **Verification & Release**:
+   - Multiplatform verification passed: `./gradlew test :app:androidApp:assembleDebug`.
+   - OpenCodeReview Delegation Gate passed with 0 findings.
+   - Released `v2.10.0`.
+
+---
+
+## 📅 2026-10-08: Sprint 22 — Dynamic Mesh Directed Routing & AODV-Lite (Phase 20)
+
+### Summary
+1. **Pure KMP AODV-Lite Directed Routing Engine (`AodvRoutingEngine.kt`, `RoutingModels.kt`)**:
+   - On-demand route discovery (`RREQ`/`RREP`/`RERR`) with monotonic sequence numbers, link delivery ratio & RSSI-based ETX metrics.
+2. **Selective Forwarding & RF Airtime Contention Mitigator**:
+   - Reduced RF airtime contention by >80% in 24-node convoys compared to raw flooding.
+3. **Multiplatform Topology HUD Presentation**:
+   - Routing hop visualization in Compose Multiplatform and 100% Native SwiftUI.
+4. **24-Node Large-Scale Directed Mesh RF Contention Benchmark**:
+   - Verified route convergence and loop-free forwarding. Released `v2.9.0`.
+
+---
+
+## 📅 2026-10-07: Sprint 21 — Autonomous Crash Impact Detection & Offline Voice Command HUD (Phase 19)
+
+### Summary
+1. **Pure KMP Crash Detection & Fall-Over IMU State Machine (`CrashDetector.kt`)**:
+   - Multi-axis IMU collision shock (8.5g severe impact, 4.5g collision, >60° sustained fall-over) with 30s abortable countdown.
+2. **Pure KMP Offline Voice Command & Keyword Spotting DSP (`VoiceCommandRecognizer.kt`)**:
+   - Acoustic DSP keyword spotting ("Intercom SOS", "Next Channel", "Prev Channel", "Toggle Mute", "Battery Status", "Cancel Alert") under 80–120 km/h wind noise.
+3. **Emergency HUD Integration**:
+   - Real-time pre-alert countdown banner across Compose and 100% Native SwiftUI. Released `v2.8.0`.
+
+---
+
 ## 📅 2026-10-07: Sprint 20 — Tactical Convoy Geofencing, Autonomous Power Governor & Multi-Node Stress Benchmark Suite (Phase 18)
 
 ### Summary

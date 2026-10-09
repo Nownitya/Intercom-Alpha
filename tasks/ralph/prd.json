@@ -1,54 +1,53 @@
 {
   "project": "Intercom-Alpha",
-  "branchName": "sprint/sprint-22-mesh-directed-routing",
-  "phase": "Phase 20: Dynamic Mesh Directed Routing, AODV-Lite Route Optimization & RF Collision Reduction",
-  "sprint": "Sprint 22",
-  "updatedAt": "2026-10-08T00:45:00Z",
+  "branchName": "sprint/sprint-23-multi-group-gateway",
+  "phase": "Phase 21: Multi-Group Inter-Convoy Gateway & Cross-Mesh Federation",
+  "sprint": "Sprint 23",
+  "updatedAt": "2026-10-08T02:00:00Z",
   "stories": [
     {
-      "id": "ICA-2201",
+      "id": "ICA-2301",
       "priority": 1,
-      "title": "Pure KMP AODV-Lite Directed Routing Engine & Route Table Arbiter",
-      "description": "Implement pure KMP RoutingModels.kt, RoutingTable.kt, and AodvRoutingEngine.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/routing/. Implements on-demand route discovery via RouteRequest (RREQ), RouteReply (RREP), and RouteError (RERR) control frames, monotonic destination sequence numbering for loop-freedom, dynamic link quality cost metrics (ETX derived from RSSI and hop count), and route table expiry with zero Java, C, or platform-specific dependencies (Rules 2 & 3).",
+      "title": "Pure KMP Multi-Group Gateway Engine & Cross-Mesh Federation Protocol",
+      "description": "Implement pure KMP FederationModels.kt, InterGroupGateway.kt, and CrossMeshRelayEngine.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/federation/. Defines inter-group gateway contracts (GroupFederationInvite, FederationBridgeState, CrossGroupPolicy, CrossMeshAudioPacket). Implements gateway leader arbitration, policy-driven audio and hazard bridging between distinct cryptographic groups (Squad A vs Squad B) with key translation or re-encryption, preventing unauthorized spillover while enabling seamless intercom between road captains. Pure KMP with 0 Java/C dependencies (Rules 2 & 3).",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/routing/RoutingModels.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/routing/RoutingTable.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/routing/AodvRoutingEngine.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/routing/AodvRoutingEngineTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/federation/FederationModels.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/federation/InterGroupGateway.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/federation/CrossMeshRelayEngine.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/federation/InterGroupGatewayTest.kt"
       ],
       "acceptanceCriteria": [
         "Pure KMP implementation with zero Java, C, or platform-specific dependencies in commonMain (Rules 2 & 3)",
-        "Generates, propagates, and processes RREQ, RREP, and RERR protocol messages",
-        "Maintains loop-free routing table with destination sequence numbers, next-hop pointers, and hop metrics",
-        "Falls back to controlled flooding when route to target destination is unknown or expired",
+        "Defines and handles GroupFederationInvite, FederationBridgeState, and CrossGroupPolicy models",
+        "Implements gateway leader election and policy-driven packet translation between distinct cryptographic group keys",
+        "Provides CrossMeshRelayEngine re-encrypting voice frames with destination group key",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
       "passes": true
     },
     {
-      "id": "ICA-2202",
+      "id": "ICA-2302",
       "priority": 2,
-      "title": "Selective Unicast/Multicast Forwarding & RF Airtime Contention Mitigator",
-      "description": "Integrate AodvRoutingEngine and LinkMetricCalculator.kt into MeshTransport.kt / forwarding pipeline. Allows unicast packets (canned hazard text, trail file chunks, remote diagnostics) and channel-scoped multi-hop packets to selectively transmit via optimal next-hop nodes rather than blind broadcast flooding. Implements link break detection and triggers RERR broadcast to self-heal broken mesh paths.",
+      "title": "Selective Inter-Group Audio Demuxing, Sub-Group Isolation & Anti-Feedback Loop Guard",
+      "description": "Implement FederationLoopDetector.kt and CrossMeshForwardingArbiter.kt in mesh/federation/. Integrates cross-mesh audio bridging into MeshTransport and audio pipeline. Prevents acoustic and relay feedback loops across redundant gateway bridges via monotonic federationPathTrace and cross-group deduplication. Enforces sub-group isolation (e.g. private squad chatter remains internal; only designated Captain PTT or Emergency SOS bridges across convoys).",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/routing/LinkMetricCalculator.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/MeshTransport.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/routing/DirectedForwardingTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/federation/FederationLoopDetector.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/federation/CrossMeshForwardingArbiter.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/federation/CrossMeshForwardingTest.kt"
       ],
       "acceptanceCriteria": [
-        "Selectively directs packet transmission along discovered optimal paths when available",
-        "Tracks link delivery ratios and RSSI to dynamically update link cost metrics",
-        "Detects next-hop transmission failures and triggers automatic RERR route invalidation",
-        "Suppresses redundant packet re-broadcasts on intermediate nodes not on the path",
+        "Suppresses circular relay feedback loops across multiple concurrent gateways using path trace verification",
+        "Enforces strict sub-group isolation rules: CAPTAIN_ONLY, EMERGENCY_SOS_ONLY, and ALL_MEMBER_BRIDGED",
+        "Drops unauthorized or unverified cross-group packets without decrypting payload",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
       "passes": true
     },
     {
-      "id": "ICA-2203",
+      "id": "ICA-2303",
       "priority": 3,
-      "title": "Subsystem Hardware Bridge Wiring & Multiplatform Mesh Topology HUD Presentation",
-      "description": "Wire AodvRoutingEngine into IntercomHardwareBridge, AndroidPlatformBridge, and IntercomBridge (iosMain) with typed CancellationHandle observers. Expose reactive RoutingSnapshot (active routes, next hops, link ETX costs, RF airtime savings). Display routing indicators and vector path connections on ProximityRadarView.kt / HomeScreen.kt (Compose Multiplatform) and ContentView.swift / TacticalVectorRadarView (100% Native iOS SwiftUI) respecting Rule 1.",
+      "title": "Subsystem Hardware Bridge Wiring & Multiplatform Federation HUD Presentation",
+      "description": "Wire InterGroupGateway into IntercomHardwareBridge, AndroidPlatformBridge, and IntercomBridge (iosMain) with typed CancellationHandle observers. Expose reactive FederationSnapshot (connected sibling groups, bridge policy, gateway link RSSI, relayed packet counts) and gateway control hooks. Present Multi-Group Federation badge and diagnostics sheet in Compose Multiplatform (HomeScreen.kt) and 100% Native iOS SwiftUI (ContentView.swift / IntercomViewModel.swift respecting Rule 1).",
       "targetFiles": [
         "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomHardwareBridge.kt",
         "app/sharedLogic/src/androidMain/kotlin/org/nowni/intercom_alpha/bridge/AndroidPlatformBridge.kt",
@@ -60,28 +59,28 @@
         "app/iosApp/iosApp/ContentView.swift"
       ],
       "acceptanceCriteria": [
-        "Hardware bridges expose routing snapshot flow and route control hooks",
-        "Exposes reactive CancellationHandle observers for routing state on iOS (Rule 1)",
-        "Compose Multiplatform displays mesh routing topology status badge and radar vector links",
-        "100% Native iOS SwiftUI displays tactical routing efficiency badge and multi-hop paths (Rule 1)",
+        "Hardware bridges expose federation snapshot flow and federation bridge control hooks",
+        "Exposes reactive CancellationHandle observers for federation state on iOS (Rule 1)",
+        "Compose Multiplatform displays cross-group federation status strip and diagnostics dialog",
+        "100% Native iOS SwiftUI displays tactical federation pill and modal sheet (Rule 1)",
         "Full compilation and automated verification pass across all targets"
       ],
       "passes": true
     },
     {
-      "id": "ICA-2204",
+      "id": "ICA-2304",
       "priority": 4,
-      "title": "24-Node Large-Scale Directed Mesh RF Contention Benchmark & Archify Showcase Update",
-      "description": "Implement DirectedMeshSimulationHarness.kt simulating a 24-node convoy across complex topologies (linear column, split groups, terrain obstruction). Measure packet collision rates, end-to-end latency, and route convergence times compared to naive flood relay. Update Archify interactive architecture specifications to showcase quality.",
+      "title": "Dual-Convoy 32-Node Cross-Mesh Simulation Harness & Archify Showcase Update",
+      "description": "Implement MultiGroupFederationSimulationHarness.kt simulating a dual-squad convoy (Squad Alpha 16 nodes, Squad Bravo 16 nodes) with 2 dual-role gateway nodes. Validates sub-group isolation, <25ms gateway re-encryption latency, zero broadcast loops across redundant gateways, and emergency all-call preemption across both meshes. Update Archify interactive architecture specifications to showcase quality.",
       "targetFiles": [
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/simulation/DirectedMeshSimulationHarness.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/simulation/MultiGroupFederationSimulationHarness.kt",
         "docs/architecture/intercom-alpha.architecture.json",
         "docs/architecture/intercom-alpha-architecture.html"
       ],
       "acceptanceCriteria": [
-        "Simulates 24-node convoy under varying RF link quality, packet loss, and node mobility",
-        "Demonstrates >= 60% reduction in total forwarded packets for unicast and route-directed traffic",
-        "Verifies fast route self-healing (<300ms) upon simulated link break or node dropout",
+        "Simulates 32 nodes across 2 distinct cryptographic groups with dual gateway nodes",
+        "Demonstrates sub-group audio isolation under normal traffic and universal relay on Emergency SOS",
+        "Verifies zero circular feedback loops when both gateways operate simultaneously",
         "Archify architecture specification and HTML showcase updated with 9/9 verification pass",
         "Full multiplatform test suite pass across all targets"
       ],

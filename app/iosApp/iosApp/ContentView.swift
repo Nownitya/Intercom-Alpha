@@ -193,6 +193,9 @@ struct ContentView: View {
         .sheet(isPresented: $vm.showRoutingSheet) {
             RoutingDiagnosticsSheetView(vm: vm)
         }
+        .sheet(isPresented: $vm.showFederationSheet) {
+            FederationDiagnosticsSheetView(vm: vm)
+        }
         .alert("Intercom Alert", isPresented: Binding(
             get: { vm.errorMessage != nil },
             set: { if !$0 { vm.errorMessage = nil } }
@@ -577,6 +580,29 @@ struct TacticalAvionicsBar: View {
                     .background(Color.cyan.opacity(0.15))
                     .cornerRadius(5)
                     .overlay(RoundedRectangle(cornerRadius: 5).stroke(Color.cyan.opacity(0.35), lineWidth: 1))
+                }
+            }
+
+            // Multi-Group Federation Gateway Pill (Sprint 23 - ICA-2303)
+            if let fed = vm.federationSnapshot {
+                Button(action: {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    vm.showFederationSheet = true
+                }) {
+                    HStack(spacing: 3) {
+                        Image(systemName: "globe")
+                            .font(.system(size: 8, weight: .bold))
+                        Text("FED \(fed.federatedGroups.count)G")
+                            .font(.system(size: 8, weight: .black, design: .monospaced))
+                        Text("• \(fed.localRole.name.prefix(4))")
+                            .font(.system(size: 7, weight: .heavy, design: .monospaced))
+                    }
+                    .foregroundColor(.blue)
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 3)
+                    .background(Color.blue.opacity(0.15))
+                    .cornerRadius(5)
+                    .overlay(RoundedRectangle(cornerRadius: 5).stroke(Color.blue.opacity(0.35), lineWidth: 1))
                 }
             }
 
@@ -1449,3 +1475,202 @@ struct RoutingDiagnosticsSheetView: View {
         }
     }
 }
+
+// ================= MULTI-GROUP FEDERATION GATEWAY SHEET (Sprint 23 / ICA-2303) =================
+
+struct FederationDiagnosticsSheetView: View {
+    @ObservedObject var vm: IntercomViewModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var inviteInputText: String = ""
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 16) {
+                    // Local Gateway Card
+                    if let fed = vm.federationSnapshot {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text("LOCAL SQUAD: \(fed.localGroupId)")
+                                    .font(.system(size: 13, weight: .black, design: .monospaced))
+                                    .foregroundColor(.white)
+                                Spacer()
+                                Text(fed.localRole.name)
+                                    .font(.system(size: 10, weight: .black, design: .monospaced))
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
+                                    .background(fed.localRole == .primary ? Color.blue : Color.gray)
+                                    .cornerRadius(4)
+                            }
+
+                            Divider().background(Color.white.opacity(0.1))
+
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("RELAYED IN")
+                                        .font(.system(size: 8, weight: .bold))
+                                        .foregroundColor(.secondary)
+                                    Text("\(fed.totalRelayedPacketsIn) pkts")
+                                        .font(.system(size: 12, weight: .black, design: .monospaced))
+                                        .foregroundColor(.cyan)
+                                }
+                                Spacer()
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("RELAYED OUT")
+                                        .font(.system(size: 8, weight: .bold))
+                                        .foregroundColor(.secondary)
+                                    Text("\(fed.totalRelayedPacketsOut) pkts")
+                                        .font(.system(size: 12, weight: .black, design: .monospaced))
+                                        .foregroundColor(.green)
+                                }
+                                Spacer()
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("DROPPED")
+                                        .font(.system(size: 8, weight: .bold))
+                                        .foregroundColor(.secondary)
+                                    Text("\(fed.totalDroppedPolicyViolations) pkts")
+                                        .font(.system(size: 12, weight: .black, design: .monospaced))
+                                        .foregroundColor(.orange)
+                                }
+                            }
+                        }
+                        .padding()
+                        .background(Color.white.opacity(0.06))
+                        .cornerRadius(12)
+                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.blue.opacity(0.4), lineWidth: 1))
+                    }
+
+                    // Connected Sibling Convoys Section
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("FEDERATED SIBLING CONVOYS (\(vm.federationSnapshot?.federatedGroups.count ?? 0))")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.secondary)
+
+                        if let groups = vm.federationSnapshot?.federatedGroups, !groups.isEmpty {
+                            ForEach(groups, id: \.groupId) { grp in
+                                VStack(alignment: .leading, spacing: 6) {
+                                    HStack {
+                                        Text(grp.groupName)
+                                            .font(.system(size: 13, weight: .bold))
+                                            .foregroundColor(.white)
+                                        Spacer()
+                                        Text("\(grp.linkRssi) dBm")
+                                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                            .foregroundColor(.green)
+                                    }
+
+                                    Text("ID: \(grp.groupId) • Gateway: \(grp.gatewayPeerId) • Relayed: \(grp.relayedPacketsCount)")
+                                        .font(.system(size: 10, design: .monospaced))
+                                        .foregroundColor(.secondary)
+
+                                    HStack(spacing: 6) {
+                                        Button("CAPTAIN") {
+                                            vm.setFederationPolicy(groupId: grp.groupId, policy: .captainOnly)
+                                        }
+                                        .buttonStyle(.bordered)
+                                        .tint(grp.policy == .captainOnly ? .blue : .gray)
+
+                                        Button("SOS ONLY") {
+                                            vm.setFederationPolicy(groupId: grp.groupId, policy: .emergencySosOnly)
+                                        }
+                                        .buttonStyle(.bordered)
+                                        .tint(grp.policy == .emergencySosOnly ? .blue : .gray)
+
+                                        Button("ALL BRIDGED") {
+                                            vm.setFederationPolicy(groupId: grp.groupId, policy: .allMembersBridged)
+                                        }
+                                        .buttonStyle(.bordered)
+                                        .tint(grp.policy == .allMembersBridged ? .blue : .gray)
+                                    }
+                                    .font(.system(size: 9, weight: .bold))
+                                }
+                                .padding()
+                                .background(Color.white.opacity(0.04))
+                                .cornerRadius(8)
+                            }
+                        } else {
+                            Text("No active sibling convoys connected. Create or accept an invite code below to bridge motorcycle squads.")
+                                .font(.system(size: 12))
+                                .foregroundColor(.secondary)
+                                .padding()
+                        }
+                    }
+
+                    // Active Generated Invite Code
+                    if let inviteCode = vm.generatedFederationInvite {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("ACTIVE SQUAD INVITE CODE")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(.cyan)
+
+                            Text(inviteCode)
+                                .font(.system(size: 9, design: .monospaced))
+                                .foregroundColor(.white)
+                                .padding(8)
+                                .background(Color.black.opacity(0.4))
+                                .cornerRadius(6)
+
+                            HStack {
+                                Spacer()
+                                Button("Done") {
+                                    vm.dismissFederationInviteDialog()
+                                }
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundColor(.cyan)
+                            }
+                        }
+                        .padding()
+                        .background(Color.blue.opacity(0.2))
+                        .cornerRadius(8)
+                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.cyan, lineWidth: 1))
+                    }
+
+                    // Invite Actions
+                    VStack(spacing: 10) {
+                        Button(action: {
+                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                            vm.createFederationInvite()
+                        }) {
+                            HStack {
+                                Image(systemName: "qrcode")
+                                Text("CREATE SQUAD INVITE")
+                            }
+                            .font(.system(size: 12, weight: .black))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.blue)
+                            .cornerRadius(10)
+                        }
+
+                        HStack(spacing: 8) {
+                            TextField("Paste FEDERATION:v1: code...", text: $inviteInputText)
+                                .textFieldStyle(.roundedBorder)
+                                .font(.system(size: 11, design: .monospaced))
+
+                            Button("JOIN") {
+                                if !inviteInputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                    _ = vm.acceptFederationInvite(code: inviteInputText.trimmingCharacters(in: .whitespacesAndNewlines))
+                                    inviteInputText = ""
+                                }
+                            }
+                            .font(.system(size: 12, weight: .bold))
+                            .buttonStyle(.borderedProminent)
+                            .tint(.green)
+                        }
+                    }
+                    .padding(.top, 8)
+                }
+                .padding()
+            }
+            .navigationTitle("Federation Gateway HUD")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") { dismiss() }
+                }
+            }
+        }
+    }
+}
