@@ -994,5 +994,19 @@ class IntercomBridge(
         val invite = org.nowni.intercom_alpha.mesh.federation.FederationSerializer.decodeInvite(inviteCode) ?: return false
         return interGroupGateway.acceptFederationInvite(invite, currentTimeMillis())
     }
+
+    // --- Swift-Friendly Mesh Airtime QoS Traffic Shaping Observers & Controls (Sprint 24 / ICA-2403) ---
+
+    val qosScheduler: org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler =
+        meshTransport.qosScheduler ?: org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler()
+
+    fun observeQoSSnapshot(onSnapshot: (org.nowni.intercom_alpha.mesh.qos.QoSSnapshot) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            qosScheduler.qosSnapshot.collect { snapshot ->
+                onSnapshot(snapshot)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
 }
 

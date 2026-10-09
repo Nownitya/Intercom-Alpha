@@ -1,53 +1,53 @@
 {
   "project": "Intercom-Alpha",
-  "branchName": "sprint/sprint-23-multi-group-gateway",
-  "phase": "Phase 21: Multi-Group Inter-Convoy Gateway & Cross-Mesh Federation",
-  "sprint": "Sprint 23",
-  "updatedAt": "2026-10-08T02:00:00Z",
+  "branchName": "sprint/sprint-24-adaptive-bitrate-qos",
+  "phase": "Phase 22: Mesh Airtime QoS Traffic Shaping & Airtime Contention Mitigator",
+  "sprint": "Sprint 24",
+  "updatedAt": "2026-10-09T07:21:00Z",
   "stories": [
     {
-      "id": "ICA-2301",
+      "id": "ICA-2401",
       "priority": 1,
-      "title": "Pure KMP Multi-Group Gateway Engine & Cross-Mesh Federation Protocol",
-      "description": "Implement pure KMP FederationModels.kt, InterGroupGateway.kt, and CrossMeshRelayEngine.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/federation/. Defines inter-group gateway contracts (GroupFederationInvite, FederationBridgeState, CrossGroupPolicy, CrossMeshAudioPacket). Implements gateway leader arbitration, policy-driven audio and hazard bridging between distinct cryptographic groups (Squad A vs Squad B) with key translation or re-encryption, preventing unauthorized spillover while enabling seamless intercom between road captains. Pure KMP with 0 Java/C dependencies (Rules 2 & 3).",
+      "title": "Pure KMP Mesh Priority QoS Traffic Scheduler & Preemption Arbiter",
+      "description": "Implement QoSModels.kt, MeshQoSQueue.kt, and MeshQoSScheduler.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/qos/. Implements a thread-safe, 4-tier strict priority packet queue (EMERGENCY_CRITICAL, ACTIVE_VOICE, ROUTING_CONTROL, BULK_TELEMETRY). Guarantees starvation prevention via deficit round-robin tokens for control packets, unconditional preemption of bulk data during active voice streams, and airtime duty-cycle pacing. 100% pure Kotlin with 0 Java/C dependencies (Rules 2 & 3).",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/federation/FederationModels.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/federation/InterGroupGateway.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/federation/CrossMeshRelayEngine.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/federation/InterGroupGatewayTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/qos/QoSModels.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/qos/MeshQoSQueue.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/qos/MeshQoSScheduler.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/qos/MeshQoSSchedulerTest.kt"
       ],
       "acceptanceCriteria": [
         "Pure KMP implementation with zero Java, C, or platform-specific dependencies in commonMain (Rules 2 & 3)",
-        "Defines and handles GroupFederationInvite, FederationBridgeState, and CrossGroupPolicy models",
-        "Implements gateway leader election and policy-driven packet translation between distinct cryptographic group keys",
-        "Provides CrossMeshRelayEngine re-encrypting voice frames with destination group key",
+        "Defines QoSPriority tiers (EMERGENCY_CRITICAL, ACTIVE_VOICE, ROUTING_CONTROL, BULK_TELEMETRY)",
+        "Unconditionally preempts low-priority telemetry/file packets when voice or emergency SOS frames arrive",
+        "Provides starvation protection ensuring routing control packets are serviced within bounded delay",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
       "passes": true
     },
     {
-      "id": "ICA-2302",
+      "id": "ICA-2402",
       "priority": 2,
-      "title": "Selective Inter-Group Audio Demuxing, Sub-Group Isolation & Anti-Feedback Loop Guard",
-      "description": "Implement FederationLoopDetector.kt and CrossMeshForwardingArbiter.kt in mesh/federation/. Integrates cross-mesh audio bridging into MeshTransport and audio pipeline. Prevents acoustic and relay feedback loops across redundant gateway bridges via monotonic federationPathTrace and cross-group deduplication. Enforces sub-group isolation (e.g. private squad chatter remains internal; only designated Captain PTT or Emergency SOS bridges across convoys).",
+      "title": "MeshTransport Wire Integration & Bulk File Airtime Throttling",
+      "description": "Integrate MeshQoSScheduler into MeshTransport.kt and MeshFileTransferManager.kt. Wraps outbound BLE GATT write operations through the scheduler. Automatically throttles background GPX/GeoJSON trail file transmission to a low duty cycle (<=10% airtime) whenever voice packets or emergency frames are detected, eliminating 2.4GHz RF packet collisions and buffer bloat during active conversation.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/federation/FederationLoopDetector.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/federation/CrossMeshForwardingArbiter.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/federation/CrossMeshForwardingTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/MeshTransport.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/file/MeshFileTransferManager.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/qos/MeshTransportQoSTest.kt"
       ],
       "acceptanceCriteria": [
-        "Suppresses circular relay feedback loops across multiple concurrent gateways using path trace verification",
-        "Enforces strict sub-group isolation rules: CAPTAIN_ONLY, EMERGENCY_SOS_ONLY, and ALL_MEMBER_BRIDGED",
-        "Drops unauthorized or unverified cross-group packets without decrypting payload",
+        "All outbound mesh packets route through MeshQoSScheduler based on packet type and priority",
+        "File chunk beaming automatically throttles during active PTT voice transmission",
+        "Zero dropped voice packets caused by concurrent file transfer contention",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
       "passes": true
     },
     {
-      "id": "ICA-2303",
+      "id": "ICA-2403",
       "priority": 3,
-      "title": "Subsystem Hardware Bridge Wiring & Multiplatform Federation HUD Presentation",
-      "description": "Wire InterGroupGateway into IntercomHardwareBridge, AndroidPlatformBridge, and IntercomBridge (iosMain) with typed CancellationHandle observers. Expose reactive FederationSnapshot (connected sibling groups, bridge policy, gateway link RSSI, relayed packet counts) and gateway control hooks. Present Multi-Group Federation badge and diagnostics sheet in Compose Multiplatform (HomeScreen.kt) and 100% Native iOS SwiftUI (ContentView.swift / IntercomViewModel.swift respecting Rule 1).",
+      "title": "Subsystem Hardware Bridge Wiring & Multiplatform Tactical QoS HUD Presentation",
+      "description": "Wire MeshQoSScheduler into IntercomHardwareBridge, AndroidPlatformBridge, and IntercomBridge (iosMain) with typed CancellationHandle observers. Expose reactive QoSSnapshot (active queue depths, dropped packet stats, voice preemption counter, airtime utilization percentage). Present QoS link health badge and channel congestion warning sheet in Compose Multiplatform (HomeScreen.kt) and 100% Native iOS SwiftUI (ContentView.swift / IntercomViewModel.swift respecting Rule 1).",
       "targetFiles": [
         "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomHardwareBridge.kt",
         "app/sharedLogic/src/androidMain/kotlin/org/nowni/intercom_alpha/bridge/AndroidPlatformBridge.kt",
@@ -59,28 +59,27 @@
         "app/iosApp/iosApp/ContentView.swift"
       ],
       "acceptanceCriteria": [
-        "Hardware bridges expose federation snapshot flow and federation bridge control hooks",
-        "Exposes reactive CancellationHandle observers for federation state on iOS (Rule 1)",
-        "Compose Multiplatform displays cross-group federation status strip and diagnostics dialog",
-        "100% Native iOS SwiftUI displays tactical federation pill and modal sheet (Rule 1)",
+        "Hardware bridges expose QoSSnapshot flow and reactive CancellationHandle observers for iOS (Rule 1)",
+        "Compose Multiplatform displays tactical QoS airtime pill and congestion alert banner",
+        "100% Native iOS SwiftUI displays tactical QoS indicator in TacticalAvionicsBar (Rule 1)",
         "Full compilation and automated verification pass across all targets"
       ],
       "passes": true
     },
     {
-      "id": "ICA-2304",
+      "id": "ICA-2404",
       "priority": 4,
-      "title": "Dual-Convoy 32-Node Cross-Mesh Simulation Harness & Archify Showcase Update",
-      "description": "Implement MultiGroupFederationSimulationHarness.kt simulating a dual-squad convoy (Squad Alpha 16 nodes, Squad Bravo 16 nodes) with 2 dual-role gateway nodes. Validates sub-group isolation, <25ms gateway re-encryption latency, zero broadcast loops across redundant gateways, and emergency all-call preemption across both meshes. Update Archify interactive architecture specifications to showcase quality.",
+      "title": "32-Node Congested RF Mesh QoS Simulation Harness & Archify Showcase Update",
+      "description": "Implement CongestedMeshQoSSimulationHarness.kt simulating a 32-node large convoy under 40% RF contention and concurrent OTA route beaming. Validates that QoS voice preemption and airtime throttling maintain >92% voice packet delivery ratio and <120ms latency despite heavy background file transfers. Update Archify interactive architecture specifications to showcase quality.",
       "targetFiles": [
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/simulation/MultiGroupFederationSimulationHarness.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/simulation/CongestedMeshQoSSimulationHarness.kt",
         "docs/architecture/intercom-alpha.architecture.json",
         "docs/architecture/intercom-alpha-architecture.html"
       ],
       "acceptanceCriteria": [
-        "Simulates 32 nodes across 2 distinct cryptographic groups with dual gateway nodes",
-        "Demonstrates sub-group audio isolation under normal traffic and universal relay on Emergency SOS",
-        "Verifies zero circular feedback loops when both gateways operate simultaneously",
+        "Simulates 32 nodes under heavy RF contention and background data transfers",
+        "Validates voice preemption over background GPX telemetry with zero voice starvation",
+        "Demonstrates airtime throttling maintaining voice PDR > 92%",
         "Archify architecture specification and HTML showcase updated with 9/9 verification pass",
         "Full multiplatform test suite pass across all targets"
       ],

@@ -93,7 +93,11 @@ data class HomeUiState(
         lastRelayedTimestampMs = 0L
     ),
     val showFederationSheet: Boolean = false,
-    val generatedFederationInvite: String? = null
+    val generatedFederationInvite: String? = null,
+
+    // Sprint 24 Mesh Airtime QoS Traffic Shaping & Preemption HUD (ICA-2403)
+    val qosSnapshot: org.nowni.intercom_alpha.mesh.qos.QoSSnapshot = org.nowni.intercom_alpha.mesh.qos.QoSSnapshot(),
+    val showQoSSheet: Boolean = false
 )
 
 sealed interface HomeUiAction {
@@ -153,6 +157,9 @@ sealed interface HomeUiAction {
     data object CreateFederationInvite : HomeUiAction
     data class AcceptFederationInvite(val inviteCode: String) : HomeUiAction
     data object DismissFederationInviteDialog : HomeUiAction
+
+    // Sprint 24 Mesh Airtime QoS Traffic Shaping Actions (ICA-2403)
+    data class ToggleQoSSheet(val show: Boolean) : HomeUiAction
 }
 
 sealed interface HomeUiEvent {

@@ -14,7 +14,9 @@ import kotlinx.coroutines.sync.withLock
  * Orchestrates multi-node mesh chunking, loss-tolerant retransmissions,
  * and persistent in-memory trail libraries.
  */
-class MeshFileTransferManager {
+class MeshFileTransferManager(
+    val qosScheduler: org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler? = null
+) {
 
     private val mutex = Mutex()
 
@@ -26,6 +28,9 @@ class MeshFileTransferManager {
 
     private val _completedTrailReceived = MutableSharedFlow<Pair<TrailPolyline, List<TrailWaypoint>>>(extraBufferCapacity = 16)
     val completedTrailReceived: SharedFlow<Pair<TrailPolyline, List<TrailWaypoint>>> = _completedTrailReceived.asSharedFlow()
+
+    val isThrottled: Boolean
+        get() = qosScheduler?.qosSnapshot?.value?.bulkThrottleActive == true
 
     // Active incoming reassembly buffers keyed by transferId
     private val incomingBuffers = HashMap<String, MeshFileTransferEngine.ReassemblyBuffer>()
@@ -41,6 +46,21 @@ class MeshFileTransferManager {
         // Pre-populate with standard Alpine Pass route for instant zero-config testing
         val defaultTrail = TrailMapEngine.createSampleAlpineTrail(GeoPoint(37.7749, -122.4194, 2450.0)).first
         _storedTrails.value = listOf(defaultTrail)
+    }
+
+    private suspend fun applyQoSPacing() {
+        val sched = qosScheduler ?: return
+        val snapshot = sched.qosSnapshot.value
+        if (snapshot.isVoiceActive || snapshot.bulkThrottleActive) {
+            // Enforce <= 10% RF duty cycle during active voice or heavy airtime (pacing >= 150ms)
+            val delayMs = sched.calculatePacingDelayMs(org.nowni.intercom_alpha.mesh.qos.QoSPriority.BULK_TELEMETRY).coerceAtLeast(150L)
+            kotlinx.coroutines.delay(delayMs)
+        } else {
+            val delayMs = sched.calculatePacingDelayMs(org.nowni.intercom_alpha.mesh.qos.QoSPriority.BULK_TELEMETRY)
+            if (delayMs > 0L) {
+                kotlinx.coroutines.delay(delayMs)
+            }
+        }
     }
 
     /**
@@ -92,6 +112,7 @@ class MeshFileTransferManager {
         val sendAction = onSendChunk
         if (sendAction != null) {
             for (chunk in initialBatch) {
+                applyQoSPacing()
                 sendAction(chunk, recipientPeerId)
             }
         }
@@ -235,10 +256,47 @@ class MeshFileTransferManager {
             for (missingIdx in ack.missingChunks) {
                 val chunk = queue.getOrNull(missingIdx)
                 if (chunk != null) {
+                    applyQoSPacing()
                     sendAction(chunk, transfer.peerId.takeIf { it != "BROADCAST" })
                 }
             }
         }
+    }
+
+    /**
+     * Dispatches the next batch of un-transmitted chunks for an ongoing transfer,
+     * applying QoS airtime throttling and pacing.
+     */
+    suspend fun continueTransfer(transferId: String, batchSize: Int = 4): Int = mutex.withLock {
+        val transfer = _activeTransfers.value.find { it.transferId == transferId } ?: return@withLock 0
+        if (transfer.direction != FileTransferDirection.OUTGOING || transfer.status != FileTransferStatus.IN_PROGRESS) {
+            return@withLock 0
+        }
+        val queue = outgoingQueues[transferId] ?: return@withLock 0
+        val startIndex = transfer.chunksTransferred
+        if (startIndex >= queue.size) return@withLock 0
+
+        val endIndex = minOf(startIndex + batchSize, queue.size)
+        val batch = queue.subList(startIndex, endIndex)
+        val sendAction = onSendChunk
+        var dispatched = 0
+
+        if (sendAction != null) {
+            for (chunk in batch) {
+                applyQoSPacing()
+                sendAction(chunk, transfer.peerId.takeIf { it != "BROADCAST" })
+                dispatched++
+            }
+        }
+
+        updateProgress(transferId) {
+            it.copy(
+                chunksTransferred = endIndex,
+                bytesTransferred = (it.bytesTransferred + batch.sumOf { c -> c.data.size.toLong() }).coerceAtMost(transfer.totalBytes)
+            )
+        }
+
+        return@withLock dispatched
     }
 
     /**

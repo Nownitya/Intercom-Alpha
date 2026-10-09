@@ -1726,6 +1726,108 @@
   - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64 :app:sharedLogic:jvmTest`: BUILD SUCCESSFUL (127 actionable tasks passed cleanly in 1m 41s).
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-23-multi-group-gateway`).
+---
+
+### [2026-10-09] - ICA-2401: Pure KMP Mesh Priority QoS Traffic Scheduler & Preemption Arbiter
+- **Branch**: `feature/ICA-2401-qos-traffic-scheduler`
+- **Objective**: Implement thread-safe 4-tier strict priority QoS packet queue and scheduler in commonMain (`QoSModels.kt`, `MeshQoSQueue.kt`, `MeshQoSScheduler.kt`) with deficit round-robin starvation protection, voice preemption, and hangover tracking.
+- **Implementation**:
+  - `QoSModels.kt`:
+    - Defined `QoSPriority` (EMERGENCY_CRITICAL, ACTIVE_VOICE, ROUTING_CONTROL, BULK_TELEMETRY).
+    - Modeled `QueuedMeshPacket`, `QoSSnapshot`, and `QoSPacketClassifier` classifying voice audio frames, control SOS alerts, AODV routing, and bulk telemetry.
+  - `MeshQoSQueue.kt`:
+    - Thread-safe priority queues with bounded capacities and drop-oldest voice policy under extreme overload.
+    - Deficit round-robin starvation protection servicing 1 routing control packet every 8 consecutive voice packets.
+  - `MeshQoSScheduler.kt`:
+    - Enforces 400ms voice hangover window to avoid bursty interleaving of background bulk transfers during conversational pauses.
+    - Calculates dynamic pacing delays and publishes reactive `qosSnapshot: StateFlow<QoSSnapshot>`.
+  - `MeshQoSSchedulerTest.kt`:
+    - 6 unit test suites verifying priority dispatch ordering, bulk preemption during voice, deficit starvation protection, hangover duration, capacity drop policy, and pacing delays.
+- **Verification**:
+  - `./gradlew test`: BUILD SUCCESSFUL (91 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-24-adaptive-bitrate-qos`).
+---
+
+### [2026-10-09] - ICA-2402: MeshTransport Wire Integration & Bulk File Airtime Throttling
+- **Branch**: `feature/ICA-2402-mesh-transport-qos-integration`
+- **Objective**: Wire `MeshQoSScheduler` into `MeshTransport` interface, Android & iOS platform transport implementations, pure KMP decorator `QoSAwareMeshTransport`, and `MeshFileTransferManager`. Throttle background GPX/GeoJSON trail file transmission to <=10% airtime duty cycle during active voice or heavy RF congestion, eliminating packet collisions and buffer bloat.
+- **Implementation**:
+  - `MeshTransport.kt`:
+    - Added `val qosScheduler: MeshQoSScheduler? get() = null` property.
+    - Added `suspend fun sendPacket(packet: MeshPacket)` default dispatcher.
+  - `QoSAwareMeshTransport.kt`:
+    - Pure KMP transport decorator coordinating asynchronous priority dispatch worker with strict QoS queue ordering (Emergency > Voice > Control > Bulk) and dynamic airtime pacing delays.
+  - `MeshTransport.android.kt` & `MeshTransport.ios.kt`:
+    - Wired `qosScheduler` instance into Android and iOS GATT stacks, recording outbound voice and control packet events with pacing delays.
+  - `MeshFileTransferManager.kt`:
+    - Injected optional `MeshQoSScheduler`, exposed `isThrottled: Boolean` property.
+    - Added `applyQoSPacing()` enforcing $\ge 150\text{ms}$ inter-chunk delay ($\le 10\%$ airtime duty cycle) during active voice or heavy RF congestion.
+    - Added `continueTransfer(transferId, batchSize)` batch dispatcher.
+  - `MeshTransportQoSTest.kt`:
+    - 6 unit test suites verifying outbound packet routing through QoS scheduler, bulk file transfer throttling during active voice, zero dropped voice packets during concurrent file beaming, deficit anti-starvation protection, voice hangover decay, and instant emergency preemption.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly in 1m 11s).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-24-adaptive-bitrate-qos`).
+---
+
+### [2026-10-09] - ICA-2403: Subsystem Hardware Bridge Wiring & Multiplatform Tactical QoS HUD Presentation
+- **Branch**: `feature/ICA-2403-qos-hud-presentation`
+- **Objective**: Wire `MeshQoSScheduler` into `IntercomHardwareBridge`, `AndroidPlatformBridge`, and `IntercomBridge` (`iosMain`) with typed `CancellationHandle` observers. Expose reactive `QoSSnapshot` (active queue depths, dropped packet stats, voice preemption counter, airtime utilization percentage). Present QoS link health badge and channel congestion warning sheet in Compose Multiplatform (`HomeScreen.kt`) and 100% Native iOS SwiftUI (`ContentView.swift` / `IntercomViewModel.swift` respecting Rule 1).
+- **Implementation**:
+  - `QoSModels.kt`:
+    - Added `val isChannelCongested: Boolean get() = estimatedAirtimeUtilizationPercent >= 75 || totalPacketsDropped > 0` convenience property to `QoSSnapshot`.
+  - `IntercomHardwareBridge.kt`:
+    - Added `qosSnapshot: StateFlow<QoSSnapshot>`, `updateQoSSnapshot(...)`, and `qosScheduler` parameter in `attachSubsystems(...)`.
+    - Added test simulation hooks in `NoOpIntercomHardwareBridge`.
+  - `AndroidPlatformBridge.kt`:
+    - Implemented `qosSnapshot` state flow, `updateQoSSnapshot`, and bound `qosScheduler.qosSnapshot` flow in `attachSubsystems`.
+  - `IntercomBridge.kt` (`iosMain`):
+    - Exposed `qosScheduler` and Swift-friendly `observeQoSSnapshot(onSnapshot: (QoSSnapshot) -> Unit): CancellationHandle`.
+  - `HomeUiState.kt` & `HomeViewModel.kt`:
+    - Added `qosSnapshot` and `showQoSSheet: Boolean` to state.
+    - Wired `qosScheduler` through `HomeViewModel` constructor and synchronized `hardwareBridge.qosSnapshot`.
+    - Handled `HomeUiAction.ToggleQoSSheet(show: Boolean)`.
+  - `HomeScreen.kt`:
+    - Added Tactical QoS airtime indicator strip with congestion alert banner in top avionics header.
+    - Implemented `QoSDiagnosticsDialog` detailing airtime utilization bar, congestion status, 4-tier queue depths, preemption counters, and bulk pacing status.
+  - `IntercomViewModel.swift` & `ContentView.swift`:
+    - Added `@Published var qosSnapshot: QoSSnapshot?` and `@Published var showQoSSheet: Bool`.
+    - Wired `observeQoSSnapshot` with lifecycle `CancellationHandle` disposal.
+    - Added tactical QoS pill in `TacticalAvionicsBar`.
+    - Implemented 100% native SwiftUI `TacticalQoSDiagnosticsSheetView` (Rule 1).
+  - Multiplatform Unit Tests:
+    - Added `testMeshQoSSnapshotAndDiagnosticsSheet` in `HomeViewModelTest.kt`.
+    - Added `testQoSSchedulerBridgeContract` in `IntercomBridgeContractTest.kt`.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks in 3m 17s).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+  - Graphify sync (`graphify update .`): 3,502 nodes, 7,562 edges, 268 communities.
+---
+
+### [2026-10-09] - ICA-2404: 32-Node Congested RF Mesh QoS Simulation Harness & Archify Showcase Update
+- **Branch**: `feature/ICA-2404-congested-mesh-simulation-showcase`
+- **Objective**: Implement `CongestedMeshQoSSimulationHarness.kt` simulating 32-node motorcycle convoy under 40% RF contention and heavy background OTA route data beaming. Validate strict 4-tier QoS voice preemption and airtime throttling maintaining >= 92% Voice Packet Delivery Ratio (PDR). Fix Koin multiplatform DI definition errors and BLE advertising 31-byte legacy packet buffer overflow. Update Archify interactive architecture specifications to showcase quality.
+- **Implementation**:
+  - `CongestedMeshQoSSimulationHarness.kt`:
+    - Simulated 32-node convoy cluster with 40% channel contention, 80 bulk file chunks (20KB trail partition), and 50 conversational voice packets.
+    - Verified strict priority preemption, voice hangover hold across conversational pauses, DRR anti-starvation tokens (servicing routing control within 8 voice packets), and emergency SOS zero-loss preemption.
+    - Validated Voice PDR > 96% under shaped QoS vs < 60% unshaped baseline (> 36% absolute improvement).
+  - Bug Fixes:
+    - `AppModule.kt`: Registered missing Koin single definitions for `InterGroupGateway` and `MeshQoSScheduler`, resolving runtime `NoDefinitionFoundException` in `HomeViewModel`.
+    - `MeshTransport.android.kt`: Fixed `buildAdvertiseData` to fit legacy BLE 31-byte advertising frame limit (24-byte payload = 1 byte version + 8 bytes groupId + 15 bytes peerName) and disabled `setIncludeDeviceName`, eliminating `BufferOverflowException` and `Legacy advertising data too large` crash.
+  - Archify Architecture Specification & Showcase:
+    - Updated `docs/architecture/intercom-alpha.architecture.json` with `qos_scheduler` (QoS Scheduler), `qos_queue` (QoS Queue), unified `federation-and-qos` view, and Sprint 24 documentation card.
+    - Delivered showcase HTML artifact with 9/9 verification pass via Archify CLI (0 errors, 0 warnings).
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - `./gradlew :app:sharedLogic:jvmTest`: All unit tests passed.
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-24-adaptive-bitrate-qos`).
+
+
+
 
 
 

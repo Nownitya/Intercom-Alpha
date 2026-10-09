@@ -142,11 +142,16 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
     )
     override val federationSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.federation.FederationSnapshot> = _federationSnapshot.asStateFlow()
 
+    private val _qosSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.qos.QoSSnapshot())
+    override val qosSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.qos.QoSSnapshot> = _qosSnapshot.asStateFlow()
+
     var channelManager: ChannelManager? = null
         private set
     var directedRouter: DirectedMeshRouter? = null
         private set
     var interGroupGateway: org.nowni.intercom_alpha.mesh.federation.InterGroupGateway? = null
+        private set
+    var qosScheduler: org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler? = null
         private set
     var blackboxRecorder: EmergencyBlackboxRecorder? = null
         private set
@@ -186,7 +191,8 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         crashDetector: org.nowni.intercom_alpha.safety.CrashDetector?,
         voiceCommandRecognizer: org.nowni.intercom_alpha.audio.VoiceCommandRecognizer?,
         directedRouter: DirectedMeshRouter?,
-        interGroupGateway: org.nowni.intercom_alpha.mesh.federation.InterGroupGateway?
+        interGroupGateway: org.nowni.intercom_alpha.mesh.federation.InterGroupGateway?,
+        qosScheduler: org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler?
     ) {
         this.channelManager = channelManager
         this.blackboxRecorder = blackboxRecorder
@@ -200,6 +206,15 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         this.voiceCommandRecognizer = voiceCommandRecognizer
         this.directedRouter = directedRouter
         this.interGroupGateway = interGroupGateway
+        this.qosScheduler = qosScheduler
+
+        qosScheduler?.let { scheduler ->
+            scope.launch {
+                scheduler.qosSnapshot.collect { snapshot ->
+                    _qosSnapshot.value = snapshot
+                }
+            }
+        }
 
         interGroupGateway?.let { gateway ->
             scope.launch {
@@ -438,6 +453,10 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
 
     override fun updateFederationSnapshot(snapshot: org.nowni.intercom_alpha.mesh.federation.FederationSnapshot) {
         _federationSnapshot.value = snapshot
+    }
+
+    override fun updateQoSSnapshot(snapshot: org.nowni.intercom_alpha.mesh.qos.QoSSnapshot) {
+        _qosSnapshot.value = snapshot
     }
 
     override fun setFederationPolicy(groupId: String, policy: org.nowni.intercom_alpha.mesh.federation.CrossGroupPolicy) {
