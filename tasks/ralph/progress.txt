@@ -1770,6 +1770,42 @@
   - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly in 1m 11s).
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-24-adaptive-bitrate-qos`).
+---
+
+### [2026-10-09] - ICA-2403: Subsystem Hardware Bridge Wiring & Multiplatform Tactical QoS HUD Presentation
+- **Branch**: `feature/ICA-2403-qos-hud-presentation`
+- **Objective**: Wire `MeshQoSScheduler` into `IntercomHardwareBridge`, `AndroidPlatformBridge`, and `IntercomBridge` (`iosMain`) with typed `CancellationHandle` observers. Expose reactive `QoSSnapshot` (active queue depths, dropped packet stats, voice preemption counter, airtime utilization percentage). Present QoS link health badge and channel congestion warning sheet in Compose Multiplatform (`HomeScreen.kt`) and 100% Native iOS SwiftUI (`ContentView.swift` / `IntercomViewModel.swift` respecting Rule 1).
+- **Implementation**:
+  - `QoSModels.kt`:
+    - Added `val isChannelCongested: Boolean get() = estimatedAirtimeUtilizationPercent >= 75 || totalPacketsDropped > 0` convenience property to `QoSSnapshot`.
+  - `IntercomHardwareBridge.kt`:
+    - Added `qosSnapshot: StateFlow<QoSSnapshot>`, `updateQoSSnapshot(...)`, and `qosScheduler` parameter in `attachSubsystems(...)`.
+    - Added test simulation hooks in `NoOpIntercomHardwareBridge`.
+  - `AndroidPlatformBridge.kt`:
+    - Implemented `qosSnapshot` state flow, `updateQoSSnapshot`, and bound `qosScheduler.qosSnapshot` flow in `attachSubsystems`.
+  - `IntercomBridge.kt` (`iosMain`):
+    - Exposed `qosScheduler` and Swift-friendly `observeQoSSnapshot(onSnapshot: (QoSSnapshot) -> Unit): CancellationHandle`.
+  - `HomeUiState.kt` & `HomeViewModel.kt`:
+    - Added `qosSnapshot` and `showQoSSheet: Boolean` to state.
+    - Wired `qosScheduler` through `HomeViewModel` constructor and synchronized `hardwareBridge.qosSnapshot`.
+    - Handled `HomeUiAction.ToggleQoSSheet(show: Boolean)`.
+  - `HomeScreen.kt`:
+    - Added Tactical QoS airtime indicator strip with congestion alert banner in top avionics header.
+    - Implemented `QoSDiagnosticsDialog` detailing airtime utilization bar, congestion status, 4-tier queue depths, preemption counters, and bulk pacing status.
+  - `IntercomViewModel.swift` & `ContentView.swift`:
+    - Added `@Published var qosSnapshot: QoSSnapshot?` and `@Published var showQoSSheet: Bool`.
+    - Wired `observeQoSSnapshot` with lifecycle `CancellationHandle` disposal.
+    - Added tactical QoS pill in `TacticalAvionicsBar`.
+    - Implemented 100% native SwiftUI `TacticalQoSDiagnosticsSheetView` (Rule 1).
+  - Multiplatform Unit Tests:
+    - Added `testMeshQoSSnapshotAndDiagnosticsSheet` in `HomeViewModelTest.kt`.
+    - Added `testQoSSchedulerBridgeContract` in `IntercomBridgeContractTest.kt`.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks in 3m 17s).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+  - Graphify sync (`graphify update .`): 3,502 nodes, 7,562 edges, 268 communities.
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-24-adaptive-bitrate-qos`).
+
 
 
 

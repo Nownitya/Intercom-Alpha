@@ -877,6 +877,21 @@
     - Added Sprint 23 showcase card (slate dot) highlighting dual-layer ChaCha20-Poly1305 re-encryption, sub-group isolation, and loop detector verification.
     - Delivered via Archify CLI with 100% showcase quality pass (9/9 checks passed, 0 errors, 0 warnings).
 
+### 2.24 Sprint 24: Mesh Airtime QoS Traffic Shaping & Preemption Arbiter (Phase 22 / ICA-2401–2403)
+- **Challenge**: BLE 2.4GHz RF bandwidth is strictly airtime-constrained (<125 kbps nominal throughput over Bluetooth LE 4.2 / 5.0 PHY). Concurrent transmission of large background OTA trail files (GPX/GeoJSON chunks) alongside real-time voice streams causes severe packet collisions, high jitter, and buffer bloat resulting in voice frame loss and clipped conversations.
+- **Solution**:
+  - `QoSModels.kt` & `MeshQoSQueue.kt`:
+    - Defined 4-tier strict priority queues: `EMERGENCY_CRITICAL` (rank 0, weight 100), `ACTIVE_VOICE` (rank 1, weight 50), `ROUTING_CONTROL` (rank 2, weight 20), `BULK_TELEMETRY` (rank 3, weight 5).
+    - Unconditional voice preemption of bulk data during active conversation.
+    - Deficit round-robin starvation protection ensuring routing control packets (AODV, Epoch beacons) are serviced at bounded intervals even during continuous voice.
+    - Voice hangover window (400ms) prevents bursty interleaving of background bulk transfers during brief pauses between spoken words.
+  - `QoSAwareMeshTransport.kt` & `MeshFileTransferManager.kt`:
+    - Wrapped outbound transport writes through the QoS priority scheduler.
+    - Added automatic rate throttling (`isThrottled`) on `MeshFileTransferManager`, pacing chunk bursts with $\ge 150\text{ms}$ delay ($\le 10\%$ duty cycle) during active voice or heavy RF congestion.
+  - Multiplatform Hardware Bridge & Tactical HUD:
+    - Wired `qosSnapshot` flow into `IntercomHardwareBridge`, `AndroidPlatformBridge`, and `IntercomBridge` (`iosMain`) with reactive typed `CancellationHandle` observers.
+    - Displayed real-time QoS airtime indicator pill and channel congestion alert banner on Compose Multiplatform (`HomeScreen.kt`) and 100% native iOS SwiftUI (`ContentView.swift` in `TacticalAvionicsBar` and `TacticalQoSDiagnosticsSheetView` respecting Rule 1).
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index
