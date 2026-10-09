@@ -34,10 +34,10 @@
         "note": "Follow dynamic convoy radar tethering, split detection, IMU crash eCall HUD, offline voice DSP, and AODV-Lite route discovery."
       },
       {
-        "id": "cross-mesh-federation",
-        "label": "Inter-Convoy Gateway & Federation",
-        "focus": ["android_ui", "ios_ui", "swift_bridge", "cross_mesh_arbiter", "federation_gateway", "mesh_transport", "remote_peers"],
-        "note": "Follow cross-convoy federation invite onboarding, sub-group audio demuxing, anti-feedback loop guard, and emergency all-call preemption."
+        "id": "federation-and-qos",
+        "label": "Federation & Airtime QoS Preemption",
+        "focus": ["android_ui", "ios_ui", "swift_bridge", "cross_mesh_arbiter", "federation_gateway", "qos_scheduler", "qos_queue", "mesh_transport", "remote_peers"],
+        "note": "Follow inter-convoy federation bridging, 4-tier strict QoS preemption, DRR anti-starvation, and bulk file airtime throttling."
       }
     ]
   },
@@ -212,6 +212,24 @@
       "tag": "FEDERATION:v1:",
       "pos": [520, 760],
       "size": [136, 62]
+    },
+    {
+      "id": "qos_scheduler",
+      "type": "backend",
+      "label": "QoS Scheduler",
+      "sublabel": "Traffic Shaping",
+      "tag": "4-Tier Preemption",
+      "pos": [740, 940],
+      "size": [136, 62]
+    },
+    {
+      "id": "qos_queue",
+      "type": "backend",
+      "label": "QoS Queue",
+      "sublabel": "Priority + DRR",
+      "tag": "Anti-Starvation",
+      "pos": [960, 940],
+      "size": [136, 62]
     }
   ],
   "boundaries": [
@@ -224,7 +242,7 @@
     {
       "kind": "security-group",
       "label": "KMP Core Engine (:app:sharedLogic)",
-      "wraps": ["group_mgr", "audio_engine", "trail_engine", "packet_cipher", "deduplicator", "geofence_engine", "mesh_transport", "battery_governor", "crash_detector", "voice_recognizer", "link_metric", "directed_router", "cross_mesh_arbiter", "federation_gateway"],
+      "wraps": ["group_mgr", "audio_engine", "trail_engine", "packet_cipher", "deduplicator", "geofence_engine", "mesh_transport", "battery_governor", "crash_detector", "voice_recognizer", "link_metric", "directed_router", "cross_mesh_arbiter", "federation_gateway", "qos_scheduler", "qos_queue"],
       "pad": 16
     },
     {
@@ -405,6 +423,30 @@
       "fromSide": "right",
       "toSide": "left",
       "variant": "emphasis"
+    },
+    {
+      "from": "cross_mesh_arbiter",
+      "to": "qos_scheduler",
+      "label": "Priority Rate",
+      "fromSide": "bottom",
+      "toSide": "left",
+      "variant": "emphasis"
+    },
+    {
+      "from": "qos_scheduler",
+      "to": "qos_queue",
+      "label": "DRR Schedule",
+      "fromSide": "right",
+      "toSide": "left",
+      "variant": "emphasis"
+    },
+    {
+      "from": "qos_queue",
+      "to": "directed_router",
+      "label": "Paced Packets",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "variant": "emphasis"
     }
   ],
   "cards": [
@@ -469,6 +511,16 @@
         "Pure KMP InterGroupGateway & CrossMeshRelayEngine bridging disparate motorcycle convoys with dual-layer ChaCha20-Poly1305 re-encryption (<25ms latency)",
         "CrossMeshForwardingArbiter enforces sub-group isolation (channels 2..15 stay intra-squad) with universal Emergency SOS all-call preemption across 32 nodes",
         "FederationLoopDetector prevents circular relay loops via monotonic pathTrace tracking and sliding-window deduplication with zero feedback amplification"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Mesh Airtime QoS & Preemption Arbiter (Sprint 24)",
+      "items": [
+        "Pure KMP 4-tier QoS Priority Queue & Scheduler (EMERGENCY_CRITICAL > ACTIVE_VOICE > ROUTING_CONTROL > BULK_TELEMETRY)",
+        "Dynamic 400ms conversational voice hangover window preventing ping-pong flapping during speech pauses",
+        "Deficit Round-Robin anti-starvation tokens guaranteeing bounded latency for routing control during continuous voice",
+        "Bulk file transfer duty-cycle throttling (>=150ms delay, <=10% airtime) maintaining Voice PDR >= 92% across 32 congested nodes"
       ]
     }
   ]
