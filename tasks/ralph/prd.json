@@ -42,7 +42,7 @@
         "Integrates with MeshQoSScheduler so hedged voice frames retain top priority",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-2503",

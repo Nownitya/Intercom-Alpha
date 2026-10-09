@@ -1847,6 +1847,27 @@
   - Graphify Knowledge Sync (`graphify update .`): 3,546 nodes, 7,680 edges, 262 communities (Rule 7).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-25-multipath-mesh-failover`).
 
+### [2026-10-09] - ICA-2502: Transport Handover Wire Integration & Seamless Voice Stream Hedging
+- **Branch**: `feature/ICA-2502-transport-handover-hedging`
+- **Objective**: Implement pure KMP `HybridTransportRouter.kt` integrating multi-path failover, wire routing across `MeshTransport` and `CloudRelayBridge`, stream hedging with receiver deduplication, and integration with `MeshQoSScheduler`.
+- **Implementation**:
+  - `CloudRelayBridge.kt`:
+    - Updated constructor to accept optional `failoverArbiter: MultiPathFailoverArbiter?`.
+    - Enforced `FALLBACK_ONLY` operating mode: automatically suppresses cloud forwarding when `failoverArbiter` reports `BLE_DIRECT` and permits forwarding upon degradation or handover.
+  - `HybridTransportRouter.kt`:
+    - Pure KMP router coordinating outbound packet dispatches based on `FailoverMode`.
+    - In `MULTI_PATH_HEDGED` mode, concurrently dispatches outbound frames to both BLE mesh and Cloud Relay WebSocket while incrementing hedged packet counters.
+    - Preserves packet sequence synchronization so receiver-side `PacketDeduplicator` transparently suppresses second arrivals, guaranteeing zero dropped voice frames.
+    - Seamlessly routes through `MeshQoSScheduler` when available, respecting 4-tier QoS priorities.
+  - `HybridTransportRouterTest.kt`:
+    - Comprehensive unit test suite covering `BLE_DIRECT` isolation, `MULTI_PATH_HEDGED` dual-path dispatching, receiver deduplication with 0 duplicate playback, `CLOUD_RELAY_ONLY` diversion, `RESTRICTED_OFFLINE` best-effort fallback, and QoS priority queue integration.
+- **Verification**:
+  - `./gradlew test`: 100% test pass across multiplatform targets.
+  - `./gradlew :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+  - Graphify Knowledge Sync (`graphify update .`): 3,571 nodes, 7,769 edges, 252 communities (Rule 7).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-25-multipath-mesh-failover`).
+
 
 
 
