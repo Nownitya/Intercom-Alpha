@@ -455,6 +455,95 @@ fun HomeScreen(
                         }
                     }
                 }
+
+                // Mesh Airtime QoS Traffic Shaping Strip (Sprint 24 - ICA-2403)
+                val qos = uiState.qosSnapshot
+                Surface(
+                    onClick = { onAction(HomeUiAction.ToggleQoSSheet(true)) },
+                    shape = RoundedCornerShape(6.dp),
+                    color = if (qos.isChannelCongested) Color(0xFF2A1010) else Color(0xFF131B24),
+                    border = BorderStroke(1.dp, if (qos.isChannelCongested) Color(0xFFFF5252) else (if (qos.estimatedAirtimeUtilizationPercent > 50) Color(0xFFFFB300) else Color(0xFF00E5FF)))
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 3.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text("📊", fontSize = 11.sp)
+                            Text(
+                                text = "QoS AIRTIME: ${qos.estimatedAirtimeUtilizationPercent}%",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            if (qos.isChannelCongested) {
+                                Surface(
+                                    shape = RoundedCornerShape(3.dp),
+                                    color = Color(0xFFD32F2F)
+                                ) {
+                                    Text(
+                                        text = "CONGESTED",
+                                        fontSize = 8.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = Color.White,
+                                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                    )
+                                }
+                            } else if (qos.voicePreemptionCount > 0) {
+                                Surface(
+                                    shape = RoundedCornerShape(3.dp),
+                                    color = Color(0xFF0288D1)
+                                ) {
+                                    Text(
+                                        text = "PREEMPT (${qos.voicePreemptionCount})",
+                                        fontSize = 8.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = Color.White,
+                                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                    )
+                                }
+                            }
+                            if (qos.bulkThrottleActive) {
+                                Text(
+                                    text = "• THROTTLED",
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFFFB300)
+                                )
+                            }
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = "Q:${qos.totalPendingQueueDepth} • DR:${qos.totalPacketsDropped}",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Black,
+                                color = if (qos.totalPacketsDropped > 0) Color(0xFFFF5252) else Color(0xFF80D8FF)
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(4.dp),
+                                color = if (qos.isChannelCongested) Color(0xFFB71C1C) else Color(0xFF00838F)
+                            ) {
+                                Text(
+                                    text = "QoS",
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color.White,
+                                    modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
             // ================= 2. EMERGENCY PREEMPTION BANNER =================
@@ -683,6 +772,14 @@ fun HomeScreen(
                 onCreateInvite = { onAction(HomeUiAction.CreateFederationInvite) },
                 onAcceptInvite = { code -> onAction(HomeUiAction.AcceptFederationInvite(code)) },
                 onDismissInvite = { onAction(HomeUiAction.DismissFederationInviteDialog) }
+            )
+        }
+
+        // ================= QoS DIAGNOSTICS DIALOG (Sprint 24 - ICA-2403) =================
+        if (uiState.showQoSSheet) {
+            QoSDiagnosticsDialog(
+                snapshot = uiState.qosSnapshot,
+                onDismiss = { onAction(HomeUiAction.ToggleQoSSheet(false)) }
             )
         }
     }
@@ -1128,6 +1225,188 @@ fun FederationDiagnosticsDialog(
                         modifier = Modifier.height(44.dp)
                     ) {
                         Text("JOIN", fontSize = 10.sp, fontWeight = FontWeight.Black, color = Color.Black)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun QoSDiagnosticsDialog(
+    snapshot: org.nowni.intercom_alpha.mesh.qos.QoSSnapshot,
+    onDismiss: () -> Unit
+) {
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = Color(0xFF10151B),
+            border = BorderStroke(1.dp, if (snapshot.isChannelCongested) Color(0xFFFF5252) else Color(0xFF00E5FF)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text("📊", fontSize = 14.sp)
+                        Text(
+                            text = "MESH AIRTIME & QoS HUD",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Black,
+                            color = if (snapshot.isChannelCongested) Color(0xFFFF5252) else Color(0xFF00E5FF),
+                            letterSpacing = 0.5.sp
+                        )
+                    }
+                    IconButton(onClick = onDismiss, modifier = Modifier.size(24.dp)) {
+                        Text("✕", fontSize = 12.sp, color = Color.White)
+                    }
+                }
+
+                // Airtime Utilization Card
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFF17202A),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "AIRTIME UTILIZATION",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFB0BEC5)
+                            )
+                            Text(
+                                text = "${snapshot.estimatedAirtimeUtilizationPercent}%",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Black,
+                                color = if (snapshot.estimatedAirtimeUtilizationPercent >= 75) Color(0xFFFF5252) else Color(0xFF00E676)
+                            )
+                        }
+                        LinearProgressIndicator(
+                            progress = { (snapshot.estimatedAirtimeUtilizationPercent / 100f).coerceIn(0f, 1f) },
+                            modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
+                            color = if (snapshot.estimatedAirtimeUtilizationPercent >= 75) Color(0xFFFF5252) else (if (snapshot.estimatedAirtimeUtilizationPercent > 50) Color(0xFFFFB300) else Color(0xFF00E5FF)),
+                            trackColor = Color(0xFF263238)
+                        )
+                    }
+                }
+
+                // Channel Congestion Alert
+                if (snapshot.isChannelCongested) {
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = Color(0xFF3E1212),
+                        border = BorderStroke(1.dp, Color(0xFFFF5252)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text("⚠️", fontSize = 12.sp)
+                            Text(
+                                text = "CHANNEL CONGESTION ACTIVE: Voice preemption arbiter is throttling bulk transfers and dropping non-critical frames to protect audio latency.",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFFFCDD2)
+                            )
+                        }
+                    }
+                }
+
+                // 4-Tier Queue Depths Breakdown
+                Text(
+                    text = "QoS QUEUE DEPTHS (TOTAL: ${snapshot.totalPendingQueueDepth})",
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF90A4AE)
+                )
+
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFF141A22),
+                    border = BorderStroke(0.5.dp, Color(0xFF263238)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("1. Emergency Critical (SOS/Crash)", fontSize = 9.sp, color = Color(0xFFFF5252), fontWeight = FontWeight.Bold)
+                            Text("${snapshot.emergencyQueueDepth} pkts", fontSize = 9.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("2. Active Voice (Audio Streams)", fontSize = 9.sp, color = Color(0xFF00E5FF), fontWeight = FontWeight.Bold)
+                            Text("${snapshot.voiceQueueDepth} pkts", fontSize = 9.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("3. Routing Control (AODV/Epoch)", fontSize = 9.sp, color = Color(0xFF00E676), fontWeight = FontWeight.Bold)
+                            Text("${snapshot.controlQueueDepth} pkts", fontSize = 9.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("4. Bulk Telemetry (GPX/Status)", fontSize = 9.sp, color = Color(0xFFFFB300), fontWeight = FontWeight.Bold)
+                            Text("${snapshot.bulkQueueDepth} pkts", fontSize = 9.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+
+                // Preemption & Drop Telemetry
+                Text(
+                    text = "ARBITER & LIFECYCLE COUNTERS",
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF90A4AE)
+                )
+
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFF141A22),
+                    border = BorderStroke(0.5.dp, Color(0xFF263238)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Total Enqueued / Dispatched", fontSize = 9.sp, color = Color(0xFFB0BEC5))
+                            Text("${snapshot.totalPacketsEnqueued} / ${snapshot.totalPacketsDispatched}", fontSize = 9.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Total Dropped Packets", fontSize = 9.sp, color = Color(0xFFB0BEC5))
+                            Text("${snapshot.totalPacketsDropped}", fontSize = 9.sp, color = if (snapshot.totalPacketsDropped > 0) Color(0xFFFF5252) else Color(0xFF00E676), fontWeight = FontWeight.Bold)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Voice Preemption Events", fontSize = 9.sp, color = Color(0xFFB0BEC5))
+                            Text("${snapshot.voicePreemptionCount}", fontSize = 9.sp, color = Color(0xFF00E5FF), fontWeight = FontWeight.Bold)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Bulk Pacing Throttle", fontSize = 9.sp, color = Color(0xFFB0BEC5))
+                            Text(if (snapshot.bulkThrottleActive) "ACTIVE (<=10%)" else "OFF (NOMINAL)", fontSize = 9.sp, color = if (snapshot.bulkThrottleActive) Color(0xFFFFB300) else Color(0xFF00E676), fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+
+                // Dismiss Button
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    Button(
+                        onClick = onDismiss,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00838F)),
+                        shape = RoundedCornerShape(6.dp),
+                        modifier = Modifier.height(36.dp)
+                    ) {
+                        Text("CLOSE", fontSize = 10.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }

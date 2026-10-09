@@ -70,6 +70,9 @@ data class QoSSnapshot(
 ) {
     val totalPendingQueueDepth: Int
         get() = emergencyQueueDepth + voiceQueueDepth + controlQueueDepth + bulkQueueDepth
+
+    val isChannelCongested: Boolean
+        get() = estimatedAirtimeUtilizationPercent >= 75 || totalPacketsDropped > 0
 }
 
 /**

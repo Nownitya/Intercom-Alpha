@@ -55,6 +55,7 @@ class HomeViewModel(
         localPeerId = "android-local",
         isLocalLeader = true
     ),
+    val qosScheduler: org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler = org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler(),
     val hardwareBridge: IntercomHardwareBridge = NoOpIntercomHardwareBridge()
 ) : ViewModel() {
 
@@ -80,7 +81,8 @@ class HomeViewModel(
             crashDetector = crashDetector,
             voiceCommandRecognizer = voiceCommandRecognizer,
             directedRouter = directedRouter,
-            interGroupGateway = interGroupGateway
+            interGroupGateway = interGroupGateway,
+            qosScheduler = qosScheduler
         )
 
         viewModelScope.launch {
@@ -349,6 +351,13 @@ class HomeViewModel(
         viewModelScope.launch {
             hardwareBridge.routingSnapshot.collect { snapshot ->
                 _uiState.update { it.copy(routingSnapshot = snapshot) }
+            }
+        }
+
+        // 12. Synchronize Mesh Airtime QoS Traffic Snapshot (ICA-2403)
+        viewModelScope.launch {
+            hardwareBridge.qosSnapshot.collect { snapshot ->
+                _uiState.update { it.copy(qosSnapshot = snapshot) }
             }
         }
     }
@@ -647,6 +656,10 @@ class HomeViewModel(
 
             HomeUiAction.DismissFederationInviteDialog -> {
                 _uiState.update { it.copy(generatedFederationInvite = null) }
+            }
+
+            is HomeUiAction.ToggleQoSSheet -> {
+                _uiState.update { it.copy(showQoSSheet = action.show) }
             }
         }
     }

@@ -605,4 +605,47 @@ class HomeViewModelTest {
         advanceUntilIdle()
         assertFalse(viewModel.uiState.value.showRoutingDiagnosticsSheet)
     }
+
+    @Test
+    fun testMeshQoSSnapshotAndDiagnosticsSheet() = runTest(testDispatcher) {
+        // 1. Initial QoS state is default
+        assertFalse(viewModel.uiState.value.showQoSSheet)
+        assertEquals(0, viewModel.uiState.value.qosSnapshot.estimatedAirtimeUtilizationPercent)
+        assertFalse(viewModel.uiState.value.qosSnapshot.isChannelCongested)
+
+        // 2. Open QoS Sheet
+        viewModel.onAction(HomeUiAction.ToggleQoSSheet(true))
+        advanceUntilIdle()
+        assertTrue(viewModel.uiState.value.showQoSSheet)
+
+        // 3. Simulate QoS snapshot emission from hardware bridge
+        val mockQoSSnapshot = org.nowni.intercom_alpha.mesh.qos.QoSSnapshot(
+            emergencyQueueDepth = 1,
+            voiceQueueDepth = 4,
+            controlQueueDepth = 2,
+            bulkQueueDepth = 10,
+            totalPacketsEnqueued = 100L,
+            totalPacketsDispatched = 95L,
+            totalPacketsDropped = 2L,
+            voicePreemptionCount = 8L,
+            isVoiceActive = true,
+            bulkThrottleActive = true,
+            estimatedAirtimeUtilizationPercent = 82
+        )
+        hardwareBridge.simulateQoSSnapshot(mockQoSSnapshot)
+        advanceUntilIdle()
+
+        val updated = viewModel.uiState.value.qosSnapshot
+        assertEquals(82, updated.estimatedAirtimeUtilizationPercent)
+        assertTrue(updated.isChannelCongested)
+        assertEquals(8L, updated.voicePreemptionCount)
+        assertEquals(17, updated.totalPendingQueueDepth)
+        assertTrue(updated.bulkThrottleActive)
+        assertTrue(updated.isVoiceActive)
+
+        // 4. Close QoS Sheet
+        viewModel.onAction(HomeUiAction.ToggleQoSSheet(false))
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.showQoSSheet)
+    }
 }

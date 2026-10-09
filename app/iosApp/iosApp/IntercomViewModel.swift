@@ -86,6 +86,10 @@ final class IntercomViewModel: ObservableObject {
     @Published var showFederationSheet: Bool = false
     @Published var generatedFederationInvite: String? = nil
 
+    // --- Mesh Airtime QoS Traffic Shaping Subsystem (Sprint 24 / ICA-2403) ---
+    @Published var qosSnapshot: QoSSnapshot? = nil
+    @Published var showQoSSheet: Bool = false
+
     private let bridge = IntercomBridge(localPeerId: "ios-lead", localPeerName: "iOS Lead")
     private var cancellables: [CancellationHandle] = []
     private var activeActivity: Activity<IntercomActivityAttributes>? = nil
@@ -417,6 +421,12 @@ final class IntercomViewModel: ObservableObject {
         generatedFederationInvite = nil
     }
 
+    // --- Mesh Airtime QoS Traffic Shaping Controls (Sprint 24 / ICA-2403) ---
+
+    func toggleQoSSheet() {
+        showQoSSheet.toggle()
+    }
+
     // --- Reactive Observers Setup ---
 
     private func setupObservers() {
@@ -668,6 +678,14 @@ final class IntercomViewModel: ObservableObject {
             }
         }
         cancellables.append(fedSub)
+
+        // --- Mesh Airtime QoS Traffic Shaping Observers (Sprint 24 / ICA-2403) ---
+        let qosSub = bridge.observeQoSSnapshot { [weak self] snapshot in
+            Task { @MainActor in
+                self?.qosSnapshot = snapshot
+            }
+        }
+        cancellables.append(qosSub)
 
         isPfsRatchetActive = bridge.isPfsRatchetActive()
     }
