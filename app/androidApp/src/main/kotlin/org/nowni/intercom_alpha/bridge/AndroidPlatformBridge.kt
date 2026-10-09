@@ -145,6 +145,9 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
     private val _qosSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.qos.QoSSnapshot())
     override val qosSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.qos.QoSSnapshot> = _qosSnapshot.asStateFlow()
 
+    private val _failoverSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.failover.FailoverMetrics())
+    override val failoverSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.failover.FailoverMetrics> = _failoverSnapshot.asStateFlow()
+
     var channelManager: ChannelManager? = null
         private set
     var directedRouter: DirectedMeshRouter? = null
@@ -152,6 +155,8 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
     var interGroupGateway: org.nowni.intercom_alpha.mesh.federation.InterGroupGateway? = null
         private set
     var qosScheduler: org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler? = null
+        private set
+    var failoverArbiter: org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter? = null
         private set
     var blackboxRecorder: EmergencyBlackboxRecorder? = null
         private set
@@ -192,7 +197,8 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         voiceCommandRecognizer: org.nowni.intercom_alpha.audio.VoiceCommandRecognizer?,
         directedRouter: DirectedMeshRouter?,
         interGroupGateway: org.nowni.intercom_alpha.mesh.federation.InterGroupGateway?,
-        qosScheduler: org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler?
+        qosScheduler: org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler?,
+        failoverArbiter: org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter?
     ) {
         this.channelManager = channelManager
         this.blackboxRecorder = blackboxRecorder
@@ -207,6 +213,15 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         this.directedRouter = directedRouter
         this.interGroupGateway = interGroupGateway
         this.qosScheduler = qosScheduler
+        this.failoverArbiter = failoverArbiter
+
+        failoverArbiter?.let { arbiter ->
+            scope.launch {
+                arbiter.metrics.collect { snapshot ->
+                    _failoverSnapshot.value = snapshot
+                }
+            }
+        }
 
         qosScheduler?.let { scheduler ->
             scope.launch {
@@ -457,6 +472,16 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
 
     override fun updateQoSSnapshot(snapshot: org.nowni.intercom_alpha.mesh.qos.QoSSnapshot) {
         _qosSnapshot.value = snapshot
+    }
+
+    override fun updateFailoverSnapshot(metrics: org.nowni.intercom_alpha.mesh.failover.FailoverMetrics) {
+        _failoverSnapshot.value = metrics
+    }
+
+    override fun setFailoverModeOverride(mode: org.nowni.intercom_alpha.mesh.failover.FailoverMode?) {
+        scope.launch {
+            failoverArbiter?.forceMode(mode, System.currentTimeMillis())
+        }
     }
 
     override fun setFederationPolicy(groupId: String, policy: org.nowni.intercom_alpha.mesh.federation.CrossGroupPolicy) {

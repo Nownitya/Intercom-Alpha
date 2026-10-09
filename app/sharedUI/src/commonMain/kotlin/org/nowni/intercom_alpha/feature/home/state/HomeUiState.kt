@@ -97,7 +97,11 @@ data class HomeUiState(
 
     // Sprint 24 Mesh Airtime QoS Traffic Shaping & Preemption HUD (ICA-2403)
     val qosSnapshot: org.nowni.intercom_alpha.mesh.qos.QoSSnapshot = org.nowni.intercom_alpha.mesh.qos.QoSSnapshot(),
-    val showQoSSheet: Boolean = false
+    val showQoSSheet: Boolean = false,
+
+    // Sprint 25 Automated Multi-Path Mesh Failover & Handover HUD (ICA-2503)
+    val failoverSnapshot: org.nowni.intercom_alpha.mesh.failover.FailoverMetrics = org.nowni.intercom_alpha.mesh.failover.FailoverMetrics(),
+    val showFailoverSheet: Boolean = false
 )
 
 sealed interface HomeUiAction {
@@ -160,6 +164,10 @@ sealed interface HomeUiAction {
 
     // Sprint 24 Mesh Airtime QoS Traffic Shaping Actions (ICA-2403)
     data class ToggleQoSSheet(val show: Boolean) : HomeUiAction
+
+    // Sprint 25 Automated Multi-Path Failover Actions (ICA-2503)
+    data class ToggleFailoverSheet(val show: Boolean) : HomeUiAction
+    data class SetFailoverModeOverride(val mode: org.nowni.intercom_alpha.mesh.failover.FailoverMode?) : HomeUiAction
 }
 
 sealed interface HomeUiEvent {

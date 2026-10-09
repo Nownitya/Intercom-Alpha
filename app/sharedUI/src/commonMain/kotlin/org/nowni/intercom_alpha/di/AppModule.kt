@@ -43,6 +43,7 @@ fun createSharedUiModule(
         )
     }
     single { org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler() }
+    single { org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter() }
     single<IntercomHardwareBridge> { hardwareBridge }
 
     viewModelOf(::HomeViewModel)

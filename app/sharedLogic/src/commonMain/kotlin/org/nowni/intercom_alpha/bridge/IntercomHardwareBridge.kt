@@ -72,6 +72,7 @@ interface IntercomHardwareBridge {
     val routingSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.routing.RoutingSnapshot>
     val federationSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.federation.FederationSnapshot>
     val qosSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.qos.QoSSnapshot>
+    val failoverSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.failover.FailoverMetrics>
 
     fun setPttActive(active: Boolean)
     fun setRepeaterModeActive(active: Boolean)
@@ -86,6 +87,8 @@ interface IntercomHardwareBridge {
     fun updateRoutingSnapshot(snapshot: org.nowni.intercom_alpha.mesh.routing.RoutingSnapshot)
     fun updateFederationSnapshot(snapshot: org.nowni.intercom_alpha.mesh.federation.FederationSnapshot)
     fun updateQoSSnapshot(snapshot: org.nowni.intercom_alpha.mesh.qos.QoSSnapshot)
+    fun updateFailoverSnapshot(metrics: org.nowni.intercom_alpha.mesh.failover.FailoverMetrics)
+    fun setFailoverModeOverride(mode: org.nowni.intercom_alpha.mesh.failover.FailoverMode?) {}
     fun setFederationPolicy(groupId: String, policy: org.nowni.intercom_alpha.mesh.federation.CrossGroupPolicy) {}
     fun createFederationInvite(): String? = null
     fun acceptFederationInvite(inviteCode: String): Boolean = false
@@ -112,7 +115,8 @@ interface IntercomHardwareBridge {
         voiceCommandRecognizer: org.nowni.intercom_alpha.audio.VoiceCommandRecognizer? = null,
         directedRouter: org.nowni.intercom_alpha.mesh.routing.DirectedMeshRouter? = null,
         interGroupGateway: org.nowni.intercom_alpha.mesh.federation.InterGroupGateway? = null,
-        qosScheduler: org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler? = null
+        qosScheduler: org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler? = null,
+        failoverArbiter: org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter? = null
     ) {}
 }
 
@@ -218,6 +222,9 @@ open class NoOpIntercomHardwareBridge(
     protected val _qosSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.qos.QoSSnapshot())
     override val qosSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.qos.QoSSnapshot> = _qosSnapshot.asStateFlow()
 
+    protected val _failoverSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.failover.FailoverMetrics())
+    override val failoverSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.failover.FailoverMetrics> = _failoverSnapshot.asStateFlow()
+
     override fun setPttActive(active: Boolean) {
         _isTransmitting.value = active
     }
@@ -280,6 +287,14 @@ open class NoOpIntercomHardwareBridge(
 
     fun simulateQoSSnapshot(snapshot: org.nowni.intercom_alpha.mesh.qos.QoSSnapshot) {
         _qosSnapshot.value = snapshot
+    }
+
+    override fun updateFailoverSnapshot(metrics: org.nowni.intercom_alpha.mesh.failover.FailoverMetrics) {
+        _failoverSnapshot.value = metrics
+    }
+
+    fun simulateFailoverSnapshot(metrics: org.nowni.intercom_alpha.mesh.failover.FailoverMetrics) {
+        _failoverSnapshot.value = metrics
     }
 
     override fun setFederationPolicy(groupId: String, policy: org.nowni.intercom_alpha.mesh.federation.CrossGroupPolicy) {
