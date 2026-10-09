@@ -15,14 +15,15 @@
 
 | Task ID | Item | Owner | Target Files | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **ICA-2501** | Pure KMP Multi-Path Link Quality Arbiter & Automated Failover State Machine | Ralph | `FailoverModels.kt`, `MultiPathFailoverArbiter.kt`, `MultiPathFailoverArbiterTest.kt` | ⏳ Ready |
-| **ICA-2502** | Transport Handover Wire Integration & Seamless Voice Stream Hedging | Ralph | `CloudRelayBridge.kt`, `HybridTransportRouter.kt`, `HybridTransportRouterTest.kt` | ⏳ Pending |
-| **ICA-2503** | Subsystem Hardware Bridge Wiring & Multiplatform Tactical Transport Handover HUD | Ralph | `IntercomHardwareBridge.kt`, `AndroidPlatformBridge.kt`, `IntercomBridge.kt`, `HomeScreen.kt`, `ContentView.swift` | ⏳ Pending |
-| **ICA-2504** | Highway Convoy Out-of-Range Handover Simulation Harness & Archify Showcase Update | Ralph | `MultiPathHandoverSimulationHarness.kt`, `intercom-alpha.architecture.json` | ⏳ Pending |
+| **ICA-2501** | Pure KMP Multi-Path Link Quality Arbiter & Automated Failover State Machine | Ralph | `FailoverModels.kt`, `MultiPathFailoverArbiter.kt`, `MultiPathFailoverArbiterTest.kt` | ✅ Passed |
+| **ICA-2502** | Transport Handover Wire Integration & Seamless Voice Stream Hedging | Ralph | `CloudRelayBridge.kt`, `HybridTransportRouter.kt`, `HybridTransportRouterTest.kt` | ✅ Passed |
+| **ICA-2503** | Subsystem Hardware Bridge Wiring & Multiplatform Tactical Transport Handover HUD | Ralph | `IntercomHardwareBridge.kt`, `AndroidPlatformBridge.kt`, `IntercomBridge.kt`, `HomeScreen.kt`, `ContentView.swift` | ✅ Passed |
+| **ICA-2504** | Highway Convoy Out-of-Range Handover Simulation Harness & Archify Showcase Update | Ralph | `MultiPathHandoverSimulationHarness.kt`, `intercom-alpha.architecture.json` | ✅ Passed |
 
 ---
 
 ## 📦 Historical Sprint Archive
+- ✅ **Sprint 25: Automated Multi-Path Mesh Failover & Hybrid Cellular/SFU Relay Handover**: Completed 2026-10-09 (100% DoD, v2.12.0 Released).
 - ✅ **Sprint 24: Mesh Airtime QoS Traffic Shaping & Airtime Contention Mitigator**: Completed 2026-10-09 (100% DoD, v2.11.0 Released).
 - ✅ **Sprint 23: Multi-Group Inter-Convoy Gateway & Cross-Mesh Federation**: Completed 2026-10-09 (100% DoD, v2.10.0 Released).
 - ✅ **Sprint 22: Dynamic Mesh Directed Routing, AODV-Lite Route Optimization & RF Collision Reduction**: Completed 2026-10-08 (100% DoD, v2.9.0 Released).

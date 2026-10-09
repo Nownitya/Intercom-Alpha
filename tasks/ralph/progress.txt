@@ -1905,6 +1905,41 @@
   - Graphify Knowledge Sync (`graphify update .`): 3,593 nodes, 7,832 edges, 248 communities (Rule 7).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-25-multipath-mesh-failover`).
 
+### [2026-10-09] - ICA-2504: Highway Convoy Handover Simulation Harness & Archify Architecture Showcase
+- **Branch**: `feature/ICA-2504-convoy-simulation-showcase`
+- **Objective**: Implement comprehensive 16-node convoy split simulation harness (`MultiPathHandoverSimulationHarness.kt`) covering nominal BLE direct routing, highway drift RF degradation, seamless dual-stream packet hedging with receiver deduplication (0% audio frame loss), out-of-range cloud relay handover, dead zone traversal, and 5,000ms hysteresis dampening. Update Archify interactive architecture specifications (`intercom-alpha.architecture.json` and `intercom-alpha-architecture.html`) and verify with 9/9 verification pass.
+- **Implementation**:
+  - `MultiPathHandoverSimulationHarness.kt`:
+    - Simulated 16-node motorcycle convoy split into Lead Squad (0..7) and Tail Squad (8..15).
+    - Validated Stage 1 (Nominal BLE Direct): 100% voice packets routed over local BLE with zero cellular usage.
+    - Validated Stage 2 (Highway Drift & Degradation): Immediate escalation to `MULTI_PATH_HEDGED` on ETX 3.4 / RSSI -89 dBm / PDR 65%; dual-cast over BLE and Cloud Relay; receiver `PacketDeduplicator` eliminated duplicates with 0% dropped audio frames.
+    - Validated Stage 3 (Convoy Split): Seamless transition to `CLOUD_RELAY_ONLY` via Ktor WebSocket relay maintaining uninterrupted cross-squad voice communication across >1 km radio horizon separation.
+    - Validated Stage 4 (Dead Zone Traversal): Graceful transition to `RESTRICTED_OFFLINE` in cellular/BLE dead zones without crashing or memory leaks while maintaining intra-squad communications.
+    - Validated Stage 5 (Re-convergence & Hysteresis): Strict 5,000ms hysteresis dampening window enforced; remained in `MULTI_PATH_HEDGED` for 5,000ms of stable metrics before de-escalating to `BLE_DIRECT`.
+    - Validated rapid boundary fluctuation test verifying 0 flapping or rapid mode oscillation despite continuous RSSI flutter.
+    - Validated continuous speech handover delivering 50/50 consecutive speech frames with zero dropouts and zero duplicates.
+  - `intercom-alpha.architecture.json` & `intercom-alpha-architecture.html`:
+    - Modeled `failover_arbiter` (`[300, 940]`) and `hybrid_router` (`[520, 940]`) in KMP Core Engine.
+    - Added dedicated `qos-and-failover` guided view and Sprint 25 interactive telemetry card.
+    - Validated and delivered showcase HTML using Archify CLI (`node .agents/skills/archify/bin/archify.mjs deliver architecture ... --quality showcase --json`): Passed 9/9 verification checks with 0 errors and 0 warnings.
+- **Verification**:
+  - `./gradlew test`: 100% test pass across multiplatform targets.
+  - `./gradlew :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+  - Graphify Knowledge Sync (`graphify update .`): 3,605 nodes, 7,865 edges, 281 communities (Rule 7).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-25-multipath-mesh-failover`).
+
+---
+
+## 🏆 Sprint 25: Automated Multi-Path Mesh Failover & Hybrid Cellular/SFU Relay Handover — 100% Complete
+- **All 4 Sprint 25 stories PASSED**:
+  - `ICA-2501`: Pure KMP Multi-Path Link Quality Arbiter & Automated Failover State Machine [PASSED]
+  - `ICA-2502`: Transport Handover Wire Integration & Seamless Voice Stream Hedging [PASSED]
+  - `ICA-2503`: Subsystem Hardware Bridge Wiring & Multiplatform Tactical Transport Handover HUD Presentation [PASSED]
+  - `ICA-2504`: Highway Convoy Out-of-Range Handover Simulation Harness & Archify Showcase Update [PASSED]
+- **Milestone Version Tag**: `v2.12.0`
+
+
 
 
 
