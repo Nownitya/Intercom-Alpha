@@ -1,25 +1,26 @@
 {
   "project": "Intercom-Alpha",
   "branchName": "sprint/sprint-24-adaptive-bitrate-qos",
-  "phase": "Phase 22: Adaptive Bitrate (ABR) & Dynamic RF Airtime QoS Throttle",
+  "phase": "Phase 22: Mesh Airtime QoS Traffic Shaping & Airtime Contention Mitigator",
   "sprint": "Sprint 24",
-  "updatedAt": "2026-10-09T07:19:00Z",
+  "updatedAt": "2026-10-09T07:21:00Z",
   "stories": [
     {
       "id": "ICA-2401",
       "priority": 1,
-      "title": "Pure KMP Adaptive Bitrate (ABR) Engine & Multi-Tier Codec Scaling",
-      "description": "Implement pure KMP BitrateProfileModels.kt and AdaptiveBitrateEngine.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/codec/. Defines dynamic audio compression tiers (HQ_WIDEBAND 32kbps/16kHz, STANDARD_CONVOY 16kbps/8kHz, NARROWBAND_FALLBACK 8kbps/8kHz, EMERGENCY_RESCUE 4kbps with parity forward error correction). Dynamically tracks moving-window Packet Delivery Ratio (PDR) and peer link RSSI, shifting codec bitrate up or down without audible clicking or buffer underrun. 100% pure Kotlin with 0 Java/C dependencies (Rules 2 & 3).",
+      "title": "Pure KMP Mesh Priority QoS Traffic Scheduler & Preemption Arbiter",
+      "description": "Implement QoSModels.kt, MeshQoSQueue.kt, and MeshQoSScheduler.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/qos/. Implements a thread-safe, 4-tier strict priority packet queue (EMERGENCY_CRITICAL, ACTIVE_VOICE, ROUTING_CONTROL, BULK_TELEMETRY). Guarantees starvation prevention via deficit round-robin tokens for control packets, unconditional preemption of bulk data during active voice streams, and airtime duty-cycle pacing. 100% pure Kotlin with 0 Java/C dependencies (Rules 2 & 3).",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/codec/BitrateProfileModels.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/codec/AdaptiveBitrateEngine.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/codec/AdaptiveBitrateEngineTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/qos/QoSModels.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/qos/MeshQoSQueue.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/qos/MeshQoSScheduler.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/qos/MeshQoSSchedulerTest.kt"
       ],
       "acceptanceCriteria": [
         "Pure KMP implementation with zero Java, C, or platform-specific dependencies in commonMain (Rules 2 & 3)",
-        "Defines BitrateTier enum (HQ_WIDEBAND, STANDARD_CONVOY, NARROWBAND_FALLBACK, EMERGENCY_RESCUE)",
-        "Dynamically downscales bitrate when PDR drops below 85% or link RSSI degrades below -85 dBm",
-        "Dynamically upscales bitrate with hysteresis to prevent rapid flapping under variable RF conditions",
+        "Defines QoSPriority tiers (EMERGENCY_CRITICAL, ACTIVE_VOICE, ROUTING_CONTROL, BULK_TELEMETRY)",
+        "Unconditionally preempts low-priority telemetry/file packets when voice or emergency SOS frames arrive",
+        "Provides starvation protection ensuring routing control packets are serviced within bounded delay",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
       "passes": false
@@ -27,17 +28,17 @@
     {
       "id": "ICA-2402",
       "priority": 2,
-      "title": "Pure KMP Priority Voice QoS Traffic Scheduler & Preemption Arbiter",
-      "description": "Implement QoSModels.kt and PriorityQoSQueue.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/qos/. Implements multi-tier priority traffic shaper: Priority 0 (EMERGENCY_SOS / CRASH_IMPACT) with unconditional preemption, Priority 1 (ACTIVE_PTT_VOICE) with bounded 20ms jitter budget, Priority 2 (ROUTING_CONTROL) for AODV route discovery and keep-alives, and Priority 3 (TELEMETRY_AND_FILES) for GPX route chunks and background GPS beacons. Throttles Priority 3 background traffic during active voice transmissions to prevent 2.4GHz BLE airtime contention.",
+      "title": "MeshTransport Wire Integration & Bulk File Airtime Throttling",
+      "description": "Integrate MeshQoSScheduler into MeshTransport.kt and MeshFileTransferManager.kt. Wraps outbound BLE GATT write operations through the scheduler. Automatically throttles background GPX/GeoJSON trail file transmission to a low duty cycle (<=10% airtime) whenever voice packets or emergency frames are detected, eliminating 2.4GHz RF packet collisions and buffer bloat during active conversation.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/qos/QoSModels.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/qos/PriorityQoSQueue.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/qos/PriorityQoSQueueTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/MeshTransport.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/file/MeshFileTransferManager.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/qos/MeshTransportQoSTest.kt"
       ],
       "acceptanceCriteria": [
-        "Implements strict priority dequeuing with starving prevention for control packets",
-        "Unconditionally preempts low-priority telemetry when voice or emergency SOS frames are queued",
-        "Dynamically throttles non-urgent packet generation during high channel utilization",
+        "All outbound mesh packets route through MeshQoSScheduler based on packet type and priority",
+        "File chunk beaming automatically throttles during active PTT voice transmission",
+        "Zero dropped voice packets caused by concurrent file transfer contention",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
       "passes": false
@@ -45,8 +46,8 @@
     {
       "id": "ICA-2403",
       "priority": 3,
-      "title": "Subsystem Hardware Bridge Wiring & Multiplatform ABR/QoS HUD Integration",
-      "description": "Wire AdaptiveBitrateEngine and PriorityQoSQueue into IntercomHardwareBridge, AndroidPlatformBridge, and IntercomBridge (iosMain) with typed CancellationHandle observers. Expose reactive QoSSnapshot (active bitrate tier, packet loss percentage, link headroom, queued packet count). Present ABR/QoS metric pill and channel health sheet in Compose Multiplatform (HomeScreen.kt) and 100% Native iOS SwiftUI (ContentView.swift / IntercomViewModel.swift respecting Rule 1).",
+      "title": "Subsystem Hardware Bridge Wiring & Multiplatform Tactical QoS HUD Presentation",
+      "description": "Wire MeshQoSScheduler into IntercomHardwareBridge, AndroidPlatformBridge, and IntercomBridge (iosMain) with typed CancellationHandle observers. Expose reactive QoSSnapshot (active queue depths, dropped packet stats, voice preemption counter, airtime utilization percentage). Present QoS link health badge and channel congestion warning sheet in Compose Multiplatform (HomeScreen.kt) and 100% Native iOS SwiftUI (ContentView.swift / IntercomViewModel.swift respecting Rule 1).",
       "targetFiles": [
         "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomHardwareBridge.kt",
         "app/sharedLogic/src/androidMain/kotlin/org/nowni/intercom_alpha/bridge/AndroidPlatformBridge.kt",
@@ -59,8 +60,8 @@
       ],
       "acceptanceCriteria": [
         "Hardware bridges expose QoSSnapshot flow and reactive CancellationHandle observers for iOS (Rule 1)",
-        "Compose Multiplatform displays active ABR pill (32k/16k/8k) and RF channel headroom meter",
-        "100% Native iOS SwiftUI displays tactical ABR/QoS badge in avionics bar (Rule 1)",
+        "Compose Multiplatform displays tactical QoS airtime pill and congestion alert banner",
+        "100% Native iOS SwiftUI displays tactical QoS indicator in TacticalAvionicsBar (Rule 1)",
         "Full compilation and automated verification pass across all targets"
       ],
       "passes": false
@@ -68,8 +69,8 @@
     {
       "id": "ICA-2404",
       "priority": 4,
-      "title": "32-Node Congested RF Mesh ABR & QoS Simulation Harness & Archify Showcase Update",
-      "description": "Implement CongestedMeshQoSSimulationHarness.kt simulating a 32-node large convoy under 40% RF contention and heavy background GPX route beaming. Validates that dynamic ABR down-stepping and QoS voice preemption maintain >90% voice intelligibility and <120ms latency despite heavy RF airtime load. Update Archify interactive architecture specifications to showcase quality.",
+      "title": "32-Node Congested RF Mesh QoS Simulation Harness & Archify Showcase Update",
+      "description": "Implement CongestedMeshQoSSimulationHarness.kt simulating a 32-node large convoy under 40% RF contention and concurrent OTA route beaming. Validates that QoS voice preemption and airtime throttling maintain >92% voice packet delivery ratio and <120ms latency despite heavy background file transfers. Update Archify interactive architecture specifications to showcase quality.",
       "targetFiles": [
         "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/simulation/CongestedMeshQoSSimulationHarness.kt",
         "docs/architecture/intercom-alpha.architecture.json",
@@ -77,8 +78,8 @@
       ],
       "acceptanceCriteria": [
         "Simulates 32 nodes under heavy RF contention and background data transfers",
-        "Demonstrates automatic codec bitrate downscaling under packet loss conditions",
         "Validates voice preemption over background GPX telemetry with zero voice starvation",
+        "Demonstrates airtime throttling maintaining voice PDR > 92%",
         "Archify architecture specification and HTML showcase updated with 9/9 verification pass",
         "Full multiplatform test suite pass across all targets"
       ],
