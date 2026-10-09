@@ -22,6 +22,8 @@ import org.nowni.intercom_alpha.protocol.PeerInfo
 import org.nowni.intercom_alpha.protocol.SignalingMessage
 import org.nowni.intercom_alpha.signaling.IntercomSignalingClient
 import org.nowni.intercom_alpha.signaling.SignalingConnectionState
+import org.nowni.intercom_alpha.mesh.failover.FailoverMode
+import org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
@@ -70,7 +72,8 @@ class CloudRelayBridge(
     private val signalingClient: IntercomSignalingClient = IntercomSignalingClient(),
     private val deduplicator: PacketDeduplicator = PacketDeduplicator(),
     val initialClusterId: String = "cluster-local",
-    val jitterBuffer: AdaptiveJitterBuffer = AdaptiveJitterBuffer()
+    val jitterBuffer: AdaptiveJitterBuffer = AdaptiveJitterBuffer(),
+    private val failoverArbiter: MultiPathFailoverArbiter? = null
 ) {
     // Gotcha 2: Always supply #type discriminator to avoid collision with MeshPacket.Control.type
     private val meshJson = Json {
@@ -164,6 +167,9 @@ class CloudRelayBridge(
         if (currentMode == CloudRelayMode.BLE_ONLY) {
             return false
         }
+        if (currentMode == CloudRelayMode.FALLBACK_ONLY && failoverArbiter?.metrics?.value?.currentMode == FailoverMode.BLE_DIRECT) {
+            return false
+        }
 
         val roomId = activeRoomId ?: return false
         val peerId = localPeerId ?: return false
@@ -213,6 +219,9 @@ class CloudRelayBridge(
         if (currentMode == CloudRelayMode.BLE_ONLY) {
             return false
         }
+        if (currentMode == CloudRelayMode.FALLBACK_ONLY && failoverArbiter?.metrics?.value?.currentMode == FailoverMode.BLE_DIRECT) {
+            return false
+        }
 
         if (!_stats.value.isConnected) {
             return false
@@ -256,6 +265,9 @@ class CloudRelayBridge(
      */
     suspend fun broadcastClusterPresence(localPeers: List<PeerInfo>): Boolean {
         if (currentMode == CloudRelayMode.BLE_ONLY || !_stats.value.isConnected) {
+            return false
+        }
+        if (currentMode == CloudRelayMode.FALLBACK_ONLY && failoverArbiter?.metrics?.value?.currentMode == FailoverMode.BLE_DIRECT) {
             return false
         }
 
