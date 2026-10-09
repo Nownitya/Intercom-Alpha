@@ -77,6 +77,8 @@ class MeshTransportImpl(
     private var isRunning = false
     private var connectionStateValue = ConnectionState.DISCONNECTED
     private val deduplicator = PacketDeduplicator()
+    private val scheduler = org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler()
+    override val qosScheduler: org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler get() = scheduler
 
     private companion object {
         const val SERVICE_UUID = MeshTransport.GATT_SERVICE_UUID
@@ -152,6 +154,7 @@ class MeshTransportImpl(
         connectedPeers.clear()
         discoveredDevices.clear()
         deduplicator.clear()
+        scheduler.clear()
         connectionStateValue = ConnectionState.DISCONNECTED
         connectionStateChannel.trySend(connectionStateValue)
     }
@@ -164,6 +167,9 @@ class MeshTransportImpl(
             data = data,
             profile = profile
         )
+        scheduler.enqueuePacket(packet, explicitPriority = org.nowni.intercom_alpha.mesh.qos.QoSPriority.ACTIVE_VOICE)
+        val pacing = scheduler.calculatePacingDelayMs(org.nowni.intercom_alpha.mesh.qos.QoSPriority.ACTIVE_VOICE)
+        if (pacing > 0) kotlinx.coroutines.delay(pacing)
         broadcastPacket(packet)
     }
 
@@ -173,6 +179,10 @@ class MeshTransportImpl(
             type = type,
             payload = payload
         )
+        val priority = org.nowni.intercom_alpha.mesh.qos.QoSPacketClassifier.classify(packet)
+        scheduler.enqueuePacket(packet, explicitPriority = priority)
+        val pacing = scheduler.calculatePacingDelayMs(priority)
+        if (pacing > 0) kotlinx.coroutines.delay(pacing)
         broadcastPacket(packet)
     }
 

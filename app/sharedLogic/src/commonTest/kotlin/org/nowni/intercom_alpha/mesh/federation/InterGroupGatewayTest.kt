@@ -276,10 +276,12 @@ class InterGroupGatewayTest {
             currentTimeMs = 1100L
         )!!
 
-        // Tamper with payload
-        val tamperedPayload = validPacket.payload.copyOf()
-        tamperedPayload[tamperedPayload.size / 2] = (tamperedPayload[tamperedPayload.size / 2] + 1).toByte()
-        val tamperedControl = validPacket.copy(payload = tamperedPayload)
+        // Tamper with encrypted ciphertext payload
+        val decoded = FederationSerializer.decodeCrossMeshPacket(validPacket.payload)!!
+        val tamperedCiphertext = decoded.payload.copyOf()
+        tamperedCiphertext[0] = (tamperedCiphertext[0] + 1).toByte()
+        val tamperedCrossMesh = decoded.copy(payload = tamperedCiphertext)
+        val tamperedControl = validPacket.copy(payload = FederationSerializer.encodeCrossMeshPacket(tamperedCrossMesh))
 
         val gatewayBravo = InterGroupGateway(
             localGroupId = "group-bravo",
@@ -296,7 +298,7 @@ class InterGroupGatewayTest {
         // Either decode fails or AEAD decrypt fails
         assertTrue(
             decision is InboundFederationDecision.DropAuthFailure || decision is InboundFederationDecision.DropMalformed,
-            "Tampered packet must fail authentication"
+            "Tampered packet must fail authentication, was: $decision"
         )
     }
 }

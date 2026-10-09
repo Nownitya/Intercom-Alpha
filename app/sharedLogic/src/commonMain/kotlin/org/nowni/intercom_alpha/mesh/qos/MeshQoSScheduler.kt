@@ -19,7 +19,8 @@ import org.nowni.intercom_alpha.mesh.MeshPacket
  */
 class MeshQoSScheduler(
     val voiceHangoverMs: Long = 400L,
-    private val queue: MeshQoSQueue = MeshQoSQueue()
+    private val queue: MeshQoSQueue = MeshQoSQueue(),
+    private val timeProvider: () -> Long = { currentTimeMillis() }
 ) {
     private val mutex = Mutex()
 
@@ -38,7 +39,7 @@ class MeshQoSScheduler(
         explicitPriority: QoSPriority? = null
     ): Boolean {
         val priority = explicitPriority ?: QoSPacketClassifier.classify(packet)
-        val now = currentTimeMillis()
+        val now = timeProvider()
 
         if (priority == QoSPriority.ACTIVE_VOICE || priority == QoSPriority.EMERGENCY_CRITICAL) {
             mutex.withLock {
@@ -55,7 +56,7 @@ class MeshQoSScheduler(
      * Dequeues the next packet according to QoS prioritization and airtime policy.
      */
     suspend fun dequeuePacket(): QueuedMeshPacket? {
-        val now = currentTimeMillis()
+        val now = timeProvider()
         val voiceActive = mutex.withLock {
             (now - lastVoiceActivityTimestampMs) < voiceHangoverMs
         }
@@ -70,7 +71,7 @@ class MeshQoSScheduler(
      * Calculates recommended inter-packet pacing delay to prevent BLE GATT buffer drops.
      */
     suspend fun calculatePacingDelayMs(priority: QoSPriority): Long {
-        val now = currentTimeMillis()
+        val now = timeProvider()
         val voiceActive = mutex.withLock {
             (now - lastVoiceActivityTimestampMs) < voiceHangoverMs
         }
@@ -98,7 +99,7 @@ class MeshQoSScheduler(
      */
     suspend fun markVoiceActive() {
         mutex.withLock {
-            lastVoiceActivityTimestampMs = currentTimeMillis()
+            lastVoiceActivityTimestampMs = timeProvider()
         }
         refreshSnapshotInternal()
     }
@@ -113,7 +114,7 @@ class MeshQoSScheduler(
     }
 
     private suspend fun refreshSnapshotInternal() {
-        val now = currentTimeMillis()
+        val now = timeProvider()
         val (voiceActive, airtime) = mutex.withLock {
             val va = (now - lastVoiceActivityTimestampMs) < voiceHangoverMs
             Pair(va, airtimeUtilizationPercent)
