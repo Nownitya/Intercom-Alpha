@@ -1726,6 +1726,28 @@
   - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64 :app:sharedLogic:jvmTest`: BUILD SUCCESSFUL (127 actionable tasks passed cleanly in 1m 41s).
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-23-multi-group-gateway`).
+---
+
+### [2026-10-09] - ICA-2401: Pure KMP Mesh Priority QoS Traffic Scheduler & Preemption Arbiter
+- **Branch**: `feature/ICA-2401-qos-traffic-scheduler`
+- **Objective**: Implement thread-safe 4-tier strict priority QoS packet queue and scheduler in commonMain (`QoSModels.kt`, `MeshQoSQueue.kt`, `MeshQoSScheduler.kt`) with deficit round-robin starvation protection, voice preemption, and hangover tracking.
+- **Implementation**:
+  - `QoSModels.kt`:
+    - Defined `QoSPriority` (EMERGENCY_CRITICAL, ACTIVE_VOICE, ROUTING_CONTROL, BULK_TELEMETRY).
+    - Modeled `QueuedMeshPacket`, `QoSSnapshot`, and `QoSPacketClassifier` classifying voice audio frames, control SOS alerts, AODV routing, and bulk telemetry.
+  - `MeshQoSQueue.kt`:
+    - Thread-safe priority queues with bounded capacities and drop-oldest voice policy under extreme overload.
+    - Deficit round-robin starvation protection servicing 1 routing control packet every 8 consecutive voice packets.
+  - `MeshQoSScheduler.kt`:
+    - Enforces 400ms voice hangover window to avoid bursty interleaving of background bulk transfers during conversational pauses.
+    - Calculates dynamic pacing delays and publishes reactive `qosSnapshot: StateFlow<QoSSnapshot>`.
+  - `MeshQoSSchedulerTest.kt`:
+    - 6 unit test suites verifying priority dispatch ordering, bulk preemption during voice, deficit starvation protection, hangover duration, capacity drop policy, and pacing delays.
+- **Verification**:
+  - `./gradlew test`: BUILD SUCCESSFUL (91 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-24-adaptive-bitrate-qos`).
+
 
 
 
