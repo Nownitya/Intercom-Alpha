@@ -23,6 +23,7 @@ class MultiPathFailoverArbiter(
 ) {
     private val mutex = Mutex()
 
+    private var hasReceivedMeshMetrics: Boolean = false
     private var meshPeerCount: Int = 0
     private var averageEtx: Double = 1.0
     private var averageDeliveryRatio: Double = 1.0
@@ -52,6 +53,7 @@ class MultiPathFailoverArbiter(
         minRssiDbm: Int = -75,
         currentTimeMs: Long
     ): FailoverMode = mutex.withLock {
+        hasReceivedMeshMetrics = true
         meshPeerCount = peerCount
         averageEtx = avgEtx
         averageDeliveryRatio = deliveryRatio
@@ -80,8 +82,12 @@ class MultiPathFailoverArbiter(
         mode: FailoverMode?,
         currentTimeMs: Long
     ): FailoverMode = mutex.withLock {
+        val wasForced = forcedMode != null
         forcedMode = mode
-        recomputeState(currentTimeMs)
+        if (mode == null) {
+            stableBleStartTimeMs = null
+        }
+        recomputeState(currentTimeMs, bypassHysteresis = (wasForced && mode == null))
     }
 
     /**
@@ -99,17 +105,21 @@ class MultiPathFailoverArbiter(
         recomputeState(currentTimeMs)
     }
 
-    private fun recomputeState(currentTimeMs: Long): FailoverMode {
-        if (modeEnteredTimestampMs == 0L) {
+    private fun recomputeState(currentTimeMs: Long, bypassHysteresis: Boolean = false): FailoverMode {
+        val isFirstEval = (modeEnteredTimestampMs == 0L)
+        if (isFirstEval) {
             modeEnteredTimestampMs = currentTimeMs
         }
 
-        val targetMode: FailoverMode = forcedMode ?: computeTargetMode(currentTimeMs)
+        val targetMode: FailoverMode = forcedMode ?: computeTargetMode(currentTimeMs, bypassHysteresis)
 
         if (targetMode != currentMode) {
+            val isInitialBoot = isFirstEval || (currentMode == FailoverMode.RESTRICTED_OFFLINE && totalHandovers == 0L)
             currentMode = targetMode
             modeEnteredTimestampMs = currentTimeMs
-            totalHandovers++
+            if (!isInitialBoot) {
+                totalHandovers++
+            }
             // Reset hysteresis counter when leaving
             if (targetMode != FailoverMode.BLE_DIRECT) {
                 stableBleStartTimeMs = null
@@ -120,8 +130,8 @@ class MultiPathFailoverArbiter(
         return currentMode
     }
 
-    private fun computeTargetMode(currentTimeMs: Long): FailoverMode {
-        val bleTimedOut = (lastBleActivityMs > 0L && (currentTimeMs - lastBleActivityMs) > config.bleTimeoutMs)
+    private fun computeTargetMode(currentTimeMs: Long, bypassHysteresis: Boolean = false): FailoverMode {
+        val bleTimedOut = (stableBleStartTimeMs == null && lastBleActivityMs > 0L && (currentTimeMs - lastBleActivityMs) > config.bleTimeoutMs)
         val hasBlePeers = meshPeerCount > 0 && !bleTimedOut
 
         val isDegraded = hasBlePeers && (
@@ -129,6 +139,12 @@ class MultiPathFailoverArbiter(
             (1.0 - averageDeliveryRatio) > config.degradeLossRatioThreshold ||
             lowestRssiDbm < config.degradeRssiThreshold
         )
+
+        // Case 0: Initialization before first mesh metrics received
+        if (!hasReceivedMeshMetrics) {
+            stableBleStartTimeMs = null
+            return FailoverMode.RESTRICTED_OFFLINE
+        }
 
         // Case 1: Neither transport available
         if (!hasBlePeers && !isCloudConnected) {
@@ -156,7 +172,7 @@ class MultiPathFailoverArbiter(
         }
 
         // Link is healthy. Check hysteresis if we were in CLOUD_RELAY_ONLY or MULTI_PATH_HEDGED
-        if (currentMode == FailoverMode.CLOUD_RELAY_ONLY || currentMode == FailoverMode.MULTI_PATH_HEDGED) {
+        if (!bypassHysteresis && (currentMode == FailoverMode.CLOUD_RELAY_ONLY || currentMode == FailoverMode.MULTI_PATH_HEDGED)) {
             val stableStart = stableBleStartTimeMs
             if (stableStart == null) {
                 stableBleStartTimeMs = currentTimeMs
@@ -168,6 +184,7 @@ class MultiPathFailoverArbiter(
             } else {
                 // Hysteresis elapsed cleanly, transition back to BLE_DIRECT
                 stableBleStartTimeMs = null
+                lastBleActivityMs = currentTimeMs
                 return FailoverMode.BLE_DIRECT
             }
         }

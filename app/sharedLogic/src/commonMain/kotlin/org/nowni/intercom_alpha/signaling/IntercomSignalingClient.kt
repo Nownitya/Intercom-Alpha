@@ -17,7 +17,7 @@ sealed class SignalingConnectionState {
     data class Error(val message: String) : SignalingConnectionState()
 }
 
-class IntercomSignalingClient(
+open class IntercomSignalingClient(
     customClient: HttpClient? = null
 ) {
     private val client: HttpClient by lazy {
@@ -28,19 +28,19 @@ class IntercomSignalingClient(
         ignoreUnknownKeys = true
     }
 
-    private val _connectionState = MutableStateFlow<SignalingConnectionState>(SignalingConnectionState.Disconnected)
-    val connectionState: StateFlow<SignalingConnectionState> = _connectionState.asStateFlow()
+    protected val _connectionState = MutableStateFlow<SignalingConnectionState>(SignalingConnectionState.Disconnected)
+    open val connectionState: StateFlow<SignalingConnectionState> = _connectionState.asStateFlow()
 
-    private val _incomingMessages = MutableSharedFlow<SignalingMessage>(extraBufferCapacity = 64)
-    val incomingMessages: SharedFlow<SignalingMessage> = _incomingMessages.asSharedFlow()
+    protected val _incomingMessages = MutableSharedFlow<SignalingMessage>(extraBufferCapacity = 64)
+    open val incomingMessages: SharedFlow<SignalingMessage> = _incomingMessages.asSharedFlow()
 
-    private val _currentRoomState = MutableStateFlow<SignalingMessage.RoomState?>(null)
-    val currentRoomState: StateFlow<SignalingMessage.RoomState?> = _currentRoomState.asStateFlow()
+    protected val _currentRoomState = MutableStateFlow<SignalingMessage.RoomState?>(null)
+    open val currentRoomState: StateFlow<SignalingMessage.RoomState?> = _currentRoomState.asStateFlow()
 
     private var session: DefaultClientWebSocketSession? = null
     private var clientScope: CoroutineScope? = null
 
-    suspend fun connect(
+    open suspend fun connect(
         host: String,
         port: Int,
         peerId: String,
@@ -113,11 +113,11 @@ class IntercomSignalingClient(
         }
     }
 
-    suspend fun joinRoom(peerId: String, roomId: String) {
+    open suspend fun joinRoom(peerId: String, roomId: String) {
         sendMessage(SignalingMessage.JoinRoom(peerId, roomId))
     }
 
-    suspend fun leaveRoom(peerId: String, roomId: String) {
+    open suspend fun leaveRoom(peerId: String, roomId: String) {
         sendMessage(SignalingMessage.LeaveRoom(peerId, roomId))
     }
 
@@ -137,7 +137,7 @@ class IntercomSignalingClient(
         sendMessage(SignalingMessage.IceCandidate(fromPeerId, toPeerId, candidate, sdpMid, sdpMLineIndex))
     }
 
-    suspend fun sendMessage(message: SignalingMessage) {
+    open suspend fun sendMessage(message: SignalingMessage) {
         val currentSession = session ?: return
         try {
             val text = json.encodeToString(message)
@@ -147,7 +147,7 @@ class IntercomSignalingClient(
         }
     }
 
-    suspend fun disconnect() {
+    open suspend fun disconnect() {
         try {
             session?.close()
         } catch (_: Exception) {}

@@ -9,6 +9,7 @@ import org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler
 import org.nowni.intercom_alpha.mesh.qos.QoSPriority
 import org.nowni.intercom_alpha.protocol.SignalingMessage
 import org.nowni.intercom_alpha.signaling.IntercomSignalingClient
+import org.nowni.intercom_alpha.signaling.SignalingConnectionState
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -41,6 +42,18 @@ class FakeRouterMeshTransport : MeshTransport {
 class FakeRouterSignalingClient : IntercomSignalingClient() {
     val sentMessages = mutableListOf<SignalingMessage>()
     var mockConnected = true
+
+    override suspend fun connect(
+        host: String,
+        port: Int,
+        peerId: String,
+        displayName: String,
+        platform: String
+    ) {
+        if (mockConnected) {
+            _connectionState.value = SignalingConnectionState.Connected(peerId, emptyList())
+        }
+    }
 
     override suspend fun sendMessage(message: SignalingMessage) {
         sentMessages.add(message)
@@ -93,7 +106,15 @@ class HybridTransportRouterTest {
             failoverArbiter = arbiter
         )
         // Simulate active cloud session
-        cloudBridge.start("rider-1", "Lead Rider", "android", "room-alpha", "node-cluster")
+        cloudBridge.start(
+            host = "127.0.0.1",
+            port = 8080,
+            peerId = "rider-1",
+            displayName = "Lead Rider",
+            platform = "android",
+            roomId = "room-alpha",
+            clusterId = "node-cluster"
+        )
 
         val router = HybridTransportRouter(
             meshTransport = transport,
@@ -123,7 +144,7 @@ class HybridTransportRouterTest {
         assertEquals(FailoverMode.MULTI_PATH_HEDGED, result.activeMode)
         assertEquals(1, transport.sentPackets.size)
         assertEquals(1L, arbiter.metrics.value.hedgedPacketsCount)
-        assertEquals(1, fakeClient.sentMessages.size)
+        assertEquals(1, fakeClient.sentMessages.filterIsInstance<SignalingMessage.MeshRelay>().size)
 
         // Verify receiver deduplication
         val receiverDeduplicator = PacketDeduplicator(windowMs = 5000L)
@@ -143,7 +164,15 @@ class HybridTransportRouterTest {
             signalingClient = fakeClient,
             failoverArbiter = arbiter
         )
-        cloudBridge.start("rider-1", "Lead Rider", "android", "room-alpha", "node-cluster")
+        cloudBridge.start(
+            host = "127.0.0.1",
+            port = 8080,
+            peerId = "rider-1",
+            displayName = "Lead Rider",
+            platform = "android",
+            roomId = "room-alpha",
+            clusterId = "node-cluster"
+        )
 
         val router = HybridTransportRouter(
             meshTransport = transport,
@@ -172,7 +201,7 @@ class HybridTransportRouterTest {
         assertFalse(result.isHedged)
         assertEquals(FailoverMode.CLOUD_RELAY_ONLY, result.activeMode)
         assertEquals(0, transport.sentPackets.size)
-        assertEquals(1, fakeClient.sentMessages.size)
+        assertEquals(1, fakeClient.sentMessages.filterIsInstance<SignalingMessage.MeshRelay>().size)
     }
 
     @Test
@@ -230,7 +259,7 @@ class HybridTransportRouterTest {
         router.routePacket(packet, QoSPriority.ACTIVE_VOICE)
 
         // Should be queued in QoS scheduler under ACTIVE_VOICE queue
-        assertEquals(1, scheduler.activeVoiceDepth)
+        assertEquals(1, scheduler.qosSnapshot.value.voiceQueueDepth)
         val dequeued = scheduler.dequeuePacket()
         assertEquals(packet, dequeued?.packet)
     }
@@ -243,7 +272,15 @@ class HybridTransportRouterTest {
             signalingClient = fakeClient,
             failoverArbiter = arbiter
         )
-        bridge.start("node-1", "Tester", "jvm", "room-1", "cluster-1")
+        bridge.start(
+            host = "127.0.0.1",
+            port = 8080,
+            peerId = "node-1",
+            displayName = "Tester",
+            platform = "jvm",
+            roomId = "room-1",
+            clusterId = "cluster-1"
+        )
         bridge.setRelayMode(CloudRelayMode.FALLBACK_ONLY)
 
         val packet = MeshPacket.Audio(

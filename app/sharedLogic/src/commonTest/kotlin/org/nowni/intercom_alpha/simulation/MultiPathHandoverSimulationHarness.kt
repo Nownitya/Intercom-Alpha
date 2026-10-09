@@ -46,7 +46,7 @@ class MultiPathHandoverSimulationHarness {
         val receivedAudioFrames = mutableListOf<MeshPacket.Audio>()
         var duplicatesSuppressed: Int = 0
 
-        fun receiveInbound(packet: MeshPacket.Audio, currentTimeMs: Long): Boolean {
+        suspend fun receiveInbound(packet: MeshPacket.Audio, currentTimeMs: Long): Boolean {
             if (!deduplicator.shouldProcess(packet, now = currentTimeMs)) {
                 duplicatesSuppressed++
                 return false
@@ -55,7 +55,7 @@ class MultiPathHandoverSimulationHarness {
             return true
         }
 
-        fun reset() {
+        suspend fun reset() {
             receivedAudioFrames.clear()
             duplicatesSuppressed = 0
             deduplicator.clear()
@@ -277,9 +277,20 @@ class MultiPathHandoverSimulationHarness {
         val rejoinTimeMs = env.virtualClockMs + 2000L
         env.virtualClockMs = rejoinTimeMs
 
-        // Update with healthy BLE signals
+        // Initial radio contact at tunnel exit has fringe RF degradation, immediately engaging dual-cast hedging
         for (node in env.participants) {
             node.arbiter.updateCloudStatus(connected = true, currentTimeMs = env.virtualClockMs)
+            node.arbiter.updateMeshMetrics(
+                peerCount = 15,
+                avgEtx = 3.2,
+                deliveryRatio = 0.80,
+                minRssiDbm = -90,
+                currentTimeMs = env.virtualClockMs
+            )
+        }
+        // Advance clock and settle RF link to nominal healthy metrics: triggers 5,000ms hysteresis dampening
+        env.virtualClockMs += 200L
+        for (node in env.participants) {
             node.arbiter.updateMeshMetrics(
                 peerCount = 15,
                 avgEtx = 1.1,

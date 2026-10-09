@@ -155,6 +155,13 @@ class CloudRelayBridge(
             // Connect to server and join the mesh room
             signalingClient.connect(host, port, peerId, displayName, platform)
             signalingClient.joinRoom(peerId, roomId)
+            val isConn = signalingClient.connectionState.value is SignalingConnectionState.Connected
+            _stats.value = _stats.value.copy(
+                isConnected = isConn,
+                currentMode = currentMode,
+                activeRoomId = if (isConn) activeRoomId else null,
+                localClusterId = currentClusterId
+            )
         }
     }
 
