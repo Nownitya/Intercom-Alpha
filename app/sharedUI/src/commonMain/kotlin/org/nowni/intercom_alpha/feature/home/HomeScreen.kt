@@ -2,6 +2,8 @@ package org.nowni.intercom_alpha.feature.home
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -544,6 +546,93 @@ fun HomeScreen(
                         }
                     }
                 }
+
+                // Multi-Path Mesh Failover & Handover Strip (Sprint 25 - ICA-2503)
+                val failover = uiState.failoverSnapshot
+                Surface(
+                    onClick = { onAction(HomeUiAction.ToggleFailoverSheet(true)) },
+                    shape = RoundedCornerShape(6.dp),
+                    color = when (failover.currentMode) {
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT -> Color(0xFF0D2319)
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED -> Color(0xFF281E0D)
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY -> Color(0xFF20132B)
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE -> Color(0xFF1E1E1E)
+                    },
+                    border = BorderStroke(1.dp, when (failover.currentMode) {
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT -> Color(0xFF00E676)
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED -> Color(0xFFFFB300)
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY -> Color(0xFFB388FF)
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE -> Color(0xFF757575)
+                    })
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 3.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = when (failover.currentMode) {
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT -> "📡"
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED -> "⚡"
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY -> "☁️"
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE -> "🚫"
+                                },
+                                fontSize = 11.sp
+                            )
+                            Text(
+                                text = when (failover.currentMode) {
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT -> "PATH: BLE DIRECT (OFFLINE)"
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED -> "PATH: HEDGED DUAL-STREAM"
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY -> "PATH: CLOUD RELAY (SFU)"
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE -> "PATH: RESTRICTED OFFLINE"
+                                },
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = "ETX:${(failover.averageEtx * 10).toInt() / 10.0} • H:${failover.totalHandovers}",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Black,
+                                color = if (failover.isBleDegraded) Color(0xFFFFB300) else Color(0xFFB9F6CA)
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(4.dp),
+                                color = when (failover.currentMode) {
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT -> Color(0xFF007E33)
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED -> Color(0xFFFF8800)
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY -> Color(0xFF7C4DFF)
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE -> Color(0xFF424242)
+                                }
+                            ) {
+                                Text(
+                                    text = when (failover.currentMode) {
+                                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT -> "BLE"
+                                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED -> "HEDGED"
+                                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY -> "CLOUD"
+                                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE -> "OFFLINE"
+                                    },
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color.White,
+                                    modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
             // ================= 2. EMERGENCY PREEMPTION BANNER =================
@@ -780,6 +869,15 @@ fun HomeScreen(
             QoSDiagnosticsDialog(
                 snapshot = uiState.qosSnapshot,
                 onDismiss = { onAction(HomeUiAction.ToggleQoSSheet(false)) }
+            )
+        }
+
+        // ================= MULTI-PATH FAILOVER DIAGNOSTICS DIALOG (Sprint 25 - ICA-2503) =================
+        if (uiState.showFailoverSheet) {
+            FailoverDiagnosticsDialog(
+                snapshot = uiState.failoverSnapshot,
+                onDismiss = { onAction(HomeUiAction.ToggleFailoverSheet(false)) },
+                onSetOverride = { mode -> onAction(HomeUiAction.SetFailoverModeOverride(mode)) }
             )
         }
     }
@@ -1413,3 +1511,212 @@ fun QoSDiagnosticsDialog(
         }
     }
 }
+
+// ================= MULTI-PATH FAILOVER DIAGNOSTICS DIALOG (Sprint 25 - ICA-2503) =================
+
+@Composable
+fun FailoverDiagnosticsDialog(
+    snapshot: org.nowni.intercom_alpha.mesh.failover.FailoverMetrics,
+    onDismiss: () -> Unit,
+    onSetOverride: (org.nowni.intercom_alpha.mesh.failover.FailoverMode?) -> Unit
+) {
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = Color(0xFF0F141A),
+            border = BorderStroke(1.dp, when (snapshot.currentMode) {
+                org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT -> Color(0xFF00E676)
+                org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED -> Color(0xFFFFB300)
+                org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY -> Color(0xFFB388FF)
+                org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE -> Color(0xFF757575)
+            }),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = when (snapshot.currentMode) {
+                                org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT -> "📡"
+                                org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED -> "⚡"
+                                org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY -> "☁️"
+                                org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE -> "🚫"
+                            },
+                            fontSize = 20.sp
+                        )
+                        Column {
+                            Text(
+                                text = "MULTI-PATH HANDOVER",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Black,
+                                color = Color.White
+                            )
+                            Text(
+                                text = "AUTONOMOUS RF / SFU ARBITRATION",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF00E5FF)
+                            )
+                        }
+                    }
+
+                    IconButton(onClick = onDismiss, modifier = Modifier.size(28.dp)) {
+                        Text("✕", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+
+                // Active Mode Banner
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = when (snapshot.currentMode) {
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT -> Color(0xFF003314)
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED -> Color(0xFF332000)
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY -> Color(0xFF26103D)
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE -> Color(0xFF212121)
+                    },
+                    border = BorderStroke(1.dp, when (snapshot.currentMode) {
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT -> Color(0xFF00E676)
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED -> Color(0xFFFFB300)
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY -> Color(0xFFB388FF)
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE -> Color(0xFF757575)
+                    }),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "ACTIVE ROUTING MODE",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Black,
+                                color = Color(0xFFB0BEC5)
+                            )
+                            Text(
+                                text = snapshot.currentMode.name,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Black,
+                                color = when (snapshot.currentMode) {
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT -> Color(0xFF00E676)
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED -> Color(0xFFFFB300)
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY -> Color(0xFFB388FF)
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE -> Color(0xFFE0E0E0)
+                                }
+                            )
+                        }
+                        Text(
+                            text = when (snapshot.currentMode) {
+                                org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT -> "Local BLE mesh is nominal. Zero cellular airtime or cloud bandwidth is consumed."
+                                org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED -> "RF degradation detected. Audio packets are dual-cast over BLE and Cloud with receiver deduplication to prevent dropouts."
+                                org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY -> "BLE mesh unreachable (convoy split / out-of-range). Routing 100% via Ktor Cloud Relay WebSocket."
+                                org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE -> "Zero connectivity. Operating best-effort offline."
+                            },
+                            fontSize = 10.sp,
+                            color = Color(0xFFCFD8DC)
+                        )
+                    }
+                }
+
+                // Telemetry Matrix Card
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFF151C24),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text("TELEMETRY & LINK METRICS", fontSize = 10.sp, fontWeight = FontWeight.Black, color = Color(0xFF80D8FF))
+
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("BLE Mesh Peers in Range", fontSize = 10.sp, color = Color(0xFFB0BEC5))
+                            Text("${snapshot.meshPeerCount}", fontSize = 10.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Average Expected Transmissions (ETX)", fontSize = 10.sp, color = Color(0xFFB0BEC5))
+                            Text("${(snapshot.averageEtx * 100).toInt() / 100.0}", fontSize = 10.sp, color = if (snapshot.isBleDegraded) Color(0xFFFFB300) else Color(0xFF00E676), fontWeight = FontWeight.Bold)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Packet Delivery Ratio (PDR)", fontSize = 10.sp, color = Color(0xFFB0BEC5))
+                            Text("${(snapshot.averageDeliveryRatio * 100).toInt()}%", fontSize = 10.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Cloud Relay Status", fontSize = 10.sp, color = Color(0xFFB0BEC5))
+                            Text(if (snapshot.isCloudConnected) "CONNECTED" else "DISCONNECTED", fontSize = 10.sp, color = if (snapshot.isCloudConnected) Color(0xFF00E676) else Color(0xFFFF5252), fontWeight = FontWeight.Bold)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Total Handover Transitions", fontSize = 10.sp, color = Color(0xFFB0BEC5))
+                            Text("${snapshot.totalHandovers}", fontSize = 10.sp, color = Color(0xFF00E5FF), fontWeight = FontWeight.Bold)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Dual-Stream Hedged Frames", fontSize = 10.sp, color = Color(0xFFB0BEC5))
+                            Text("${snapshot.hedgedPacketsCount}", fontSize = 10.sp, color = Color(0xFFFFD54F), fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+
+                // Manual Override Controls
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("MANUAL ROUTING OVERRIDE", fontSize = 10.sp, fontWeight = FontWeight.Black, color = Color(0xFFB0BEC5))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Button(
+                            onClick = { onSetOverride(org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT) },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1B5E20)),
+                            shape = RoundedCornerShape(6.dp),
+                            modifier = Modifier.weight(1f).height(32.dp)
+                        ) {
+                            Text("BLE ONLY", fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        }
+                        Button(
+                            onClick = { onSetOverride(org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY) },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4A148C)),
+                            shape = RoundedCornerShape(6.dp),
+                            modifier = Modifier.weight(1f).height(32.dp)
+                        ) {
+                            Text("CLOUD ONLY", fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        }
+                        Button(
+                            onClick = { onSetOverride(null) },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF37474F)),
+                            shape = RoundedCornerShape(6.dp),
+                            modifier = Modifier.weight(1f).height(32.dp)
+                        ) {
+                            Text("AUTO", fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+
+                // Close Button
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    Button(
+                        onClick = onDismiss,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00838F)),
+                        shape = RoundedCornerShape(6.dp),
+                        modifier = Modifier.height(36.dp)
+                    ) {
+                        Text("CLOSE", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+    }
+}
+

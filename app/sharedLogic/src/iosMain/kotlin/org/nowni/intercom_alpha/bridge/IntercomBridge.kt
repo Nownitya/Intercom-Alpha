@@ -1008,5 +1008,25 @@ class IntercomBridge(
         }
         return CancellationHandle { job.cancel() }
     }
+
+    // --- Swift-Friendly Multi-Path Failover & Handover Observers & Controls (Sprint 25 / ICA-2503) ---
+
+    val failoverArbiter: org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter =
+        org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter()
+
+    fun observeFailoverSnapshot(onSnapshot: (org.nowni.intercom_alpha.mesh.failover.FailoverMetrics) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            failoverArbiter.metrics.collect { snapshot ->
+                onSnapshot(snapshot)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun setFailoverModeOverride(mode: org.nowni.intercom_alpha.mesh.failover.FailoverMode?) {
+        scope.launch {
+            failoverArbiter.forceMode(mode, currentTimeMillis())
+        }
+    }
 }
 

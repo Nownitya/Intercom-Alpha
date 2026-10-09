@@ -648,4 +648,52 @@ class HomeViewModelTest {
         advanceUntilIdle()
         assertFalse(viewModel.uiState.value.showQoSSheet)
     }
+
+    @Test
+    fun testFailoverSnapshotAndHandoverControls() = runTest(testDispatcher) {
+        // 1. Initial Failover state is default
+        assertFalse(viewModel.uiState.value.showFailoverSheet)
+        assertEquals(org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE, viewModel.uiState.value.failoverSnapshot.currentMode)
+        assertFalse(viewModel.uiState.value.failoverSnapshot.isBleDegraded)
+
+        // 2. Open Failover Diagnostics Sheet
+        viewModel.onAction(HomeUiAction.ToggleFailoverSheet(true))
+        advanceUntilIdle()
+        assertTrue(viewModel.uiState.value.showFailoverSheet)
+
+        // 3. Simulate Failover snapshot emission from hardware bridge
+        val mockMetrics = org.nowni.intercom_alpha.mesh.failover.FailoverMetrics(
+            currentMode = org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED,
+            meshPeerCount = 4,
+            averageEtx = 2.8,
+            averageDeliveryRatio = 0.75,
+            lastBleActivityMs = 1000L,
+            isCloudConnected = true,
+            timeInCurrentModeMs = 5000L,
+            totalHandovers = 3L,
+            hedgedPacketsCount = 42L,
+            isBleDegraded = true
+        )
+        hardwareBridge.simulateFailoverSnapshot(mockMetrics)
+        advanceUntilIdle()
+
+        val updated = viewModel.uiState.value.failoverSnapshot
+        assertEquals(org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED, updated.currentMode)
+        assertTrue(updated.isBleDegraded)
+        assertEquals(4, updated.meshPeerCount)
+        assertEquals(2.8, updated.averageEtx)
+        assertTrue(updated.isCloudConnected)
+        assertEquals(3L, updated.totalHandovers)
+        assertEquals(42L, updated.hedgedPacketsCount)
+
+        // 4. Test Manual Override action
+        viewModel.onAction(HomeUiAction.SetFailoverModeOverride(org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT))
+        advanceUntilIdle()
+
+        // 5. Close Failover Diagnostics Sheet
+        viewModel.onAction(HomeUiAction.ToggleFailoverSheet(false))
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.showFailoverSheet)
+    }
 }
+

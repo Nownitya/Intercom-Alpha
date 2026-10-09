@@ -66,7 +66,7 @@ class HybridTransportRouter(
                 // Dual-cast concurrently across BLE and Cloud Relay
                 sendViaBle(packet, priority)
                 var cloudSent = false
-                if (canUseCloud && bridge != null) {
+                if (bridge != null && bridge.isAvailable.value) {
                     cloudSent = bridge.forwardToCloud(packet)
                     if (cloudSent) {
                         failoverArbiter.recordHedgedPacket()
@@ -82,7 +82,7 @@ class HybridTransportRouter(
 
             FailoverMode.CLOUD_RELAY_ONLY -> {
                 var cloudSent = false
-                if (canUseCloud && bridge != null) {
+                if (bridge != null && bridge.isAvailable.value) {
                     cloudSent = bridge.forwardToCloud(packet)
                 }
                 // If cloud failed or was not reachable, fallback best-effort to local BLE
