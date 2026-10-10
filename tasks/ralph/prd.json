@@ -58,7 +58,7 @@
         "Compressed biometric vitals packet encoding (heart rate, stress indicator, battery level)",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-2704",
