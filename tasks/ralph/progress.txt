@@ -1967,6 +1967,26 @@
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-26-fleet-hardening`).
 
+### [2026-10-10] - ICA-2602: Concurrent Multi-Radio Arbiter (BLE + Wi-Fi Direct)
+- **Branch**: `feature/ICA-2602-multi-radio-arbiter`
+- **Objective**: Implement `RadioModels.kt` and `MultiRadioArbiter.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/radio/` to dynamically route high-bandwidth bulk payloads (tactical snapshots, trail GPX chunks) over Wi-Fi Direct (`P2P_CLUSTER`) when direct proximity is established, while maintaining continuous low-latency voice and emergency traffic over BLE mesh.
+- **Implementation**:
+  - `RadioModels.kt`:
+    - Defined `RadioType` (`BLE_MESH`, `WIFI_DIRECT`, `CELLULAR_SFU`), `RadioLinkState`, `PayloadBandwidthClass`, `RadioLinkMetrics`, `MultiRadioRouteDecision`, `MultiRadioState`, and `MultiRadioArbiterConfig`.
+  - `MultiRadioArbiter.kt`:
+    - Mutex-coordinated multi-radio state tracking with reactive `StateFlow` observables.
+    - Automated payload classification (`EMERGENCY_CRITICAL`, `VOICE_REALTIME`, `NETWORK_CONTROL`, `BULK_HIGH_BANDWIDTH`) and typed `MeshPacket` classifier.
+    - Offloads high-bandwidth bulk data to Wi-Fi Direct when RSSI is healthy ($\ge -80$ dBm) and link is active.
+    - Guarantees voice traffic remains anchored to BLE mesh, completely eliminating Wi-Fi connection contention and jitter spikes.
+    - Provides graceful fallback to BLE mesh when Wi-Fi Direct disconnects or signal degrades.
+  - `MultiRadioArbiterTest.kt`:
+    - 100% test pass validating default initialization, payload classification, Wi-Fi Direct bulk offload, voice isolation on BLE, graceful fallback upon disconnect, RSSI degradation fallback, and emergency SOS hedging across Cellular SFU.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: BUILD SUCCESSFUL (100% test pass).
+  - `./gradlew :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-26-fleet-hardening`).
+
 
 
 

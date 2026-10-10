@@ -41,7 +41,7 @@
         "Graceful fallback to BLE mesh when Wi-Fi Direct disconnects or moves out of range",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-2603",
