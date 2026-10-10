@@ -111,6 +111,13 @@
   - Out-of-order reassembly buffer with selective NACK recovery reporting exact missing chunk indices.
   - 0.5 fps framerate throttle (min 2000ms frame interval) and QoS airtime pacing adhering to RF duty cycle budgets.
 
+### 2.11 Concurrent Multi-Radio Arbiter (`MultiRadioArbiter.kt`, `RadioModels.kt`)
+- **Challenge**: Offloading heavy bulk data (tactical snapshot thumbnails, GPX route packs) without creating medium contention, RF collisions, or connection dropouts on low-latency voice and life-safety SOS channels.
+- **Solution**:
+  - Concurrent multi-radio state tracking across `BLE_MESH`, `WIFI_DIRECT`, and `CELLULAR_SFU`.
+  - Automated payload classification segregating `EMERGENCY_CRITICAL` and `VOICE_REALTIME` onto BLE Mesh, while routing `BULK_HIGH_BANDWIDTH` data to high-speed Wi-Fi Direct (P2P Cluster).
+  - Graceful fallback: when Wi-Fi Direct disconnects or RSSI degrades below -80 dBm, bulk transfers fall back seamlessly to BLE mesh with QoS token-bucket pacing.
+
 ---
 
 ## ⚠️ 3. Critical Technical Gotchas & Edge Cases
