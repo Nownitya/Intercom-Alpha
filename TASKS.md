@@ -351,3 +351,24 @@
 - [x] #task [ICA-2602] Implement MultiRadioArbiter for concurrent BLE + Wi-Fi Direct ➕ 2026-10-10 ⏳ 2026-10-14 📅 2026-10-18 ⏫ ✅ 2026-10-10
 - [x] #task [ICA-2603] Implement GroupRekeyProtocol with forward-secrecy verification ➕ 2026-10-10 ⏳ 2026-10-15 📅 2026-10-19 🔼 ✅ 2026-10-10
 - [x] #task [ICA-2604] Execute 8-hour expedition battery & memory soak test benchmark ➕ 2026-10-10 ⏳ 2026-10-16 📅 2026-10-20 🔼 ✅ 2026-10-10
+
+---
+
+### ⚡ Sprint 27: Alpine Extreme Reach & Satellite Gateway Integration (Phase 25 - v2.14 Roadmap)
+- **Sprint Goal**: Implement satellite emergency communicator bridge (Garmin inReach / Iridium SBD), long-range BLE Coded PHY (S=8) alpine propagation arbiter, wearable smartwatch quick-PTT companion protocol, and 24-node alpine mountain simulation benchmark.
+- **Sprint Branch**: `sprint/sprint-27-satellite-alpine-gateway`
+- **Target Release**: `v2.14.0`
+- **Status**: ⚡ Active
+
+| Task ID | Item | Target Files | Status |
+| :--- | :--- | :--- | :--- |
+| **ICA-2701** | Pure KMP Satellite Communicator Emergency Gateway Bridge | `SatelliteModels.kt`, `SatelliteGatewayBridge.kt`, `SatelliteGatewayBridgeTest.kt` | ⏳ In Progress |
+| **ICA-2702** | Long-Range BLE Coded PHY (S=8) & Alpine Terrain Attenuation Model | `AlpineRfModels.kt`, `AdaptivePhyArbiter.kt`, `AdaptivePhyArbiterTest.kt` | 📋 Backlog |
+| **ICA-2703** | Wearable Quick-PTT Companion Protocol & Biometric Vitals Beacon | `WearableCompanionModels.kt`, `WearableCompanionProtocol.kt`, `WearableCompanionProtocolTest.kt` | 📋 Backlog |
+| **ICA-2704** | Alpine Expedition Multi-Target Simulation Harness & Archify Showcase Update | `AlpineExpeditionSimulationHarness.kt`, `intercom-alpha.architecture.json` | 📋 Backlog |
+
+#### 📋 Tasks Plugin Checklist (Sprint 27)
+- [ ] #task [ICA-2701] Implement SatelliteGatewayBridge for Iridium SBD & Garmin inReach emergency beacons ➕ 2026-10-10 ⏳ 2026-10-12 📅 2026-10-16 ⏫
+- [ ] #task [ICA-2702] Implement AdaptivePhyArbiter for BLE Coded PHY (S=8) in alpine canyons ➕ 2026-10-10 ⏳ 2026-10-14 📅 2026-10-18 ⏫
+- [ ] #task [ICA-2703] Implement WearableCompanionProtocol for smartwatch quick-PTT & heart rate ➕ 2026-10-10 ⏳ 2026-10-15 📅 2026-10-19 🔼
+- [ ] #task [ICA-2704] Execute 24-node Alpine Expedition simulation harness & Archify showcase update ➕ 2026-10-10 ⏳ 2026-10-16 📅 2026-10-20 🔼
