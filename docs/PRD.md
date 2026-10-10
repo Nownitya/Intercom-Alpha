@@ -1,10 +1,10 @@
-﻿# Product Requirements Document (PRD) — Intercom-Alpha
+# Product Requirements Document (PRD) — Intercom-Alpha
 
 > **Document Version:** 2.12  
 > **Status:** Released (`v2.12.0`) / Active Sprint 26 (`sprint/sprint-26-fleet-hardening`)  
 > **Last Updated:** 2026-10-10  
 > **Repository:** `Intercom-Alpha`  
-> **Related Documents:** `docs/BRD.md`, `docs/TRD.md`, `docs/ARCHITECTURE.md`
+> **Related Documents:** `docs/FEATURES.md`, `docs/BRD.md`, `docs/TRD.md`, `docs/ARCHITECTURE.md`
 
 ---
 

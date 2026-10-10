@@ -1,10 +1,10 @@
-﻿# System Architecture Document — Intercom-Alpha
+# System Architecture Document — Intercom-Alpha
 
 > **Document Version:** 2.12  
 > **Status:** Production Release Tagged (`v2.12.0`) / Sprint 26 Active  
 > **Last Updated:** 2026-10-10  
 > **Interactive Diagram:** [`docs/architecture/intercom-alpha-architecture.html`](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/architecture/intercom-alpha-architecture.html)  
-> **Related Documents:** [`docs/BRD.md`](./BRD.md) • [`docs/PRD.md`](./PRD.md) • [`docs/TRD.md`](./TRD.md) • [`docs/TASKS.md`](./TASKS.md)
+> **Related Documents:** [`docs/FEATURES.md`](./FEATURES.md) • [`docs/BRD.md`](./BRD.md) • [`docs/PRD.md`](./PRD.md) • [`docs/TRD.md`](./TRD.md) • [`docs/TASKS.md`](./TASKS.md)
 
 ---
 
