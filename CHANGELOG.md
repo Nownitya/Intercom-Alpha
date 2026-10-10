@@ -1,9 +1,19 @@
-﻿# Changelog â€” Intercom-Alpha
+# Changelog â€” Intercom-Alpha
 
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
+
+## [2.13.0] - 2026-10-10 — Sprint 26: Long-Haul Fleet Hardening & Low-Bandwidth Visual Telemetry
+
+### Added
+- **Tactical Snapshot Mesh Transport Engine (`SnapshotModels.kt`, `TacticalSnapshotProtocol.kt`, `SnapshotTransferManager.kt`)**: Pure KMP progressive transmission of compressed 0.5 fps thumbnail snapshots (<= 1.5 KB payload) over BLE mesh. MTU-bounded chunking (<= 128 bytes) with dual Adler-32 integrity validation and selective out-of-order NACK reassembly over lossy multi-hop channels.
+- **Concurrent Multi-Radio Arbiter (`RadioModels.kt`, `MultiRadioArbiter.kt`)**: Dynamically routes high-bandwidth bulk data (tactical snapshots, trail GPX chunks) over Wi-Fi Direct (`P2P_CLUSTER`) when direct proximity is established, while strictly isolating low-latency voice and emergency traffic on BLE mesh, eliminating channel contention.
+- **Fleet-Wide Over-The-Air Cryptographic Group Rekeying Protocol (`RekeyModels.kt`, `GroupRekeyProtocol.kt`)**: Forward-secret epoch key derivation via RFC 5869 HKDF-SHA256, dual-epoch key buffer (`CurrentEpoch`, `PreviousEpoch`) with a 10-second transition grace period eliminating dropped packets during key rotation, anti-replay counter protection, HMAC authentication, and memory zeroization.
+- **8-Hour Expedition Continuous Soak Benchmark & Architecture Showcase (`ExpeditionSoakSimulationHarness.kt`, `intercom-alpha.architecture.json`, `intercom-alpha-architecture.html`)**: Simulated 20-node expedition convoy across 28,800,000 virtual ms with dynamic topology shifts, periodic voice bursts, snapshot transfers, battery governor transitions, zero memory/coroutine leaks, and updated interactive Archify showcase with 9/9 verification checks passed.
 
 ---
 
