@@ -394,4 +394,25 @@
 - [x] #task [ICA-2803] Implement AirtimeCongestionGovernor for CBR channel pacing & adaptive FEC ➕ 2026-10-10 ⏳ 2026-10-15 📅 2026-10-19 🔼 ✅ 2026-10-10
 - [x] #task [ICA-2804] Execute 32-node Alpine Blizzard simulation harness & Archify showcase update ➕ 2026-10-10 ⏳ 2026-10-16 📅 2026-10-20 🔼 ✅ 2026-10-10
 
+---
+
+### ⚡ Sprint 29: Unified Hardware Bridge Integration & System Certification (Phase 27 - Final Core Development Milestone)
+- **Sprint Goal**: Wire all advanced features (tactical snapshots, multi-radio offload, OTA group rekeying, satellite emergency lifeline, alpine Coded PHY, smartwatch companion, spectral noise suppression, hands-free wake word VOX, and airtime congestion governor) into `IntercomHardwareBridge` and native iOS `IntercomBridge.kt`, execute full 32-node end-to-end system simulation harness, update Archify showcase, and certify completion of all backend development before launching the dedicated UI/UX phase.
+- **Sprint Branch**: `sprint/sprint-29-unified-bridge-certification`
+- **Target Release**: `v2.16.0`
+- **Status**: ⚡ Active
+
+| Task ID | Item | Target Files | Status |
+| :--- | :--- | :--- | :--- |
+| **ICA-2901** | Tactical Snapshots, Multi-Radio & Rekeying Hardware Bridge Wiring | `IntercomHardwareBridge.kt`, `IntercomHardwareBridgeImpl.kt`, `IntercomBridge.kt` | ⏳ In Progress |
+| **ICA-2902** | Satellite Lifeline, Alpine Coded PHY & Wearable Companion Bridge Wiring | `IntercomHardwareBridge.kt`, `IntercomHardwareBridgeImpl.kt`, `IntercomBridge.kt` | ⏹️ Planned |
+| **ICA-2903** | Spectral Noise DSP, Wake Word VOX & Airtime Congestion Governor Bridge Wiring | `IntercomHardwareBridge.kt`, `IntercomHardwareBridgeImpl.kt`, `IntercomBridge.kt` | ⏹️ Planned |
+| **ICA-2904** | 32-Node Unified End-to-End System Simulation, Final Architecture Showcase & Certification | `UnifiedSystemCertificationHarness.kt`, `intercom-alpha.architecture.json` | ⏹️ Planned |
+
+#### 📋 Tasks Plugin Checklist (Sprint 29)
+- [ ] #task [ICA-2901] Wire Tactical Snapshots, Multi-Radio & OTA Group Rekey into hardware bridges ➕ 2026-10-10 ⏳ 2026-10-12 📅 2026-10-16 ⏫
+- [ ] #task [ICA-2902] Wire Satellite Lifeline, Alpine Coded PHY & Wearable Companion into hardware bridges ➕ 2026-10-10 ⏳ 2026-10-14 📅 2026-10-18 ⏫
+- [ ] #task [ICA-2903] Wire Spectral Noise DSP, Wake Word VOX & Airtime Congestion Governor into hardware bridges ➕ 2026-10-10 ⏳ 2026-10-15 📅 2026-10-19 🔼
+- [ ] #task [ICA-2904] Execute 32-node Unified System Simulation & Archify showcase certification ➕ 2026-10-10 ⏳ 2026-10-16 📅 2026-10-20 🔼
+
 

@@ -1,83 +1,84 @@
 {
   "project": "Intercom-Alpha",
-  "branchName": "sprint/sprint-28-edge-acoustic-congestion",
-  "phase": "Phase 26: Edge Acoustic Intelligence & Mesh Airtime Congestion Governance",
-  "sprint": "Sprint 28",
-  "updatedAt": "2026-10-10T11:40:00Z",
+  "branchName": "sprint/sprint-29-unified-bridge-certification",
+  "phase": "Phase 27: Unified Hardware Bridge Integration & System Certification",
+  "sprint": "Sprint 29",
+  "updatedAt": "2026-10-10T12:40:00Z",
   "stories": [
     {
-      "id": "ICA-2801",
+      "id": "ICA-2901",
       "priority": 1,
-      "title": "Pure KMP Spectral Subtraction Speech Enhancer & Wind Noise Suppressor",
-      "description": "Implement SpectralNoiseModels.kt and SpectralNoiseSuppressor.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/. Provides real-time frequency-domain noise suppression using pure KMP spectral subtraction with recursive minimum statistics noise floor tracking, Wiener filter gain estimation, over-subtraction factor alpha, and spectral floor beta to eliminate musical noise. Attenuates dynamic non-stationary helmet wind turbulence (>80 km/h) and exhaust rumble with zero Java, C, or external ML dependencies (Rules 2 & 3).",
+      "title": "Tactical Snapshots, Multi-Radio & Rekeying Hardware Bridge Wiring",
+      "description": "Wire TacticalSnapshotProtocol, MultiRadioArbiter, and GroupRekeyProtocol into IntercomHardwareBridge and iOS IntercomBridge.kt. Exposes reactive snapshots (SnapshotTransferProgress, ActiveRadioMode, RekeyEpochState) with CancellationHandle observers on iOS, ensuring full bridge integration for visual telemetry, Wi-Fi Direct offloading, and forward-secret group key rotation.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/SpectralNoiseModels.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/SpectralNoiseSuppressor.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/SpectralNoiseSuppressorTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomHardwareBridge.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomHardwareBridgeImpl.kt",
+        "app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomBridge.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/bridge/IntercomHardwareBridgeWiringTest.kt"
       ],
       "acceptanceCriteria": [
-        "Pure KMP implementation with zero Java, C, or external ML dependencies in commonMain (Rules 2 & 3)",
-        "Defines NoiseSuppressionMode, SpectralNoiseProfile, NoiseEstimationStats, and SpectralFrameDiagnostics data models",
-        "Implements pure Kotlin STFT/filterbank framing (256/512-point window) with Hanning analysis/synthesis and overlap-add reconstruction",
-        "Dynamic noise floor tracking adapts to changing aerodynamic speed and environment without speech distortion",
-        "100% unit test pass across JVM, Android, and iOS Simulator targets"
+        "IntercomHardwareBridge exposes reactive StateFlows for SnapshotTransferProgress, RadioMode, and RekeyEpochState",
+        "IntercomBridge.kt exposes typed Swift-friendly observeSnapshotProgress, observeRadioMode, and observeRekeyState returning CancellationHandle (Rule 1)",
+        "Zero Java or C dependencies in commonMain (Rules 2 & 3)",
+        "100% unit test pass across JVM, Android, and iOS Simulator compilation (Rule 6)"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-2802",
+      "id": "ICA-2902",
       "priority": 2,
-      "title": "Hands-Free Acoustic Wake Word Engine & Continuous VOX Arbiter",
-      "description": "Implement WakeWordModels.kt and AcousticWakeWordEngine.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/. Provides low-latency, zero-cloud offline acoustic keyword spotting for 'Hey Alpha' and 'Emergency SOS' using energy envelope trajectory and phonetic formant band scoring, enabling hands-free PTT trigger and speech hold-tail state management during high-speed riding.",
+      "title": "Satellite Lifeline, Alpine Coded PHY & Wearable Companion Bridge Wiring",
+      "description": "Wire SatelliteGatewayBridge, AdaptivePhyArbiter, and WearableCompanionProtocol into IntercomHardwareBridge and iOS IntercomBridge.kt. Exposes reactive states for satellite uplink beacons, BLE PHY negotiation (LE 1M, 2M, Coded S=8), and smartwatch companion telemetry (quick-PTT, heart rate, rider fall detection) with typed observers.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/WakeWordModels.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/AcousticWakeWordEngine.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/AcousticWakeWordEngineTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomHardwareBridge.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomHardwareBridgeImpl.kt",
+        "app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomBridge.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/bridge/IntercomSatellitePhyBridgeTest.kt"
       ],
       "acceptanceCriteria": [
-        "Pure KMP keyword spotting engine with zero cloud or third-party ML runtime dependencies",
-        "Supports 'Hey Alpha' (hands-free PTT) and 'Emergency SOS' (priority distress broadcast) wake triggers",
-        "Configurable confidence threshold, false-trigger rejection under high wind noise, and refractory cooldown periods",
-        "100% unit test pass across JVM, Android, and iOS Simulator targets"
+        "IntercomHardwareBridge exposes reactive SatelliteBridgeSnapshot, PhyNegotiationSnapshot, and WearableCompanionSnapshot",
+        "IntercomBridge.kt exposes observeSatelliteStatus, observePhyMode, and observeWearableVitals with CancellationHandle lifecycle bindings",
+        "Subsystem hooks for triggering satellite distress beacon and wearable PTT clicks",
+        "100% unit test pass across all platforms"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-2803",
+      "id": "ICA-2903",
       "priority": 3,
-      "title": "Real-Time Channel Airtime Congestion Governor & Adaptive FEC Shaper",
-      "description": "Implement CongestionModels.kt and AirtimeCongestionGovernor.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/qos/. Measures local channel busy ratio (CBR) and transmission collision estimates, dynamically throttling non-voice telemetry queues (GPS beacons, biometric packets, thumbnail chunks) and adjusting audio Forward Error Correction (FEC) redundancy to maintain <= 80ms voice latency under heavy mesh airtime contention.",
+      "title": "Spectral Noise DSP, Wake Word VOX & Airtime Congestion Governor Bridge Wiring",
+      "description": "Wire SpectralNoiseSuppressor, AcousticWakeWordEngine, and AirtimeCongestionGovernor into IntercomHardwareBridge and iOS IntercomBridge.kt. Exposes reactive snapshots for real-time wind noise dB attenuation, hands-free VOX state machine transitions, and channel busy ratio (CBR) congestion levels with adaptive FEC indicators.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/qos/CongestionModels.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/qos/AirtimeCongestionGovernor.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/qos/AirtimeCongestionGovernorTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomHardwareBridge.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomHardwareBridgeImpl.kt",
+        "app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomBridge.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/bridge/IntercomAcousticQoSBridgeTest.kt"
       ],
       "acceptanceCriteria": [
-        "Pure KMP channel busy ratio (CBR) tracking and congestion tier classification (UNCONGESTED, MODERATE, HIGH, CRITICAL)",
-        "Dynamic duty-cycle throttling applied to bulk and non-critical control traffic during speech bursts",
-        "Adaptive audio packet repetition / FEC adjustment based on observed collision rates",
-        "100% unit test pass across JVM, Android, and iOS Simulator targets"
+        "IntercomHardwareBridge exposes reactive SpectralNoiseSnapshot, VoxStateSnapshot, and AirtimeCongestionSnapshot",
+        "IntercomBridge.kt exposes observeNoiseSuppression, observeVoxState, and observeCongestionLevel with CancellationHandle bindings",
+        "Subsystem hooks for switching noise suppression profiles and tuning VOX sensitivity",
+        "100% unit test pass across all platforms"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-2804",
+      "id": "ICA-2904",
       "priority": 4,
-      "title": "32-Node Alpine Blizzard Acoustic & RF Contention Benchmark & Archify Showcase Update",
-      "description": "Implement AlpineBlizzardSimulationHarness.kt simulating a 32-node alpine blizzard convoy under extreme wind noise (+15 dB noise-to-signal ratio), hands-free wake word triggering, and heavy RF airtime contention. Validates audio intelligibility, zero voice frame loss, and updates Archify architecture showcase with 9/9 verification pass.",
+      "title": "32-Node Unified End-to-End System Simulation, Final Architecture Showcase & Certification",
+      "description": "Implement UnifiedSystemCertificationHarness.kt simulating 32 full-stack nodes exercising all interconnected subsystems (mesh flooding, AODV-Lite, multi-group federation, 4-tier QoS, failover hedging, snapshots, satellite lifeline, Coded PHY, spectral noise suppression, hands-free wake word, and congestion governance). Updates Archify showcase with 9/9 verification pass and signs off core development completion.",
       "targetFiles": [
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/simulation/AlpineBlizzardSimulationHarness.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/simulation/UnifiedSystemCertificationHarness.kt",
         "docs/architecture/intercom-alpha.architecture.json",
         "docs/architecture/intercom-alpha-architecture.html"
       ],
       "acceptanceCriteria": [
-        "Simulates 32 nodes in blizzard conditions with severe wind turbulence and acoustic noise",
-        "Validates spectral subtraction noise suppression boosting effective SNR by >= 12 dB",
-        "Validates hands-free wake word detection and congestion governor airtime throttling",
-        "Archify architecture specification and HTML showcase updated with 9/9 verification pass",
-        "Full multiplatform test suite pass across all targets"
+        "Simulates 32 nodes traversing high-speed alpine expedition conditions with all 9 core feature domains active",
+        "Verifies end-to-end voice latency <= 80ms, zero dropped emergency frames, and complete hardware bridge synchronization",
+        "Archify architecture specification and HTML showcase updated with 9/9 verification checks passed",
+        "Full multiplatform test suite pass across all targets certifying end of core development"
       ],
-      "passes": true
+      "passes": false
     }
   ]
 }
