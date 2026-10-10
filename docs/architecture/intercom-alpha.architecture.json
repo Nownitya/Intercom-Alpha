@@ -34,10 +34,10 @@
         "note": "Follow dynamic convoy radar tethering, split detection, IMU crash eCall HUD, offline voice DSP, and AODV-Lite route discovery."
       },
       {
-        "id": "qos-and-failover",
-        "label": "QoS & Multi-Path Failover",
-        "focus": ["cross_mesh_arbiter", "failover_arbiter", "hybrid_router", "qos_scheduler", "qos_queue", "mesh_transport", "signaling_server", "remote_peers"],
-        "note": "Follow 4-tier strict QoS preemption, RF degradation failover to MULTI_PATH_HEDGED, and cellular SFU relay fallback."
+        "id": "qos-failover-and-fleet-hardening",
+        "label": "QoS, Failover & Fleet Hardening",
+        "focus": ["cross_mesh_arbiter", "failover_arbiter", "hybrid_router", "qos_scheduler", "qos_queue", "tactical_snapshot", "multi_radio_arbiter", "group_rekey_protocol", "mesh_transport", "remote_peers"],
+        "note": "Follow 4-tier strict QoS, failover hedging, 0.5 fps snapshot chunking, Wi-Fi Direct bulk offload, and OTA cryptographic rekeying."
       }
     ]
   },
@@ -248,6 +248,33 @@
       "tag": "Dual-Stream Hedger",
       "pos": [520, 940],
       "size": [136, 62]
+    },
+    {
+      "id": "tactical_snapshot",
+      "type": "backend",
+      "label": "Tactical Snapshots",
+      "sublabel": "0.5 fps MTU Chunker",
+      "tag": "Adler-32 Selective NACK",
+      "pos": [300, 1120],
+      "size": [136, 62]
+    },
+    {
+      "id": "multi_radio_arbiter",
+      "type": "backend",
+      "label": "Multi-Radio Arbiter",
+      "sublabel": "BLE + Wi-Fi Direct",
+      "tag": "Bulk Data Offloader",
+      "pos": [520, 1120],
+      "size": [136, 62]
+    },
+    {
+      "id": "group_rekey_protocol",
+      "type": "security",
+      "label": "Group Rekey Protocol",
+      "sublabel": "OTA Dual-Epoch",
+      "tag": "HKDF-SHA256 Forward Secret",
+      "pos": [740, 1120],
+      "size": [136, 62]
     }
   ],
   "boundaries": [
@@ -260,7 +287,7 @@
     {
       "kind": "security-group",
       "label": "KMP Core Engine (:app:sharedLogic)",
-      "wraps": ["group_mgr", "audio_engine", "trail_engine", "packet_cipher", "deduplicator", "geofence_engine", "mesh_transport", "battery_governor", "crash_detector", "voice_recognizer", "link_metric", "directed_router", "cross_mesh_arbiter", "federation_gateway", "qos_scheduler", "qos_queue", "failover_arbiter", "hybrid_router"],
+      "wraps": ["group_mgr", "audio_engine", "trail_engine", "packet_cipher", "deduplicator", "geofence_engine", "mesh_transport", "battery_governor", "crash_detector", "voice_recognizer", "link_metric", "directed_router", "cross_mesh_arbiter", "federation_gateway", "qos_scheduler", "qos_queue", "failover_arbiter", "hybrid_router", "tactical_snapshot", "multi_radio_arbiter", "group_rekey_protocol"],
       "pad": 16
     },
     {
@@ -482,6 +509,30 @@
       "fromSide": "top",
       "toSide": "bottom",
       "variant": "emphasis"
+    },
+    {
+      "from": "tactical_snapshot",
+      "to": "multi_radio_arbiter",
+      "label": "Bulk Stream",
+      "fromSide": "right",
+      "toSide": "left",
+      "variant": "emphasis"
+    },
+    {
+      "from": "multi_radio_arbiter",
+      "to": "hybrid_router",
+      "label": "Radio Offload",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "variant": "emphasis"
+    },
+    {
+      "from": "group_rekey_protocol",
+      "to": "qos_scheduler",
+      "label": "Epoch Control",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "variant": "security"
     }
   ],
   "cards": [
@@ -565,6 +616,16 @@
         "Pure KMP MultiPathFailoverArbiter evaluates ETX, RSSI, and PDR with discrete modes (BLE_DIRECT, MULTI_PATH_HEDGED, CLOUD_RELAY_ONLY, RESTRICTED_OFFLINE)",
         "Zero-dropout MULTI_PATH_HEDGED dual-stream voice packet hedging with receiver PacketDeduplicator transparent suppression",
         "5,000ms hysteresis dampening preventing RF boundary flapping during highway convoy drift, mountain split, and tunnel dead zones"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Fleet Hardening, Low-Bandwidth Visual Telemetry & OTA Rekey (Sprint 26)",
+      "items": [
+        "Pure KMP TacticalSnapshotProtocol (0.5 fps, <=128 byte chunks, Adler-32 checksums, out-of-order selective NACK reassembly)",
+        "Concurrent MultiRadioArbiter dynamically routes high-bandwidth snapshots/GPX over Wi-Fi Direct while isolating voice on BLE mesh",
+        "Fleet-wide OTA GroupRekeyProtocol enforces forward-secret HKDF-SHA256 epoch rotation with 10s dual-epoch grace buffer eliminating packet drops",
+        "8-hour continuous soak benchmark across 20 convoy nodes verifying zero memory/coroutine leaks, power scaling, and voice continuity"
       ]
     }
   ]
