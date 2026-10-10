@@ -2235,11 +2235,33 @@
   - `ICA-2803: Real-Time Channel Airtime Congestion Governor & Adaptive FEC Shaper` [PASSED]
   - `ICA-2804: 32-Node Alpine Blizzard Acoustic & RF Contention Benchmark & Archify Showcase Update` [PASSED]
 
+---
 
+## 🚀 Sprint 29: Unified Hardware Bridge Integration & System Certification (v2.16.0 Roadmap, Phase 27 - Final Core Development Milestone)
 
-
-
-
-
-
-
+### [2026-10-10] - ICA-2901: Tactical Snapshots, Multi-Radio & Rekeying Hardware Bridge Wiring
+- **Branch**: `feature/ICA-2901-snapshots-radio-rekey-bridge`
+- **Objective**: Wire TacticalSnapshotProtocol, MultiRadioArbiter, and GroupRekeyProtocol into IntercomHardwareBridge and iOS IntercomBridge.kt. Expose reactive snapshots (SnapshotTransferProgress, ActiveRadioMode, RekeyEpochState) with CancellationHandle observers on iOS, ensuring full bridge integration for visual telemetry, Wi-Fi Direct offloading, and forward-secret group key rotation.
+- **Implementation**:
+  - `RekeyModels.kt`:
+    - Added `RekeyEpochSnapshot` data model with current epoch, grace period status, remaining seconds, timestamp, and trigger reason.
+  - `GroupRekeyProtocol.kt`:
+    - Added `getSnapshot(currentTimeMs)` method computing active epoch and remaining grace period.
+  - `IntercomHardwareBridge.kt`:
+    - Added StateFlows and properties for `snapshotProgress`, `multiRadioState`, and `rekeyEpochSnapshot`.
+    - Added `attachSubsystems` parameters for `snapshotManager`, `multiRadioArbiter`, and `groupRekeyProtocol`.
+    - Implemented simulation helpers in `NoOpIntercomHardwareBridge`.
+  - `AndroidPlatformBridge.kt`:
+    - Integrated `snapshotManager`, `multiRadioArbiter`, and `groupRekeyProtocol` in `attachSubsystems` with background flow collectors.
+    - Implemented override methods: `updateSnapshotProgress`, `updateMultiRadioState`, `updateRekeyEpochSnapshot`, `setPreferredRadioForBulk`, and `initiateManualRekey`.
+  - `IntercomBridge.kt` (iOS):
+    - Wired `snapshotManager`, `multiRadioArbiter`, and `rekeyProtocol`.
+    - Added Swift-friendly reactive listeners: `observeSnapshotTransfers`, `observeLatestReceivedSnapshot`, `observeMultiRadioState`, and `observeRekeyEpochSnapshot` returning lifecycle-managed `CancellationHandle`.
+    - Added `initiateManualRekey` dispatching over mesh and updating local state.
+  - `IntercomHardwareBridgeWiringTest.kt`:
+    - Verified reactive flow emissions, manual rekeying, preferred radio selection, and snapshot progress across JVM test suite.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest :app:androidApp:testDebugUnitTest :app:androidApp:assembleDebug`: BUILD SUCCESSFUL.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-29-unified-bridge-certification`).

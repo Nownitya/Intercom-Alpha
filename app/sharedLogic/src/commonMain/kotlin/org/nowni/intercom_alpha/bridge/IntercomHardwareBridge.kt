@@ -73,6 +73,9 @@ interface IntercomHardwareBridge {
     val federationSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.federation.FederationSnapshot>
     val qosSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.qos.QoSSnapshot>
     val failoverSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.failover.FailoverMetrics>
+    val snapshotProgress: StateFlow<org.nowni.intercom_alpha.mesh.visual.SnapshotTransferProgress?>
+    val multiRadioState: StateFlow<org.nowni.intercom_alpha.mesh.radio.MultiRadioState>
+    val rekeyEpochSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.security.RekeyEpochSnapshot>
 
     fun setPttActive(active: Boolean)
     fun setRepeaterModeActive(active: Boolean)
@@ -88,11 +91,16 @@ interface IntercomHardwareBridge {
     fun updateFederationSnapshot(snapshot: org.nowni.intercom_alpha.mesh.federation.FederationSnapshot)
     fun updateQoSSnapshot(snapshot: org.nowni.intercom_alpha.mesh.qos.QoSSnapshot)
     fun updateFailoverSnapshot(metrics: org.nowni.intercom_alpha.mesh.failover.FailoverMetrics)
+    fun updateSnapshotProgress(progress: org.nowni.intercom_alpha.mesh.visual.SnapshotTransferProgress?)
+    fun updateMultiRadioState(state: org.nowni.intercom_alpha.mesh.radio.MultiRadioState)
+    fun updateRekeyEpochSnapshot(snapshot: org.nowni.intercom_alpha.mesh.security.RekeyEpochSnapshot)
     fun setFailoverModeOverride(mode: org.nowni.intercom_alpha.mesh.failover.FailoverMode?) {}
     fun setFederationPolicy(groupId: String, policy: org.nowni.intercom_alpha.mesh.federation.CrossGroupPolicy) {}
     fun createFederationInvite(): String? = null
     fun acceptFederationInvite(inviteCode: String): Boolean = false
     fun initiateRouteDiscovery(destinationId: String) {}
+    fun initiateManualRekey(reason: org.nowni.intercom_alpha.mesh.security.RekeyTriggerReason = org.nowni.intercom_alpha.mesh.security.RekeyTriggerReason.MANUAL_REKEY): org.nowni.intercom_alpha.mesh.security.RekeyControlPacket? = null
+    fun setPreferredRadioForBulk(radio: org.nowni.intercom_alpha.mesh.radio.RadioType) {}
     fun cancelCrashCountdown()
     fun triggerManualCrashSos()
     fun processImuReading(reading: org.nowni.intercom_alpha.safety.ImuReading) {}
@@ -116,7 +124,10 @@ interface IntercomHardwareBridge {
         directedRouter: org.nowni.intercom_alpha.mesh.routing.DirectedMeshRouter? = null,
         interGroupGateway: org.nowni.intercom_alpha.mesh.federation.InterGroupGateway? = null,
         qosScheduler: org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler? = null,
-        failoverArbiter: org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter? = null
+        failoverArbiter: org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter? = null,
+        snapshotManager: org.nowni.intercom_alpha.mesh.visual.SnapshotTransferManager? = null,
+        multiRadioArbiter: org.nowni.intercom_alpha.mesh.radio.MultiRadioArbiter? = null,
+        groupRekeyProtocol: org.nowni.intercom_alpha.mesh.security.GroupRekeyProtocol? = null
     ) {}
 }
 
@@ -225,6 +236,15 @@ open class NoOpIntercomHardwareBridge(
     protected val _failoverSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.failover.FailoverMetrics())
     override val failoverSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.failover.FailoverMetrics> = _failoverSnapshot.asStateFlow()
 
+    protected val _snapshotProgress = MutableStateFlow<org.nowni.intercom_alpha.mesh.visual.SnapshotTransferProgress?>(null)
+    override val snapshotProgress: StateFlow<org.nowni.intercom_alpha.mesh.visual.SnapshotTransferProgress?> = _snapshotProgress.asStateFlow()
+
+    protected val _multiRadioState = MutableStateFlow(org.nowni.intercom_alpha.mesh.radio.MultiRadioState())
+    override val multiRadioState: StateFlow<org.nowni.intercom_alpha.mesh.radio.MultiRadioState> = _multiRadioState.asStateFlow()
+
+    protected val _rekeyEpochSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.security.RekeyEpochSnapshot())
+    override val rekeyEpochSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.security.RekeyEpochSnapshot> = _rekeyEpochSnapshot.asStateFlow()
+
     override fun setPttActive(active: Boolean) {
         _isTransmitting.value = active
     }
@@ -295,6 +315,34 @@ open class NoOpIntercomHardwareBridge(
 
     fun simulateFailoverSnapshot(metrics: org.nowni.intercom_alpha.mesh.failover.FailoverMetrics) {
         _failoverSnapshot.value = metrics
+    }
+
+    override fun updateSnapshotProgress(progress: org.nowni.intercom_alpha.mesh.visual.SnapshotTransferProgress?) {
+        _snapshotProgress.value = progress
+    }
+
+    fun simulateSnapshotProgress(progress: org.nowni.intercom_alpha.mesh.visual.SnapshotTransferProgress?) {
+        _snapshotProgress.value = progress
+    }
+
+    override fun updateMultiRadioState(state: org.nowni.intercom_alpha.mesh.radio.MultiRadioState) {
+        _multiRadioState.value = state
+    }
+
+    fun simulateMultiRadioState(state: org.nowni.intercom_alpha.mesh.radio.MultiRadioState) {
+        _multiRadioState.value = state
+    }
+
+    override fun updateRekeyEpochSnapshot(snapshot: org.nowni.intercom_alpha.mesh.security.RekeyEpochSnapshot) {
+        _rekeyEpochSnapshot.value = snapshot
+    }
+
+    fun simulateRekeyEpochSnapshot(snapshot: org.nowni.intercom_alpha.mesh.security.RekeyEpochSnapshot) {
+        _rekeyEpochSnapshot.value = snapshot
+    }
+
+    override fun setPreferredRadioForBulk(radio: org.nowni.intercom_alpha.mesh.radio.RadioType) {
+        _multiRadioState.value = _multiRadioState.value.copy(bulkTransferPreferredRadio = radio)
     }
 
     override fun setFederationPolicy(groupId: String, policy: org.nowni.intercom_alpha.mesh.federation.CrossGroupPolicy) {
