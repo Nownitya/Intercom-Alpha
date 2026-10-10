@@ -40,7 +40,7 @@
         "Configurable confidence threshold, false-trigger rejection under high wind noise, and refractory cooldown periods",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-2803",
