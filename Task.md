@@ -1,8 +1,8 @@
 # Master Tasks & Engineering Roadmap â€” Intercom-Alpha
 
-> **Document Version:** 2.14  
+> **Document Version:** 2.15  
 > **Status:** Active / Tracked  
-> **Current Sprint:** Sprint 27 Completed (v2.14.0 Released) — Sprint 28 Next
+> **Current Sprint:** Sprint 28 Active (`sprint/sprint-28-edge-acoustic-congestion`) — v2.15.0 Roadmap
 > **Obsidian Reference:** `01_Management/Roadmap.md` & `01_Management/Kanban.md`
 
 ---
@@ -372,3 +372,25 @@
 - [x] #task [ICA-2702] Implement AdaptivePhyArbiter for BLE Coded PHY (S=8) in alpine canyons ➕ 2026-10-10 ⏳ 2026-10-14 📅 2026-10-18 ⏫ ✅ 2026-10-10
 - [x] #task [ICA-2703] Implement WearableCompanionProtocol for smartwatch quick-PTT & heart rate ➕ 2026-10-10 ⏳ 2026-10-15 📅 2026-10-19 🔼 ✅ 2026-10-10
 - [x] #task [ICA-2704] Execute 24-node Alpine Expedition simulation harness & Archify showcase update ➕ 2026-10-10 ⏳ 2026-10-16 📅 2026-10-20 🔼 ✅ 2026-10-10
+ 
+---
+ 
+### ⚡ Sprint 28: Edge Acoustic Intelligence & Mesh Airtime Congestion Governance (Phase 26 - v2.15 Roadmap)
+- **Sprint Goal**: Implement pure KMP spectral subtraction speech enhancer for motorcycle wind noise, offline hands-free wake word engine ("Hey Alpha" / "Emergency SOS"), channel busy ratio (CBR) airtime congestion governor with adaptive FEC, and 32-node alpine blizzard simulation benchmark.
+- **Sprint Branch**: `sprint/sprint-28-edge-acoustic-congestion`
+- **Target Release**: `v2.15.0`
+- **Status**: ⚡ Active
+ 
+| Task ID | Item | Target Files | Status |
+| :--- | :--- | :--- | :--- |
+| **ICA-2801** | Pure KMP Spectral Subtraction Speech Enhancer & Wind Noise Suppressor | `SpectralNoiseModels.kt`, `SpectralNoiseSuppressor.kt`, `SpectralNoiseSuppressorTest.kt` | ✅ Completed |
+| **ICA-2802** | Hands-Free Acoustic Wake Word Engine & Continuous VOX Arbiter | `WakeWordModels.kt`, `AcousticWakeWordEngine.kt`, `AcousticWakeWordEngineTest.kt` | ✅ Completed |
+| **ICA-2803** | Real-Time Channel Airtime Congestion Governor & Adaptive FEC Shaper | `CongestionModels.kt`, `AirtimeCongestionGovernor.kt`, `AirtimeCongestionGovernorTest.kt` | ✅ Completed |
+| **ICA-2804** | 32-Node Alpine Blizzard Acoustic & RF Contention Benchmark & Archify Showcase Update | `AlpineBlizzardSimulationHarness.kt`, `intercom-alpha.architecture.json` | ⏳ In Progress |
+ 
+#### 📋 Tasks Plugin Checklist (Sprint 28)
+- [x] #task [ICA-2801] Implement SpectralNoiseSuppressor for real-time wind noise reduction ➕ 2026-10-10 ⏳ 2026-10-12 📅 2026-10-16 ⏫ ✅ 2026-10-10
+- [x] #task [ICA-2802] Implement AcousticWakeWordEngine for hands-free 'Hey Alpha' and 'Emergency SOS' ➕ 2026-10-10 ⏳ 2026-10-14 📅 2026-10-18 ⏫ ✅ 2026-10-10
+- [x] #task [ICA-2803] Implement AirtimeCongestionGovernor for CBR channel pacing & adaptive FEC ➕ 2026-10-10 ⏳ 2026-10-15 📅 2026-10-19 🔼 ✅ 2026-10-10
+- [ ] #task [ICA-2804] Execute 32-node Alpine Blizzard simulation harness & Archify showcase update ➕ 2026-10-10 ⏳ 2026-10-16 📅 2026-10-20 🔼
+
