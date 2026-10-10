@@ -2168,6 +2168,26 @@
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-28-edge-acoustic-congestion`).
 
+### [2026-10-10] - ICA-2802: Hands-Free Acoustic Wake Word Engine & Continuous VOX Arbiter
+- **Branch**: `feature/ICA-2802-acoustic-wake-word`
+- **Objective**: Implement `WakeWordModels.kt` and `AcousticWakeWordEngine.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/` to provide low-latency, zero-cloud offline acoustic keyword spotting for 'Hey Alpha' and 'Emergency SOS' using energy envelope trajectory and phonetic formant band scoring, enabling hands-free PTT trigger and speech hold-tail state management during high-speed riding.
+- **Implementation**:
+  - `WakeWordModels.kt`:
+    - Defined `WakeWordType` (`HEY_ALPHA`, `EMERGENCY_SOS`), `VoxState` (`IDLE`, `TRIGGERED`, `HOLD_TAIL`, `COOLDOWN`), `WakeWordEvent`, and `WakeWordConfig`.
+  - `AcousticWakeWordEngine.kt`:
+    - Pure KMP feature extraction per 20ms frame: RMS energy dBFS, Zero-Crossing Rate (ZCR), and high-frequency sibilant ratio.
+    - Syllable template scoring distinguishing 3-syllable "Hey Alpha" from multi-syllable "Emergency SOS".
+    - 4-stage VOX state machine (`IDLE` -> `TRIGGERED` -> `HOLD_TAIL` -> `COOLDOWN`) with configurable hold-tail duration (800ms) and cooldown period (1000ms).
+    - Manual PTT button overrides and StateFlow/Channel event emission.
+  - `AcousticWakeWordEngineTest.kt`:
+    - 100% unit test coverage validating initial state, "Hey Alpha" detection, "Emergency SOS" priority detection, VOX state transitions, manual PTT override, and engine reset.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: BUILD SUCCESSFUL (100% test pass).
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-28-edge-acoustic-congestion`).
+
+
 
 
 
