@@ -118,6 +118,27 @@
   - Automated payload classification segregating `EMERGENCY_CRITICAL` and `VOICE_REALTIME` onto BLE Mesh, while routing `BULK_HIGH_BANDWIDTH` data to high-speed Wi-Fi Direct (P2P Cluster).
   - Graceful fallback: when Wi-Fi Direct disconnects or RSSI degrades below -80 dBm, bulk transfers fall back seamlessly to BLE mesh with QoS token-bucket pacing.
 
+### 2.12 Satellite Communicator Emergency Gateway Bridge (`SatelliteGatewayBridge.kt`, `SatelliteModels.kt`)
+- **Challenge**: Off-grid emergency dispatch when entire convoy mesh is stranded beyond cellular coverage and local BLE mesh limits.
+- **Solution**:
+  - Implemented pure KMP bridge abstraction supporting Garmin inReach (RockBLOCK/Iridium SBD 340-byte MO-SBD envelopes) and satellite fallback protocols.
+  - Rate-limited priority queuing with exponential backoff retry buffer adhering to strict satellite transponder airtime and power limits.
+  - Emergency SOS packets prioritize GPS location, rider health vitals, and short battery-conserving distress payloads.
+
+### 2.13 Adaptive Long-Range BLE Coded PHY Arbiter (`AdaptivePhyArbiter.kt`, `AlpineRfModels.kt`)
+- **Challenge**: Severe RF multi-path fading, non-line-of-sight (NLOS) alpine canyon rock absorption, and diffraction knife-edge losses causing catastrophic connection dropouts at >100m distances.
+- **Solution**:
+  - Alpine propagation attenuation model incorporating knife-edge diffraction loss and dense vegetation margins.
+  - Peer-specific link tracking dynamically shifting between `LE_2M` (close line-of-sight convoy, high bandwidth), `LE_1M` (standard terrain), and `LE_CODED_S8` (extreme distance / deep mountain valleys with +8 dB link budget).
+  - Fast-track emergency threshold triggers immediate step-up to `LE_CODED_S8` when effective RSSI drops <= -100 dBm or packet loss >= 30%.
+
+### 2.14 Wearable Smartwatch Quick-PTT Companion Protocol (`WearableCompanionProtocol.kt`, `WearableCompanionModels.kt`)
+- **Challenge**: Riders unable to reach phone or handlebar PTT button while navigating extreme technical alpine terrain, and lack of real-time health telemetry under severe cold/hypothermia conditions.
+- **Solution**:
+  - Low-overhead framing (<32-byte BLE notifications) for watch companion connections (Apple Watch / Wear OS).
+  - Sub-millisecond PTT state broadcast (`PRESS_PTT`, `RELEASE_PTT`, `TOGGLE_MUTE`).
+  - Biometric vitals transmission (heart rate, SpO2, skin temp) feeding into automated crash / hypothermia SOS alerts.
+
 ---
 
 ## ⚠️ 3. Critical Technical Gotchas & Edge Cases
@@ -128,3 +149,5 @@
 * **iOS View Lifecycle**: Never subscribe to KMP flows in SwiftUI without capturing the returned `CancellationHandle` and canceling it in `.onDisappear`.
 * **Android WakeLock Timeout**: Always pass a maximum timeout (4 hours) to `PowerManager.newWakeLock(PARTIAL_WAKE_LOCK, ...)` to prevent battery drain if the service dies abnormally.
 * **Kotlin Multiplatform Regex**: Never use `RegexOption.DOT_MATCHES_ALL` in `commonMain` code because it is unavailable in JS/Wasm targets; use `[\s\S]*?` pattern which works identically across JVM, Android, iOS Native, JS, and Wasm.
+* **Pure KMP String Formatting**: Never use `String.format(...)` in `commonMain` or `commonTest` as it is JVM-only and breaks compilation on JS, Wasm, and iOS targets; use standard library `padStart`, `padEnd`, or string templates instead.
+
