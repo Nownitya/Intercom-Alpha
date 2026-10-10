@@ -2065,3 +2065,26 @@
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-27-satellite-alpine-gateway`).
 
+### [2026-10-10] - ICA-2702: Long-Range BLE Coded PHY (S=8) & Alpine Terrain Attenuation Model
+- **Branch**: `feature/ICA-2702-adaptive-coded-phy`
+- **Objective**: Implement `AlpineRfModels.kt` and `AdaptivePhyArbiter.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/phy/` to dynamically negotiate BLE PHY layer modes (LE 1M, LE 2M, LE Coded S=2, LE Coded S=8 125 kbps) achieving > 500m line-of-sight reach across alpine canyons and mountain switchbacks, compensating for deep terrain shadowing, elevation deltas, and packet loss ratios.
+- **Implementation**:
+  - `AlpineRfModels.kt`:
+    - Defined `BlePhyMode` (`LE_2M`, `LE_1M`, `CODED_S2`, `CODED_S8`) with bitrate, nominal sensitivity, and coding multiplier metrics.
+    - Defined `TerrainShadowingProfile` (`OPEN_ALPINE_RIDGE`, `MOUNTAIN_SWITCHBACK`, `DEEP_CANYON_GORGE`, `DENSE_ALPINE_PINE_FOREST`) with diffraction margins (up to 16 dB) and path loss exponents.
+    - Defined `PhyCapability`, `PhyLinkMetrics`, `PhyNegotiationEvent`, and `PhyNegotiationPacket` control structures with full serialization.
+  - `AdaptivePhyArbiter.kt`:
+    - Multi-factor link evaluation factoring raw RSSI, terrain diffraction penalty, elevational gradient penalty, and packet loss ratios.
+    - State-aware hysteresis dampening (6 dB margin, 3 consecutive samples) preventing ping-pong flapping across switchbacks.
+    - Emergency fast-track step-up to CODED_S8 for critical packet loss (>= 30%) or extreme sensitivity floor (<= -100 dBm).
+    - Peer capability validation preventing unsupported mode requests.
+    - Over-The-Air negotiation handshake protocol generating request and ACK control frames.
+  - `AdaptivePhyArbiterTest.kt`:
+    - 100% unit test coverage validating initial state, peer registration, progressive step-up from 1M to S2 and S8, terrain shadowing pre-emptive step-up, hysteresis dampening preventing ping-pong oscillations, cooldown period, OTA negotiation packet exchange, and unsupported mode rejection.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: BUILD SUCCESSFUL (100% test pass).
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL in 50s (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-27-satellite-alpine-gateway`).
+
+
