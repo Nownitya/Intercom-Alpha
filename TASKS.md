@@ -1,8 +1,8 @@
 # Master Tasks & Engineering Roadmap â€” Intercom-Alpha
 
-> **Document Version:** 2.12  
+> **Document Version:** 2.14  
 > **Status:** Active / Tracked  
-> **Current Sprint:** Sprint 25 Completed (v2.12.0 Released) — Sprint 26 Active (`sprint/sprint-26-fleet-hardening`)
+> **Current Sprint:** Sprint 27 Completed (v2.14.0 Released) — Sprint 28 Next
 > **Obsidian Reference:** `01_Management/Roadmap.md` & `01_Management/Kanban.md`
 
 ---
@@ -351,3 +351,24 @@
 - [x] #task [ICA-2602] Implement MultiRadioArbiter for concurrent BLE + Wi-Fi Direct ➕ 2026-10-10 ⏳ 2026-10-14 📅 2026-10-18 ⏫ ✅ 2026-10-10
 - [x] #task [ICA-2603] Implement GroupRekeyProtocol with forward-secrecy verification ➕ 2026-10-10 ⏳ 2026-10-15 📅 2026-10-19 🔼 ✅ 2026-10-10
 - [x] #task [ICA-2604] Execute 8-hour expedition battery & memory soak test benchmark ➕ 2026-10-10 ⏳ 2026-10-16 📅 2026-10-20 🔼 ✅ 2026-10-10
+
+---
+
+### ✅ Sprint 27: Alpine Extreme Reach & Satellite Gateway Integration (Phase 25 - v2.14 Roadmap)
+- **Sprint Goal**: Implement satellite emergency communicator bridge (Garmin inReach / Iridium SBD), long-range BLE Coded PHY (S=8) alpine propagation arbiter, wearable smartwatch quick-PTT companion protocol, and 24-node alpine mountain simulation benchmark.
+- **Sprint Branch**: `sprint/sprint-27-satellite-alpine-gateway`
+- **Target Release**: `v2.14.0`
+- **Status**: ✅ 100% Complete (All 4 Stories Passed & Released under `v2.14.0`)
+
+| Task ID | Item | Target Files | Status |
+| :--- | :--- | :--- | :--- |
+| **ICA-2701** | Pure KMP Satellite Communicator Emergency Gateway Bridge | `SatelliteModels.kt`, `SatelliteGatewayBridge.kt`, `SatelliteGatewayBridgeTest.kt` | ✅ Completed |
+| **ICA-2702** | Long-Range BLE Coded PHY (S=8) & Alpine Terrain Attenuation Model | `AlpineRfModels.kt`, `AdaptivePhyArbiter.kt`, `AdaptivePhyArbiterTest.kt` | ✅ Completed |
+| **ICA-2703** | Wearable Quick-PTT Companion Protocol & Biometric Vitals Beacon | `WearableCompanionModels.kt`, `WearableCompanionProtocol.kt`, `WearableCompanionProtocolTest.kt` | ✅ Completed |
+| **ICA-2704** | Alpine Expedition Multi-Target Simulation Harness & Archify Showcase Update | `AlpineExpeditionSimulationHarness.kt`, `intercom-alpha.architecture.json` | ✅ Completed |
+
+#### 📋 Tasks Plugin Checklist (Sprint 27)
+- [x] #task [ICA-2701] Implement SatelliteGatewayBridge for Iridium SBD & Garmin inReach emergency beacons ➕ 2026-10-10 ⏳ 2026-10-12 📅 2026-10-16 ⏫ ✅ 2026-10-10
+- [x] #task [ICA-2702] Implement AdaptivePhyArbiter for BLE Coded PHY (S=8) in alpine canyons ➕ 2026-10-10 ⏳ 2026-10-14 📅 2026-10-18 ⏫ ✅ 2026-10-10
+- [x] #task [ICA-2703] Implement WearableCompanionProtocol for smartwatch quick-PTT & heart rate ➕ 2026-10-10 ⏳ 2026-10-15 📅 2026-10-19 🔼 ✅ 2026-10-10
+- [x] #task [ICA-2704] Execute 24-node Alpine Expedition simulation harness & Archify showcase update ➕ 2026-10-10 ⏳ 2026-10-16 📅 2026-10-20 🔼 ✅ 2026-10-10

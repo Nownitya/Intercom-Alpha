@@ -2038,3 +2038,106 @@
   - `ICA-2603`: Fleet-Wide Over-The-Air Cryptographic Group Rekeying Protocol [PASSED]
   - `ICA-2604`: 8-Hour Expedition Continuous Soak Benchmark & Architecture Showcase Update [PASSED]
 - **Milestone Version Tag**: `v2.13.0`
+
+---
+
+## 🏔️ Sprint 27: Alpine Extreme Reach & Satellite Gateway Integration (`v2.14.0`)
+- **Sprint Branch**: `sprint/sprint-27-satellite-alpine-gateway`
+
+### [2026-10-10] - ICA-2701: Pure KMP Satellite Communicator Emergency Gateway Bridge
+- **Branch**: `feature/ICA-2701-satellite-gateway-bridge`
+- **Objective**: Implement `SatelliteModels.kt` and `SatelliteGatewayBridge.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/satellite/` providing fail-safe lifeline bridging when both local BLE mesh and cellular relays are unreachable. Converts CRASH_ALERT and emergency SOS beacons into condensed Iridium Short Burst Data (SBD) / Garmin inReach text frames with Base64 encoding and CRC-16 checksums, routing satellite dispatch ACK notifications back into local mesh HUD. Pure Kotlin with zero Java/C dependencies (Rules 2 & 3).
+- **Implementation**:
+  - `SatelliteModels.kt`:
+    - Defined `SatelliteModemType`, `SatelliteLinkState`, `SatelliteDispatchPriority`, `SatelliteGpsLocation`, `SatelliteDispatchPayload`, `SatelliteDispatchAck`, `SatelliteBridgeStatus`, and `SatelliteCrc16` CCITT-16 checksum calculator with full serialization.
+  - `SatelliteGatewayBridge.kt`:
+    - Pure KMP binary frame encoder/decoder strictly bounded to <= 120 bytes (Iridium SBD MTU limit).
+    - Base64 encoding of compact binary frames for dual support across AT command binary (`AT+SBDWT`) and text modes.
+    - CCITT-16 CRC generation and verification (`SatelliteCrc16.calculate`) with corrupted frame rejection.
+    - FIFO transmit queueing (`enqueueDispatch`), timeout retry state machine (up to 3 retries, exponential backoff), and incoming ACK correlation (`handleIncomingAck`).
+    - Automated conversion of mesh crash alerts (`MeshPacket.Control(CRASH_ALERT)`) into prioritized satellite SOS dispatches.
+    - Coroutine lifecycle and concurrency safety via Kotlin Mutex.
+  - `SatelliteGatewayBridgeTest.kt`:
+    - 100% unit test coverage validating CRC-16 computation, SBD binary and text roundtrip framing, corrupted checksum rejection, dispatch lifecycle and queue draining, simulated ACK reception, and automated retry on link timeouts.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: BUILD SUCCESSFUL (100% test pass).
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-27-satellite-alpine-gateway`).
+
+### [2026-10-10] - ICA-2702: Long-Range BLE Coded PHY (S=8) & Alpine Terrain Attenuation Model
+- **Branch**: `feature/ICA-2702-adaptive-coded-phy`
+- **Objective**: Implement `AlpineRfModels.kt` and `AdaptivePhyArbiter.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/phy/` to dynamically negotiate BLE PHY layer modes (LE 1M, LE 2M, LE Coded S=2, LE Coded S=8 125 kbps) achieving > 500m line-of-sight reach across alpine canyons and mountain switchbacks, compensating for deep terrain shadowing, elevation deltas, and packet loss ratios.
+- **Implementation**:
+  - `AlpineRfModels.kt`:
+    - Defined `BlePhyMode` (`LE_2M`, `LE_1M`, `CODED_S2`, `CODED_S8`) with bitrate, nominal sensitivity, and coding multiplier metrics.
+    - Defined `TerrainShadowingProfile` (`OPEN_ALPINE_RIDGE`, `MOUNTAIN_SWITCHBACK`, `DEEP_CANYON_GORGE`, `DENSE_ALPINE_PINE_FOREST`) with diffraction margins (up to 16 dB) and path loss exponents.
+    - Defined `PhyCapability`, `PhyLinkMetrics`, `PhyNegotiationEvent`, and `PhyNegotiationPacket` control structures with full serialization.
+  - `AdaptivePhyArbiter.kt`:
+    - Multi-factor link evaluation factoring raw RSSI, terrain diffraction penalty, elevational gradient penalty, and packet loss ratios.
+    - State-aware hysteresis dampening (6 dB margin, 3 consecutive samples) preventing ping-pong flapping across switchbacks.
+    - Emergency fast-track step-up to CODED_S8 for critical packet loss (>= 30%) or extreme sensitivity floor (<= -100 dBm).
+    - Peer capability validation preventing unsupported mode requests.
+    - Over-The-Air negotiation handshake protocol generating request and ACK control frames.
+  - `AdaptivePhyArbiterTest.kt`:
+    - 100% unit test coverage validating initial state, peer registration, progressive step-up from 1M to S2 and S8, terrain shadowing pre-emptive step-up, hysteresis dampening preventing ping-pong oscillations, cooldown period, OTA negotiation packet exchange, and unsupported mode rejection.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: BUILD SUCCESSFUL (100% test pass).
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL in 50s (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-27-satellite-alpine-gateway`).
+
+### [2026-10-10] - ICA-2703: Wearable Quick-PTT Companion Protocol & Biometric Vitals Beacon
+- **Branch**: `feature/ICA-2703-wearable-companion-protocol`
+- **Objective**: Implement `WearableCompanionModels.kt` and `WearableCompanionProtocol.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/wearable/` to enable standalone smartwatch companion integration (WearOS & watchOS) providing glove-friendly handlebar quick-PTT toggle, haptic tap event signaling, and biometric heart rate telemetry streaming across the mesh for rider distress detection.
+- **Implementation**:
+  - `WearableCompanionModels.kt`:
+    - Defined `WearableDeviceType`, `PttButtonState`, `HapticFeedbackPattern`, `RiderBiometricVitals`, `RiderDistressStatus`, and `WearableCompanionPacket`.
+    - Pure KMP ultra-compact binary frame serialization (12-byte wire layout) with bit-packed flags (device type, PTT state, fall detected, vitals presence), byte-scaled heart rate, SpO2, battery percent, stress index, scaled skin temperature, and 32-bit sequence counter.
+    - Robust frame validation with corrupted frame rejection.
+  - `WearableCompanionProtocol.kt`:
+    - Sub-millisecond PTT state machine with 50ms hardware debouncing to eliminate mechanical bounce or false handlebar clicks.
+    - Haptic feedback mapping emitting transmit confirm, release, distress warning, and emergency SOS patterns.
+    - Biometric vitals classification evaluating heart rate thresholds (> 185 bpm critical, > 160 bpm fatigue), SpO2 (< 88% critical), fall detection, and low battery triggers.
+    - Over-The-Air BLE GATT / L2CAP frame encoder and incoming frame parser updating PTT and vitals atomically.
+  - `WearableCompanionProtocolTest.kt`:
+    - 100% unit test coverage validating compact binary roundtrip encoding, corrupted frame rejection, PTT state transitions and haptic dispatch, debouncing suppression, biometric distress classification, and atomic incoming frame processing.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: BUILD SUCCESSFUL (100% test pass).
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL in 47s (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-27-satellite-alpine-gateway`).
+
+### [2026-10-10] - ICA-2704: Alpine Expedition Multi-Target Simulation Harness & Architecture Showcase Update
+- **Branch**: `feature/ICA-2704-alpine-expedition-simulation`
+- **Objective**: Implement `AlpineExpeditionSimulationHarness.kt` simulating a 24-node high-altitude mountain expedition. Validate LE Coded PHY long-distance links across deep switchbacks, automated satellite SOS dispatch fallback in canyon dead zones, and update Archify architecture showcase with 9/9 verification pass.
+- **Implementation**:
+  - `AlpineExpeditionSimulationHarness.kt`:
+    - Simulated 24 alpine nodes across 4 high-altitude stages: Base Camp (open ridge, LE 1M/2M), Switchback Ascent (hairpin diffraction -10 dB, +120m elevation delta, step-up to CODED_S2), Glacial Canyon Dead Zone (canyon gorge, deep rock shadowing, 750m gap bridged by CODED_S8), and Emergency Crevasse Fall (smartwatch fall detection + Iridium SBD SOS fallback).
+    - Verified full bi-directional lifecycle: fall detected -> `WearableCompanionProtocol` classifies `FALL_CONFIRMED` -> `SatelliteGatewayBridge` encodes compact binary frame (<= 120 bytes) -> modem transmits SBD beacon -> ground station ACK received and verified with zero pending queue items.
+    - Verified audio routing across all 24 nodes with zero voice frame loss.
+  - Archify Architecture Specification & Showcase:
+    - Updated `docs/architecture/intercom-alpha.architecture.json` adding `satellite_bridge`, `adaptive_phy`, and `wearable_companion` components.
+    - Added curated guided view `qos-failover-and-alpine-gateway` (maintaining <= 5 views constraint).
+    - Added Sprint 27 interactive showcase card.
+    - Executed Archify CLI validation & delivery: 9/9 checks passed, showcase profile, 0 composition errors, 0 warnings.
+    - Generated standalone explorable `docs/architecture/intercom-alpha-architecture.html` and visual-check evidence.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: BUILD SUCCESSFUL (100% test pass).
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-27-satellite-alpine-gateway`).
+
+---
+
+## 🏆 Sprint 27: Alpine Extreme Reach & Satellite Gateway Integration — 100% Complete
+- **All 4 Sprint 27 stories PASSED**:
+  - `ICA-2701`: Pure KMP Satellite Communicator Emergency Gateway Bridge [PASSED]
+  - `ICA-2702`: Long-Range BLE Coded PHY (S=8) & Alpine Terrain Attenuation Model [PASSED]
+  - `ICA-2703`: Wearable Quick-PTT Companion Protocol & Biometric Vitals Beacon [PASSED]
+  - `ICA-2704`: Alpine Expedition Multi-Target Simulation Harness & Architecture Showcase Update [PASSED]
+- **Milestone Version Tag**: `v2.14.0`
+
+
+
+

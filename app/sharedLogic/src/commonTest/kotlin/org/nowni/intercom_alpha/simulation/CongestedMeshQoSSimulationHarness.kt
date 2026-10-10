@@ -115,7 +115,7 @@ class CongestedMeshQoSSimulationHarness {
     ) {
         var currentEpochMs: Long = 10_000L
         val nodes: List<VirtualConvoyNode> = (1..nodeCount).map { index ->
-            val id = "rider-%02d".format(index)
+            val id = "rider-${index.toString().padStart(2, '0')}"
             VirtualConvoyNode(id, index, currentEpochMs)
         }
 

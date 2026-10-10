@@ -34,10 +34,10 @@
         "note": "Follow dynamic convoy radar tethering, split detection, IMU crash eCall HUD, offline voice DSP, and AODV-Lite route discovery."
       },
       {
-        "id": "qos-failover-and-fleet-hardening",
-        "label": "QoS, Failover & Fleet Hardening",
-        "focus": ["cross_mesh_arbiter", "failover_arbiter", "hybrid_router", "qos_scheduler", "qos_queue", "tactical_snapshot", "multi_radio_arbiter", "group_rekey_protocol", "mesh_transport", "remote_peers"],
-        "note": "Follow 4-tier strict QoS, failover hedging, 0.5 fps snapshot chunking, Wi-Fi Direct bulk offload, and OTA cryptographic rekeying."
+        "id": "qos-failover-and-alpine-gateway",
+        "label": "QoS, Alpine Coded PHY & Satellite Gateway",
+        "focus": ["failover_arbiter", "hybrid_router", "tactical_snapshot", "multi_radio_arbiter", "group_rekey_protocol", "satellite_bridge", "adaptive_phy", "wearable_companion", "mesh_transport", "remote_peers"],
+        "note": "Follow 4-tier strict QoS, LE Coded S=8 long-range reach, smartwatch PTT vitals, and pure KMP Iridium SBD satellite lifeline bridging."
       }
     ]
   },
@@ -275,6 +275,33 @@
       "tag": "HKDF-SHA256 Forward Secret",
       "pos": [740, 1120],
       "size": [136, 62]
+    },
+    {
+      "id": "satellite_bridge",
+      "type": "cloud",
+      "label": "Satellite Gateway",
+      "sublabel": "Iridium SBD / inReach",
+      "tag": "Pure KMP Lifeline <=120B",
+      "pos": [960, 1120],
+      "size": [136, 62]
+    },
+    {
+      "id": "wearable_companion",
+      "type": "backend",
+      "label": "Wearable Companion",
+      "sublabel": "Watch Quick-PTT",
+      "tag": "Biometric Vitals & Fall",
+      "pos": [300, 1300],
+      "size": [136, 62]
+    },
+    {
+      "id": "adaptive_phy",
+      "type": "backend",
+      "label": "Adaptive PHY Arbiter",
+      "sublabel": "LE Coded S=8 (125k)",
+      "tag": ">500m Alpine Reach",
+      "pos": [520, 1300],
+      "size": [136, 62]
     }
   ],
   "boundaries": [
@@ -287,7 +314,7 @@
     {
       "kind": "security-group",
       "label": "KMP Core Engine (:app:sharedLogic)",
-      "wraps": ["group_mgr", "audio_engine", "trail_engine", "packet_cipher", "deduplicator", "geofence_engine", "mesh_transport", "battery_governor", "crash_detector", "voice_recognizer", "link_metric", "directed_router", "cross_mesh_arbiter", "federation_gateway", "qos_scheduler", "qos_queue", "failover_arbiter", "hybrid_router", "tactical_snapshot", "multi_radio_arbiter", "group_rekey_protocol"],
+      "wraps": ["group_mgr", "audio_engine", "trail_engine", "packet_cipher", "deduplicator", "geofence_engine", "mesh_transport", "battery_governor", "crash_detector", "voice_recognizer", "link_metric", "directed_router", "cross_mesh_arbiter", "federation_gateway", "qos_scheduler", "qos_queue", "failover_arbiter", "hybrid_router", "tactical_snapshot", "multi_radio_arbiter", "group_rekey_protocol", "satellite_bridge", "wearable_companion", "adaptive_phy"],
       "pad": 16
     },
     {
@@ -533,6 +560,39 @@
       "fromSide": "top",
       "toSide": "bottom",
       "variant": "security"
+    },
+    {
+      "from": "qos_queue",
+      "to": "satellite_bridge",
+      "label": "Emergency SOS",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 24,
+      "variant": "emphasis"
+    },
+    {
+      "from": "wearable_companion",
+      "to": "tactical_snapshot",
+      "label": "PTT & Vitals",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "variant": "emphasis"
+    },
+    {
+      "from": "adaptive_phy",
+      "to": "multi_radio_arbiter",
+      "label": "PHY Mode",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "variant": "emphasis"
+    },
+    {
+      "from": "wearable_companion",
+      "to": "adaptive_phy",
+      "label": "RF Feedback",
+      "fromSide": "right",
+      "toSide": "left",
+      "variant": "emphasis"
     }
   ],
   "cards": [
@@ -626,6 +686,16 @@
         "Concurrent MultiRadioArbiter dynamically routes high-bandwidth snapshots/GPX over Wi-Fi Direct while isolating voice on BLE mesh",
         "Fleet-wide OTA GroupRekeyProtocol enforces forward-secret HKDF-SHA256 epoch rotation with 10s dual-epoch grace buffer eliminating packet drops",
         "8-hour continuous soak benchmark across 20 convoy nodes verifying zero memory/coroutine leaks, power scaling, and voice continuity"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Alpine Reach & Satellite Lifeline Integration (Sprint 27)",
+      "items": [
+        "Pure KMP SatelliteGatewayBridge encodes compact Iridium SBD frames (<=120 bytes) with Base64 & CRC-16 checksums for canyon SOS failover",
+        "AdaptivePhyArbiter negotiates BLE PHY modes (LE 1M, 2M, Coded S=2, Coded S=8 125 kbps) with 6 dB hysteresis for >500m reach in alpine switchbacks",
+        "WearableCompanionProtocol integrates smartwatch Quick-PTT debouncing, haptic feedback, and biometric vitals/fall detection into mesh HUD",
+        "24-node alpine simulation validates Coded S=8 long-distance canyon relay and automated satellite ground ACK dispatch"
       ]
     }
   ]
