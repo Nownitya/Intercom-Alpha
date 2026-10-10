@@ -1,80 +1,79 @@
 {
   "project": "Intercom-Alpha",
-  "branchName": "sprint/sprint-26-fleet-hardening",
-  "phase": "Phase 24: Long-Haul Fleet Hardening & Low-Bandwidth Visual Telemetry",
-  "sprint": "Sprint 26",
-  "updatedAt": "2026-10-10T09:20:00Z",
+  "branchName": "sprint/sprint-27-satellite-alpine-gateway",
+  "phase": "Phase 25: Alpine Extreme Reach & Satellite Gateway Integration",
+  "sprint": "Sprint 27",
+  "updatedAt": "2026-10-10T10:48:00Z",
   "stories": [
     {
-      "id": "ICA-2601",
+      "id": "ICA-2701",
       "priority": 1,
-      "title": "Pure KMP Ultra-Low-Framerate Tactical Snapshot Mesh Transport Engine",
-      "description": "Implement SnapshotModels.kt, TacticalSnapshotProtocol.kt, and SnapshotTransferManager.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/visual/. Enables progressive transmission of compressed 0.5 fps thumbnail snapshots (<= 1.5 KB payload) over BLE mesh. Implements segmented chunking (<= 128 bytes per chunk) with selective chunk ACK/NACK reassembly over lossy multi-hop hops. Pure Kotlin with zero Java/C dependencies (Rules 2 & 3).",
+      "title": "Pure KMP Satellite Communicator Emergency Gateway Bridge",
+      "description": "Implement SatelliteModels.kt and SatelliteGatewayBridge.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/satellite/. Provides fail-safe lifeline bridging when both local BLE mesh and cellular relays are unreachable. Converts CRASH_ALERT and emergency SOS beacons into condensed Iridium Short Burst Data (SBD) / Garmin inReach text frames (GPS coordinates, elevation, rider ID, impact g-force) and routes satellite dispatch ACK notifications back into local mesh HUD. Pure Kotlin with zero Java/C dependencies (Rules 2 & 3).",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/visual/SnapshotModels.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/visual/TacticalSnapshotProtocol.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/visual/SnapshotTransferManager.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/visual/TacticalSnapshotProtocolTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/satellite/SatelliteModels.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/satellite/SatelliteGatewayBridge.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/satellite/SatelliteGatewayBridgeTest.kt"
       ],
       "acceptanceCriteria": [
         "Pure KMP implementation with zero Java, C, or platform-specific dependencies in commonMain (Rules 2 & 3)",
-        "Defines SnapshotHeader, SnapshotChunk, and SnapshotAck data structures",
-        "Encodes and chunks binary image payloads into <= 128-byte MTU segments with Adler-32 integrity validation",
-        "Handles out-of-order chunk reassembly and selective NACK retransmission over lossy multi-hop simulated channels",
+        "Defines SatelliteLinkState, SatelliteModemType, SatelliteDispatchPayload, and SatelliteDispatchAck data models with full serialization",
+        "Encodes emergency mesh packets into compact <= 120-byte Iridium SBD binary/text frames with Base64 & CRC-16 checksum",
+        "Handles satellite transmit queues, offline buffering, timeout retries, and bi-directional ACK propagation into local mesh HUD",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
       "passes": true
     },
     {
-      "id": "ICA-2602",
+      "id": "ICA-2702",
       "priority": 2,
-      "title": "Concurrent Multi-Radio Arbiter (BLE + Wi-Fi Direct)",
-      "description": "Implement RadioModels.kt and MultiRadioArbiter.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/radio/. Dynamically routes high-bandwidth payloads (tactical snapshots, trail GPX chunks) over Wi-Fi Direct (P2P_CLUSTER) when direct radio proximity is established, while maintaining continuous low-latency voice and emergency traffic over BLE mesh.",
+      "title": "Long-Range BLE Coded PHY (S=8) & Alpine Terrain Attenuation Model",
+      "description": "Implement AlpineRfModels.kt and AdaptivePhyArbiter.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/phy/. Dynamically negotiates BLE PHY layer modes (LE 1M, LE 2M, LE Coded S=2, LE Coded S=8 125 kbps) to achieve > 500m line-of-sight reach across alpine canyons and mountain switchbacks, compensating for deep terrain shadowing and thermal ducting.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/radio/RadioModels.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/radio/MultiRadioArbiter.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/radio/MultiRadioArbiterTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/phy/AlpineRfModels.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/phy/AdaptivePhyArbiter.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/phy/AdaptivePhyArbiterTest.kt"
       ],
       "acceptanceCriteria": [
-        "Pure KMP multi-radio state tracking (RadioType: BLE_MESH, WIFI_DIRECT, CELLULAR_SFU)",
-        "Automated payload classification routing high-bandwidth bulk data to Wi-Fi Direct without voice channel contention",
-        "Graceful fallback to BLE mesh when Wi-Fi Direct disconnects or moves out of range",
+        "Pure KMP PHY capability and alpine terrain modeling (BlePhyMode: LE_1M, LE_2M, CODED_S2, CODED_S8)",
+        "Adaptive PHY selection algorithm evaluating RSSI gradient, terrain altitude delta, and packet loss ratio",
+        "Automated fallback and hysteresis dampening preventing ping-pong PHY oscillations during convoy switchbacks",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
       "passes": true
     },
     {
-      "id": "ICA-2603",
+      "id": "ICA-2703",
       "priority": 3,
-      "title": "Fleet-Wide Over-The-Air Cryptographic Group Rekeying Protocol",
-      "description": "Implement GroupRekeyProtocol.kt and RekeyModels.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/security/. Supports forward-secret epoch transitions, multi-hop rekey flooding, and dual-epoch grace periods to eliminate packet drops during key rotation across 20+ rider convoys.",
+      "title": "Wearable Quick-PTT Companion Protocol & Biometric Vitals Beacon",
+      "description": "Implement WearableCompanionModels.kt and WearableCompanionProtocol.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/wearable/. Enables standalone smartwatch companion integration (WearOS & watchOS) providing glove-friendly handlebar quick-PTT toggle, haptic tap event signaling, and biometric heart rate telemetry streaming across the mesh for rider distress detection.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/security/RekeyModels.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/security/GroupRekeyProtocol.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/security/GroupRekeyProtocolTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/wearable/WearableCompanionModels.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/wearable/WearableCompanionProtocol.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/wearable/WearableCompanionProtocolTest.kt"
       ],
       "acceptanceCriteria": [
-        "Generates cryptographic rekey tokens with SHA-256 HKDF epoch derivation",
-        "Maintains dual-epoch key buffer (CurrentEpoch, PreviousEpoch) with 10-second transition grace period",
-        "Multi-hop flooding of epoch update control packets with anti-replay counters",
+        "Pure KMP wearable companion message definitions and bidirectional state synchronization",
+        "Zero-latency PTT press/release state machine with debouncing and haptic feedback triggers",
+        "Compressed biometric vitals packet encoding (heart rate, stress indicator, battery level)",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
       "passes": true
     },
     {
-      "id": "ICA-2604",
+      "id": "ICA-2704",
       "priority": 4,
-      "title": "8-Hour Expedition Continuous Soak Benchmark & Architecture Showcase Update",
-      "description": "Implement ExpeditionSoakSimulationHarness.kt simulating an 8-hour continuous convoy expedition across 20 virtual nodes with dynamic topology shifts, voice bursts, visual snapshots, and power governor transitions. Validates zero memory leaks, zero coroutine leaks, and updates Archify architecture showcase.",
+      "title": "Alpine Expedition Multi-Target Simulation Harness & Architecture Showcase Update",
+      "description": "Implement AlpineExpeditionSimulationHarness.kt simulating a 24-node high-altitude mountain expedition. Validates LE Coded PHY long-distance links across deep switchbacks, automated satellite SOS dispatch fallback in canyon dead zones, and updates Archify architecture showcase with 9/9 verification pass.",
       "targetFiles": [
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/simulation/ExpeditionSoakSimulationHarness.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/simulation/AlpineExpeditionSimulationHarness.kt",
         "docs/architecture/intercom-alpha.architecture.json",
         "docs/architecture/intercom-alpha-architecture.html"
       ],
       "acceptanceCriteria": [
-        "Simulates 8 virtual hours of continuous mesh traffic and state transitions",
-        "Verifies heap memory stability (allocation delta < 5 MB over entire run)",
-        "Zero coroutine leaks or uncancelled job warnings",
+        "Simulates 24 nodes traversing high-altitude alpine terrain with elevation deltas and switchbacks",
+        "Validates seamless PHY transitions to CODED_S8 maintaining voice intelligibility beyond 500m",
+        "Validates failover to SatelliteGatewayBridge dispatching emergency SBD beacons when mesh splits and cell is dead",
         "Archify architecture specification and HTML showcase updated with 9/9 verification pass",
         "Full multiplatform test suite pass across all targets"
       ],

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.14.0] - 2026-10-10 — Sprint 27: Alpine Extreme Reach & Satellite Gateway Integration
+
+### Added
+- **Pure KMP Satellite Communicator Emergency Gateway Bridge (`SatelliteModels.kt`, `SatelliteGatewayBridge.kt`)**: Provides fail-safe lifeline bridging when local BLE mesh and cellular towers are unreachable. Encodes emergency CRASH_ALERT beacons into compact binary Iridium Short Burst Data (SBD) / Garmin inReach frames (<= 120 bytes) with Base64 encoding and CRC-16 CCITT checksums, routing constellation ACK notifications back to local mesh nodes with zero Java/C dependencies (Rules 2 & 3).
+- **Long-Range BLE Coded PHY (S=8) & Alpine Terrain Attenuation Model (`AlpineRfModels.kt`, `AdaptivePhyArbiter.kt`)**: Dynamically negotiates BLE PHY modes (`LE_1M`, `LE_2M`, `CODED_S2`, `CODED_S8` 125 kbps) achieving > 500m line-of-sight reach across alpine canyons and mountain switchbacks, compensating for terrain shadowing diffraction (up to 16 dB) and elevation gradients with 6 dB hysteresis dampening.
+- **Wearable Quick-PTT Companion Protocol & Biometric Vitals Beacon (`WearableCompanionModels.kt`, `WearableCompanionProtocol.kt`)**: Enables smartwatch companion integration (WearOS & watchOS) providing sub-millisecond PTT debouncing, haptic feedback triggers, and compact (12-byte) biometric vitals telemetry with rider distress and fall detection.
+- **24-Node Alpine Expedition Simulation Harness & Archify Architecture Showcase (`AlpineExpeditionSimulationHarness.kt`, `intercom-alpha.architecture.json`, `intercom-alpha-architecture.html`)**: Validates 24 nodes traversing high-altitude terrain, seamless CODED_S8 canyon transitions, smartwatch fall detection, and satellite SOS ground station ACK routing. Archify interactive architecture specifications updated with 9/9 verification checks passed.
+
+---
+
 ## [2.13.0] - 2026-10-10 — Sprint 26: Long-Haul Fleet Hardening & Low-Bandwidth Visual Telemetry
 
 ### Added
