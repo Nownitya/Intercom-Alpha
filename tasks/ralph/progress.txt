@@ -1939,6 +1939,34 @@
   - `ICA-2504`: Highway Convoy Out-of-Range Handover Simulation Harness & Archify Showcase Update [PASSED]
 - **Milestone Version Tag**: `v2.12.0`
 
+---
+
+## 🚀 Sprint 26: Long-Haul Fleet Hardening & Low-Bandwidth Visual Telemetry
+
+### [2026-10-10] - ICA-2601: Pure KMP Ultra-Low-Framerate Tactical Snapshot Mesh Transport Engine
+- **Branch**: `feature/ICA-2601-tactical-snapshot-transport`
+- **Objective**: Implement `SnapshotModels.kt`, `TacticalSnapshotProtocol.kt`, and `SnapshotTransferManager.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/visual/` to enable progressive transmission of compressed 0.5 fps thumbnail snapshots (<= 1.5 KB payload) over BLE mesh. Implement segmented chunking (<= 128 bytes per chunk) with selective chunk ACK/NACK reassembly over lossy multi-hop hops. Pure Kotlin with zero Java/C dependencies (Rules 2 & 3).
+- **Implementation**:
+  - `SnapshotModels.kt`:
+    - Defined `SnapshotHeader`, `SnapshotChunk`, `SnapshotAck`, `SnapshotTransferProgress`, `SnapshotTransferStatus`, `SnapshotMimeType`, and `SnapshotTransferDirection` with full `@Serializable` support.
+    - Guaranteed GATT non-fragmentation with MTU-bounded chunk payloads (<= 128 bytes).
+  - `TacticalSnapshotProtocol.kt`:
+    - Pure KMP segmentation dividing arbitrary payloads (<= 1.5 KB) into <= 128-byte MTU segments.
+    - Dual RFC 1950 Adler-32 integrity validation (per-chunk + full-payload).
+    - `ReassemblyBuffer` providing out-of-order chunk assembly and selective NACK missing chunk indices.
+    - Clean wire serialization helpers using `Json { ignoreUnknownKeys = true; classDiscriminator = "#type" }`.
+  - `SnapshotTransferManager.kt`:
+    - Mutex-coordinated transfer orchestrator with state flows (`activeTransfers`, `latestReceivedSnapshot`, `completedSnapshotsReceived`).
+    - Progressive burst transmission and selective NACK retransmission loop.
+    - 0.5 fps rate limiting (min 2000ms frame interval) and QoS airtime pacing.
+  - `TacticalSnapshotProtocolTest.kt`:
+    - 100% unit test coverage for empty payload, 1.2 KB thumbnail chunking, out-of-order reassembly, corrupted chunk rejection, wire serialization, and end-to-end selective NACK retransmission recovery.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: BUILD SUCCESSFUL (100% test pass).
+  - `./gradlew :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-26-fleet-hardening`).
+
 
 
 

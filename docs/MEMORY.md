@@ -1,4 +1,4 @@
-﻿# Engineering Memory & Architecture Knowledge Base — Intercom-Alpha
+# Engineering Memory & Architecture Knowledge Base — Intercom-Alpha
 
 > **Document Version:** 2.12  
 > **Status:** Active / Curated Knowledge Base (`v2.12.0`)  
@@ -103,6 +103,14 @@
   - 4-stage state machine: `BLE_PRIMARY` ($Q_{link} \ge 70$) → `DEGRADED_HEDGING` ($30 \le Q_{link} < 70$) → `CELLULAR_ACTIVE` ($Q_{link} < 30$) → `RECOVERING`.
   - During hedging, duplicate sequence-stamped frames are sent across both BLE and Cellular SFU WebSockets. `PacketDeduplicator.kt` plays the earliest arriving packet and drops the duplicate with zero audio drop.
 
+### 2.10 Tactical Snapshot Mesh Transport Engine (`TacticalSnapshotProtocol.kt`, `SnapshotTransferManager.kt`)
+- **Challenge**: Transmitting visual reconnaissance thumbnails over lossy multi-hop BLE mesh without fragmenting GATT MTUs or disrupting real-time voice latency.
+- **Solution**:
+  - Bounded segmented chunking: divides <= 1.5 KB payloads into <= 128-byte segments ensuring zero GATT link-layer fragmentation.
+  - Dual RFC 1950 Adler-32 validation: verifies both individual chunk data integrity and full-payload reassembly.
+  - Out-of-order reassembly buffer with selective NACK recovery reporting exact missing chunk indices.
+  - 0.5 fps framerate throttle (min 2000ms frame interval) and QoS airtime pacing adhering to RF duty cycle budgets.
+
 ---
 
 ## ⚠️ 3. Critical Technical Gotchas & Edge Cases
@@ -112,3 +120,4 @@
 * **Navigation 3 Backstack Persistence**: Register polymorphic routes under `polymorphic(NavKey::class)` within `SavedStateConfiguration`.
 * **iOS View Lifecycle**: Never subscribe to KMP flows in SwiftUI without capturing the returned `CancellationHandle` and canceling it in `.onDisappear`.
 * **Android WakeLock Timeout**: Always pass a maximum timeout (4 hours) to `PowerManager.newWakeLock(PARTIAL_WAKE_LOCK, ...)` to prevent battery drain if the service dies abnormally.
+* **Kotlin Multiplatform Regex**: Never use `RegexOption.DOT_MATCHES_ALL` in `commonMain` code because it is unavailable in JS/Wasm targets; use `[\s\S]*?` pattern which works identically across JVM, Android, iOS Native, JS, and Wasm.
