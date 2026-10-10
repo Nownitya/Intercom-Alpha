@@ -2087,4 +2087,26 @@
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-27-satellite-alpine-gateway`).
 
+### [2026-10-10] - ICA-2703: Wearable Quick-PTT Companion Protocol & Biometric Vitals Beacon
+- **Branch**: `feature/ICA-2703-wearable-companion-protocol`
+- **Objective**: Implement `WearableCompanionModels.kt` and `WearableCompanionProtocol.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/wearable/` to enable standalone smartwatch companion integration (WearOS & watchOS) providing glove-friendly handlebar quick-PTT toggle, haptic tap event signaling, and biometric heart rate telemetry streaming across the mesh for rider distress detection.
+- **Implementation**:
+  - `WearableCompanionModels.kt`:
+    - Defined `WearableDeviceType`, `PttButtonState`, `HapticFeedbackPattern`, `RiderBiometricVitals`, `RiderDistressStatus`, and `WearableCompanionPacket`.
+    - Pure KMP ultra-compact binary frame serialization (12-byte wire layout) with bit-packed flags (device type, PTT state, fall detected, vitals presence), byte-scaled heart rate, SpO2, battery percent, stress index, scaled skin temperature, and 32-bit sequence counter.
+    - Robust frame validation with corrupted frame rejection.
+  - `WearableCompanionProtocol.kt`:
+    - Sub-millisecond PTT state machine with 50ms hardware debouncing to eliminate mechanical bounce or false handlebar clicks.
+    - Haptic feedback mapping emitting transmit confirm, release, distress warning, and emergency SOS patterns.
+    - Biometric vitals classification evaluating heart rate thresholds (> 185 bpm critical, > 160 bpm fatigue), SpO2 (< 88% critical), fall detection, and low battery triggers.
+    - Over-The-Air BLE GATT / L2CAP frame encoder and incoming frame parser updating PTT and vitals atomically.
+  - `WearableCompanionProtocolTest.kt`:
+    - 100% unit test coverage validating compact binary roundtrip encoding, corrupted frame rejection, PTT state transitions and haptic dispatch, debouncing suppression, biometric distress classification, and atomic incoming frame processing.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: BUILD SUCCESSFUL (100% test pass).
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL in 47s (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-27-satellite-alpine-gateway`).
+
+
 
