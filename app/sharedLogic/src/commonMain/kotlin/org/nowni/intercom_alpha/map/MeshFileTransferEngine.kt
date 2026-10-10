@@ -167,7 +167,7 @@ object MeshFileTransferEngine {
         var trailName = defaultName
 
         // Extract metadata / trk name
-        val nameRegex = Regex("<name>(.*?)</name>", RegexOption.DOT_MATCHES_ALL)
+        val nameRegex = Regex("<name>([\\s\\S]*?)</name>")
         nameRegex.find(gpxString)?.let { match ->
             val name = match.groupValues[1].trim()
             if (name.isNotEmpty()) {
@@ -176,7 +176,7 @@ object MeshFileTransferEngine {
         }
 
         // Extract waypoints: <wpt lat="..." lon="...">...</wpt>
-        val wptRegex = Regex("<wpt\\s+lat=[\"']([^\"']+)[\"']\\s+lon=[\"']([^\"']+)[\"'][^>]*>(.*?)</wpt>", RegexOption.DOT_MATCHES_ALL)
+        val wptRegex = Regex("<wpt\\s+lat=[\"']([^\"']+)[\"']\\s+lon=[\"']([^\"']+)[\"'][^>]*>([\\s\\S]*?)</wpt>")
         for (match in wptRegex.findAll(gpxString)) {
             val lat = match.groupValues[1].toDoubleOrNull() ?: continue
             val lon = match.groupValues[2].toDoubleOrNull() ?: continue
@@ -205,7 +205,7 @@ object MeshFileTransferEngine {
         }
 
         // Extract track points: <trkpt lat="..." lon="...">...</trkpt>
-        val trkptRegex = Regex("<trkpt\\s+lat=[\"']([^\"']+)[\"']\\s+lon=[\"']([^\"']+)[\"'][^>]*>(.*?)</trkpt>", RegexOption.DOT_MATCHES_ALL)
+        val trkptRegex = Regex("<trkpt\\s+lat=[\"']([^\"']+)[\"']\\s+lon=[\"']([^\"']+)[\"'][^>]*>([\\s\\S]*?)</trkpt>")
         for (match in trkptRegex.findAll(gpxString)) {
             val lat = match.groupValues[1].toDoubleOrNull() ?: continue
             val lon = match.groupValues[2].toDoubleOrNull() ?: continue
