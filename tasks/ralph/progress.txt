@@ -1987,14 +1987,22 @@
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-26-fleet-hardening`).
 
-
-
-
-
-
-
-
-
-
-
-
+### [2026-10-10] - ICA-2603: Fleet-Wide Over-The-Air Cryptographic Group Rekeying Protocol
+- **Branch**: `feature/ICA-2603-group-rekey-protocol`
+- **Objective**: Implement `RekeyModels.kt` and `GroupRekeyProtocol.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/security/` supporting forward-secret epoch transitions, multi-hop rekey flooding, anti-replay validation, and dual-epoch grace periods to eliminate packet drops during key rotation across 20+ rider convoys.
+- **Implementation**:
+  - `RekeyModels.kt`:
+    - Defined `RekeyTriggerReason`, `RekeyEvent`, `EpochKeyDescriptor`, `RekeyControlPacket`, `DualEpochKeyBuffer`, and `RekeyResult` (`Accepted`, `Rejected`) with full serialization and content-safe `equals`/`hashCode`.
+  - `GroupRekeyProtocol.kt`:
+    - Pure KMP HKDF-SHA256 epoch derivation (`deriveEpochKey`) with RFC 5869 parameters (`intercom-epoch-$targetEpoch`).
+    - Dual-epoch key buffer tracking active and prior epoch keys with a 10-second transition grace period (`DEFAULT_GRACE_PERIOD_MS = 10_000L`).
+    - Anti-replay counter sequencing preventing replayed epoch manipulation packets.
+    - Deterministic HMAC-SHA256 signing and constant-time verification across mesh broadcasts.
+    - Zeroization wiping (`wipe()`) clearing all cryptographic master and session keys in memory.
+  - `GroupRekeyProtocolTest.kt`:
+    - 100% unit test coverage validating HKDF reproducibility, mesh packet initiation & peer transition, dual-epoch decryption during 10s grace period, old key expiration & zeroization after grace period, anti-replay counter rejection, stale epoch rejection, tampered signature rejection, and memory wipe.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: BUILD SUCCESSFUL (100% test pass).
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL in 53s (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-26-fleet-hardening`).
