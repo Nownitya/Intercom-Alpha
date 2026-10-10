@@ -25,6 +25,7 @@
 | **ADR-011** | Adaptive Jitter Buffering & PLC | Accepted | RFC 3550 variance delay filter (40–150ms) + pitch-extrapolated packet loss concealment. |
 | **ADR-012** | Mesh Airtime QoS Priority Traffic Shaping | Accepted | Token-bucket rate limiting and strict preemption (Emergency > Voice > Telemetry). |
 | **ADR-013** | Automated Multi-Path Mesh Failover & Hedging | Accepted | Link quality arbiter scoring RSSI/loss/jitter with proactive BLE/Cellular stream hedging. |
+| **ADR-014** | Post-Development UI/UX Fusion & Expressive Language | Accepted | Post-development UI/UX phase fusing Material 3 Expressive, SwiftUI iOS 18+, Skeuomorphism, Neobrutalism, Claymorphism, Minimalism & Liquid Glass. Zero AI-generated artifice. |
 
 ---
 
