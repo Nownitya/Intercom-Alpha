@@ -2138,6 +2138,38 @@
   - `ICA-2704`: Alpine Expedition Multi-Target Simulation Harness & Architecture Showcase Update [PASSED]
 - **Milestone Version Tag**: `v2.14.0`
 
+---
+
+## 2026-10-10 11:40:00 — Sprint 28 Launch: Edge Acoustic Intelligence & Mesh Airtime Congestion Governance
+- **Milestone**: Phase 26 / Sprint 28 (`v2.15.0 Roadmap`)
+- **Goal**: Implement pure KMP spectral subtraction speech enhancer for motorcycle wind noise, offline hands-free wake word engine ("Hey Alpha" / "Emergency SOS"), channel busy ratio (CBR) airtime congestion governor with adaptive FEC, and 32-node alpine blizzard simulation benchmark.
+- **Sprint Branch**: `sprint/sprint-28-edge-acoustic-congestion`
+- **Active Story**: `ICA-2801: Pure KMP Spectral Subtraction Speech Enhancer & Wind Noise Suppressor` (Priority 1)
+
+### [2026-10-10] - ICA-2801: Pure KMP Spectral Subtraction Speech Enhancer & Wind Noise Suppressor
+- **Branch**: `feature/ICA-2801-spectral-subtraction-enhancer`
+- **Objective**: Implement `SpectralNoiseModels.kt` and `SpectralNoiseSuppressor.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/` to provide frequency-domain noise suppression using pure KMP spectral subtraction with recursive minimum statistics noise floor tracking, Wiener filter gain estimation, over-subtraction factor alpha, and spectral floor beta to eliminate musical noise.
+- **Implementation**:
+  - `SpectralNoiseModels.kt`:
+    - Defined `NoiseSuppressionMode` (`OFF`, `MILD`, `AGGRESSIVE`, `EXTREME_ALPINE`).
+    - Defined `SpectralNoiseProfile` with configurable over-subtraction alpha, spectral floor beta, noise smoothing alpha, speech SNR threshold, and speech formant frequency bounds.
+    - Defined `SpectralFrameDiagnostics` and `NoiseEstimationStats`.
+  - `SpectralNoiseSuppressor.kt`:
+    - Pure Kotlin radix-2 Cooley-Tukey forward and inverse FFT with precomputed twiddle factors and bit reversal indices (zero runtime allocations per frame).
+    - Symmetric square-root Hanning analysis and synthesis windows with 50% Overlap-Add (OLA) providing mathematical perfect reconstruction.
+    - Recursive noise PSD estimation with speech presence detection and speech formant protection.
+    - Berouti over-subtraction and spectral floor parameterization eliminating musical noise artifacts.
+    - Streaming 16-bit PCM byte array and sample array processing.
+  - `SpectralNoiseSuppressorTest.kt`:
+    - 100% unit test coverage validating initialization, bypass mode, 16-bit PCM byte roundtrip, turbulent wind noise attenuation (> 1.8x power drop), speech formant tone preservation under noise, profile switching, and state reset.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: BUILD SUCCESSFUL (100% test pass).
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-28-edge-acoustic-congestion`).
+
+
+
 
 
 

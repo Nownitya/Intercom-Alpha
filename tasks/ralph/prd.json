@@ -1,83 +1,83 @@
 {
   "project": "Intercom-Alpha",
-  "branchName": "sprint/sprint-27-satellite-alpine-gateway",
-  "phase": "Phase 25: Alpine Extreme Reach & Satellite Gateway Integration",
-  "sprint": "Sprint 27",
-  "updatedAt": "2026-10-10T10:48:00Z",
+  "branchName": "sprint/sprint-28-edge-acoustic-congestion",
+  "phase": "Phase 26: Edge Acoustic Intelligence & Mesh Airtime Congestion Governance",
+  "sprint": "Sprint 28",
+  "updatedAt": "2026-10-10T11:40:00Z",
   "stories": [
     {
-      "id": "ICA-2701",
+      "id": "ICA-2801",
       "priority": 1,
-      "title": "Pure KMP Satellite Communicator Emergency Gateway Bridge",
-      "description": "Implement SatelliteModels.kt and SatelliteGatewayBridge.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/satellite/. Provides fail-safe lifeline bridging when both local BLE mesh and cellular relays are unreachable. Converts CRASH_ALERT and emergency SOS beacons into condensed Iridium Short Burst Data (SBD) / Garmin inReach text frames (GPS coordinates, elevation, rider ID, impact g-force) and routes satellite dispatch ACK notifications back into local mesh HUD. Pure Kotlin with zero Java/C dependencies (Rules 2 & 3).",
+      "title": "Pure KMP Spectral Subtraction Speech Enhancer & Wind Noise Suppressor",
+      "description": "Implement SpectralNoiseModels.kt and SpectralNoiseSuppressor.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/. Provides real-time frequency-domain noise suppression using pure KMP spectral subtraction with recursive minimum statistics noise floor tracking, Wiener filter gain estimation, over-subtraction factor alpha, and spectral floor beta to eliminate musical noise. Attenuates dynamic non-stationary helmet wind turbulence (>80 km/h) and exhaust rumble with zero Java, C, or external ML dependencies (Rules 2 & 3).",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/satellite/SatelliteModels.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/satellite/SatelliteGatewayBridge.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/satellite/SatelliteGatewayBridgeTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/SpectralNoiseModels.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/SpectralNoiseSuppressor.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/SpectralNoiseSuppressorTest.kt"
       ],
       "acceptanceCriteria": [
-        "Pure KMP implementation with zero Java, C, or platform-specific dependencies in commonMain (Rules 2 & 3)",
-        "Defines SatelliteLinkState, SatelliteModemType, SatelliteDispatchPayload, and SatelliteDispatchAck data models with full serialization",
-        "Encodes emergency mesh packets into compact <= 120-byte Iridium SBD binary/text frames with Base64 & CRC-16 checksum",
-        "Handles satellite transmit queues, offline buffering, timeout retries, and bi-directional ACK propagation into local mesh HUD",
+        "Pure KMP implementation with zero Java, C, or external ML dependencies in commonMain (Rules 2 & 3)",
+        "Defines NoiseSuppressionMode, SpectralNoiseProfile, NoiseEstimationStats, and SpectralFrameDiagnostics data models",
+        "Implements pure Kotlin STFT/filterbank framing (256/512-point window) with Hanning analysis/synthesis and overlap-add reconstruction",
+        "Dynamic noise floor tracking adapts to changing aerodynamic speed and environment without speech distortion",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
       "passes": true
     },
     {
-      "id": "ICA-2702",
+      "id": "ICA-2802",
       "priority": 2,
-      "title": "Long-Range BLE Coded PHY (S=8) & Alpine Terrain Attenuation Model",
-      "description": "Implement AlpineRfModels.kt and AdaptivePhyArbiter.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/phy/. Dynamically negotiates BLE PHY layer modes (LE 1M, LE 2M, LE Coded S=2, LE Coded S=8 125 kbps) to achieve > 500m line-of-sight reach across alpine canyons and mountain switchbacks, compensating for deep terrain shadowing and thermal ducting.",
+      "title": "Hands-Free Acoustic Wake Word Engine & Continuous VOX Arbiter",
+      "description": "Implement WakeWordModels.kt and AcousticWakeWordEngine.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/. Provides low-latency, zero-cloud offline acoustic keyword spotting for 'Hey Alpha' and 'Emergency SOS' using energy envelope trajectory and phonetic formant band scoring, enabling hands-free PTT trigger and speech hold-tail state management during high-speed riding.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/phy/AlpineRfModels.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/phy/AdaptivePhyArbiter.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/phy/AdaptivePhyArbiterTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/WakeWordModels.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/AcousticWakeWordEngine.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/AcousticWakeWordEngineTest.kt"
       ],
       "acceptanceCriteria": [
-        "Pure KMP PHY capability and alpine terrain modeling (BlePhyMode: LE_1M, LE_2M, CODED_S2, CODED_S8)",
-        "Adaptive PHY selection algorithm evaluating RSSI gradient, terrain altitude delta, and packet loss ratio",
-        "Automated fallback and hysteresis dampening preventing ping-pong PHY oscillations during convoy switchbacks",
+        "Pure KMP keyword spotting engine with zero cloud or third-party ML runtime dependencies",
+        "Supports 'Hey Alpha' (hands-free PTT) and 'Emergency SOS' (priority distress broadcast) wake triggers",
+        "Configurable confidence threshold, false-trigger rejection under high wind noise, and refractory cooldown periods",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-2703",
+      "id": "ICA-2803",
       "priority": 3,
-      "title": "Wearable Quick-PTT Companion Protocol & Biometric Vitals Beacon",
-      "description": "Implement WearableCompanionModels.kt and WearableCompanionProtocol.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/wearable/. Enables standalone smartwatch companion integration (WearOS & watchOS) providing glove-friendly handlebar quick-PTT toggle, haptic tap event signaling, and biometric heart rate telemetry streaming across the mesh for rider distress detection.",
+      "title": "Real-Time Channel Airtime Congestion Governor & Adaptive FEC Shaper",
+      "description": "Implement CongestionModels.kt and AirtimeCongestionGovernor.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/qos/. Measures local channel busy ratio (CBR) and transmission collision estimates, dynamically throttling non-voice telemetry queues (GPS beacons, biometric packets, thumbnail chunks) and adjusting audio Forward Error Correction (FEC) redundancy to maintain <= 80ms voice latency under heavy mesh airtime contention.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/wearable/WearableCompanionModels.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/wearable/WearableCompanionProtocol.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/wearable/WearableCompanionProtocolTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/qos/CongestionModels.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/qos/AirtimeCongestionGovernor.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/qos/AirtimeCongestionGovernorTest.kt"
       ],
       "acceptanceCriteria": [
-        "Pure KMP wearable companion message definitions and bidirectional state synchronization",
-        "Zero-latency PTT press/release state machine with debouncing and haptic feedback triggers",
-        "Compressed biometric vitals packet encoding (heart rate, stress indicator, battery level)",
+        "Pure KMP channel busy ratio (CBR) tracking and congestion tier classification (UNCONGESTED, MODERATE, HIGH, CRITICAL)",
+        "Dynamic duty-cycle throttling applied to bulk and non-critical control traffic during speech bursts",
+        "Adaptive audio packet repetition / FEC adjustment based on observed collision rates",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-2704",
+      "id": "ICA-2804",
       "priority": 4,
-      "title": "Alpine Expedition Multi-Target Simulation Harness & Architecture Showcase Update",
-      "description": "Implement AlpineExpeditionSimulationHarness.kt simulating a 24-node high-altitude mountain expedition. Validates LE Coded PHY long-distance links across deep switchbacks, automated satellite SOS dispatch fallback in canyon dead zones, and updates Archify architecture showcase with 9/9 verification pass.",
+      "title": "32-Node Alpine Blizzard Acoustic & RF Contention Benchmark & Archify Showcase Update",
+      "description": "Implement AlpineBlizzardSimulationHarness.kt simulating a 32-node alpine blizzard convoy under extreme wind noise (+15 dB noise-to-signal ratio), hands-free wake word triggering, and heavy RF airtime contention. Validates audio intelligibility, zero voice frame loss, and updates Archify architecture showcase with 9/9 verification pass.",
       "targetFiles": [
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/simulation/AlpineExpeditionSimulationHarness.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/simulation/AlpineBlizzardSimulationHarness.kt",
         "docs/architecture/intercom-alpha.architecture.json",
         "docs/architecture/intercom-alpha-architecture.html"
       ],
       "acceptanceCriteria": [
-        "Simulates 24 nodes traversing high-altitude alpine terrain with elevation deltas and switchbacks",
-        "Validates seamless PHY transitions to CODED_S8 maintaining voice intelligibility beyond 500m",
-        "Validates failover to SatelliteGatewayBridge dispatching emergency SBD beacons when mesh splits and cell is dead",
+        "Simulates 32 nodes in blizzard conditions with severe wind turbulence and acoustic noise",
+        "Validates spectral subtraction noise suppression boosting effective SNR by >= 12 dB",
+        "Validates hands-free wake word detection and congestion governor airtime throttling",
         "Archify architecture specification and HTML showcase updated with 9/9 verification pass",
         "Full multiplatform test suite pass across all targets"
       ],
-      "passes": true
+      "passes": false
     }
   ]
 }
