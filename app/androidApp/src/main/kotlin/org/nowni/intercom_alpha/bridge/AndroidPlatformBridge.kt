@@ -127,9 +127,36 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
     )
     override val routingSnapshot: StateFlow<RoutingSnapshot> = _routingSnapshot.asStateFlow()
 
+    private val _federationSnapshot = MutableStateFlow(
+        org.nowni.intercom_alpha.mesh.federation.FederationSnapshot(
+            localGroupId = "squad-android",
+            localRole = org.nowni.intercom_alpha.mesh.federation.GatewayRole.PRIMARY,
+            bridgeState = org.nowni.intercom_alpha.mesh.federation.FederationBridgeState.DISCONNECTED,
+            federatedGroups = emptyList(),
+            activePolicy = org.nowni.intercom_alpha.mesh.federation.CrossGroupPolicy.CAPTAIN_ONLY,
+            totalRelayedPacketsIn = 0L,
+            totalRelayedPacketsOut = 0L,
+            totalDroppedPolicyViolations = 0L,
+            lastRelayedTimestampMs = 0L
+        )
+    )
+    override val federationSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.federation.FederationSnapshot> = _federationSnapshot.asStateFlow()
+
+    private val _qosSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.qos.QoSSnapshot())
+    override val qosSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.qos.QoSSnapshot> = _qosSnapshot.asStateFlow()
+
+    private val _failoverSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.failover.FailoverMetrics())
+    override val failoverSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.failover.FailoverMetrics> = _failoverSnapshot.asStateFlow()
+
     var channelManager: ChannelManager? = null
         private set
     var directedRouter: DirectedMeshRouter? = null
+        private set
+    var interGroupGateway: org.nowni.intercom_alpha.mesh.federation.InterGroupGateway? = null
+        private set
+    var qosScheduler: org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler? = null
+        private set
+    var failoverArbiter: org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter? = null
         private set
     var blackboxRecorder: EmergencyBlackboxRecorder? = null
         private set
@@ -168,7 +195,10 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         batteryGovernor: org.nowni.intercom_alpha.power.BatteryGovernor?,
         crashDetector: org.nowni.intercom_alpha.safety.CrashDetector?,
         voiceCommandRecognizer: org.nowni.intercom_alpha.audio.VoiceCommandRecognizer?,
-        directedRouter: DirectedMeshRouter?
+        directedRouter: DirectedMeshRouter?,
+        interGroupGateway: org.nowni.intercom_alpha.mesh.federation.InterGroupGateway?,
+        qosScheduler: org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler?,
+        failoverArbiter: org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter?
     ) {
         this.channelManager = channelManager
         this.blackboxRecorder = blackboxRecorder
@@ -181,6 +211,35 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         this.crashDetector = crashDetector
         this.voiceCommandRecognizer = voiceCommandRecognizer
         this.directedRouter = directedRouter
+        this.interGroupGateway = interGroupGateway
+        this.qosScheduler = qosScheduler
+        this.failoverArbiter = failoverArbiter
+
+        failoverArbiter?.let { arbiter ->
+            scope.launch {
+                arbiter.metrics.collect { snapshot ->
+                    _failoverSnapshot.value = snapshot
+                }
+            }
+        }
+
+        qosScheduler?.let { scheduler ->
+            scope.launch {
+                scheduler.qosSnapshot.collect { snapshot ->
+                    _qosSnapshot.value = snapshot
+                }
+            }
+        }
+
+        interGroupGateway?.let { gateway ->
+            scope.launch {
+                while (isActive) {
+                    val snapshot = gateway.getSnapshot(System.currentTimeMillis())
+                    _federationSnapshot.value = snapshot
+                    kotlinx.coroutines.delay(2000L)
+                }
+            }
+        }
 
         directedRouter?.let { router ->
             scope.launch {
@@ -405,6 +464,47 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         scope.launch {
             voiceCommandRecognizer?.processPcmSamples(samples, timestampMs)
         }
+    }
+
+    override fun updateFederationSnapshot(snapshot: org.nowni.intercom_alpha.mesh.federation.FederationSnapshot) {
+        _federationSnapshot.value = snapshot
+    }
+
+    override fun updateQoSSnapshot(snapshot: org.nowni.intercom_alpha.mesh.qos.QoSSnapshot) {
+        _qosSnapshot.value = snapshot
+    }
+
+    override fun updateFailoverSnapshot(metrics: org.nowni.intercom_alpha.mesh.failover.FailoverMetrics) {
+        _failoverSnapshot.value = metrics
+    }
+
+    override fun setFailoverModeOverride(mode: org.nowni.intercom_alpha.mesh.failover.FailoverMode?) {
+        scope.launch {
+            failoverArbiter?.forceMode(mode, System.currentTimeMillis())
+        }
+    }
+
+    override fun setFederationPolicy(groupId: String, policy: org.nowni.intercom_alpha.mesh.federation.CrossGroupPolicy) {
+        interGroupGateway?.setCrossGroupPolicy(groupId, policy)
+        val current = _federationSnapshot.value
+        val updated = current.federatedGroups.map { if (it.groupId == groupId) it.copy(policy = policy) else it }
+        _federationSnapshot.value = current.copy(federatedGroups = updated, activePolicy = policy)
+    }
+
+    override fun createFederationInvite(): String? {
+        val gateway = interGroupGateway ?: return null
+        val invite = gateway.createFederationInvite(currentTimeMs = System.currentTimeMillis())
+        return org.nowni.intercom_alpha.mesh.federation.FederationSerializer.encodeInvite(invite)
+    }
+
+    override fun acceptFederationInvite(inviteCode: String): Boolean {
+        val gateway = interGroupGateway ?: return false
+        val invite = org.nowni.intercom_alpha.mesh.federation.FederationSerializer.decodeInvite(inviteCode) ?: return false
+        val ok = gateway.acceptFederationInvite(invite, System.currentTimeMillis())
+        if (ok) {
+            _federationSnapshot.value = gateway.getSnapshot(System.currentTimeMillis())
+        }
+        return ok
     }
 
     override fun sendRepeaterPacket(packet: MeshPacket.Control) {

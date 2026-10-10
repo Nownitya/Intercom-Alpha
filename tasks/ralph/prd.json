@@ -1,54 +1,54 @@
 {
   "project": "Intercom-Alpha",
-  "branchName": "sprint/sprint-22-mesh-directed-routing",
-  "phase": "Phase 20: Dynamic Mesh Directed Routing, AODV-Lite Route Optimization & RF Collision Reduction",
-  "sprint": "Sprint 22",
-  "updatedAt": "2026-10-08T00:45:00Z",
+  "branchName": "sprint/sprint-25-multipath-mesh-failover",
+  "phase": "Phase 23: Automated Multi-Path Mesh Failover & Hybrid Cellular/SFU Relay Handover",
+  "sprint": "Sprint 25",
+  "updatedAt": "2026-10-09T22:55:00Z",
   "stories": [
     {
-      "id": "ICA-2201",
+      "id": "ICA-2501",
       "priority": 1,
-      "title": "Pure KMP AODV-Lite Directed Routing Engine & Route Table Arbiter",
-      "description": "Implement pure KMP RoutingModels.kt, RoutingTable.kt, and AodvRoutingEngine.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/routing/. Implements on-demand route discovery via RouteRequest (RREQ), RouteReply (RREP), and RouteError (RERR) control frames, monotonic destination sequence numbering for loop-freedom, dynamic link quality cost metrics (ETX derived from RSSI and hop count), and route table expiry with zero Java, C, or platform-specific dependencies (Rules 2 & 3).",
+      "title": "Pure KMP Multi-Path Link Quality Arbiter & Automated Failover State Machine",
+      "description": "Implement FailoverModels.kt and MultiPathFailoverArbiter.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/failover/. Evaluates link delivery metrics (ETX, RSSI, heartbeat timeout, packet loss ratio). Manages discrete handover states (BLE_DIRECT, MULTI_PATH_HEDGED, CLOUD_RELAY_ONLY, RESTRICTED_OFFLINE) with configurable hysteresis (e.g., 5,000ms stable BLE before de-escalating from cloud to avoid handover flapping). Pure Kotlin with zero Java/C dependencies (Rules 2 & 3).",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/routing/RoutingModels.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/routing/RoutingTable.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/routing/AodvRoutingEngine.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/routing/AodvRoutingEngineTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/failover/FailoverModels.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/failover/MultiPathFailoverArbiter.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/failover/MultiPathFailoverArbiterTest.kt"
       ],
       "acceptanceCriteria": [
         "Pure KMP implementation with zero Java, C, or platform-specific dependencies in commonMain (Rules 2 & 3)",
-        "Generates, propagates, and processes RREQ, RREP, and RERR protocol messages",
-        "Maintains loop-free routing table with destination sequence numbers, next-hop pointers, and hop metrics",
-        "Falls back to controlled flooding when route to target destination is unknown or expired",
+        "Defines FailoverMode (BLE_DIRECT, MULTI_PATH_HEDGED, CLOUD_RELAY_ONLY, RESTRICTED_OFFLINE)",
+        "Transitions from BLE_DIRECT to MULTI_PATH_HEDGED when link quality drops below threshold (ETX > 2.5 or loss > 20%)",
+        "Transitions to CLOUD_RELAY_ONLY upon complete BLE link break (timeout > 4,000ms)",
+        "Implements hysteresis timer preventing rapid oscillation/flutter between modes",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
       "passes": true
     },
     {
-      "id": "ICA-2202",
+      "id": "ICA-2502",
       "priority": 2,
-      "title": "Selective Unicast/Multicast Forwarding & RF Airtime Contention Mitigator",
-      "description": "Integrate AodvRoutingEngine and LinkMetricCalculator.kt into MeshTransport.kt / forwarding pipeline. Allows unicast packets (canned hazard text, trail file chunks, remote diagnostics) and channel-scoped multi-hop packets to selectively transmit via optimal next-hop nodes rather than blind broadcast flooding. Implements link break detection and triggers RERR broadcast to self-heal broken mesh paths.",
+      "title": "Transport Handover Wire Integration & Seamless Voice Stream Hedging",
+      "description": "Implement HybridTransportRouter.kt and integrate with CloudRelayBridge.kt and MeshTransport.kt. Intercepts outbound MeshPacket.Audio and MeshPacket.Control to route across BLE and/or Ktor WebSocket cloud relay according to the active FailoverMode. In MULTI_PATH_HEDGED mode, dual-casts critical voice frames over both transports with sequence synchronization, while receiver-side PacketDeduplicator transparently suppresses duplicates, ensuring zero dropped audio frames during RF boundary transitions.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/routing/LinkMetricCalculator.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/MeshTransport.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/routing/DirectedForwardingTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/failover/HybridTransportRouter.kt",
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/CloudRelayBridge.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/failover/HybridTransportRouterTest.kt"
       ],
       "acceptanceCriteria": [
-        "Selectively directs packet transmission along discovered optimal paths when available",
-        "Tracks link delivery ratios and RSSI to dynamically update link cost metrics",
-        "Detects next-hop transmission failures and triggers automatic RERR route invalidation",
-        "Suppresses redundant packet re-broadcasts on intermediate nodes not on the path",
+        "Routes packets dynamically across BLE and Cloud transports according to FailoverMode",
+        "In MULTI_PATH_HEDGED mode, hedges voice frames across both transports with zero audio packet loss",
+        "Maintains sequence synchronization and coordinates with PacketDeduplicator to prevent duplicate playback",
+        "Integrates with MeshQoSScheduler so hedged voice frames retain top priority",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
       "passes": true
     },
     {
-      "id": "ICA-2203",
+      "id": "ICA-2503",
       "priority": 3,
-      "title": "Subsystem Hardware Bridge Wiring & Multiplatform Mesh Topology HUD Presentation",
-      "description": "Wire AodvRoutingEngine into IntercomHardwareBridge, AndroidPlatformBridge, and IntercomBridge (iosMain) with typed CancellationHandle observers. Expose reactive RoutingSnapshot (active routes, next hops, link ETX costs, RF airtime savings). Display routing indicators and vector path connections on ProximityRadarView.kt / HomeScreen.kt (Compose Multiplatform) and ContentView.swift / TacticalVectorRadarView (100% Native iOS SwiftUI) respecting Rule 1.",
+      "title": "Subsystem Hardware Bridge Wiring & Multiplatform Tactical Transport Handover HUD Presentation",
+      "description": "Wire MultiPathFailoverArbiter and HybridTransportRouter into IntercomHardwareBridge, AndroidPlatformBridge, IntercomBridge (iosMain) with typed CancellationHandle observers, and register singletons in AppModule.kt. Expose reactive failoverSnapshot flow. Present tactical transport status indicator badge (BLE / HEDGED / CLOUD / OFFLINE) and handover diagnostic sheet in Compose Multiplatform (HomeScreen.kt) and 100% Native iOS SwiftUI (ContentView.swift / IntercomViewModel.swift respecting Rule 1).",
       "targetFiles": [
         "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomHardwareBridge.kt",
         "app/sharedLogic/src/androidMain/kotlin/org/nowni/intercom_alpha/bridge/AndroidPlatformBridge.kt",
@@ -56,32 +56,33 @@
         "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/state/HomeUiState.kt",
         "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/HomeViewModel.kt",
         "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/HomeScreen.kt",
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/navigation/AppModule.kt",
         "app/iosApp/iosApp/IntercomViewModel.swift",
         "app/iosApp/iosApp/ContentView.swift"
       ],
       "acceptanceCriteria": [
-        "Hardware bridges expose routing snapshot flow and route control hooks",
-        "Exposes reactive CancellationHandle observers for routing state on iOS (Rule 1)",
-        "Compose Multiplatform displays mesh routing topology status badge and radar vector links",
-        "100% Native iOS SwiftUI displays tactical routing efficiency badge and multi-hop paths (Rule 1)",
+        "Hardware bridges expose failoverSnapshot flow and reactive CancellationHandle observers for iOS (Rule 1)",
+        "AppModule registers all required singletons in Koin DI container without runtime missing definition exceptions",
+        "Compose Multiplatform displays tactical transport status pill and handover transition banner",
+        "100% Native iOS SwiftUI displays tactical transport pill in TacticalAvionicsBar (Rule 1)",
         "Full compilation and automated verification pass across all targets"
       ],
       "passes": true
     },
     {
-      "id": "ICA-2204",
+      "id": "ICA-2504",
       "priority": 4,
-      "title": "24-Node Large-Scale Directed Mesh RF Contention Benchmark & Archify Showcase Update",
-      "description": "Implement DirectedMeshSimulationHarness.kt simulating a 24-node convoy across complex topologies (linear column, split groups, terrain obstruction). Measure packet collision rates, end-to-end latency, and route convergence times compared to naive flood relay. Update Archify interactive architecture specifications to showcase quality.",
+      "title": "Highway Convoy Out-of-Range Handover Simulation Harness & Archify Showcase Update",
+      "description": "Implement MultiPathHandoverSimulationHarness.kt simulating a 16-node convoy highway split scenario where a tail group drifts out of BLE line-of-sight, hedges across cellular SFU relay, traverses a zero-connectivity dead zone, and seamlessly rejoins the primary BLE mesh. Validates zero audio dropout during handover and proper hysteresis dampening. Update Archify interactive architecture specifications to showcase quality.",
       "targetFiles": [
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/simulation/DirectedMeshSimulationHarness.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/simulation/MultiPathHandoverSimulationHarness.kt",
         "docs/architecture/intercom-alpha.architecture.json",
         "docs/architecture/intercom-alpha-architecture.html"
       ],
       "acceptanceCriteria": [
-        "Simulates 24-node convoy under varying RF link quality, packet loss, and node mobility",
-        "Demonstrates >= 60% reduction in total forwarded packets for unicast and route-directed traffic",
-        "Verifies fast route self-healing (<300ms) upon simulated link break or node dropout",
+        "Simulates multi-node convoy drift, RF degradation, cloud handover, and re-entry hysteresis",
+        "Verifies 0% audio frame loss during active speech during BLE-to-Cloud transition",
+        "Validates hysteresis dampening prevents oscillation under fluctuating RSSI",
         "Archify architecture specification and HTML showcase updated with 9/9 verification pass",
         "Full multiplatform test suite pass across all targets"
       ],

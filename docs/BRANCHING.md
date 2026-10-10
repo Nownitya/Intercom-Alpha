@@ -131,4 +131,9 @@ For critical production defects (e.g., Bluetooth permission crash on iOS 18 or A
 | `v2.4.0` | `e2a7b3c` | Sprint 17: Production Release v2.4.0 — Basecamp Stationary Repeater UI & Dedicated Low-Power Cockpit Mode |
 | `v2.5.0` | `5c84d72` | Sprint 18: Production Release v2.5.0 — Offline Vector Terrain & Trail Map Overlay |
 | `v2.6.0` | `6c121e4` | Sprint 19: Production Release v2.6.0 — Over-The-Air BLE Mesh GPX/GeoJSON Trail Sharing & Storage Manager |
-| `v2.7.0` | *(Current)* | Sprint 20: Production Release v2.7.0 — Tactical Convoy Geofencing, Autonomous Power Governor & Multi-Node Stress Benchmark Suite |
+| `v2.7.0` | `e7e22fd` | Sprint 20: Production Release v2.7.0 — Tactical Convoy Geofencing, Autonomous Power Governor & Multi-Node Stress Benchmark Suite |
+| `v2.8.0` | `718840b` | Sprint 21: Production Release v2.8.0 — Autonomous Crash Detection, eCall SOS & Offline Voice Command HUD |
+| `v2.9.0` | `976628d` | Sprint 22: Production Release v2.9.0 — Dynamic Mesh Directed Routing & AODV-Lite Route Optimization |
+| `v2.10.0` | `55edf6b` | Sprint 23: Production Release v2.10.0 — Multi-Group Inter-Convoy Gateway & Cross-Mesh Federation |
+| `v2.11.0` | `95aa0a3` | Sprint 24: Production Release v2.11.0 — Mesh Airtime QoS Traffic Shaping & Preemption Arbiter |
+| `v2.12.0` | *(Current)* | Sprint 25: Production Release v2.12.0 — Automated Multi-Path Mesh Failover & Hybrid Cellular/SFU Relay Handover |

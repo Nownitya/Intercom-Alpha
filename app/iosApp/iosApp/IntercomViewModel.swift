@@ -81,6 +81,19 @@ final class IntercomViewModel: ObservableObject {
     @Published var routingSnapshot: RoutingSnapshot? = nil
     @Published var showRoutingSheet: Bool = false
 
+    // --- Multi-Group Federation Gateway Subsystem (Sprint 23 / ICA-2303) ---
+    @Published var federationSnapshot: FederationSnapshot? = nil
+    @Published var showFederationSheet: Bool = false
+    @Published var generatedFederationInvite: String? = nil
+
+    // --- Mesh Airtime QoS Traffic Shaping Subsystem (Sprint 24 / ICA-2403) ---
+    @Published var qosSnapshot: QoSSnapshot? = nil
+    @Published var showQoSSheet: Bool = false
+
+    // --- Multi-Path Failover & Hybrid Handover Subsystem (Sprint 25 / ICA-2503) ---
+    @Published var failoverSnapshot: FailoverMetrics? = nil
+    @Published var showFailoverSheet: Bool = false
+
     private let bridge = IntercomBridge(localPeerId: "ios-lead", localPeerName: "iOS Lead")
     private var cancellables: [CancellationHandle] = []
     private var activeActivity: Activity<IntercomActivityAttributes>? = nil
@@ -394,6 +407,40 @@ final class IntercomViewModel: ObservableObject {
         bridge.initiateRouteDiscovery(destinationId: destinationId)
     }
 
+    // --- Multi-Group Federation Gateway Controls (Sprint 23 / ICA-2303) ---
+
+    func setFederationPolicy(groupId: String, policy: CrossGroupPolicy) {
+        bridge.setFederationPolicy(groupId: groupId, policy: policy)
+    }
+
+    func createFederationInvite() {
+        generatedFederationInvite = bridge.createFederationInvite()
+    }
+
+    func acceptFederationInvite(code: String) -> Bool {
+        return bridge.acceptFederationInvite(inviteCode: code)
+    }
+
+    func dismissFederationInviteDialog() {
+        generatedFederationInvite = nil
+    }
+
+    // --- Mesh Airtime QoS Traffic Shaping Controls (Sprint 24 / ICA-2403) ---
+
+    func toggleQoSSheet() {
+        showQoSSheet.toggle()
+    }
+
+    // --- Multi-Path Failover Controls (Sprint 25 / ICA-2503) ---
+
+    func setFailoverModeOverride(_ mode: FailoverMode?) {
+        bridge.setFailoverModeOverride(mode: mode)
+    }
+
+    func toggleFailoverSheet() {
+        showFailoverSheet.toggle()
+    }
+
     // --- Reactive Observers Setup ---
 
     private func setupObservers() {
@@ -637,6 +684,30 @@ final class IntercomViewModel: ObservableObject {
             }
         }
         cancellables.append(routingSub)
+
+        // --- Multi-Group Federation Gateway Observers (Sprint 23 / ICA-2303) ---
+        let fedSub = bridge.observeFederationSnapshot { [weak self] snapshot in
+            Task { @MainActor in
+                self?.federationSnapshot = snapshot
+            }
+        }
+        cancellables.append(fedSub)
+
+        // --- Mesh Airtime QoS Traffic Shaping Observers (Sprint 24 / ICA-2403) ---
+        let qosSub = bridge.observeQoSSnapshot { [weak self] snapshot in
+            Task { @MainActor in
+                self?.qosSnapshot = snapshot
+            }
+        }
+        cancellables.append(qosSub)
+
+        // --- Multi-Path Failover & Hybrid Handover Observers (Sprint 25 / ICA-2503) ---
+        let failoverSub = bridge.observeFailoverSnapshot { [weak self] snapshot in
+            Task { @MainActor in
+                self?.failoverSnapshot = snapshot
+            }
+        }
+        cancellables.append(failoverSub)
 
         isPfsRatchetActive = bridge.isPfsRatchetActive()
     }

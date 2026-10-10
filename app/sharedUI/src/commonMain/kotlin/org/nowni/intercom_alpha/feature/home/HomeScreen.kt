@@ -2,11 +2,15 @@ package org.nowni.intercom_alpha.feature.home
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -382,6 +386,253 @@ fun HomeScreen(
                         }
                     }
                 }
+
+                // Multi-Group Federation Strip (Sprint 23 - ICA-2303)
+                Surface(
+                    onClick = { onAction(HomeUiAction.ToggleFederationSheet(true)) },
+                    shape = RoundedCornerShape(6.dp),
+                    color = Color(0xFF101A24),
+                    border = BorderStroke(1.dp, Color(0xFF29B6F6))
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 3.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text("🌐", fontSize = 11.sp)
+                            Text(
+                                text = "FEDERATION: ${uiState.federationSnapshot.federatedGroups.size} SQUADS",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(3.dp),
+                                color = if (uiState.federationSnapshot.localRole == org.nowni.intercom_alpha.mesh.federation.GatewayRole.PRIMARY) Color(0xFF0288D1) else Color(0xFF455A64)
+                            ) {
+                                Text(
+                                    text = uiState.federationSnapshot.localRole.name,
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color.White,
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                )
+                            }
+                            Text(
+                                text = "• ${uiState.federationSnapshot.activePolicy.name}",
+                                fontSize = 8.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF81D4FA)
+                            )
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = "${uiState.federationSnapshot.totalRelayedPacketsIn}↓ / ${uiState.federationSnapshot.totalRelayedPacketsOut}↑",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Black,
+                                color = Color(0xFF80D8FF)
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(4.dp),
+                                color = Color(0xFF0277BD)
+                            ) {
+                                Text(
+                                    text = "HUD",
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color.White,
+                                    modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Mesh Airtime QoS Traffic Shaping Strip (Sprint 24 - ICA-2403)
+                val qos = uiState.qosSnapshot
+                Surface(
+                    onClick = { onAction(HomeUiAction.ToggleQoSSheet(true)) },
+                    shape = RoundedCornerShape(6.dp),
+                    color = if (qos.isChannelCongested) Color(0xFF2A1010) else Color(0xFF131B24),
+                    border = BorderStroke(1.dp, if (qos.isChannelCongested) Color(0xFFFF5252) else (if (qos.estimatedAirtimeUtilizationPercent > 50) Color(0xFFFFB300) else Color(0xFF00E5FF)))
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 3.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text("📊", fontSize = 11.sp)
+                            Text(
+                                text = "QoS AIRTIME: ${qos.estimatedAirtimeUtilizationPercent}%",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            if (qos.isChannelCongested) {
+                                Surface(
+                                    shape = RoundedCornerShape(3.dp),
+                                    color = Color(0xFFD32F2F)
+                                ) {
+                                    Text(
+                                        text = "CONGESTED",
+                                        fontSize = 8.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = Color.White,
+                                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                    )
+                                }
+                            } else if (qos.voicePreemptionCount > 0) {
+                                Surface(
+                                    shape = RoundedCornerShape(3.dp),
+                                    color = Color(0xFF0288D1)
+                                ) {
+                                    Text(
+                                        text = "PREEMPT (${qos.voicePreemptionCount})",
+                                        fontSize = 8.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = Color.White,
+                                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                    )
+                                }
+                            }
+                            if (qos.bulkThrottleActive) {
+                                Text(
+                                    text = "• THROTTLED",
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFFFB300)
+                                )
+                            }
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = "Q:${qos.totalPendingQueueDepth} • DR:${qos.totalPacketsDropped}",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Black,
+                                color = if (qos.totalPacketsDropped > 0) Color(0xFFFF5252) else Color(0xFF80D8FF)
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(4.dp),
+                                color = if (qos.isChannelCongested) Color(0xFFB71C1C) else Color(0xFF00838F)
+                            ) {
+                                Text(
+                                    text = "QoS",
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color.White,
+                                    modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Multi-Path Mesh Failover & Handover Strip (Sprint 25 - ICA-2503)
+                val failover = uiState.failoverSnapshot
+                Surface(
+                    onClick = { onAction(HomeUiAction.ToggleFailoverSheet(true)) },
+                    shape = RoundedCornerShape(6.dp),
+                    color = when (failover.currentMode) {
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT -> Color(0xFF0D2319)
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED -> Color(0xFF281E0D)
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY -> Color(0xFF20132B)
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE -> Color(0xFF1E1E1E)
+                    },
+                    border = BorderStroke(1.dp, when (failover.currentMode) {
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT -> Color(0xFF00E676)
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED -> Color(0xFFFFB300)
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY -> Color(0xFFB388FF)
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE -> Color(0xFF757575)
+                    })
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 3.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = when (failover.currentMode) {
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT -> "📡"
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED -> "⚡"
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY -> "☁️"
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE -> "🚫"
+                                },
+                                fontSize = 11.sp
+                            )
+                            Text(
+                                text = when (failover.currentMode) {
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT -> "PATH: BLE DIRECT (OFFLINE)"
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED -> "PATH: HEDGED DUAL-STREAM"
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY -> "PATH: CLOUD RELAY (SFU)"
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE -> "PATH: RESTRICTED OFFLINE"
+                                },
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = "ETX:${(failover.averageEtx * 10).toInt() / 10.0} • H:${failover.totalHandovers}",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Black,
+                                color = if (failover.isBleDegraded) Color(0xFFFFB300) else Color(0xFFB9F6CA)
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(4.dp),
+                                color = when (failover.currentMode) {
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT -> Color(0xFF007E33)
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED -> Color(0xFFFF8800)
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY -> Color(0xFF7C4DFF)
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE -> Color(0xFF424242)
+                                }
+                            ) {
+                                Text(
+                                    text = when (failover.currentMode) {
+                                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT -> "BLE"
+                                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED -> "HEDGED"
+                                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY -> "CLOUD"
+                                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE -> "OFFLINE"
+                                    },
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color.White,
+                                    modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
             // ================= 2. EMERGENCY PREEMPTION BANNER =================
@@ -599,6 +850,36 @@ fun HomeScreen(
                 onDiscoverRoute = { destId -> onAction(HomeUiAction.InitiateRouteDiscovery(destId)) }
             )
         }
+
+        // ================= FEDERATION DIAGNOSTICS DIALOG (Sprint 23 - ICA-2303) =================
+        if (uiState.showFederationSheet) {
+            FederationDiagnosticsDialog(
+                snapshot = uiState.federationSnapshot,
+                generatedInvite = uiState.generatedFederationInvite,
+                onDismiss = { onAction(HomeUiAction.ToggleFederationSheet(false)) },
+                onSetPolicy = { gid, policy -> onAction(HomeUiAction.SetFederationPolicy(gid, policy)) },
+                onCreateInvite = { onAction(HomeUiAction.CreateFederationInvite) },
+                onAcceptInvite = { code -> onAction(HomeUiAction.AcceptFederationInvite(code)) },
+                onDismissInvite = { onAction(HomeUiAction.DismissFederationInviteDialog) }
+            )
+        }
+
+        // ================= QoS DIAGNOSTICS DIALOG (Sprint 24 - ICA-2403) =================
+        if (uiState.showQoSSheet) {
+            QoSDiagnosticsDialog(
+                snapshot = uiState.qosSnapshot,
+                onDismiss = { onAction(HomeUiAction.ToggleQoSSheet(false)) }
+            )
+        }
+
+        // ================= MULTI-PATH FAILOVER DIAGNOSTICS DIALOG (Sprint 25 - ICA-2503) =================
+        if (uiState.showFailoverSheet) {
+            FailoverDiagnosticsDialog(
+                snapshot = uiState.failoverSnapshot,
+                onDismiss = { onAction(HomeUiAction.ToggleFailoverSheet(false)) },
+                onSetOverride = { mode -> onAction(HomeUiAction.SetFailoverModeOverride(mode)) }
+            )
+        }
     }
 }
 
@@ -811,3 +1092,631 @@ fun CrashCountdownDialog(
         }
     }
 }
+
+@Composable
+fun FederationDiagnosticsDialog(
+    snapshot: org.nowni.intercom_alpha.mesh.federation.FederationSnapshot,
+    generatedInvite: String?,
+    onDismiss: () -> Unit,
+    onSetPolicy: (String, org.nowni.intercom_alpha.mesh.federation.CrossGroupPolicy) -> Unit,
+    onCreateInvite: () -> Unit,
+    onAcceptInvite: (String) -> Unit,
+    onDismissInvite: () -> Unit
+) {
+    var inviteInputText by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("") }
+
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = Color(0xFF10151B),
+            border = BorderStroke(1.dp, Color(0xFF29B6F6)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text("🌐", fontSize = 14.sp)
+                        Text(
+                            text = "FEDERATION GATEWAY HUD",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Black,
+                            color = Color(0xFF29B6F6),
+                            letterSpacing = 0.5.sp
+                        )
+                    }
+                    IconButton(onClick = onDismiss, modifier = Modifier.size(24.dp)) {
+                        Text("✕", fontSize = 12.sp, color = Color.White)
+                    }
+                }
+
+                // Gateway Node Status Card
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFF17202A),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "LOCAL SQUAD: ${snapshot.localGroupId}",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(3.dp),
+                                color = if (snapshot.localRole == org.nowni.intercom_alpha.mesh.federation.GatewayRole.PRIMARY) Color(0xFF0288D1) else Color(0xFF546E7A)
+                            ) {
+                                Text(
+                                    text = snapshot.localRole.name,
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color.White,
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                        Text(
+                            text = "Relayed In: ${snapshot.totalRelayedPacketsIn} • Relayed Out: ${snapshot.totalRelayedPacketsOut} • Policy Drops: ${snapshot.totalDroppedPolicyViolations}",
+                            fontSize = 9.sp,
+                            color = Color(0xFF81D4FA)
+                        )
+                    }
+                }
+
+                // Federated Sibling Groups List
+                Text(
+                    text = "FEDERATED SIBLING CONVOYS (${snapshot.federatedGroups.size})",
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF90A4AE)
+                )
+
+                if (snapshot.federatedGroups.isEmpty()) {
+                    Text(
+                        text = "No active sibling convoys connected. Create or accept a federation invite code below to link disparate squads.",
+                        fontSize = 10.sp,
+                        color = Color(0xFF78909C)
+                    )
+                } else {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        for (grp in snapshot.federatedGroups) {
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = Color(0xFF141A22),
+                                border = BorderStroke(0.5.dp, Color(0xFF263238)),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = grp.groupName,
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White
+                                        )
+                                        Text(
+                                            text = "${grp.linkRssi} dBm",
+                                            fontSize = 9.sp,
+                                            color = Color(0xFF00E676)
+                                        )
+                                    }
+                                    Text(
+                                        text = "ID: ${grp.groupId} • Gateway: ${grp.gatewayPeerId} • Relayed: ${grp.relayedPacketsCount}",
+                                        fontSize = 9.sp,
+                                        color = Color(0xFFB0BEC5)
+                                    )
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        for (policy in org.nowni.intercom_alpha.mesh.federation.CrossGroupPolicy.entries) {
+                                            val isSelected = grp.policy == policy
+                                            Surface(
+                                                onClick = { onSetPolicy(grp.groupId, policy) },
+                                                shape = RoundedCornerShape(3.dp),
+                                                color = if (isSelected) Color(0xFF0288D1) else Color(0xFF263238)
+                                            ) {
+                                                Text(
+                                                    text = policy.name.replace("_", " ").take(10),
+                                                    fontSize = 7.sp,
+                                                    fontWeight = if (isSelected) FontWeight.Black else FontWeight.Normal,
+                                                    color = Color.White,
+                                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Generated Invite Display
+                if (generatedInvite != null) {
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = Color(0xFF003756),
+                        border = BorderStroke(1.dp, Color(0xFF00E5FF)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text(
+                                text = "ACTIVE FEDERATION INVITE CODE",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF80D8FF)
+                            )
+                            Text(
+                                text = generatedInvite,
+                                fontSize = 8.sp,
+                                color = Color.White
+                            )
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                                OutlinedButton(
+                                    onClick = onDismissInvite,
+                                    modifier = Modifier.height(26.dp)
+                                ) {
+                                    Text("DONE", fontSize = 8.sp, color = Color.White)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Action Buttons: Create Invite & Accept Code
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Button(
+                        onClick = onCreateInvite,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0288D1)),
+                        shape = RoundedCornerShape(6.dp),
+                        modifier = Modifier.weight(1f).height(36.dp)
+                    ) {
+                        Text("CREATE INVITE", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    androidx.compose.material3.OutlinedTextField(
+                        value = inviteInputText,
+                        onValueChange = { inviteInputText = it },
+                        placeholder = { Text("Paste FEDERATION:v1: code...", fontSize = 9.sp, color = Color(0xFF78909C)) },
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        singleLine = true
+                    )
+                    Button(
+                        onClick = {
+                            if (inviteInputText.isNotBlank()) {
+                                onAcceptInvite(inviteInputText.trim())
+                                inviteInputText = ""
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E676)),
+                        shape = RoundedCornerShape(6.dp),
+                        modifier = Modifier.height(44.dp)
+                    ) {
+                        Text("JOIN", fontSize = 10.sp, fontWeight = FontWeight.Black, color = Color.Black)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun QoSDiagnosticsDialog(
+    snapshot: org.nowni.intercom_alpha.mesh.qos.QoSSnapshot,
+    onDismiss: () -> Unit
+) {
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = Color(0xFF10151B),
+            border = BorderStroke(1.dp, if (snapshot.isChannelCongested) Color(0xFFFF5252) else Color(0xFF00E5FF)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text("📊", fontSize = 14.sp)
+                        Text(
+                            text = "MESH AIRTIME & QoS HUD",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Black,
+                            color = if (snapshot.isChannelCongested) Color(0xFFFF5252) else Color(0xFF00E5FF),
+                            letterSpacing = 0.5.sp
+                        )
+                    }
+                    IconButton(onClick = onDismiss, modifier = Modifier.size(24.dp)) {
+                        Text("✕", fontSize = 12.sp, color = Color.White)
+                    }
+                }
+
+                // Airtime Utilization Card
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFF17202A),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "AIRTIME UTILIZATION",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFB0BEC5)
+                            )
+                            Text(
+                                text = "${snapshot.estimatedAirtimeUtilizationPercent}%",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Black,
+                                color = if (snapshot.estimatedAirtimeUtilizationPercent >= 75) Color(0xFFFF5252) else Color(0xFF00E676)
+                            )
+                        }
+                        LinearProgressIndicator(
+                            progress = { (snapshot.estimatedAirtimeUtilizationPercent / 100f).coerceIn(0f, 1f) },
+                            modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
+                            color = if (snapshot.estimatedAirtimeUtilizationPercent >= 75) Color(0xFFFF5252) else (if (snapshot.estimatedAirtimeUtilizationPercent > 50) Color(0xFFFFB300) else Color(0xFF00E5FF)),
+                            trackColor = Color(0xFF263238)
+                        )
+                    }
+                }
+
+                // Channel Congestion Alert
+                if (snapshot.isChannelCongested) {
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = Color(0xFF3E1212),
+                        border = BorderStroke(1.dp, Color(0xFFFF5252)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text("⚠️", fontSize = 12.sp)
+                            Text(
+                                text = "CHANNEL CONGESTION ACTIVE: Voice preemption arbiter is throttling bulk transfers and dropping non-critical frames to protect audio latency.",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFFFCDD2)
+                            )
+                        }
+                    }
+                }
+
+                // 4-Tier Queue Depths Breakdown
+                Text(
+                    text = "QoS QUEUE DEPTHS (TOTAL: ${snapshot.totalPendingQueueDepth})",
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF90A4AE)
+                )
+
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFF141A22),
+                    border = BorderStroke(0.5.dp, Color(0xFF263238)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("1. Emergency Critical (SOS/Crash)", fontSize = 9.sp, color = Color(0xFFFF5252), fontWeight = FontWeight.Bold)
+                            Text("${snapshot.emergencyQueueDepth} pkts", fontSize = 9.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("2. Active Voice (Audio Streams)", fontSize = 9.sp, color = Color(0xFF00E5FF), fontWeight = FontWeight.Bold)
+                            Text("${snapshot.voiceQueueDepth} pkts", fontSize = 9.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("3. Routing Control (AODV/Epoch)", fontSize = 9.sp, color = Color(0xFF00E676), fontWeight = FontWeight.Bold)
+                            Text("${snapshot.controlQueueDepth} pkts", fontSize = 9.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("4. Bulk Telemetry (GPX/Status)", fontSize = 9.sp, color = Color(0xFFFFB300), fontWeight = FontWeight.Bold)
+                            Text("${snapshot.bulkQueueDepth} pkts", fontSize = 9.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+
+                // Preemption & Drop Telemetry
+                Text(
+                    text = "ARBITER & LIFECYCLE COUNTERS",
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF90A4AE)
+                )
+
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFF141A22),
+                    border = BorderStroke(0.5.dp, Color(0xFF263238)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Total Enqueued / Dispatched", fontSize = 9.sp, color = Color(0xFFB0BEC5))
+                            Text("${snapshot.totalPacketsEnqueued} / ${snapshot.totalPacketsDispatched}", fontSize = 9.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Total Dropped Packets", fontSize = 9.sp, color = Color(0xFFB0BEC5))
+                            Text("${snapshot.totalPacketsDropped}", fontSize = 9.sp, color = if (snapshot.totalPacketsDropped > 0) Color(0xFFFF5252) else Color(0xFF00E676), fontWeight = FontWeight.Bold)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Voice Preemption Events", fontSize = 9.sp, color = Color(0xFFB0BEC5))
+                            Text("${snapshot.voicePreemptionCount}", fontSize = 9.sp, color = Color(0xFF00E5FF), fontWeight = FontWeight.Bold)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Bulk Pacing Throttle", fontSize = 9.sp, color = Color(0xFFB0BEC5))
+                            Text(if (snapshot.bulkThrottleActive) "ACTIVE (<=10%)" else "OFF (NOMINAL)", fontSize = 9.sp, color = if (snapshot.bulkThrottleActive) Color(0xFFFFB300) else Color(0xFF00E676), fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+
+                // Dismiss Button
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    Button(
+                        onClick = onDismiss,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00838F)),
+                        shape = RoundedCornerShape(6.dp),
+                        modifier = Modifier.height(36.dp)
+                    ) {
+                        Text("CLOSE", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ================= MULTI-PATH FAILOVER DIAGNOSTICS DIALOG (Sprint 25 - ICA-2503) =================
+
+@Composable
+fun FailoverDiagnosticsDialog(
+    snapshot: org.nowni.intercom_alpha.mesh.failover.FailoverMetrics,
+    onDismiss: () -> Unit,
+    onSetOverride: (org.nowni.intercom_alpha.mesh.failover.FailoverMode?) -> Unit
+) {
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = Color(0xFF0F141A),
+            border = BorderStroke(1.dp, when (snapshot.currentMode) {
+                org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT -> Color(0xFF00E676)
+                org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED -> Color(0xFFFFB300)
+                org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY -> Color(0xFFB388FF)
+                org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE -> Color(0xFF757575)
+            }),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = when (snapshot.currentMode) {
+                                org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT -> "📡"
+                                org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED -> "⚡"
+                                org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY -> "☁️"
+                                org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE -> "🚫"
+                            },
+                            fontSize = 20.sp
+                        )
+                        Column {
+                            Text(
+                                text = "MULTI-PATH HANDOVER",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Black,
+                                color = Color.White
+                            )
+                            Text(
+                                text = "AUTONOMOUS RF / SFU ARBITRATION",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF00E5FF)
+                            )
+                        }
+                    }
+
+                    IconButton(onClick = onDismiss, modifier = Modifier.size(28.dp)) {
+                        Text("✕", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+
+                // Active Mode Banner
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = when (snapshot.currentMode) {
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT -> Color(0xFF003314)
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED -> Color(0xFF332000)
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY -> Color(0xFF26103D)
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE -> Color(0xFF212121)
+                    },
+                    border = BorderStroke(1.dp, when (snapshot.currentMode) {
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT -> Color(0xFF00E676)
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED -> Color(0xFFFFB300)
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY -> Color(0xFFB388FF)
+                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE -> Color(0xFF757575)
+                    }),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "ACTIVE ROUTING MODE",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Black,
+                                color = Color(0xFFB0BEC5)
+                            )
+                            Text(
+                                text = snapshot.currentMode.name,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Black,
+                                color = when (snapshot.currentMode) {
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT -> Color(0xFF00E676)
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED -> Color(0xFFFFB300)
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY -> Color(0xFFB388FF)
+                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE -> Color(0xFFE0E0E0)
+                                }
+                            )
+                        }
+                        Text(
+                            text = when (snapshot.currentMode) {
+                                org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT -> "Local BLE mesh is nominal. Zero cellular airtime or cloud bandwidth is consumed."
+                                org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED -> "RF degradation detected. Audio packets are dual-cast over BLE and Cloud with receiver deduplication to prevent dropouts."
+                                org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY -> "BLE mesh unreachable (convoy split / out-of-range). Routing 100% via Ktor Cloud Relay WebSocket."
+                                org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE -> "Zero connectivity. Operating best-effort offline."
+                            },
+                            fontSize = 10.sp,
+                            color = Color(0xFFCFD8DC)
+                        )
+                    }
+                }
+
+                // Telemetry Matrix Card
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFF151C24),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text("TELEMETRY & LINK METRICS", fontSize = 10.sp, fontWeight = FontWeight.Black, color = Color(0xFF80D8FF))
+
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("BLE Mesh Peers in Range", fontSize = 10.sp, color = Color(0xFFB0BEC5))
+                            Text("${snapshot.meshPeerCount}", fontSize = 10.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Average Expected Transmissions (ETX)", fontSize = 10.sp, color = Color(0xFFB0BEC5))
+                            Text("${(snapshot.averageEtx * 100).toInt() / 100.0}", fontSize = 10.sp, color = if (snapshot.isBleDegraded) Color(0xFFFFB300) else Color(0xFF00E676), fontWeight = FontWeight.Bold)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Packet Delivery Ratio (PDR)", fontSize = 10.sp, color = Color(0xFFB0BEC5))
+                            Text("${(snapshot.averageDeliveryRatio * 100).toInt()}%", fontSize = 10.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Cloud Relay Status", fontSize = 10.sp, color = Color(0xFFB0BEC5))
+                            Text(if (snapshot.isCloudConnected) "CONNECTED" else "DISCONNECTED", fontSize = 10.sp, color = if (snapshot.isCloudConnected) Color(0xFF00E676) else Color(0xFFFF5252), fontWeight = FontWeight.Bold)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Total Handover Transitions", fontSize = 10.sp, color = Color(0xFFB0BEC5))
+                            Text("${snapshot.totalHandovers}", fontSize = 10.sp, color = Color(0xFF00E5FF), fontWeight = FontWeight.Bold)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Dual-Stream Hedged Frames", fontSize = 10.sp, color = Color(0xFFB0BEC5))
+                            Text("${snapshot.hedgedPacketsCount}", fontSize = 10.sp, color = Color(0xFFFFD54F), fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+
+                // Manual Override Controls
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("MANUAL ROUTING OVERRIDE", fontSize = 10.sp, fontWeight = FontWeight.Black, color = Color(0xFFB0BEC5))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Button(
+                            onClick = { onSetOverride(org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT) },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1B5E20)),
+                            shape = RoundedCornerShape(6.dp),
+                            modifier = Modifier.weight(1f).height(32.dp)
+                        ) {
+                            Text("BLE ONLY", fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        }
+                        Button(
+                            onClick = { onSetOverride(org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY) },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4A148C)),
+                            shape = RoundedCornerShape(6.dp),
+                            modifier = Modifier.weight(1f).height(32.dp)
+                        ) {
+                            Text("CLOUD ONLY", fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        }
+                        Button(
+                            onClick = { onSetOverride(null) },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF37474F)),
+                            shape = RoundedCornerShape(6.dp),
+                            modifier = Modifier.weight(1f).height(32.dp)
+                        ) {
+                            Text("AUTO", fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+
+                // Close Button
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    Button(
+                        onClick = onDismiss,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00838F)),
+                        shape = RoundedCornerShape(6.dp),
+                        modifier = Modifier.height(36.dp)
+                    ) {
+                        Text("CLOSE", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+    }
+}
+

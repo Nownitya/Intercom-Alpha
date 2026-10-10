@@ -193,6 +193,15 @@ struct ContentView: View {
         .sheet(isPresented: $vm.showRoutingSheet) {
             RoutingDiagnosticsSheetView(vm: vm)
         }
+        .sheet(isPresented: $vm.showFederationSheet) {
+            FederationDiagnosticsSheetView(vm: vm)
+        }
+        .sheet(isPresented: $vm.showQoSSheet) {
+            TacticalQoSDiagnosticsSheetView(vm: vm)
+        }
+        .sheet(isPresented: $vm.showFailoverSheet) {
+            TacticalTransportHandoverSheetView(vm: vm)
+        }
         .alert("Intercom Alert", isPresented: Binding(
             get: { vm.errorMessage != nil },
             set: { if !$0 { vm.errorMessage = nil } }
@@ -577,6 +586,92 @@ struct TacticalAvionicsBar: View {
                     .background(Color.cyan.opacity(0.15))
                     .cornerRadius(5)
                     .overlay(RoundedRectangle(cornerRadius: 5).stroke(Color.cyan.opacity(0.35), lineWidth: 1))
+                }
+            }
+
+            // Multi-Group Federation Gateway Pill (Sprint 23 - ICA-2303)
+            if let fed = vm.federationSnapshot {
+                Button(action: {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    vm.showFederationSheet = true
+                }) {
+                    HStack(spacing: 3) {
+                        Image(systemName: "globe")
+                            .font(.system(size: 8, weight: .bold))
+                        Text("FED \(fed.federatedGroups.count)G")
+                            .font(.system(size: 8, weight: .black, design: .monospaced))
+                        Text("• \(fed.localRole.name.prefix(4))")
+                            .font(.system(size: 7, weight: .heavy, design: .monospaced))
+                    }
+                    .foregroundColor(.blue)
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 3)
+                    .background(Color.blue.opacity(0.15))
+                    .cornerRadius(5)
+                    .overlay(RoundedRectangle(cornerRadius: 5).stroke(Color.blue.opacity(0.35), lineWidth: 1))
+                }
+            }
+
+            // Mesh Airtime QoS Traffic Shaping Pill (Sprint 24 - ICA-2403)
+            if let qos = vm.qosSnapshot {
+                Button(action: {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    vm.showQoSSheet = true
+                }) {
+                    HStack(spacing: 3) {
+                        Image(systemName: "waveform.path.ecg")
+                            .font(.system(size: 8, weight: .bold))
+                        Text("QoS \(qos.estimatedAirtimeUtilizationPercent)%")
+                            .font(.system(size: 8, weight: .black, design: .monospaced))
+                        if qos.isChannelCongested {
+                            Text("CONG")
+                                .font(.system(size: 7, weight: .heavy, design: .monospaced))
+                                .foregroundColor(.red)
+                        } else if qos.voicePreemptionCount > 0 {
+                            Text("PRMT")
+                                .font(.system(size: 7, weight: .heavy, design: .monospaced))
+                        }
+                    }
+                    .foregroundColor(qos.isChannelCongested ? .red : (qos.estimatedAirtimeUtilizationPercent > 50 ? .orange : .green))
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 3)
+                    .background((qos.isChannelCongested ? Color.red : (qos.estimatedAirtimeUtilizationPercent > 50 ? Color.orange : Color.green)).opacity(0.15))
+                    .cornerRadius(5)
+                    .overlay(RoundedRectangle(cornerRadius: 5).stroke((qos.isChannelCongested ? Color.red : (qos.estimatedAirtimeUtilizationPercent > 50 ? Color.orange : Color.green)).opacity(0.35), lineWidth: 1))
+                }
+            }
+
+            // Multi-Path Failover Pill (Sprint 25 - ICA-2503)
+            if let failover = vm.failoverSnapshot {
+                Button(action: {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    vm.showFailoverSheet = true
+                }) {
+                    HStack(spacing: 3) {
+                        Image(systemName: "arrow.triangle.branch")
+                            .font(.system(size: 8, weight: .bold))
+                        let modeTag: String = {
+                            switch failover.currentMode {
+                            case .bleDirect: return "BLE"
+                            case .multiPathHedged: return "HEDGE"
+                            case .cloudRelayOnly: return "SFU"
+                            case .restrictedOffline: return "OFF"
+                            default: return "PATH"
+                            }
+                        }()
+                        Text(modeTag)
+                            .font(.system(size: 8, weight: .black, design: .monospaced))
+                        if failover.isCloudConnected {
+                            Text("• CLOUD")
+                                .font(.system(size: 7, weight: .heavy, design: .monospaced))
+                        }
+                    }
+                    .foregroundColor(failover.currentMode == .bleDirect ? .green : (failover.currentMode == .multiPathHedged ? .orange : .purple))
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 3)
+                    .background((failover.currentMode == .bleDirect ? Color.green : (failover.currentMode == .multiPathHedged ? Color.orange : Color.purple)).opacity(0.15))
+                    .cornerRadius(5)
+                    .overlay(RoundedRectangle(cornerRadius: 5).stroke((failover.currentMode == .bleDirect ? Color.green : (failover.currentMode == .multiPathHedged ? Color.orange : Color.purple)).opacity(0.35), lineWidth: 1))
                 }
             }
 
@@ -1449,3 +1544,562 @@ struct RoutingDiagnosticsSheetView: View {
         }
     }
 }
+
+// ================= MULTI-GROUP FEDERATION GATEWAY SHEET (Sprint 23 / ICA-2303) =================
+
+struct FederationDiagnosticsSheetView: View {
+    @ObservedObject var vm: IntercomViewModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var inviteInputText: String = ""
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 16) {
+                    // Local Gateway Card
+                    if let fed = vm.federationSnapshot {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text("LOCAL SQUAD: \(fed.localGroupId)")
+                                    .font(.system(size: 13, weight: .black, design: .monospaced))
+                                    .foregroundColor(.white)
+                                Spacer()
+                                Text(fed.localRole.name)
+                                    .font(.system(size: 10, weight: .black, design: .monospaced))
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
+                                    .background(fed.localRole == .primary ? Color.blue : Color.gray)
+                                    .cornerRadius(4)
+                            }
+
+                            Divider().background(Color.white.opacity(0.1))
+
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("RELAYED IN")
+                                        .font(.system(size: 8, weight: .bold))
+                                        .foregroundColor(.secondary)
+                                    Text("\(fed.totalRelayedPacketsIn) pkts")
+                                        .font(.system(size: 12, weight: .black, design: .monospaced))
+                                        .foregroundColor(.cyan)
+                                }
+                                Spacer()
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("RELAYED OUT")
+                                        .font(.system(size: 8, weight: .bold))
+                                        .foregroundColor(.secondary)
+                                    Text("\(fed.totalRelayedPacketsOut) pkts")
+                                        .font(.system(size: 12, weight: .black, design: .monospaced))
+                                        .foregroundColor(.green)
+                                }
+                                Spacer()
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("DROPPED")
+                                        .font(.system(size: 8, weight: .bold))
+                                        .foregroundColor(.secondary)
+                                    Text("\(fed.totalDroppedPolicyViolations) pkts")
+                                        .font(.system(size: 12, weight: .black, design: .monospaced))
+                                        .foregroundColor(.orange)
+                                }
+                            }
+                        }
+                        .padding()
+                        .background(Color.white.opacity(0.06))
+                        .cornerRadius(12)
+                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.blue.opacity(0.4), lineWidth: 1))
+                    }
+
+                    // Connected Sibling Convoys Section
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("FEDERATED SIBLING CONVOYS (\(vm.federationSnapshot?.federatedGroups.count ?? 0))")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.secondary)
+
+                        if let groups = vm.federationSnapshot?.federatedGroups, !groups.isEmpty {
+                            ForEach(groups, id: \.groupId) { grp in
+                                VStack(alignment: .leading, spacing: 6) {
+                                    HStack {
+                                        Text(grp.groupName)
+                                            .font(.system(size: 13, weight: .bold))
+                                            .foregroundColor(.white)
+                                        Spacer()
+                                        Text("\(grp.linkRssi) dBm")
+                                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                            .foregroundColor(.green)
+                                    }
+
+                                    Text("ID: \(grp.groupId) • Gateway: \(grp.gatewayPeerId) • Relayed: \(grp.relayedPacketsCount)")
+                                        .font(.system(size: 10, design: .monospaced))
+                                        .foregroundColor(.secondary)
+
+                                    HStack(spacing: 6) {
+                                        Button("CAPTAIN") {
+                                            vm.setFederationPolicy(groupId: grp.groupId, policy: .captainOnly)
+                                        }
+                                        .buttonStyle(.bordered)
+                                        .tint(grp.policy == .captainOnly ? .blue : .gray)
+
+                                        Button("SOS ONLY") {
+                                            vm.setFederationPolicy(groupId: grp.groupId, policy: .emergencySosOnly)
+                                        }
+                                        .buttonStyle(.bordered)
+                                        .tint(grp.policy == .emergencySosOnly ? .blue : .gray)
+
+                                        Button("ALL BRIDGED") {
+                                            vm.setFederationPolicy(groupId: grp.groupId, policy: .allMembersBridged)
+                                        }
+                                        .buttonStyle(.bordered)
+                                        .tint(grp.policy == .allMembersBridged ? .blue : .gray)
+                                    }
+                                    .font(.system(size: 9, weight: .bold))
+                                }
+                                .padding()
+                                .background(Color.white.opacity(0.04))
+                                .cornerRadius(8)
+                            }
+                        } else {
+                            Text("No active sibling convoys connected. Create or accept an invite code below to bridge motorcycle squads.")
+                                .font(.system(size: 12))
+                                .foregroundColor(.secondary)
+                                .padding()
+                        }
+                    }
+
+                    // Active Generated Invite Code
+                    if let inviteCode = vm.generatedFederationInvite {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("ACTIVE SQUAD INVITE CODE")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(.cyan)
+
+                            Text(inviteCode)
+                                .font(.system(size: 9, design: .monospaced))
+                                .foregroundColor(.white)
+                                .padding(8)
+                                .background(Color.black.opacity(0.4))
+                                .cornerRadius(6)
+
+                            HStack {
+                                Spacer()
+                                Button("Done") {
+                                    vm.dismissFederationInviteDialog()
+                                }
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundColor(.cyan)
+                            }
+                        }
+                        .padding()
+                        .background(Color.blue.opacity(0.2))
+                        .cornerRadius(8)
+                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.cyan, lineWidth: 1))
+                    }
+
+                    // Invite Actions
+                    VStack(spacing: 10) {
+                        Button(action: {
+                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                            vm.createFederationInvite()
+                        }) {
+                            HStack {
+                                Image(systemName: "qrcode")
+                                Text("CREATE SQUAD INVITE")
+                            }
+                            .font(.system(size: 12, weight: .black))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.blue)
+                            .cornerRadius(10)
+                        }
+
+                        HStack(spacing: 8) {
+                            TextField("Paste FEDERATION:v1: code...", text: $inviteInputText)
+                                .textFieldStyle(.roundedBorder)
+                                .font(.system(size: 11, design: .monospaced))
+
+                            Button("JOIN") {
+                                if !inviteInputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                    _ = vm.acceptFederationInvite(code: inviteInputText.trimmingCharacters(in: .whitespacesAndNewlines))
+                                    inviteInputText = ""
+                                }
+                            }
+                            .font(.system(size: 12, weight: .bold))
+                            .buttonStyle(.borderedProminent)
+                            .tint(.green)
+                        }
+                    }
+                    .padding(.top, 8)
+                }
+                .padding()
+            }
+            .navigationTitle("Federation Gateway HUD")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") { dismiss() }
+                }
+            }
+        }
+    }
+}
+
+// --- Tactical Mesh Airtime & QoS Diagnostics Sheet (Sprint 24 / ICA-2403) ---
+
+struct TacticalQoSDiagnosticsSheetView: View {
+    @ObservedObject var vm: IntercomViewModel
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    let qos = vm.qosSnapshot ?? QoSSnapshot(
+                        emergencyQueueDepth: 0,
+                        voiceQueueDepth: 0,
+                        controlQueueDepth: 0,
+                        bulkQueueDepth: 0,
+                        totalPacketsEnqueued: 0,
+                        totalPacketsDispatched: 0,
+                        totalPacketsDropped: 0,
+                        voicePreemptionCount: 0,
+                        isVoiceActive: false,
+                        bulkThrottleActive: false,
+                        estimatedAirtimeUtilizationPercent: 0
+                    )
+
+                    // 1. Airtime Utilization Progress Card
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("AIRTIME UTILIZATION")
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Text("\(qos.estimatedAirtimeUtilizationPercent)%")
+                                .font(.system(size: 14, weight: .black, design: .monospaced))
+                                .foregroundColor(qos.estimatedAirtimeUtilizationPercent >= 75 ? .red : (qos.estimatedAirtimeUtilizationPercent > 50 ? .orange : .green))
+                        }
+
+                        ProgressView(value: Double(qos.estimatedAirtimeUtilizationPercent), total: 100.0)
+                            .tint(qos.estimatedAirtimeUtilizationPercent >= 75 ? .red : (qos.estimatedAirtimeUtilizationPercent > 50 ? .orange : .cyan))
+                    }
+                    .padding()
+                    .background(Color.white.opacity(0.04))
+                    .cornerRadius(10)
+
+                    // 2. Channel Congestion Warning
+                    if qos.isChannelCongested {
+                        HStack(spacing: 8) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(.red)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("CHANNEL CONGESTION ACTIVE")
+                                    .font(.system(size: 11, weight: .black, design: .monospaced))
+                                    .foregroundColor(.red)
+                                Text("Bulk packets throttled (\(qos.bulkThrottleActive ? "<=10%" : "off")) • Protecting voice latency budget")
+                                    .font(.system(size: 10, weight: .medium))
+                                    .foregroundColor(.white.opacity(0.85))
+                            }
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color.red.opacity(0.18))
+                        .cornerRadius(10)
+                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.red.opacity(0.4), lineWidth: 1))
+                    }
+
+                    // 3. 4-Tier QoS Queue Depths
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("QoS QUEUE DEPTHS (TOTAL: \(qos.totalPendingQueueDepth))")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.secondary)
+
+                        VStack(spacing: 6) {
+                            queueRow(title: "1. Emergency Critical (SOS/Crash)", count: qos.emergencyQueueDepth, color: .red)
+                            queueRow(title: "2. Active Voice (Audio Streams)", count: qos.voiceQueueDepth, color: .cyan)
+                            queueRow(title: "3. Routing Control (AODV/Epoch)", count: qos.controlQueueDepth, color: .green)
+                            queueRow(title: "4. Bulk Telemetry (GPX/Status)", count: qos.bulkQueueDepth, color: .orange)
+                        }
+                    }
+                    .padding()
+                    .background(Color.white.opacity(0.04))
+                    .cornerRadius(10)
+
+                    // 4. Arbiter & Performance Telemetry
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("ARBITER STATISTICS")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.secondary)
+
+                        VStack(spacing: 6) {
+                            statRow(title: "Total Packets Enqueued", value: "\(qos.totalPacketsEnqueued)")
+                            statRow(title: "Total Packets Dispatched", value: "\(qos.totalPacketsDispatched)")
+                            statRow(title: "Total Packets Dropped", value: "\(qos.totalPacketsDropped)", isWarning: qos.totalPacketsDropped > 0)
+                            statRow(title: "Voice Preemption Events", value: "\(qos.voicePreemptionCount)")
+                            statRow(title: "Voice Stream Active", value: qos.isVoiceActive ? "YES" : "IDLE")
+                            statRow(title: "Bulk OTA Throttling", value: qos.bulkThrottleActive ? "ACTIVE (<=10%)" : "NOMINAL")
+                        }
+                    }
+                    .padding()
+                    .background(Color.white.opacity(0.04))
+                    .cornerRadius(10)
+                }
+                .padding()
+            }
+            .navigationTitle("Mesh Airtime & QoS HUD")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") { dismiss() }
+                }
+            }
+        }
+    }
+
+    private func queueRow(title: String, count: Int32, color: Color) -> some View {
+        HStack {
+            Circle()
+                .fill(color)
+                .frame(width: 6, height: 6)
+            Text(title)
+                .font(.system(size: 11, weight: .bold))
+                .foregroundColor(.white)
+            Spacer()
+            Text("\(count) pkts")
+                .font(.system(size: 11, weight: .black, design: .monospaced))
+                .foregroundColor(color)
+        }
+    }
+
+    private func statRow(title: String, value: String, isWarning: Bool = false) -> some View {
+        HStack {
+            Text(title)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(.secondary)
+            Spacer()
+            Text(value)
+                .font(.system(size: 11, weight: .black, design: .monospaced))
+                .foregroundColor(isWarning ? .red : .white)
+        }
+    }
+}
+
+// --- Tactical Transport Handover & Multi-Path Failover HUD Sheet (Sprint 25 / ICA-2503) ---
+
+struct TacticalTransportHandoverSheetView: View {
+    @ObservedObject var vm: IntercomViewModel
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 16) {
+                    let failover = vm.failoverSnapshot ?? FailoverMetrics(
+                        currentMode: .restrictedOffline,
+                        meshPeerCount: 0,
+                        averageEtx: 1.0,
+                        averageDeliveryRatio: 1.0,
+                        lastBleActivityMs: 0,
+                        isCloudConnected: false,
+                        timeInCurrentModeMs: 0,
+                        totalHandovers: 0,
+                        hedgedPacketsCount: 0,
+                        isBleDegraded: false
+                    )
+
+                    // 1. Current Active Path Banner
+                    HStack(spacing: 12) {
+                        Image(systemName: modeIcon(failover.currentMode))
+                            .font(.system(size: 26, weight: .bold))
+                            .foregroundColor(modeColor(failover.currentMode))
+
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(modeTitle(failover.currentMode))
+                                .font(.system(size: 15, weight: .black, design: .monospaced))
+                                .foregroundColor(.white)
+                            Text(modeDescription(failover.currentMode))
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                    }
+                    .padding()
+                    .background(modeColor(failover.currentMode).opacity(0.12))
+                    .cornerRadius(12)
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(modeColor(failover.currentMode).opacity(0.35), lineWidth: 1.5))
+
+                    // 2. Link Quality Warning Banner
+                    if failover.isBleDegraded {
+                        HStack(spacing: 8) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(.orange)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("BLE RF DEGRADATION DETECTED")
+                                    .font(.system(size: 11, weight: .black, design: .monospaced))
+                                    .foregroundColor(.orange)
+                                Text("Dual-stream packet hedging active to protect voice continuity")
+                                    .font(.system(size: 10, weight: .medium))
+                                    .foregroundColor(.white.opacity(0.85))
+                            }
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color.orange.opacity(0.18))
+                        .cornerRadius(10)
+                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.orange.opacity(0.4), lineWidth: 1))
+                    }
+
+                    // 3. Telemetry & Link Metrics
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("TELEMETRY & LINK METRICS")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.secondary)
+
+                        VStack(spacing: 6) {
+                            metricRow(title: "BLE Mesh Peers in Range", value: "\(failover.meshPeerCount)")
+                            metricRow(
+                                title: "Average Expected Transmissions (ETX)",
+                                value: String(format: "%.2f", failover.averageEtx),
+                                isWarning: failover.isBleDegraded
+                            )
+                            metricRow(
+                                title: "Packet Delivery Ratio (PDR)",
+                                value: "\(Int(failover.averageDeliveryRatio * 100))%"
+                            )
+                            metricRow(
+                                title: "Cloud Relay WebSocket Status",
+                                value: failover.isCloudConnected ? "CONNECTED" : "DISCONNECTED",
+                                isWarning: !failover.isCloudConnected
+                            )
+                            metricRow(
+                                title: "Total Handover Transitions",
+                                value: "\(failover.totalHandovers)"
+                            )
+                            metricRow(
+                                title: "Dual-Stream Hedged Frames",
+                                value: "\(failover.hedgedPacketsCount)"
+                            )
+                        }
+                    }
+                    .padding()
+                    .background(Color.white.opacity(0.04))
+                    .cornerRadius(10)
+
+                    // 4. Manual Routing Policy Override
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("MANUAL ROUTING OVERRIDE")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.secondary)
+
+                        HStack(spacing: 8) {
+                            overrideButton(
+                                title: "BLE DIRECT",
+                                isSelected: failover.currentMode == .bleDirect,
+                                color: .green
+                            ) {
+                                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                vm.setFailoverModeOverride(.bleDirect)
+                            }
+
+                            overrideButton(
+                                title: "CLOUD ONLY",
+                                isSelected: failover.currentMode == .cloudRelayOnly,
+                                color: .purple
+                            ) {
+                                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                vm.setFailoverModeOverride(.cloudRelayOnly)
+                            }
+
+                            overrideButton(
+                                title: "AUTO (ARBITER)",
+                                isSelected: false,
+                                color: .blue
+                            ) {
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                vm.setFailoverModeOverride(nil)
+                            }
+                        }
+                    }
+                    .padding()
+                    .background(Color.white.opacity(0.04))
+                    .cornerRadius(10)
+                }
+                .padding()
+            }
+            .navigationTitle("Transport Handover HUD")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") { dismiss() }
+                }
+            }
+        }
+    }
+
+    private func modeIcon(_ mode: FailoverMode) -> String {
+        switch mode {
+        case .bleDirect: return "antenna.radiowaves.left.and.right"
+        case .multiPathHedged: return "arrow.triangle.branch"
+        case .cloudRelayOnly: return "cloud.fill"
+        case .restrictedOffline: return "bolt.slash.fill"
+        default: return "network"
+        }
+    }
+
+    private func modeColor(_ mode: FailoverMode) -> Color {
+        switch mode {
+        case .bleDirect: return .green
+        case .multiPathHedged: return .orange
+        case .cloudRelayOnly: return .purple
+        case .restrictedOffline: return .gray
+        default: return .cyan
+        }
+    }
+
+    private func modeTitle(_ mode: FailoverMode) -> String {
+        switch mode {
+        case .bleDirect: return "BLE DIRECT (OFFLINE)"
+        case .multiPathHedged: return "MULTI-PATH HEDGED"
+        case .cloudRelayOnly: return "CLOUD RELAY (SFU)"
+        case .restrictedOffline: return "RESTRICTED OFFLINE"
+        default: return "UNKNOWN"
+        }
+    }
+
+    private func modeDescription(_ mode: FailoverMode) -> String {
+        switch mode {
+        case .bleDirect: return "Zero cellular usage • 100% peer-to-peer BLE mesh."
+        case .multiPathHedged: return "Degraded RF link • Hedging frames across BLE & Cloud Relay."
+        case .cloudRelayOnly: return "Local mesh unreachable • Cellular SFU websocket fallback."
+        case .restrictedOffline: return "No active mesh or cloud paths available."
+        default: return "Arbitrating..."
+        }
+    }
+
+    private func metricRow(title: String, value: String, isWarning: Bool = false) -> some View {
+        HStack {
+            Text(title)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(.secondary)
+            Spacer()
+            Text(value)
+                .font(.system(size: 11, weight: .black, design: .monospaced))
+                .foregroundColor(isWarning ? .orange : .white)
+        }
+    }
+
+    private func overrideButton(title: String, isSelected: Bool, color: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 9, weight: .bold, design: .monospaced))
+                .foregroundColor(isSelected ? .black : color)
+                .frame(maxWidth: .infinity)
+                .frame(height: 34)
+                .background(isSelected ? color : color.opacity(0.15))
+                .cornerRadius(6)
+                .overlay(RoundedRectangle(cornerRadius: 6).stroke(color.opacity(0.5), lineWidth: 1))
+        }
+    }
+}

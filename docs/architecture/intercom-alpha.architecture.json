@@ -3,7 +3,7 @@
   "diagram_type": "architecture",
   "meta": {
     "title": "Intercom-Alpha Cross-Platform Mesh Architecture",
-    "subtitle": "KMP Shared Core, Native SwiftUI & Compose, Multi-Hop BLE Flooding, AODV-Lite Directed Routing & RFC 8439 AEAD Encryption",
+    "subtitle": "KMP Shared Core, Native SwiftUI & Compose, Multi-Hop BLE Flooding, AODV-Lite Directed Routing, Inter-Convoy Gateway & RFC 8439 AEAD Encryption",
     "output": "docs/architecture/intercom-alpha-architecture.html",
     "visual_preset": "blueprint",
     "animation": "trace",
@@ -28,16 +28,16 @@
         "note": "QR code key derivation, sliding-window broadcast storm suppression, and Ktor cloud fallback."
       },
       {
-        "id": "tactical-safety-telemetry",
-        "label": "Convoy Radar, Crash HUD & Power Governor",
-        "focus": ["android_ui", "ios_ui", "swift_bridge", "voice_recognizer", "crash_detector", "trail_engine", "geofence_engine", "battery_governor", "mesh_transport", "remote_peers"],
-        "note": "Follow dynamic convoy radar tethering, split detection, IMU crash detection, 30s abort HUD, and offline voice command DSP."
+        "id": "tactical-safety-and-routing",
+        "label": "Convoy Radar, Crash HUD & Directed Routing",
+        "focus": ["android_ui", "ios_ui", "swift_bridge", "voice_recognizer", "crash_detector", "trail_engine", "geofence_engine", "battery_governor", "directed_router", "link_metric", "mesh_transport", "remote_peers"],
+        "note": "Follow dynamic convoy radar tethering, split detection, IMU crash eCall HUD, offline voice DSP, and AODV-Lite route discovery."
       },
       {
-        "id": "directed-mesh-routing",
-        "label": "Directed Mesh Routing & AODV-Lite",
-        "focus": ["android_ui", "ios_ui", "swift_bridge", "directed_router", "link_metric", "mesh_transport", "remote_peers"],
-        "note": "Follow dynamic AODV-Lite on-demand path discovery, ETX link metrics, and contention-suppressing unicast forwarding."
+        "id": "qos-and-failover",
+        "label": "QoS & Multi-Path Failover",
+        "focus": ["cross_mesh_arbiter", "failover_arbiter", "hybrid_router", "qos_scheduler", "qos_queue", "mesh_transport", "signaling_server", "remote_peers"],
+        "note": "Follow 4-tier strict QoS preemption, RF degradation failover to MULTI_PATH_HEDGED, and cellular SFU relay fallback."
       }
     ]
   },
@@ -194,6 +194,60 @@
       "tag": "Contention Mitigator",
       "pos": [960, 760],
       "size": [136, 62]
+    },
+    {
+      "id": "cross_mesh_arbiter",
+      "type": "backend",
+      "label": "Cross-Mesh Arbiter",
+      "sublabel": "Anti-Feedback Guard",
+      "tag": "Sub-Group Isolation",
+      "pos": [300, 760],
+      "size": [136, 62]
+    },
+    {
+      "id": "federation_gateway",
+      "type": "security",
+      "label": "Inter-Group Gateway",
+      "sublabel": "Cross-Mesh Bridge",
+      "tag": "FEDERATION:v1:",
+      "pos": [520, 760],
+      "size": [136, 62]
+    },
+    {
+      "id": "qos_scheduler",
+      "type": "backend",
+      "label": "QoS Scheduler",
+      "sublabel": "Traffic Shaping",
+      "tag": "4-Tier Preemption",
+      "pos": [740, 940],
+      "size": [136, 62]
+    },
+    {
+      "id": "qos_queue",
+      "type": "backend",
+      "label": "QoS Queue",
+      "sublabel": "Priority + DRR",
+      "tag": "Anti-Starvation",
+      "pos": [960, 940],
+      "size": [136, 62]
+    },
+    {
+      "id": "failover_arbiter",
+      "type": "backend",
+      "label": "Failover Arbiter",
+      "sublabel": "MultiPathFailover",
+      "tag": "Hysteresis Machine",
+      "pos": [300, 940],
+      "size": [136, 62]
+    },
+    {
+      "id": "hybrid_router",
+      "type": "backend",
+      "label": "Hybrid Router",
+      "sublabel": "Transport Router",
+      "tag": "Dual-Stream Hedger",
+      "pos": [520, 940],
+      "size": [136, 62]
     }
   ],
   "boundaries": [
@@ -206,7 +260,7 @@
     {
       "kind": "security-group",
       "label": "KMP Core Engine (:app:sharedLogic)",
-      "wraps": ["group_mgr", "audio_engine", "trail_engine", "packet_cipher", "deduplicator", "geofence_engine", "mesh_transport", "battery_governor", "crash_detector", "voice_recognizer", "link_metric", "directed_router"],
+      "wraps": ["group_mgr", "audio_engine", "trail_engine", "packet_cipher", "deduplicator", "geofence_engine", "mesh_transport", "battery_governor", "crash_detector", "voice_recognizer", "link_metric", "directed_router", "cross_mesh_arbiter", "federation_gateway", "qos_scheduler", "qos_queue", "failover_arbiter", "hybrid_router"],
       "pad": 16
     },
     {
@@ -362,6 +416,72 @@
       "fromSide": "right",
       "toSide": "bottom",
       "variant": "emphasis"
+    },
+    {
+      "from": "crash_detector",
+      "to": "cross_mesh_arbiter",
+      "label": "SOS Preempt",
+      "labelAt": [368, 656],
+      "fromSide": "bottom",
+      "toSide": "top",
+      "variant": "emphasis"
+    },
+    {
+      "from": "cross_mesh_arbiter",
+      "to": "federation_gateway",
+      "label": "Policy Demux",
+      "fromSide": "right",
+      "toSide": "left",
+      "variant": "emphasis"
+    },
+    {
+      "from": "federation_gateway",
+      "to": "link_metric",
+      "label": "Bridge Metric",
+      "fromSide": "right",
+      "toSide": "left",
+      "variant": "emphasis"
+    },
+    {
+      "from": "cross_mesh_arbiter",
+      "to": "failover_arbiter",
+      "label": "Failover Hook",
+      "labelAt": [368, 836],
+      "fromSide": "bottom",
+      "toSide": "top",
+      "variant": "emphasis"
+    },
+    {
+      "from": "failover_arbiter",
+      "to": "hybrid_router",
+      "label": "Failover Mode",
+      "fromSide": "right",
+      "toSide": "left",
+      "variant": "emphasis"
+    },
+    {
+      "from": "hybrid_router",
+      "to": "qos_scheduler",
+      "label": "Hedged Queue",
+      "fromSide": "right",
+      "toSide": "left",
+      "variant": "emphasis"
+    },
+    {
+      "from": "qos_scheduler",
+      "to": "qos_queue",
+      "label": "DRR Schedule",
+      "fromSide": "right",
+      "toSide": "left",
+      "variant": "emphasis"
+    },
+    {
+      "from": "qos_queue",
+      "to": "directed_router",
+      "label": "Paced Packets",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "variant": "emphasis"
     }
   ],
   "cards": [
@@ -417,6 +537,34 @@
         "Pure KMP AODV-Lite dynamic route discovery (RREQ/RREP) and loop-free sequence number arbitration",
         "ETX link cost estimation with 3-consecutive-failure circuit breaker and fast self-healing (<300ms)",
         "Overhearing bystander unicast drop achieving >= 60% RF airtime contention reduction in 24-node convoy"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "Inter-Convoy Gateway & Cross-Mesh Federation (Sprint 23)",
+      "items": [
+        "Pure KMP InterGroupGateway & CrossMeshRelayEngine bridging disparate motorcycle convoys with dual-layer ChaCha20-Poly1305 re-encryption (<25ms latency)",
+        "CrossMeshForwardingArbiter enforces sub-group isolation (channels 2..15 stay intra-squad) with universal Emergency SOS all-call preemption across 32 nodes",
+        "FederationLoopDetector prevents circular relay loops via monotonic pathTrace tracking and sliding-window deduplication with zero feedback amplification"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Mesh Airtime QoS & Preemption Arbiter (Sprint 24)",
+      "items": [
+        "Pure KMP 4-tier QoS Priority Queue & Scheduler (EMERGENCY_CRITICAL > ACTIVE_VOICE > ROUTING_CONTROL > BULK_TELEMETRY)",
+        "Dynamic 400ms conversational voice hangover window preventing ping-pong flapping during speech pauses",
+        "Deficit Round-Robin anti-starvation tokens guaranteeing bounded latency for routing control during continuous voice",
+        "Bulk file transfer duty-cycle throttling (>=150ms delay, <=10% airtime) maintaining Voice PDR >= 92% across 32 congested nodes"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Automated Multi-Path Mesh Failover & Hybrid Relay (Sprint 25)",
+      "items": [
+        "Pure KMP MultiPathFailoverArbiter evaluates ETX, RSSI, and PDR with discrete modes (BLE_DIRECT, MULTI_PATH_HEDGED, CLOUD_RELAY_ONLY, RESTRICTED_OFFLINE)",
+        "Zero-dropout MULTI_PATH_HEDGED dual-stream voice packet hedging with receiver PacketDeduplicator transparent suppression",
+        "5,000ms hysteresis dampening preventing RF boundary flapping during highway convoy drift, mountain split, and tunnel dead zones"
       ]
     }
   ]

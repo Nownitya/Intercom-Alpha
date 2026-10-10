@@ -1612,6 +1612,339 @@
   - `ICA-2203: Subsystem Hardware Bridge Wiring & Multiplatform Mesh Topology HUD Presentation` [PASSED]
   - `ICA-2204: 24-Node Large-Scale Directed Mesh RF Contention Benchmark & Archify Showcase Update` [PASSED]
 - **Target Release**: `v2.9.0`
+---
+
+### [2026-10-08] - ICA-2301: Pure KMP Multi-Group Gateway Engine & Cross-Mesh Federation Protocol
+- **Branch**: `feature/ICA-2301-gateway-engine`
+- **Objective**: Implement pure KMP `FederationModels.kt`, `InterGroupGateway.kt`, and `CrossMeshRelayEngine.kt` in `mesh/federation/`. Defines inter-group gateway contracts (`GroupFederationInvite`, `FederationBridgeState`, `CrossGroupPolicy`, `CrossMeshAudioPacket`). Implements gateway leader arbitration, policy-driven audio/hazard bridging between distinct cryptographic groups (Squad A vs Squad B) with key translation and re-encryption. Pure KMP with 0 Java/C dependencies (Rules 2 & 3).
+- **Implementation**:
+  - `MeshTransport.kt`: Added `FEDERATION_INVITE`, `FEDERATION_BRIDGE`, and `FEDERATION_AUDIO` to `ControlType` enum.
+  - `FederationModels.kt`:
+    - Defined `CrossGroupPolicy` (`CAPTAIN_ONLY`, `EMERGENCY_SOS_ONLY`, `ALL_MEMBERS_BRIDGED`, `DISABLED`).
+    - Defined `GroupFederationInvite` with `FEDERATION:v1:` Base64 URL/QR prefix and symmetric key derivation.
+    - Defined `FederationBridgeState` and `GatewayRole` (`PRIMARY`, `STANDBY`, `NON_GATEWAY`).
+    - Modeled `CrossMeshAudioPacket` with `pathTrace` loop prevention list and AEAD encrypted payload.
+    - Implemented `FederationSerializer` with `#type` class discriminator and pure Kotlin Base64 encoding.
+  - `CrossMeshRelayEngine.kt`:
+    - Managed multi-federation ciphers derived via SHA-256 (`PacketCipher.deriveKey(sharedSecret)`).
+    - Enforced policy authorization checks (`isTransmissionAllowed`).
+    - Added inbound anti-feedback loop guard (`DropFeedbackLoop` if `pathTrace.contains(localGroupId)`).
+    - Authenticated and decrypted incoming cross-mesh frames returning `InboundFederationDecision.Deliver`.
+  - `InterGroupGateway.kt`:
+    - Primary gateway state coordinator for local group.
+    - Automated invite generation (`createFederationInvite`) and validation/acceptance (`acceptFederationInvite`).
+    - Enforced gateway leader role: only `PRIMARY` gateway nodes broadcast outbound cross-mesh frames, suppressing duplicate storms from `STANDBY` nodes.
+    - Maintained active federated sibling table, relayed packet counters, and reactive `FederationSnapshot`.
+  - `InterGroupGatewayTest.kt`:
+    - 5 comprehensive tests validating invite encoding/decoding/expiry, policy enforcement (captain/emergency/all), end-to-end dual gateway translation, circular feedback loop suppression, standby gateway suppression, and tampered payload rejection.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly in 48s).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-23-multi-group-gateway`).
+---
+
+### [2026-10-08] - ICA-2302: Selective Inter-Group Audio Demuxing, Sub-Group Isolation & Anti-Feedback Loop Guard
+- **Branch**: `feature/ICA-2302-audio-demux-loop-guard`
+- **Objective**: Implement `FederationLoopDetector.kt` and `CrossMeshForwardingArbiter.kt` in `mesh/federation/`. Integrates cross-mesh audio bridging into MeshTransport and audio pipeline. Prevents acoustic and relay feedback loops across redundant gateway bridges via monotonic `federationPathTrace` and cross-group deduplication. Enforces sub-group isolation (e.g. private squad chatter remains internal; only designated Captain PTT or Emergency SOS bridges across convoys). Pure KMP with 0 Java/C dependencies (Rules 2 & 3).
+- **Implementation**:
+  - `FederationLoopDetector.kt`:
+    - Modeled `LoopCheckResult` (`Accept`, `DropCircularLoop`, `DropHopLimitExceeded`, `DropDuplicate`, `DropSelfEcho`).
+    - Implemented self-origin acoustic echo suppression (`packet.originalSenderId == localPeerId`).
+    - Verified monotonic `pathTrace` loop prevention (`pathTrace.contains(localGroupId)` or internal cyclic hops).
+    - Enforced `maxHops` threshold (default 3 hops) for transit relay boundaries.
+    - Implemented thread-safe sliding-window deduplication cache (`seenPackets` with 5s time-window and LRU purge) to suppress duplicate arrivals from redundant concurrent gateways.
+  - `CrossMeshForwardingArbiter.kt`:
+    - Modeled `OutboundForwardingDecision`, `InboundForwardingDecision`, `InboundRelayResult`, and `DropCategory`.
+    - Enforced sub-group isolation: isolated squad channels (channels 2..15, e.g. scouts, sweep, support vehicle, rider-to-pillion) remain strictly internal to the local squad and are blocked from cross-mesh bridging.
+    - Enforced emergency preemption: Emergency SOS frames (and Channel 16) override channel restrictions and pass across meshes under `EMERGENCY_SOS_ONLY`, `CAPTAIN_ONLY`, and `ALL_MEMBERS_BRIDGED`.
+    - Enforced pre-decryption inbound gate: rejects unauthorized, non-captain, or unverified cross-group frames before executing AEAD cryptographic decryption, saving battery and CPU cycles.
+    - Added comprehensive audit telemetry (`ForwardingAuditSnapshot`) tracking inbound/outbound packets, delivery counts, and classified drops.
+  - `CrossMeshRelayEngine.kt` & `InterGroupGateway.kt`:
+    - Exposed `getCipher(federationId)` and integrated `FederationLoopDetector` + `CrossMeshForwardingArbiter` into `InterGroupGateway`.
+  - `CrossMeshForwardingTest.kt`:
+    - 9 comprehensive tests validating acoustic self-echo suppression, circular relay loop detection, cyclic path trace rejection, hop count limits, concurrent gateway deduplication, sub-group isolation, captain-only policy, emergency preemption, standby gateway suppression, pre-decryption security gating, end-to-end ingestion pipeline, and audit metrics.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly in 1m 23s).
+  - Cleaned redundant cast warnings in `CrossMeshForwardingArbiter.kt`; verified `./gradlew test` (91 actionable tasks passed in 40s with 0 warnings).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-23-multi-group-gateway`).
+---
+
+### [2026-10-08] - ICA-2303: Subsystem Hardware Bridge Wiring & Multiplatform Federation HUD Presentation
+- **Branch**: `feature/ICA-2303-hardware-bridge-hud`
+- **Objective**: Wire `InterGroupGateway` into `IntercomHardwareBridge`, `AndroidPlatformBridge`, and `IntercomBridge` (`iosMain`) with typed `CancellationHandle` observers. Expose reactive `FederationSnapshot` (connected sibling groups, bridge policy, gateway link RSSI, relayed packet counts) and gateway control hooks. Present Multi-Group Federation badge and diagnostics sheet in Compose Multiplatform (`HomeScreen.kt`) and 100% Native iOS SwiftUI (`ContentView.swift` / `IntercomViewModel.swift` strictly respecting Rule 1).
+- **Implementation**:
+  - `IntercomHardwareBridge.kt`:
+    - Added `federationSnapshot: StateFlow<FederationSnapshot>` contract and default snapshot.
+    - Added `updateFederationSnapshot(snapshot)`, `setFederationPolicy(policy)`, `createFederationInvite(targetGroupId)`, and `acceptFederationInvite(invitePayload)`.
+    - Wired optional `interGroupGateway: InterGroupGateway?` into `attachSubsystems(...)` and `NoOpIntercomHardwareBridge`.
+  - `AndroidPlatformBridge.kt`:
+    - Instantiated and wired `interGroupGateway` into `_federationSnapshot` pipeline.
+    - Launched 2-second periodic polling loop synchronizing snapshot with live `interGroupGateway` metrics.
+    - Wired `setFederationPolicy`, `createFederationInvite`, and `acceptFederationInvite` delegating directly to gateway.
+  - `IntercomBridge.kt` (`iosMain`):
+    - Instantiated pure KMP `InterGroupGateway` for iOS platform bridge.
+    - Added Swift-friendly `observeFederationSnapshot(callback: (FederationSnapshot) -> Unit): CancellationHandle` adhering to Rule 1.
+    - Exposed `setFederationPolicy`, `createFederationInvite`, and `acceptFederationInvite` methods.
+  - `HomeUiState.kt` & `HomeViewModel.kt`:
+    - Added `federationSnapshot: FederationSnapshot`, `showFederationSheet: Boolean`, and `generatedFederationInvite: String?`.
+    - Modeled `ToggleFederationSheet`, `SetFederationPolicy`, `CreateFederationInvite`, `AcceptFederationInvite`, `DismissFederationInviteDialog` in `HomeUiAction`.
+    - Wired `hardwareBridge.federationSnapshot` subscription into `viewModelScope` and routed all UI actions.
+  - `HomeScreen.kt`:
+    - Added tactile `🌐 FEDERATION: N SQUADS` avionics HUD banner pill.
+    - Implemented full zero-scroll motorcycle glove friendly `FederationDiagnosticsDialog` with real-time squad cards, policy cycling button, QR/text invite generator, and invite token join bar.
+  - `IntercomViewModel.swift` & `ContentView.swift` (100% Native SwiftUI, Rule 1):
+    - Added `@Published var federationSnapshot`, `@Published var showFederationSheet`, `@Published var generatedFederationInvite`.
+    - Registered `observeFederationSnapshot` with lifecycle cancellation handle.
+    - Implemented `FederationBadgeButton` in status header and modal `FederationDiagnosticsSheetView` presenting connected squads, link metrics, policy selector, invite generation, and token redemption in pure native SwiftUI.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly in 1m 26s).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-23-multi-group-gateway`).
+---
+
+### [2026-10-08] - ICA-2304: Dual-Convoy 32-Node Cross-Mesh Simulation Harness & Archify Showcase Update
+- **Branch**: `feature/ICA-2304-federation-simulation-showcase`
+- **Objective**: Implement `MultiGroupFederationSimulationHarness.kt` simulating a dual-squad convoy (Squad Alpha 16 nodes, Squad Bravo 16 nodes) with dual gateway nodes (Lead & Sweep). Validates sub-group isolation (channels 2..15 stay intra-squad), <25ms gateway re-encryption latency, zero broadcast loops across redundant gateways, and emergency all-call preemption across both meshes. Update Archify interactive architecture specifications to showcase quality.
+- **Implementation**:
+  - `MultiGroupFederationSimulationHarness.kt`:
+    - Modeled `VirtualSquadNode` (16 riders per squad across `squad-alpha` and `squad-bravo`) with individual deduplicators, ciphers, and gateways.
+    - Verified `testDualConvoy32NodeSubGroupAudioIsolation`: Channel 2 scout intra-squad audio received by all 16 Alpha nodes, exactly 0 packets leaked to Bravo; Road Captain Channel 1 voice bridged across gateway to Bravo Lead Captain.
+    - Verified `testEmergencySosUniversalPreemptionAcross32Nodes`: Deep-trail rider CRASH_ALERT / SOS overrides channel isolation and policy, universally broadcasting to all 32 nodes across both squads.
+    - Verified `testZeroCircularFeedbackLoopsWithDualConcurrentGateways`: Both Lead and Sweep gateways active in parallel under `ALL_MEMBERS_BRIDGED`; loop detector and deduplicator dropped circular returns and duplicate arrivals with exactly 25 relayed frames and zero infinite relay amplification.
+    - Verified `testGatewayReEncryptionLatencyUnder25ms`: Benchmarked 100 frames across pure Kotlin ChaCha20-Poly1305 gateway transformation achieving 0.39ms average latency (peak 1.74ms), beating the <25ms acceptance threshold.
+  - `FederationModels.kt` & `InterGroupGateway.kt`:
+    - Added `federationId` parameter to `FederatedGroupInfo`.
+    - Registered bridge ciphers for both `federationId` and `initiatorGroupId`, ensuring bi-directional outbound and inbound gateway demuxing.
+  - Archify Architecture Specification & Showcase (`docs/architecture/intercom-alpha.architecture.json` & `docs/architecture/intercom-alpha-architecture.html`):
+    - Added `cross_mesh_arbiter` (Cross-Mesh Arbiter) and `federation_gateway` (Inter-Group Gateway) to KMP Core Engine.
+    - Added `cross-mesh-federation` view (Inter-Convoy Gateway & Federation) with dynamic trace animations.
+    - Added non-crossing horizontal routing connections across row y=760 (`cross_mesh_arbiter` -> `federation_gateway` -> `link_metric` -> `directed_router` -> `remote_peers`).
+    - Added Sprint 23 showcase card (slate dot) highlighting dual-layer ChaCha20-Poly1305 re-encryption, sub-group isolation, and loop detector verification.
+    - Delivered via Archify CLI with 100% showcase quality pass (9/9 checks passed, 0 errors, 0 warnings).
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64 :app:sharedLogic:jvmTest`: BUILD SUCCESSFUL (127 actionable tasks passed cleanly in 1m 41s).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-23-multi-group-gateway`).
+---
+
+### [2026-10-09] - ICA-2401: Pure KMP Mesh Priority QoS Traffic Scheduler & Preemption Arbiter
+- **Branch**: `feature/ICA-2401-qos-traffic-scheduler`
+- **Objective**: Implement thread-safe 4-tier strict priority QoS packet queue and scheduler in commonMain (`QoSModels.kt`, `MeshQoSQueue.kt`, `MeshQoSScheduler.kt`) with deficit round-robin starvation protection, voice preemption, and hangover tracking.
+- **Implementation**:
+  - `QoSModels.kt`:
+    - Defined `QoSPriority` (EMERGENCY_CRITICAL, ACTIVE_VOICE, ROUTING_CONTROL, BULK_TELEMETRY).
+    - Modeled `QueuedMeshPacket`, `QoSSnapshot`, and `QoSPacketClassifier` classifying voice audio frames, control SOS alerts, AODV routing, and bulk telemetry.
+  - `MeshQoSQueue.kt`:
+    - Thread-safe priority queues with bounded capacities and drop-oldest voice policy under extreme overload.
+    - Deficit round-robin starvation protection servicing 1 routing control packet every 8 consecutive voice packets.
+  - `MeshQoSScheduler.kt`:
+    - Enforces 400ms voice hangover window to avoid bursty interleaving of background bulk transfers during conversational pauses.
+    - Calculates dynamic pacing delays and publishes reactive `qosSnapshot: StateFlow<QoSSnapshot>`.
+  - `MeshQoSSchedulerTest.kt`:
+    - 6 unit test suites verifying priority dispatch ordering, bulk preemption during voice, deficit starvation protection, hangover duration, capacity drop policy, and pacing delays.
+- **Verification**:
+  - `./gradlew test`: BUILD SUCCESSFUL (91 actionable tasks passed cleanly).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-24-adaptive-bitrate-qos`).
+---
+
+### [2026-10-09] - ICA-2402: MeshTransport Wire Integration & Bulk File Airtime Throttling
+- **Branch**: `feature/ICA-2402-mesh-transport-qos-integration`
+- **Objective**: Wire `MeshQoSScheduler` into `MeshTransport` interface, Android & iOS platform transport implementations, pure KMP decorator `QoSAwareMeshTransport`, and `MeshFileTransferManager`. Throttle background GPX/GeoJSON trail file transmission to <=10% airtime duty cycle during active voice or heavy RF congestion, eliminating packet collisions and buffer bloat.
+- **Implementation**:
+  - `MeshTransport.kt`:
+    - Added `val qosScheduler: MeshQoSScheduler? get() = null` property.
+    - Added `suspend fun sendPacket(packet: MeshPacket)` default dispatcher.
+  - `QoSAwareMeshTransport.kt`:
+    - Pure KMP transport decorator coordinating asynchronous priority dispatch worker with strict QoS queue ordering (Emergency > Voice > Control > Bulk) and dynamic airtime pacing delays.
+  - `MeshTransport.android.kt` & `MeshTransport.ios.kt`:
+    - Wired `qosScheduler` instance into Android and iOS GATT stacks, recording outbound voice and control packet events with pacing delays.
+  - `MeshFileTransferManager.kt`:
+    - Injected optional `MeshQoSScheduler`, exposed `isThrottled: Boolean` property.
+    - Added `applyQoSPacing()` enforcing $\ge 150\text{ms}$ inter-chunk delay ($\le 10\%$ airtime duty cycle) during active voice or heavy RF congestion.
+    - Added `continueTransfer(transferId, batchSize)` batch dispatcher.
+  - `MeshTransportQoSTest.kt`:
+    - 6 unit test suites verifying outbound packet routing through QoS scheduler, bulk file transfer throttling during active voice, zero dropped voice packets during concurrent file beaming, deficit anti-starvation protection, voice hangover decay, and instant emergency preemption.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly in 1m 11s).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-24-adaptive-bitrate-qos`).
+---
+
+### [2026-10-09] - ICA-2403: Subsystem Hardware Bridge Wiring & Multiplatform Tactical QoS HUD Presentation
+- **Branch**: `feature/ICA-2403-qos-hud-presentation`
+- **Objective**: Wire `MeshQoSScheduler` into `IntercomHardwareBridge`, `AndroidPlatformBridge`, and `IntercomBridge` (`iosMain`) with typed `CancellationHandle` observers. Expose reactive `QoSSnapshot` (active queue depths, dropped packet stats, voice preemption counter, airtime utilization percentage). Present QoS link health badge and channel congestion warning sheet in Compose Multiplatform (`HomeScreen.kt`) and 100% Native iOS SwiftUI (`ContentView.swift` / `IntercomViewModel.swift` respecting Rule 1).
+- **Implementation**:
+  - `QoSModels.kt`:
+    - Added `val isChannelCongested: Boolean get() = estimatedAirtimeUtilizationPercent >= 75 || totalPacketsDropped > 0` convenience property to `QoSSnapshot`.
+  - `IntercomHardwareBridge.kt`:
+    - Added `qosSnapshot: StateFlow<QoSSnapshot>`, `updateQoSSnapshot(...)`, and `qosScheduler` parameter in `attachSubsystems(...)`.
+    - Added test simulation hooks in `NoOpIntercomHardwareBridge`.
+  - `AndroidPlatformBridge.kt`:
+    - Implemented `qosSnapshot` state flow, `updateQoSSnapshot`, and bound `qosScheduler.qosSnapshot` flow in `attachSubsystems`.
+  - `IntercomBridge.kt` (`iosMain`):
+    - Exposed `qosScheduler` and Swift-friendly `observeQoSSnapshot(onSnapshot: (QoSSnapshot) -> Unit): CancellationHandle`.
+  - `HomeUiState.kt` & `HomeViewModel.kt`:
+    - Added `qosSnapshot` and `showQoSSheet: Boolean` to state.
+    - Wired `qosScheduler` through `HomeViewModel` constructor and synchronized `hardwareBridge.qosSnapshot`.
+    - Handled `HomeUiAction.ToggleQoSSheet(show: Boolean)`.
+  - `HomeScreen.kt`:
+    - Added Tactical QoS airtime indicator strip with congestion alert banner in top avionics header.
+    - Implemented `QoSDiagnosticsDialog` detailing airtime utilization bar, congestion status, 4-tier queue depths, preemption counters, and bulk pacing status.
+  - `IntercomViewModel.swift` & `ContentView.swift`:
+    - Added `@Published var qosSnapshot: QoSSnapshot?` and `@Published var showQoSSheet: Bool`.
+    - Wired `observeQoSSnapshot` with lifecycle `CancellationHandle` disposal.
+    - Added tactical QoS pill in `TacticalAvionicsBar`.
+    - Implemented 100% native SwiftUI `TacticalQoSDiagnosticsSheetView` (Rule 1).
+  - Multiplatform Unit Tests:
+    - Added `testMeshQoSSnapshotAndDiagnosticsSheet` in `HomeViewModelTest.kt`.
+    - Added `testQoSSchedulerBridgeContract` in `IntercomBridgeContractTest.kt`.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks in 3m 17s).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+  - Graphify sync (`graphify update .`): 3,502 nodes, 7,562 edges, 268 communities.
+---
+
+### [2026-10-09] - ICA-2404: 32-Node Congested RF Mesh QoS Simulation Harness & Archify Showcase Update
+- **Branch**: `feature/ICA-2404-congested-mesh-simulation-showcase`
+- **Objective**: Implement `CongestedMeshQoSSimulationHarness.kt` simulating 32-node motorcycle convoy under 40% RF contention and heavy background OTA route data beaming. Validate strict 4-tier QoS voice preemption and airtime throttling maintaining >= 92% Voice Packet Delivery Ratio (PDR). Fix Koin multiplatform DI definition errors and BLE advertising 31-byte legacy packet buffer overflow. Update Archify interactive architecture specifications to showcase quality.
+- **Implementation**:
+  - `CongestedMeshQoSSimulationHarness.kt`:
+    - Simulated 32-node convoy cluster with 40% channel contention, 80 bulk file chunks (20KB trail partition), and 50 conversational voice packets.
+    - Verified strict priority preemption, voice hangover hold across conversational pauses, DRR anti-starvation tokens (servicing routing control within 8 voice packets), and emergency SOS zero-loss preemption.
+    - Validated Voice PDR > 96% under shaped QoS vs < 60% unshaped baseline (> 36% absolute improvement).
+  - Bug Fixes:
+    - `AppModule.kt`: Registered missing Koin single definitions for `InterGroupGateway` and `MeshQoSScheduler`, resolving runtime `NoDefinitionFoundException` in `HomeViewModel`.
+    - `MeshTransport.android.kt`: Fixed `buildAdvertiseData` to fit legacy BLE 31-byte advertising frame limit (24-byte payload = 1 byte version + 8 bytes groupId + 15 bytes peerName) and disabled `setIncludeDeviceName`, eliminating `BufferOverflowException` and `Legacy advertising data too large` crash.
+  - Archify Architecture Specification & Showcase:
+    - Updated `docs/architecture/intercom-alpha.architecture.json` with `qos_scheduler` (QoS Scheduler), `qos_queue` (QoS Queue), unified `federation-and-qos` view, and Sprint 24 documentation card.
+    - Delivered showcase HTML artifact with 9/9 verification pass via Archify CLI (0 errors, 0 warnings).
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (125 actionable tasks passed cleanly).
+  - `./gradlew :app:sharedLogic:jvmTest`: All unit tests passed.
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`).
+### [2026-10-09] - ICA-2501: Pure KMP Multi-Path Link Quality Arbiter & Automated Failover State Machine
+- **Branch**: `feature/ICA-2501-multipath-failover-arbiter`
+- **Objective**: Implement pure KMP multi-path link quality monitoring, automated BLE-to-Cellular failover state machine, and hysteresis dampening to ensure zero audio packet dropouts and prevent handover flutter.
+- **Implementation**:
+  - `FailoverModels.kt`:
+    - Defined `FailoverMode` (BLE_DIRECT, MULTI_PATH_HEDGED, CLOUD_RELAY_ONLY, RESTRICTED_OFFLINE).
+    - Defined `FailoverConfig` with configurable thresholds (ETX 2.5, packet loss 20%, RSSI -88 dBm, BLE timeout 4000ms, hysteresis 5000ms).
+    - Defined `FailoverMetrics` with active link health, handover counters, hedged frame statistics, and degraded flags.
+  - `MultiPathFailoverArbiter.kt`:
+    - Pure KMP implementation with zero Java/platform dependencies (Rules 2 & 3).
+    - Thread-safe state machine using `kotlinx.coroutines.sync.Mutex` and `MutableStateFlow<FailoverMetrics>`.
+    - Instant escalation to `MULTI_PATH_HEDGED` or `CLOUD_RELAY_ONLY` on link degradation/loss.
+    - Hysteresis timing requiring 5000ms of stable BLE telemetry before de-escalating to `BLE_DIRECT`.
+    - Manual mode override (`forceMode`) and hedged frame tracking (`recordHedgedPacket`).
+  - `MultiPathFailoverArbiterTest.kt`:
+    - Comprehensive unit test suite covering initial offline state, healthy BLE, immediate escalation on high ETX/loss/weak RSSI, escalation on peer loss / timeout, 5000ms hysteresis dampening, manual override, and offline fallback.
+- **Verification**:
+  - `./gradlew test`: 100% test pass across multiplatform targets.
+  - `./gradlew :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+  - Graphify Knowledge Sync (`graphify update .`): 3,546 nodes, 7,680 edges, 262 communities (Rule 7).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-25-multipath-mesh-failover`).
+
+### [2026-10-09] - ICA-2502: Transport Handover Wire Integration & Seamless Voice Stream Hedging
+- **Branch**: `feature/ICA-2502-transport-handover-hedging`
+- **Objective**: Implement pure KMP `HybridTransportRouter.kt` integrating multi-path failover, wire routing across `MeshTransport` and `CloudRelayBridge`, stream hedging with receiver deduplication, and integration with `MeshQoSScheduler`.
+- **Implementation**:
+  - `CloudRelayBridge.kt`:
+    - Updated constructor to accept optional `failoverArbiter: MultiPathFailoverArbiter?`.
+    - Enforced `FALLBACK_ONLY` operating mode: automatically suppresses cloud forwarding when `failoverArbiter` reports `BLE_DIRECT` and permits forwarding upon degradation or handover.
+  - `HybridTransportRouter.kt`:
+    - Pure KMP router coordinating outbound packet dispatches based on `FailoverMode`.
+    - In `MULTI_PATH_HEDGED` mode, concurrently dispatches outbound frames to both BLE mesh and Cloud Relay WebSocket while incrementing hedged packet counters.
+    - Preserves packet sequence synchronization so receiver-side `PacketDeduplicator` transparently suppresses second arrivals, guaranteeing zero dropped voice frames.
+    - Seamlessly routes through `MeshQoSScheduler` when available, respecting 4-tier QoS priorities.
+  - `HybridTransportRouterTest.kt`:
+    - Comprehensive unit test suite covering `BLE_DIRECT` isolation, `MULTI_PATH_HEDGED` dual-path dispatching, receiver deduplication with 0 duplicate playback, `CLOUD_RELAY_ONLY` diversion, `RESTRICTED_OFFLINE` best-effort fallback, and QoS priority queue integration.
+- **Verification**:
+  - `./gradlew test`: 100% test pass across multiplatform targets.
+  - `./gradlew :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+  - Graphify Knowledge Sync (`graphify update .`): 3,571 nodes, 7,769 edges, 252 communities (Rule 7).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-25-multipath-mesh-failover`).
+
+### [2026-10-09] - ICA-2503: Subsystem Hardware Bridge Wiring & Multiplatform Tactical Transport Handover HUD Presentation
+- **Branch**: `feature/ICA-2503-bridge-hud-presentation`
+- **Objective**: Wire `MultiPathFailoverArbiter` and `HybridTransportRouter` into `IntercomHardwareBridge`, `AndroidPlatformBridge`, and `IntercomBridge` (`iosMain`) with typed `CancellationHandle` observers, register singletons in Koin `AppModule.kt`, expose reactive `failoverSnapshot` flow in `HomeUiState`, and present tactical transport status badge and handover diagnostic sheet in Compose Multiplatform (`HomeScreen.kt`) and 100% Native iOS SwiftUI (`ContentView.swift` / `IntercomViewModel.swift` respecting Rule 1).
+- **Implementation**:
+  - `IntercomHardwareBridge.kt`:
+    - Added `failoverSnapshot` state flow, `updateFailoverSnapshot`, `setFailoverModeOverride`, and `failoverArbiter` parameter to `attachSubsystems`.
+    - Implemented simulation helpers `simulateFailoverSnapshot` in `NoOpIntercomHardwareBridge`.
+  - `AndroidPlatformBridge.kt`:
+    - Added `failoverArbiter` reference and wired continuous metric collection to `_failoverSnapshot`.
+    - Added `setFailoverModeOverride` dispatching `forceMode` on the arbiter.
+  - `IntercomBridge.kt` (`iosMain`):
+    - Added `failoverArbiter` singleton property.
+    - Implemented `observeFailoverSnapshot(onSnapshot: (FailoverMetrics) -> Unit): CancellationHandle` providing Swift-friendly reactive observation.
+    - Implemented `setFailoverModeOverride(mode: FailoverMode?)`.
+  - `AppModule.kt`:
+    - Registered `single { MultiPathFailoverArbiter() }` in `sharedUiModule`.
+  - `HomeUiState.kt` & `HomeViewModel.kt`:
+    - Added `failoverSnapshot: FailoverMetrics` and `showFailoverSheet: Boolean` to `HomeUiState`.
+    - Added `HomeUiAction.ToggleFailoverSheet` and `HomeUiAction.SetFailoverModeOverride`.
+    - Injected `MultiPathFailoverArbiter` into `HomeViewModel` constructor, forwarded to `hardwareBridge.attachSubsystems()`, and collected snapshot into `_uiState`.
+  - `HomeScreen.kt`:
+    - Added tactical transport failover pill in the avionics bar displaying current mode (`BLE`, `HEDGED`, `CLOUD`, `OFFLINE`), ETX, and handover count.
+    - Implemented `FailoverDiagnosticsDialog` modal presenting comprehensive link quality metrics (peer count, ETX, PDR, cloud relay state, handovers, hedged frames) and manual mode override actuators.
+  - `IntercomViewModel.swift` & `ContentView.swift` (100% Native SwiftUI — Rule 1):
+    - Added `@Published var failoverSnapshot: FailoverMetrics?` and `@Published var showFailoverSheet: Bool`.
+    - Subscribed via `bridge.observeFailoverSnapshot` with lifecycle cancellation handle.
+    - Added tactical transport pill in `TacticalAvionicsBar`.
+    - Implemented `TacticalTransportHandoverSheetView` with telemetry cards, degradation warning banner, and auto/manual routing actuators.
+  - `AppModuleTest.kt` & `HomeViewModelTest.kt`:
+    - Verified Koin dependency resolution and state machine interactions across UI actions and hardware bridge emissions.
+- **Verification**:
+  - `./gradlew test`: 100% test pass across multiplatform targets.
+  - `./gradlew :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+  - Graphify Knowledge Sync (`graphify update .`): 3,593 nodes, 7,832 edges, 248 communities (Rule 7).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-25-multipath-mesh-failover`).
+
+### [2026-10-09] - ICA-2504: Highway Convoy Handover Simulation Harness & Archify Architecture Showcase
+- **Branch**: `feature/ICA-2504-convoy-simulation-showcase`
+- **Objective**: Implement comprehensive 16-node convoy split simulation harness (`MultiPathHandoverSimulationHarness.kt`) covering nominal BLE direct routing, highway drift RF degradation, seamless dual-stream packet hedging with receiver deduplication (0% audio frame loss), out-of-range cloud relay handover, dead zone traversal, and 5,000ms hysteresis dampening. Update Archify interactive architecture specifications (`intercom-alpha.architecture.json` and `intercom-alpha-architecture.html`) and verify with 9/9 verification pass.
+- **Implementation**:
+  - `MultiPathHandoverSimulationHarness.kt`:
+    - Simulated 16-node motorcycle convoy split into Lead Squad (0..7) and Tail Squad (8..15).
+    - Validated Stage 1 (Nominal BLE Direct): 100% voice packets routed over local BLE with zero cellular usage.
+    - Validated Stage 2 (Highway Drift & Degradation): Immediate escalation to `MULTI_PATH_HEDGED` on ETX 3.4 / RSSI -89 dBm / PDR 65%; dual-cast over BLE and Cloud Relay; receiver `PacketDeduplicator` eliminated duplicates with 0% dropped audio frames.
+    - Validated Stage 3 (Convoy Split): Seamless transition to `CLOUD_RELAY_ONLY` via Ktor WebSocket relay maintaining uninterrupted cross-squad voice communication across >1 km radio horizon separation.
+    - Validated Stage 4 (Dead Zone Traversal): Graceful transition to `RESTRICTED_OFFLINE` in cellular/BLE dead zones without crashing or memory leaks while maintaining intra-squad communications.
+    - Validated Stage 5 (Re-convergence & Hysteresis): Strict 5,000ms hysteresis dampening window enforced; remained in `MULTI_PATH_HEDGED` for 5,000ms of stable metrics before de-escalating to `BLE_DIRECT`.
+    - Validated rapid boundary fluctuation test verifying 0 flapping or rapid mode oscillation despite continuous RSSI flutter.
+    - Validated continuous speech handover delivering 50/50 consecutive speech frames with zero dropouts and zero duplicates.
+  - `intercom-alpha.architecture.json` & `intercom-alpha-architecture.html`:
+    - Modeled `failover_arbiter` (`[300, 940]`) and `hybrid_router` (`[520, 940]`) in KMP Core Engine.
+    - Added dedicated `qos-and-failover` guided view and Sprint 25 interactive telemetry card.
+    - Validated and delivered showcase HTML using Archify CLI (`node .agents/skills/archify/bin/archify.mjs deliver architecture ... --quality showcase --json`): Passed 9/9 verification checks with 0 errors and 0 warnings.
+- **Verification**:
+  - `./gradlew test`: 100% test pass across multiplatform targets.
+  - `./gradlew :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+  - Graphify Knowledge Sync (`graphify update .`): 3,605 nodes, 7,865 edges, 281 communities (Rule 7).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-25-multipath-mesh-failover`).
+
+---
+
+## 🏆 Sprint 25: Automated Multi-Path Mesh Failover & Hybrid Cellular/SFU Relay Handover — 100% Complete
+- **All 4 Sprint 25 stories PASSED**:
+  - `ICA-2501`: Pure KMP Multi-Path Link Quality Arbiter & Automated Failover State Machine [PASSED]
+  - `ICA-2502`: Transport Handover Wire Integration & Seamless Voice Stream Hedging [PASSED]
+  - `ICA-2503`: Subsystem Hardware Bridge Wiring & Multiplatform Tactical Transport Handover HUD Presentation [PASSED]
+  - `ICA-2504`: Highway Convoy Out-of-Range Handover Simulation Harness & Archify Showcase Update [PASSED]
+- **Milestone Version Tag**: `v2.12.0`
+
+
+
+
+
+
+
 
 
 

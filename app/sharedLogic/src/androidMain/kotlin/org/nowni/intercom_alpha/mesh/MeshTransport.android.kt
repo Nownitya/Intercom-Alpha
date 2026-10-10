@@ -77,6 +77,8 @@ class MeshTransportImpl(
     private var isRunning = false
     private var connectionStateValue = ConnectionState.DISCONNECTED
     private val deduplicator = PacketDeduplicator()
+    private val scheduler = org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler()
+    override val qosScheduler: org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler get() = scheduler
 
     private companion object {
         const val SERVICE_UUID = MeshTransport.GATT_SERVICE_UUID
@@ -152,6 +154,7 @@ class MeshTransportImpl(
         connectedPeers.clear()
         discoveredDevices.clear()
         deduplicator.clear()
+        scheduler.clear()
         connectionStateValue = ConnectionState.DISCONNECTED
         connectionStateChannel.trySend(connectionStateValue)
     }
@@ -164,6 +167,9 @@ class MeshTransportImpl(
             data = data,
             profile = profile
         )
+        scheduler.enqueuePacket(packet, explicitPriority = org.nowni.intercom_alpha.mesh.qos.QoSPriority.ACTIVE_VOICE)
+        val pacing = scheduler.calculatePacingDelayMs(org.nowni.intercom_alpha.mesh.qos.QoSPriority.ACTIVE_VOICE)
+        if (pacing > 0) kotlinx.coroutines.delay(pacing)
         broadcastPacket(packet)
     }
 
@@ -173,6 +179,10 @@ class MeshTransportImpl(
             type = type,
             payload = payload
         )
+        val priority = org.nowni.intercom_alpha.mesh.qos.QoSPacketClassifier.classify(packet)
+        scheduler.enqueuePacket(packet, explicitPriority = priority)
+        val pacing = scheduler.calculatePacingDelayMs(priority)
+        if (pacing > 0) kotlinx.coroutines.delay(pacing)
         broadcastPacket(packet)
     }
 
@@ -215,7 +225,7 @@ class MeshTransportImpl(
             .build()
 
         val data = AdvertiseData.Builder()
-            .setIncludeDeviceName(true)
+            .setIncludeDeviceName(false)
             .addManufacturerData(MANUFACTURER_ID, buildAdvertiseData(peerName))
             .build()
 
@@ -229,7 +239,11 @@ class MeshTransportImpl(
             }
         }
 
-        bluetoothLeAdvertiser?.startAdvertising(settings, data, advertiseCallback)
+        try {
+            bluetoothLeAdvertiser?.startAdvertising(settings, data, advertiseCallback)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start BLE advertising: ${e.message}")
+        }
     }
 
     private fun stopAdvertising() {
@@ -244,10 +258,11 @@ class MeshTransportImpl(
     }
 
     private fun buildAdvertiseData(peerName: String): ByteArray {
-        val buffer = ByteBuffer.allocate(32)
+        // Fits within 31-byte legacy BLE limit: 3 bytes flags + 4 bytes AD mfg header + 24 bytes payload = 31 bytes
+        val buffer = ByteBuffer.allocate(24)
         buffer.put(INVITE_CODE_VERSION.toByte())
-        buffer.put((config?.groupId?.toByteArray(Charsets.UTF_8) ?: ByteArray(0)).copyOf(16))
-        buffer.put(peerName.toByteArray(Charsets.UTF_8).copyOf(16))
+        buffer.put((config?.groupId?.toByteArray(Charsets.UTF_8) ?: ByteArray(0)).copyOf(8))
+        buffer.put(peerName.toByteArray(Charsets.UTF_8).copyOf(15))
         return buffer.array()
     }
 
@@ -271,18 +286,20 @@ class MeshTransportImpl(
 
                 if (scanRecord != null) {
                     val mfgData = scanRecord.getManufacturerSpecificData(MANUFACTURER_ID)
-                    if (mfgData != null && mfgData.size >= 33) {
+                    if (mfgData != null && mfgData.size >= 24) {
                         val buffer = ByteBuffer.wrap(mfgData)
                         val version = buffer.get()
-                        val groupIdBytes = ByteArray(16)
+                        val isExtendedFormat = mfgData.size >= 33
+                        val groupIdBytes = if (isExtendedFormat) ByteArray(16) else ByteArray(8)
                         buffer.get(groupIdBytes)
-                        val peerNameBytes = ByteArray(16)
+                        val peerNameBytes = if (isExtendedFormat) ByteArray(16) else ByteArray(15)
                         buffer.get(peerNameBytes)
 
                         val groupId = String(groupIdBytes, Charsets.UTF_8).trim { it.code == 0 }
                         val peerName = String(peerNameBytes, Charsets.UTF_8).trim { it.code == 0 }
 
-                        if (groupId == config?.groupId && peerName != config?.peerName) {
+                        val matchesGroup = groupId == config?.groupId || (config?.groupId?.startsWith(groupId) == true)
+                        if (matchesGroup && peerName != config?.peerName) {
                             discoveredDevices[device.address] = device
                             connectToDevice(device, peerName, rssi)
                         }

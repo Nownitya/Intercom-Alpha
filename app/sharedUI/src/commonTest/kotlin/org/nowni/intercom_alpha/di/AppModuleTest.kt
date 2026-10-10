@@ -55,6 +55,7 @@ class AppModuleTest {
         val crashDetector: org.nowni.intercom_alpha.safety.CrashDetector = koin.get()
         val voiceCommandRecognizer: org.nowni.intercom_alpha.audio.VoiceCommandRecognizer = koin.get()
         val hardwareBridge: org.nowni.intercom_alpha.bridge.IntercomHardwareBridge = koin.get()
+        val failoverArbiter: org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter = koin.get()
         val homeViewModel: HomeViewModel = koin.get()
 
         assertNotNull(channelManager)
@@ -69,6 +70,7 @@ class AppModuleTest {
         assertNotNull(crashDetector)
         assertNotNull(voiceCommandRecognizer)
         assertNotNull(hardwareBridge)
+        assertNotNull(failoverArbiter)
         assertNotNull(homeViewModel)
     }
 }

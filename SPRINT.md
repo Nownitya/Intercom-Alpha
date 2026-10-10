@@ -1,28 +1,32 @@
-# Current Status: Sprint 22 (Phase 20: Dynamic Mesh Directed Routing, AODV-Lite Route Optimization & RF Collision Reduction)
+﻿# Current Status: Sprint 26 (Phase 24: Long-Haul Fleet Hardening & Low-Bandwidth Visual Telemetry)
 
 > **Active Sprint Reference:** [TASKS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/TASKS.md) & [prd.json](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/tasks/ralph/prd.json)  
-> **Sprint Branch:** `sprint/sprint-22-mesh-directed-routing`  
+> **Sprint Branch:** `sprint/sprint-26-fleet-hardening`  
 > **Sprint Governance Rules:** [SPRINT-RULES.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/SPRINT-RULES.md)  
 > **Engineering Contract:** [AGENTS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/AGENTS.md)  
 > **Knowledge Base:** [MEMORY.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/MEMORY.md)  
 
 ---
 
-## 🚀 Active Sprint: Sprint 22 (Phase 20: Dynamic Mesh Directed Routing, AODV-Lite Route Optimization & RF Collision Reduction)
-**Goal:** Implement pure KMP AODV-Lite on-demand directed routing, dynamic link quality cost metrics (ETX), selective unicast/multicast forwarding, route error self-healing, multiplatform routing topology HUD presentation, and a 24-node RF contention reduction simulation harness.  
-- **Sprint Branch:** `sprint/sprint-22-mesh-directed-routing`  
-- **Target Release:** `v2.9.0`  
+## ⚡ Active Sprint: Sprint 26 (Phase 24: Long-Haul Fleet Hardening & Low-Bandwidth Visual Telemetry)
+**Goal:** Implement ultra-low-framerate tactical snapshot mesh transport (0.5 fps thumbnail broadcast), concurrent multi-radio arbiter (BLE + Wi-Fi Direct), fleet-wide over-the-air group rekeying protocol, and an 8-hour continuous expedition battery & memory soak test.  
+- **Sprint Branch:** `sprint/sprint-26-fleet-hardening`  
+- **Target Release:** `v2.13.0`  
 
 | Task ID | Item | Owner | Target Files | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **ICA-2201** | Pure KMP AODV-Lite Directed Routing Engine & Route Table Arbiter | Ralph | `RoutingModels.kt`, `RoutingTable.kt`, `AodvRoutingEngine.kt`, `AodvRoutingEngineTest.kt` | ✅ Completed |
-| **ICA-2202** | Selective Unicast/Multicast Forwarding & RF Airtime Contention Mitigator | Ralph | `LinkMetricCalculator.kt`, `MeshTransport.kt`, `DirectedForwardingTest.kt` | ✅ Completed |
-| **ICA-2203** | Subsystem Hardware Bridge Wiring & Multiplatform Mesh Topology HUD Presentation | Ralph | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `HomeScreen.kt`, `ContentView.swift` | ✅ Completed |
-| **ICA-2204** | 24-Node Large-Scale Directed Mesh RF Contention Benchmark & Archify Showcase Update | Ralph | `DirectedMeshSimulationHarness.kt`, `intercom-alpha.architecture.json` | ✅ Completed |
+| **ICA-2601** | Ultra-low-framerate tactical snapshot mesh transport (0.5 fps) | Ralph | `TacticalSnapshotProtocol.kt` | ⏳ In Progress |
+| **ICA-2602** | Dynamic multi-path routing with BLE + Wi-Fi Direct concurrent multi-radio | Ralph | `MultiRadioArbiter.kt` | 📋 Backlog |
+| **ICA-2603** | Fleet-wide over-the-air cryptographic group rekeying protocol | Ralph | `GroupRekeyProtocol.kt` | 📋 Backlog |
+| **ICA-2604** | Long-haul field telemetry battery profile validation across 8-hour expeditions | Ralph | `ExpeditionBatteryTest.kt` | 📋 Backlog |
 
 ---
 
-## 📦 Historical Sprint Archive
+## 📜 Historical Sprint Archive
+- ✅ **Sprint 25: Automated Multi-Path Mesh Failover & Hybrid Cellular/SFU Relay Handover**: Completed 2026-10-10 (100% DoD, v2.12.0 Released).
+- ✅ **Sprint 24: Mesh Airtime QoS Traffic Shaping & Airtime Contention Mitigator**: Completed 2026-10-09 (100% DoD, v2.11.0 Released).
+- ✅ **Sprint 23: Multi-Group Inter-Convoy Gateway & Cross-Mesh Federation**: Completed 2026-10-09 (100% DoD, v2.10.0 Released).
+- ✅ **Sprint 22: Dynamic Mesh Directed Routing, AODV-Lite Route Optimization & RF Collision Reduction**: Completed 2026-10-08 (100% DoD, v2.9.0 Released).
 - ✅ **Sprint 21: Autonomous Crash Impact Detection, eCall SOS & Offline Voice Command HUD**: Completed 2026-10-07 (100% DoD, v2.8.0 Released).
 - ✅ **Sprint 20: Tactical Convoy Geofencing, Autonomous Power Governor & Multi-Node Stress Benchmark Suite**: Completed 2026-10-07 (100% DoD, v2.7.0 Released).
 - ✅ **Sprint 19: Over-The-Air BLE Mesh GPX/GeoJSON Trail Sharing & Storage Manager**: Completed 2026-10-07 (100% DoD, v2.6.0 Released).

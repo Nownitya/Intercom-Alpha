@@ -813,6 +813,121 @@
     - Added Sprint 22 showcase card (orange dot) highlighting AODV-Lite route discovery, ETX cost arbitration, and overhearing contention suppression.
     - Delivered via Archify CLI with 100% clean validation (9/9 checks passed, 0 errors, 0 warnings).
 
+### 2.70 Pure KMP Multi-Group Gateway Engine & Cross-Mesh Federation Protocol (Sprint 23 - ICA-2301)
+- **Challenge**: Bridging separate motorcycle riding squads ("Squad Alpha" vs "Squad Bravo") with disparate 256-bit AES/ChaCha20 group keys without forcing riders into one oversized group (which pollutes audio channels and leaks private chatter), while preventing circular feedback loops and unauthorized cross-group eavesdropping.
+- **Solution**:
+  - `MeshTransport.kt`: Extended `ControlType` with `FEDERATION_INVITE`, `FEDERATION_BRIDGE`, and `FEDERATION_AUDIO`.
+  - `FederationModels.kt`:
+    - Modeled `CrossGroupPolicy`: `CAPTAIN_ONLY` (road captains + emergency), `EMERGENCY_SOS_ONLY` (high-g crash / eCall alerts only), `ALL_MEMBERS_BRIDGED` (unrestricted two-way bridge), and `DISABLED`.
+    - Modeled `GroupFederationInvite` (`FEDERATION:v1:<base64(json)>`) with cryptographic HMAC/SHA-256 bridge key derivation.
+    - Defined `CrossMeshAudioPacket` embedding `pathTrace: List<String>` tracking visited group IDs to prevent circular relay loops.
+    - Implemented `FederationSerializer` with `#type` discriminator compatibility.
+  - `CrossMeshRelayEngine.kt`:
+    - Authenticates and re-encrypts audio frames using shared federation bridge ciphers (`PacketCipher`).
+    - Enforces policy authorization gates (`isTransmissionAllowed`).
+    - Detects circular loops and returns `DropFeedbackLoop` if incoming `pathTrace` includes `localGroupId`.
+  - `InterGroupGateway.kt`:
+    - Gateway state machine coordinating active federations, invite generation, and role arbitration.
+    - Enforced gateway leader role: only `PRIMARY` gateway nodes broadcast outbound cross-mesh frames, suppressing duplicate storms from `STANDBY` nodes.
+
+### 2.71 Selective Inter-Group Audio Demuxing, Sub-Group Isolation & Anti-Feedback Loop Guard (Sprint 23 - ICA-2302)
+- **Challenge**: In a multi-convoy federation where multiple gateway nodes exist in proximity (e.g. Squad Alpha Lead and Sweep both bridging to Squad Bravo), duplicate frame storms, runaway multi-hop circular relay cycles, acoustic self-monitoring echo feedback, and private intra-squad conversation leakage (such as rider-to-pillion private chat or tactical scout chatter) would degrade safety and voice quality.
+- **Solution**:
+  - `FederationLoopDetector.kt`:
+    - Implemented self-origin acoustic echo suppression (`originalSenderId == localPeerId`).
+    - Verified monotonic `pathTrace` loop prevention (`pathTrace.contains(localGroupId)` and internal cyclic group detection).
+    - Enforced `maxHops` boundary (default 3 hops) for multi-convoy relay limits.
+    - Implemented composite sliding-window deduplication cache (`seenPackets` with 5,000ms window and LRU pruning) suppressing redundant concurrent gateway deliveries.
+  - `CrossMeshForwardingArbiter.kt`:
+    - Enforced sub-group isolation: isolated squad channels (channels 2..15, e.g. scouts, sweep, support vehicle, rider-to-pillion) remain strictly internal to the local squad and are blocked from cross-mesh bridging.
+    - Enforced emergency preemption: Emergency SOS frames (and Channel 16) override channel restrictions and pass across meshes under `EMERGENCY_SOS_ONLY`, `CAPTAIN_ONLY`, and `ALL_MEMBERS_BRIDGED`.
+    - Enforced pre-decryption inbound gate: rejects unauthorized, non-captain, or unverified cross-group frames before executing AEAD cryptographic decryption, saving battery and CPU cycles.
+    - Integrated audit telemetry snapshot (`ForwardingAuditSnapshot`) tracking inbound/outbound packets, delivery counts, and classified drops.
+  - `CrossMeshForwardingTest.kt`:
+    - 9 comprehensive tests validating acoustic self-echo suppression, circular relay loop detection, cyclic path trace rejection, hop count limits, concurrent gateway deduplication, sub-group isolation, captain-only policy, emergency preemption, standby gateway suppression, pre-decryption security gating, end-to-end ingestion pipeline, and audit metrics.
+
+### 2.72 Subsystem Hardware Bridge Wiring & Multiplatform Federation HUD Presentation (Sprint 23 - ICA-2303)
+- **Challenge**: Seamlessly exposing pure KMP multi-group gateway state (`InterGroupGateway`) across all platforms (Android Compose Multiplatform and 100% Native iOS SwiftUI) without leaking Compose runtime dependencies onto iOS (violating Rule 1), ensuring motorcycle-glove tactile usability for cross-convoy policy switching and invite generation.
+- **Solution**:
+  - `IntercomHardwareBridge.kt` & Platform Bridges:
+    - Extended `IntercomHardwareBridge` interface with reactive `federationSnapshot: StateFlow<FederationSnapshot>` and control methods (`setFederationPolicy`, `createFederationInvite`, `acceptFederationInvite`).
+    - Wired `InterGroupGateway` into `AndroidPlatformBridge` with a 2-second periodic state polling coroutine.
+    - Added Swift-friendly `observeFederationSnapshot(callback: (FederationSnapshot) -> Unit): CancellationHandle` in `IntercomBridge.kt` (`iosMain`) with memory-safe cancellation lifecycle.
+  - Compose Multiplatform Tactical HUD (`HomeScreen.kt`):
+    - Added high-contrast avionics telemetry pill `🌐 FEDERATION: N SQUADS` alerting rider to active inter-convoy gateway links.
+    - Implemented modal `FederationDiagnosticsDialog` with direct policy toggling (`CAPTAIN_ONLY`, `ALL_MEMBERS_BRIDGED`, `EMERGENCY_SOS_ONLY`, `DISABLED`), invite creation (`FEDERATION:v1:` QR code / alphanumeric token), and input field with instant join capability.
+  - 100% Native iOS SwiftUI (`ContentView.swift` & `IntercomViewModel.swift` - Rule 1):
+    - Zero Compose runtime footprint in `app/iosApp`.
+    - Integrated `@Published var federationSnapshot` bound via `IntercomBridge.shared.observeFederationSnapshot`.
+    - Built native SwiftUI `FederationDiagnosticsSheetView` with glassmorphic tactical cards, real-time RSSI/packet counters, policy selection picker, and invite share/redeem controls.
+
+### 2.73 Dual-Convoy 32-Node Cross-Mesh Simulation Harness & Archify Showcase Update (Sprint 23 - ICA-2304)
+- **Challenge**: Validating complex inter-convoy gateway topologies across 32 heterogeneous nodes with 2 independent cryptographic groups, proving zero audio leakage across isolated sub-groups, sub-25ms re-encryption latency, emergency all-call SOS preemption, and zero circular feedback loops with dual parallel gateways.
+- **Solution**:
+  - `MultiGroupFederationSimulationHarness.kt`:
+    - Simulated 32 nodes across 2 squads (`squad-alpha` riders 00..15 and `squad-bravo` riders 00..15) with dual gateway nodes (Road Captain at index 0 and Sweep at index 15).
+    - Verified sub-group isolation: Channel 2 scout intra-squad audio received by all 16 Alpha riders, exactly 0 packets leaked to Bravo; Road Captain Channel 1 voice bridged across gateway to Bravo Lead Captain.
+    - Verified emergency preemption: deep-trail rider CRASH_ALERT / SOS overrides channel isolation and policy, universally broadcasting to all 32 nodes across both squads.
+    - Verified loop prevention: both Lead and Sweep gateways active in parallel under `ALL_MEMBERS_BRIDGED`; loop detector and deduplicator dropped circular returns and duplicate arrivals with zero feedback amplification.
+    - Benchmarked pure Kotlin ChaCha20-Poly1305 gateway re-encryption: 0.39ms average latency (peak 1.74ms) across 100 frames, beating the <25ms acceptance threshold.
+  - Archify Architecture Specification & Showcase (`docs/architecture/intercom-alpha.architecture.json` & `docs/architecture/intercom-alpha-architecture.html`):
+    - Added `cross_mesh_arbiter` (Cross-Mesh Arbiter) and `federation_gateway` (Inter-Group Gateway) components to KMP Core Engine.
+    - Added `cross-mesh-federation` view (Inter-Convoy Gateway & Federation) with dynamic trace animations.
+    - Added non-crossing horizontal routing connections across row y=760 (`cross_mesh_arbiter` -> `federation_gateway` -> `link_metric` -> `directed_router` -> `remote_peers`).
+    - Added Sprint 23 showcase card (slate dot) highlighting dual-layer ChaCha20-Poly1305 re-encryption, sub-group isolation, and loop detector verification.
+    - Delivered via Archify CLI with 100% showcase quality pass (9/9 checks passed, 0 errors, 0 warnings).
+
+### 2.24 Sprint 24: Mesh Airtime QoS Traffic Shaping & Preemption Arbiter (Phase 22 / ICA-2401–2404)
+- **Challenge**: BLE 2.4GHz RF bandwidth is strictly airtime-constrained (<125 kbps nominal throughput over Bluetooth LE 4.2 / 5.0 PHY). Concurrent transmission of large background OTA trail files (GPX/GeoJSON chunks) alongside real-time voice streams causes severe packet collisions, high jitter, and buffer bloat resulting in voice frame loss and clipped conversations.
+- **Solution**:
+  - `QoSModels.kt` & `MeshQoSQueue.kt`:
+    - Defined 4-tier strict priority queues: `EMERGENCY_CRITICAL` (rank 0, weight 100), `ACTIVE_VOICE` (rank 1, weight 50), `ROUTING_CONTROL` (rank 2, weight 20), `BULK_TELEMETRY` (rank 3, weight 5).
+    - Unconditional voice preemption of bulk data during active conversation.
+    - Deficit round-robin starvation protection ensuring routing control packets (AODV, Epoch beacons) are serviced at bounded intervals even during continuous voice.
+    - Voice hangover window (400ms) prevents bursty interleaving of background bulk transfers during brief pauses between spoken words.
+  - `QoSAwareMeshTransport.kt` & `MeshFileTransferManager.kt`:
+    - Wrapped outbound transport writes through the QoS priority scheduler.
+    - Added automatic rate throttling (`isThrottled`) on `MeshFileTransferManager`, pacing chunk bursts with $\ge 150\text{ms}$ delay ($\le 10\%$ duty cycle) during active voice or heavy RF congestion.
+  - Multiplatform Hardware Bridge & Tactical HUD:
+    - Wired `qosSnapshot` flow into `IntercomHardwareBridge`, `AndroidPlatformBridge`, and `IntercomBridge` (`iosMain`) with reactive typed `CancellationHandle` observers.
+    - Displayed real-time QoS airtime indicator pill and channel congestion alert banner on Compose Multiplatform (`HomeScreen.kt`) and 100% native iOS SwiftUI (`ContentView.swift` in `TacticalAvionicsBar` and `TacticalQoSDiagnosticsSheetView` respecting Rule 1).
+  - 32-Node Congested Mesh Simulation Harness & Benchmarks (`CongestedMeshQoSSimulationHarness.kt`):
+    - Validated 32 nodes under 40% RF contention with 80 bulk file chunks and 50 voice frames.
+    - Demonstrated QoS traffic shaping maintaining Voice PDR >= 96% (vs < 60% unshaped baseline, > 36% absolute gain).
+    - Verified routing control deficit round-robin starvation protection and instant Emergency SOS preemption.
+  - Runtime Gotchas & Platform Fixes:
+    - **Koin Multiplatform ViewModelOf Resolution**: When using `viewModelOf(::HomeViewModel)`, Koin expects definitions for all constructor arguments. Added explicit `single` registrations for `InterGroupGateway` and `MeshQoSScheduler` in `createSharedUiModule`, resolving `NoDefinitionFoundException`.
+    - **BLE 31-Byte Legacy Advertisement Frame Limits**: Legacy BLE connectable advertising packets are strictly capped at 31 bytes (Flags 3 bytes + Manufacturer Data header 4 bytes + Payload 24 bytes). Adjusted `buildAdvertiseData` to 24 bytes (1 byte version + 8 bytes groupId + 15 bytes peerName) and disabled `setIncludeDeviceName`, eliminating `BufferOverflowException` and Android `Legacy advertising data too large` failure.
+  - Archify Architecture Specification & Showcase:
+    - Added `qos_scheduler` (QoS Scheduler), `qos_queue` (QoS Queue), unified `federation-and-qos` view, and Sprint 24 card in `docs/architecture/intercom-alpha.architecture.json`.
+    - Delivered HTML showcase diagram with 9/9 verification pass via Archify CLI (0 errors, 0 warnings).
+
+### 2.18 Multi-Path Mesh Failover & Hybrid Handover State Machine (Sprint 25 - v2.12.0)
+- **Challenge**: In motorcycle convoys traversing undulating terrain or highway splits, BLE mesh links degrade gradually before breaking entirely. Abrupt binary disconnects cause clipped speech and lost sentences. Conversely, rapid switching back and forth between cellular and BLE ("ping-pong handover flapping") drains battery, causes audio jitter, and burns cellular data.
+- **Solution Blueprint**:
+  - Implemented pure KMP `MultiPathFailoverArbiter.kt` with a 4-tier state machine:
+    - `BLE_DIRECT`: High-quality local BLE link (ETX <= 2.5, loss <= 20%, RSSI >= -88 dBm). 0% cellular data consumed.
+    - `MULTI_PATH_HEDGED`: Intermediate link degradation. Audio frames are dual-cast / hedged over both local BLE mesh and Ktor Cloud Relay WebSocket. Receiver-side `PacketDeduplicator` discards duplicates transparently, ensuring 0% audio dropout across RF boundary transitions.
+    - `CLOUD_RELAY_ONLY`: Local BLE link timed out (>4000ms) or 0 peers in range; all voice frames route through Cloud Relay WebSocket.
+    - `RESTRICTED_OFFLINE`: Neither BLE nor Cloud Relay is available.
+  - Implemented directional hysteresis dampening: Link degradation immediately escalates to `MULTI_PATH_HEDGED` or `CLOUD_RELAY_ONLY` (zero audio dropouts), but de-escalation back to `BLE_DIRECT` requires a sustained 5,000ms window of continuously stable BLE metrics (`stableBleStartTimeMs`).
+  - Implemented pure KMP `HybridTransportRouter.kt`:
+    - Intercepts outbound `MeshPacket.Audio` and `MeshPacket.Control`, dispatching dynamically based on `FailoverMode`.
+    - In `MULTI_PATH_HEDGED` mode, concurrently dual-casts frames across BLE and Cloud Relay WebSocket while incrementing hedged frame metrics.
+    - Integrates with `MeshQoSScheduler`, dispatching with explicit `QoSPriority.ACTIVE_VOICE` priority.
+  - Multiplatform Hardware Bridge & Tactical HUD Presentation:
+    - Wired `MultiPathFailoverArbiter` into `IntercomHardwareBridge.kt`, `AndroidPlatformBridge.kt`, and `IntercomBridge.kt` (`iosMain`) with reactive `CancellationHandle` callbacks.
+    - Registered `MultiPathFailoverArbiter` singleton in Koin `sharedUiModule` (`AppModule.kt`).
+    - Implemented tactical transport failover pill and `FailoverDiagnosticsDialog` in Compose Multiplatform (`HomeScreen.kt`).
+    - Implemented 100% native SwiftUI tactical transport pill and `TacticalTransportHandoverSheetView` in `ContentView.swift` and `IntercomViewModel.swift` (Rule 1 strictly honored).
+  - 16-Node Convoy Split Simulation Harness (`MultiPathHandoverSimulationHarness.kt`):
+    - Validated 5-stage highway convoy split: Nominal BLE Direct -> Drift Degradation (Dual-Stream Hedging) -> Highway Split (Cloud Relay Only) -> Mountain Tunnel Dead Zone (Restricted Offline) -> Re-convergence with 5,000ms Hysteresis Dampening.
+    - Proved 0% audio frame loss and 0 duplicate playback during active continuous speech across RF transitions.
+  - Archify Architecture Specification & Showcase:
+    - Modeled `failover_arbiter` and `hybrid_router` in KMP Core Engine.
+    - Added dedicated `qos-and-failover` guided view and Sprint 25 interactive telemetry card.
+    - Delivered HTML showcase diagram with 9/9 verification pass via Archify CLI (0 errors, 0 warnings).
+
 ---
 
 ## 🗂️ 3. Monorepo File & Component Index

@@ -49,6 +49,14 @@ class HomeViewModel(
     val crashDetector: org.nowni.intercom_alpha.safety.CrashDetector = org.nowni.intercom_alpha.safety.CrashDetector(),
     val voiceCommandRecognizer: org.nowni.intercom_alpha.audio.VoiceCommandRecognizer = org.nowni.intercom_alpha.audio.VoiceCommandRecognizer(),
     val directedRouter: org.nowni.intercom_alpha.mesh.routing.DirectedMeshRouter = org.nowni.intercom_alpha.mesh.routing.DirectedMeshRouter("android-local"),
+    val interGroupGateway: org.nowni.intercom_alpha.mesh.federation.InterGroupGateway = org.nowni.intercom_alpha.mesh.federation.InterGroupGateway(
+        localGroupId = "squad-alpha",
+        localGroupName = "Rider Club Alpha",
+        localPeerId = "android-local",
+        isLocalLeader = true
+    ),
+    val qosScheduler: org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler = org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler(),
+    val failoverArbiter: org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter = org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter(),
     val hardwareBridge: IntercomHardwareBridge = NoOpIntercomHardwareBridge()
 ) : ViewModel() {
 
@@ -73,8 +81,23 @@ class HomeViewModel(
             batteryGovernor = batteryGovernor,
             crashDetector = crashDetector,
             voiceCommandRecognizer = voiceCommandRecognizer,
-            directedRouter = directedRouter
+            directedRouter = directedRouter,
+            interGroupGateway = interGroupGateway,
+            qosScheduler = qosScheduler,
+            failoverArbiter = failoverArbiter
         )
+
+        viewModelScope.launch {
+            failoverArbiter.metrics.collect { snapshot ->
+                _uiState.update { it.copy(failoverSnapshot = snapshot) }
+            }
+        }
+
+        viewModelScope.launch {
+            hardwareBridge.federationSnapshot.collect { snapshot ->
+                _uiState.update { it.copy(federationSnapshot = snapshot) }
+            }
+        }
 
         viewModelScope.launch {
             geofenceEngine.geofenceState.collect { snapshot ->
@@ -336,6 +359,13 @@ class HomeViewModel(
         viewModelScope.launch {
             hardwareBridge.routingSnapshot.collect { snapshot ->
                 _uiState.update { it.copy(routingSnapshot = snapshot) }
+            }
+        }
+
+        // 12. Synchronize Mesh Airtime QoS Traffic Snapshot (ICA-2403)
+        viewModelScope.launch {
+            hardwareBridge.qosSnapshot.collect { snapshot ->
+                _uiState.update { it.copy(qosSnapshot = snapshot) }
             }
         }
     }
@@ -600,6 +630,54 @@ class HomeViewModel(
 
             is HomeUiAction.InitiateRouteDiscovery -> {
                 hardwareBridge.initiateRouteDiscovery(action.destinationId)
+            }
+
+            is HomeUiAction.ToggleFederationSheet -> {
+                _uiState.update { it.copy(showFederationSheet = action.show) }
+            }
+
+            is HomeUiAction.SetFederationPolicy -> {
+                interGroupGateway.setCrossGroupPolicy(action.groupId, action.policy)
+                hardwareBridge.setFederationPolicy(action.groupId, action.policy)
+                val snapshot = interGroupGateway.getSnapshot(currentTimeMillis())
+                hardwareBridge.updateFederationSnapshot(snapshot)
+                _uiState.update { it.copy(federationSnapshot = snapshot) }
+            }
+
+            HomeUiAction.CreateFederationInvite -> {
+                val invite = interGroupGateway.createFederationInvite(currentTimeMs = currentTimeMillis())
+                val code = org.nowni.intercom_alpha.mesh.federation.FederationSerializer.encodeInvite(invite)
+                _uiState.update { it.copy(generatedFederationInvite = code) }
+            }
+
+            is HomeUiAction.AcceptFederationInvite -> {
+                val invite = org.nowni.intercom_alpha.mesh.federation.FederationSerializer.decodeInvite(action.inviteCode)
+                if (invite != null) {
+                    val ok = interGroupGateway.acceptFederationInvite(invite, currentTimeMillis())
+                    if (ok) {
+                        val snapshot = interGroupGateway.getSnapshot(currentTimeMillis())
+                        hardwareBridge.updateFederationSnapshot(snapshot)
+                        _uiState.update { it.copy(federationSnapshot = snapshot) }
+                    }
+                }
+            }
+
+            HomeUiAction.DismissFederationInviteDialog -> {
+                _uiState.update { it.copy(generatedFederationInvite = null) }
+            }
+
+            is HomeUiAction.ToggleQoSSheet -> {
+                _uiState.update { it.copy(showQoSSheet = action.show) }
+            }
+
+            is HomeUiAction.ToggleFailoverSheet -> {
+                _uiState.update { it.copy(showFailoverSheet = action.show) }
+            }
+
+            is HomeUiAction.SetFailoverModeOverride -> {
+                viewModelScope.launch {
+                    failoverArbiter.forceMode(action.mode, currentTimeMillis())
+                }
             }
         }
     }

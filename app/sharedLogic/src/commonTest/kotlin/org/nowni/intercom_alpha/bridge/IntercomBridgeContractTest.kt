@@ -207,4 +207,40 @@ class IntercomBridgeContractTest {
         bitrateController.setAutoMode()
         assertEquals(AdaptationMode.AUTO, bitrateController.adaptationState.value.mode)
     }
+
+    @Test
+    fun testQoSSchedulerBridgeContract() = runTest {
+        val hardwareBridge = NoOpIntercomHardwareBridge()
+
+        val emissions = mutableListOf<org.nowni.intercom_alpha.mesh.qos.QoSSnapshot>()
+        val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+            hardwareBridge.qosSnapshot.collect { emissions.add(it) }
+        }
+        val handle = CancellationHandle { job.cancel() }
+
+        assertEquals(1, emissions.size)
+        assertEquals(0, emissions.first().estimatedAirtimeUtilizationPercent)
+
+        // Update snapshot via bridge
+        hardwareBridge.updateQoSSnapshot(
+            org.nowni.intercom_alpha.mesh.qos.QoSSnapshot(
+                emergencyQueueDepth = 2,
+                voiceQueueDepth = 5,
+                estimatedAirtimeUtilizationPercent = 78
+            )
+        )
+
+        assertEquals(2, emissions.size)
+        assertEquals(78, emissions.last().estimatedAirtimeUtilizationPercent)
+        assertTrue(emissions.last().isChannelCongested)
+
+        handle.cancel()
+        hardwareBridge.updateQoSSnapshot(
+            org.nowni.intercom_alpha.mesh.qos.QoSSnapshot(
+                estimatedAirtimeUtilizationPercent = 20
+            )
+        )
+        // No new emissions after cancel
+        assertEquals(2, emissions.size)
+    }
 }

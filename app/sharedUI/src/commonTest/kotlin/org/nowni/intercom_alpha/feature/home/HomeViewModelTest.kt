@@ -605,4 +605,95 @@ class HomeViewModelTest {
         advanceUntilIdle()
         assertFalse(viewModel.uiState.value.showRoutingDiagnosticsSheet)
     }
+
+    @Test
+    fun testMeshQoSSnapshotAndDiagnosticsSheet() = runTest(testDispatcher) {
+        // 1. Initial QoS state is default
+        assertFalse(viewModel.uiState.value.showQoSSheet)
+        assertEquals(0, viewModel.uiState.value.qosSnapshot.estimatedAirtimeUtilizationPercent)
+        assertFalse(viewModel.uiState.value.qosSnapshot.isChannelCongested)
+
+        // 2. Open QoS Sheet
+        viewModel.onAction(HomeUiAction.ToggleQoSSheet(true))
+        advanceUntilIdle()
+        assertTrue(viewModel.uiState.value.showQoSSheet)
+
+        // 3. Simulate QoS snapshot emission from hardware bridge
+        val mockQoSSnapshot = org.nowni.intercom_alpha.mesh.qos.QoSSnapshot(
+            emergencyQueueDepth = 1,
+            voiceQueueDepth = 4,
+            controlQueueDepth = 2,
+            bulkQueueDepth = 10,
+            totalPacketsEnqueued = 100L,
+            totalPacketsDispatched = 95L,
+            totalPacketsDropped = 2L,
+            voicePreemptionCount = 8L,
+            isVoiceActive = true,
+            bulkThrottleActive = true,
+            estimatedAirtimeUtilizationPercent = 82
+        )
+        hardwareBridge.simulateQoSSnapshot(mockQoSSnapshot)
+        advanceUntilIdle()
+
+        val updated = viewModel.uiState.value.qosSnapshot
+        assertEquals(82, updated.estimatedAirtimeUtilizationPercent)
+        assertTrue(updated.isChannelCongested)
+        assertEquals(8L, updated.voicePreemptionCount)
+        assertEquals(17, updated.totalPendingQueueDepth)
+        assertTrue(updated.bulkThrottleActive)
+        assertTrue(updated.isVoiceActive)
+
+        // 4. Close QoS Sheet
+        viewModel.onAction(HomeUiAction.ToggleQoSSheet(false))
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.showQoSSheet)
+    }
+
+    @Test
+    fun testFailoverSnapshotAndHandoverControls() = runTest(testDispatcher) {
+        // 1. Initial Failover state is default
+        assertFalse(viewModel.uiState.value.showFailoverSheet)
+        assertEquals(org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE, viewModel.uiState.value.failoverSnapshot.currentMode)
+        assertFalse(viewModel.uiState.value.failoverSnapshot.isBleDegraded)
+
+        // 2. Open Failover Diagnostics Sheet
+        viewModel.onAction(HomeUiAction.ToggleFailoverSheet(true))
+        advanceUntilIdle()
+        assertTrue(viewModel.uiState.value.showFailoverSheet)
+
+        // 3. Simulate Failover snapshot emission from hardware bridge
+        val mockMetrics = org.nowni.intercom_alpha.mesh.failover.FailoverMetrics(
+            currentMode = org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED,
+            meshPeerCount = 4,
+            averageEtx = 2.8,
+            averageDeliveryRatio = 0.75,
+            lastBleActivityMs = 1000L,
+            isCloudConnected = true,
+            timeInCurrentModeMs = 5000L,
+            totalHandovers = 3L,
+            hedgedPacketsCount = 42L,
+            isBleDegraded = true
+        )
+        hardwareBridge.simulateFailoverSnapshot(mockMetrics)
+        advanceUntilIdle()
+
+        val updated = viewModel.uiState.value.failoverSnapshot
+        assertEquals(org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED, updated.currentMode)
+        assertTrue(updated.isBleDegraded)
+        assertEquals(4, updated.meshPeerCount)
+        assertEquals(2.8, updated.averageEtx)
+        assertTrue(updated.isCloudConnected)
+        assertEquals(3L, updated.totalHandovers)
+        assertEquals(42L, updated.hedgedPacketsCount)
+
+        // 4. Test Manual Override action
+        viewModel.onAction(HomeUiAction.SetFailoverModeOverride(org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT))
+        advanceUntilIdle()
+
+        // 5. Close Failover Diagnostics Sheet
+        viewModel.onAction(HomeUiAction.ToggleFailoverSheet(false))
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.showFailoverSheet)
+    }
 }
+
