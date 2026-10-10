@@ -2207,6 +2207,35 @@
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-28-edge-acoustic-congestion`).
 
+### [2026-10-10] - ICA-2804: 32-Node Alpine Blizzard Acoustic & RF Contention Benchmark & Archify Showcase Update
+- **Branch**: `feature/ICA-2804-alpine-blizzard-benchmark`
+- **Objective**: Implement `AlpineBlizzardSimulationHarness.kt` simulating a 32-node alpine blizzard convoy under extreme wind noise (+15 dB noise-to-signal ratio), hands-free wake word triggering, and heavy RF airtime contention. Validates audio intelligibility, zero voice frame loss, and updates Archify architecture showcase with 9/9 verification pass.
+- **Implementation**:
+  - `AlpineBlizzardSimulationHarness.kt`:
+    - Simulated 32 nodes in extreme alpine storm conditions (wind noise + engine noise > 100 km/h).
+    - Verified pure KMP spectral subtraction speech enhancement reducing noise power > 2x across all 32 nodes.
+    - Verified offline acoustic wake word spotter ("Hey Alpha" and "Emergency SOS") with continuous VOX transitions.
+    - Verified channel airtime congestion monitoring (CBR), dynamic FEC scaling, and bulk telemetry pacing under heavy RF saturation.
+    - Verified immediate emergency SOS all-call preemption delivered across all 32 nodes with zero packet drop.
+  - `intercom-alpha.architecture.json` & `intercom-alpha-architecture.html`:
+    - Added `spectral_suppressor`, `wake_word_engine`, and `congestion_governor` components into KMP Core boundary.
+    - Updated view 5 ("qos-failover-and-alpine-gateway") and Sprint 28 architecture card.
+    - Delivered showcase HTML with Archify CLI: 9/9 checks passed, 0 errors, 0 warnings.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: BUILD SUCCESSFUL (100% test pass).
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+  - Archify Validation: 9/9 checks passed, 0 errors.
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-28-edge-acoustic-congestion`).
+
+## 🏆 Sprint 28: Edge Acoustic Intelligence & Mesh Airtime Congestion Governance — 100% Complete
+- **All 4 Sprint 28 stories PASSED**:
+  - `ICA-2801: Pure KMP Spectral Subtraction Speech Enhancer & Wind Noise Suppressor` [PASSED]
+  - `ICA-2802: Hands-Free Acoustic Wake Word Engine & Continuous VOX Arbiter` [PASSED]
+  - `ICA-2803: Real-Time Channel Airtime Congestion Governor & Adaptive FEC Shaper` [PASSED]
+  - `ICA-2804: 32-Node Alpine Blizzard Acoustic & RF Contention Benchmark & Archify Showcase Update` [PASSED]
+
+
 
 
 
