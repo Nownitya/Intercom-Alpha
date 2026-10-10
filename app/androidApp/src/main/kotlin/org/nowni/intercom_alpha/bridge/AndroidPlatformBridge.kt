@@ -148,6 +148,15 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
     private val _failoverSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.failover.FailoverMetrics())
     override val failoverSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.failover.FailoverMetrics> = _failoverSnapshot.asStateFlow()
 
+    private val _snapshotProgress = MutableStateFlow<org.nowni.intercom_alpha.mesh.visual.SnapshotTransferProgress?>(null)
+    override val snapshotProgress: StateFlow<org.nowni.intercom_alpha.mesh.visual.SnapshotTransferProgress?> = _snapshotProgress.asStateFlow()
+
+    private val _multiRadioState = MutableStateFlow(org.nowni.intercom_alpha.mesh.radio.MultiRadioState())
+    override val multiRadioState: StateFlow<org.nowni.intercom_alpha.mesh.radio.MultiRadioState> = _multiRadioState.asStateFlow()
+
+    private val _rekeyEpochSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.security.RekeyEpochSnapshot())
+    override val rekeyEpochSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.security.RekeyEpochSnapshot> = _rekeyEpochSnapshot.asStateFlow()
+
     var channelManager: ChannelManager? = null
         private set
     var directedRouter: DirectedMeshRouter? = null
@@ -157,6 +166,12 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
     var qosScheduler: org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler? = null
         private set
     var failoverArbiter: org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter? = null
+        private set
+    var snapshotManager: org.nowni.intercom_alpha.mesh.visual.SnapshotTransferManager? = null
+        private set
+    var multiRadioArbiter: org.nowni.intercom_alpha.mesh.radio.MultiRadioArbiter? = null
+        private set
+    var groupRekeyProtocol: org.nowni.intercom_alpha.mesh.security.GroupRekeyProtocol? = null
         private set
     var blackboxRecorder: EmergencyBlackboxRecorder? = null
         private set
@@ -198,7 +213,10 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         directedRouter: DirectedMeshRouter?,
         interGroupGateway: org.nowni.intercom_alpha.mesh.federation.InterGroupGateway?,
         qosScheduler: org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler?,
-        failoverArbiter: org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter?
+        failoverArbiter: org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter?,
+        snapshotManager: org.nowni.intercom_alpha.mesh.visual.SnapshotTransferManager?,
+        multiRadioArbiter: org.nowni.intercom_alpha.mesh.radio.MultiRadioArbiter?,
+        groupRekeyProtocol: org.nowni.intercom_alpha.mesh.security.GroupRekeyProtocol?
     ) {
         this.channelManager = channelManager
         this.blackboxRecorder = blackboxRecorder
@@ -214,6 +232,9 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         this.interGroupGateway = interGroupGateway
         this.qosScheduler = qosScheduler
         this.failoverArbiter = failoverArbiter
+        this.snapshotManager = snapshotManager
+        this.multiRadioArbiter = multiRadioArbiter
+        this.groupRekeyProtocol = groupRekeyProtocol
 
         failoverArbiter?.let { arbiter ->
             scope.launch {
@@ -323,6 +344,31 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
             ftm.onSendAck = { ack, _ ->
                 val bytes = MeshFileTransferEngine.serializeAck(ack)
                 sendControlPacket(MeshPacket.Control(senderId = "android-local", type = ControlType.FILE_ACK, payload = bytes))
+            }
+        }
+
+        snapshotManager?.let { mgr ->
+            scope.launch {
+                mgr.activeTransfers.collect { transfers ->
+                    _snapshotProgress.value = transfers.firstOrNull()
+                }
+            }
+        }
+
+        multiRadioArbiter?.let { arbiter ->
+            scope.launch {
+                arbiter.state.collect { state ->
+                    _multiRadioState.value = state
+                }
+            }
+        }
+
+        groupRekeyProtocol?.let { rekey ->
+            scope.launch {
+                _rekeyEpochSnapshot.value = rekey.getSnapshot()
+                rekey.events.collect { _ ->
+                    _rekeyEpochSnapshot.value = rekey.getSnapshot()
+                }
             }
         }
     }
@@ -476,6 +522,43 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
 
     override fun updateFailoverSnapshot(metrics: org.nowni.intercom_alpha.mesh.failover.FailoverMetrics) {
         _failoverSnapshot.value = metrics
+    }
+
+    override fun updateSnapshotProgress(progress: org.nowni.intercom_alpha.mesh.visual.SnapshotTransferProgress?) {
+        _snapshotProgress.value = progress
+    }
+
+    override fun updateMultiRadioState(state: org.nowni.intercom_alpha.mesh.radio.MultiRadioState) {
+        _multiRadioState.value = state
+    }
+
+    override fun updateRekeyEpochSnapshot(snapshot: org.nowni.intercom_alpha.mesh.security.RekeyEpochSnapshot) {
+        _rekeyEpochSnapshot.value = snapshot
+    }
+
+    override fun setPreferredRadioForBulk(radio: org.nowni.intercom_alpha.mesh.radio.RadioType) {
+        _multiRadioState.value = _multiRadioState.value.copy(bulkTransferPreferredRadio = radio)
+    }
+
+    override fun initiateManualRekey(reason: org.nowni.intercom_alpha.mesh.security.RekeyTriggerReason): org.nowni.intercom_alpha.mesh.security.RekeyControlPacket? {
+        val rekey = groupRekeyProtocol ?: return null
+        var result: org.nowni.intercom_alpha.mesh.security.RekeyControlPacket? = null
+        kotlinx.coroutines.runBlocking {
+            result = rekey.initiateRekey(reason)
+        }
+        result?.let { packet ->
+            try {
+                val jsonStr = kotlinx.serialization.json.Json.encodeToString(
+                    org.nowni.intercom_alpha.mesh.security.RekeyControlPacket.serializer(),
+                    packet
+                )
+                sendControlPacket(MeshPacket.Control("android-local", ControlType.EPOCH_ROLLOVER, jsonStr.encodeToByteArray()))
+            } catch (e: Exception) {
+                Log.e(TAG, "Error encoding rekey packet", e)
+            }
+            _rekeyEpochSnapshot.value = rekey.getSnapshot(System.currentTimeMillis())
+        }
+        return result
     }
 
     override fun setFailoverModeOverride(mode: org.nowni.intercom_alpha.mesh.failover.FailoverMode?) {

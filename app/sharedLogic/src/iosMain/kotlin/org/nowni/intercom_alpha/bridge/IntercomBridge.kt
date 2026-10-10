@@ -1028,5 +1028,72 @@ class IntercomBridge(
             failoverArbiter.forceMode(mode, currentTimeMillis())
         }
     }
+
+    // --- Swift-Friendly Tactical Snapshot & Visual Telemetry Observers (Sprint 26 / Sprint 29) ---
+
+    val snapshotManager: org.nowni.intercom_alpha.mesh.visual.SnapshotTransferManager =
+        org.nowni.intercom_alpha.mesh.visual.SnapshotTransferManager(qosScheduler = qosScheduler)
+
+    fun observeSnapshotTransfers(onTransfers: (List<org.nowni.intercom_alpha.mesh.visual.SnapshotTransferProgress>) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            snapshotManager.activeTransfers.collect { transfers ->
+                onTransfers(transfers)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun observeLatestReceivedSnapshot(onSnapshot: (Pair<org.nowni.intercom_alpha.mesh.visual.SnapshotHeader, ByteArray>?) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            snapshotManager.latestReceivedSnapshot.collect { snapshot ->
+                onSnapshot(snapshot)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    // --- Swift-Friendly Concurrent Multi-Radio Arbiter Observers & Controls (Sprint 26 / Sprint 29) ---
+
+    val multiRadioArbiter: org.nowni.intercom_alpha.mesh.radio.MultiRadioArbiter =
+        org.nowni.intercom_alpha.mesh.radio.MultiRadioArbiter()
+
+    fun observeMultiRadioState(onState: (org.nowni.intercom_alpha.mesh.radio.MultiRadioState) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            multiRadioArbiter.state.collect { state ->
+                onState(state)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    // --- Swift-Friendly Group Rekey Protocol Observers & Controls (Sprint 26 / Sprint 29) ---
+
+    val rekeyProtocol: org.nowni.intercom_alpha.mesh.security.GroupRekeyProtocol =
+        org.nowni.intercom_alpha.mesh.security.GroupRekeyProtocol(
+            groupId = "squad-ios",
+            localNodeId = localPeerId,
+            baseKeyInput = ByteArray(32) { 0x42.toByte() }
+        )
+
+    fun observeRekeyEpochSnapshot(onSnapshot: (org.nowni.intercom_alpha.mesh.security.RekeyEpochSnapshot) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            onSnapshot(rekeyProtocol.getSnapshot())
+            rekeyProtocol.events.collect { _ ->
+                onSnapshot(rekeyProtocol.getSnapshot())
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun initiateManualRekey(reason: org.nowni.intercom_alpha.mesh.security.RekeyTriggerReason = org.nowni.intercom_alpha.mesh.security.RekeyTriggerReason.MANUAL_REKEY): Boolean {
+        scope.launch {
+            try {
+                val packet = rekeyProtocol.initiateRekey(reason = reason)
+                meshTransport.sendControl(ControlType.EPOCH_ROLLOVER, packet.epochKeyDerivationSalt)
+            } catch (_: Exception) {
+            }
+        }
+        return true
+    }
 }
 
