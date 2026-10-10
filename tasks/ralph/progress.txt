@@ -2108,5 +2108,36 @@
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-27-satellite-alpine-gateway`).
 
+### [2026-10-10] - ICA-2704: Alpine Expedition Multi-Target Simulation Harness & Architecture Showcase Update
+- **Branch**: `feature/ICA-2704-alpine-expedition-simulation`
+- **Objective**: Implement `AlpineExpeditionSimulationHarness.kt` simulating a 24-node high-altitude mountain expedition. Validate LE Coded PHY long-distance links across deep switchbacks, automated satellite SOS dispatch fallback in canyon dead zones, and update Archify architecture showcase with 9/9 verification pass.
+- **Implementation**:
+  - `AlpineExpeditionSimulationHarness.kt`:
+    - Simulated 24 alpine nodes across 4 high-altitude stages: Base Camp (open ridge, LE 1M/2M), Switchback Ascent (hairpin diffraction -10 dB, +120m elevation delta, step-up to CODED_S2), Glacial Canyon Dead Zone (canyon gorge, deep rock shadowing, 750m gap bridged by CODED_S8), and Emergency Crevasse Fall (smartwatch fall detection + Iridium SBD SOS fallback).
+    - Verified full bi-directional lifecycle: fall detected -> `WearableCompanionProtocol` classifies `FALL_CONFIRMED` -> `SatelliteGatewayBridge` encodes compact binary frame (<= 120 bytes) -> modem transmits SBD beacon -> ground station ACK received and verified with zero pending queue items.
+    - Verified audio routing across all 24 nodes with zero voice frame loss.
+  - Archify Architecture Specification & Showcase:
+    - Updated `docs/architecture/intercom-alpha.architecture.json` adding `satellite_bridge`, `adaptive_phy`, and `wearable_companion` components.
+    - Added curated guided view `qos-failover-and-alpine-gateway` (maintaining <= 5 views constraint).
+    - Added Sprint 27 interactive showcase card.
+    - Executed Archify CLI validation & delivery: 9/9 checks passed, showcase profile, 0 composition errors, 0 warnings.
+    - Generated standalone explorable `docs/architecture/intercom-alpha-architecture.html` and visual-check evidence.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: BUILD SUCCESSFUL (100% test pass).
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-27-satellite-alpine-gateway`).
+
+---
+
+## 🏆 Sprint 27: Alpine Extreme Reach & Satellite Gateway Integration — 100% Complete
+- **All 4 Sprint 27 stories PASSED**:
+  - `ICA-2701`: Pure KMP Satellite Communicator Emergency Gateway Bridge [PASSED]
+  - `ICA-2702`: Long-Range BLE Coded PHY (S=8) & Alpine Terrain Attenuation Model [PASSED]
+  - `ICA-2703`: Wearable Quick-PTT Companion Protocol & Biometric Vitals Beacon [PASSED]
+  - `ICA-2704`: Alpine Expedition Multi-Target Simulation Harness & Architecture Showcase Update [PASSED]
+- **Milestone Version Tag**: `v2.14.0`
+
+
 
 
