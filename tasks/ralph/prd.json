@@ -58,7 +58,7 @@
         "Adaptive audio packet repetition / FEC adjustment based on observed collision rates",
         "100% unit test pass across JVM, Android, and iOS Simulator targets"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-2804",

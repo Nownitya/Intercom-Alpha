@@ -2187,6 +2187,27 @@
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-28-edge-acoustic-congestion`).
 
+### [2026-10-10] - ICA-2803: Real-Time Channel Airtime Congestion Governor & Adaptive FEC Shaper
+- **Branch**: `feature/ICA-2803-airtime-congestion-governor`
+- **Objective**: Implement `CongestionModels.kt` and `AirtimeCongestionGovernor.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/qos/` to measure local channel busy ratio (CBR) and transmission collision estimates, dynamically throttling non-voice telemetry queues (GPS beacons, biometric packets, thumbnail chunks) and adjusting audio Forward Error Correction (FEC) redundancy to maintain <= 80ms voice latency under heavy mesh airtime contention.
+- **Implementation**:
+  - `CongestionModels.kt`:
+    - Defined `ChannelCongestionLevel` (`UNCONGESTED`, `MODERATE`, `HIGH`, `CRITICAL`), `FecRedundancyLevel` (`NONE`, `LIGHT`, `MEDIUM`, `HEAVY`), `CongestionMetricsSnapshot`, and `CongestionGovernorConfig`.
+  - `AirtimeCongestionGovernor.kt`:
+    - Pure KMP sliding-window Channel Busy Ratio (CBR) tracking measuring physical medium utilization.
+    - Packet loss and collision estimation from receiver reports.
+    - Concurrent active voice speaker tracking with 600ms automatic expiry.
+    - 4-tier congestion state determination driving adaptive FEC redundancy and bulk telemetry pacing (20ms -> 120ms -> 600ms -> suspended).
+    - Admission control protecting `EMERGENCY_CRITICAL` and `ACTIVE_VOICE` frames from throttling while pacing non-critical queues.
+  - `AirtimeCongestionGovernorTest.kt`:
+    - 100% unit test coverage validating initial state, progression through congestion tiers as CBR rises, collision-driven escalation, admission control policies, active speaker tracking, and state reset.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: BUILD SUCCESSFUL (100% test pass).
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-28-edge-acoustic-congestion`).
+
+
 
 
 
