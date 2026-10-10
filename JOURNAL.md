@@ -1,9 +1,47 @@
-# Engineering Journal & Changelog
+﻿# Engineering Journal & Changelog
 
 > **Obsidian Source:** `D:\ObsidianVault\Vault1\ObsidianVault\Android\Projects\Intercom-Alpha\10-Daily-Notes\`  
 > **MemPalace Integration:** Wing `intercom_alpha` (2,426 drawers)
 
-## 📅 2026-10-09: Sprint 23 — Multi-Group Inter-Convoy Gateway & Cross-Mesh Federation (Phase 21)
+## 📅 2026-10-10: Sprint 25 — Automated Multi-Path Mesh Failover & Hybrid Cellular/SFU Relay Handover (Phase 23)
+
+### Summary
+1. **Pure KMP Multi-Path Link Quality Arbiter (`MultiPathFailoverArbiter.kt`, `FailoverModels.kt`)**:
+   - Implemented composite link quality scoring ($Q_{link}$) combining smoothed BLE RSSI (EWMA), sliding-window packet loss (500ms window), and arrival jitter variance.
+   - Built deterministic 4-stage state machine (`BLE_PRIMARY` -> `DEGRADED_HEDGING` -> `CELLULAR_ACTIVE` -> `RECOVERING`) with 3.0s RF stabilization hysteresis before demoting cellular back to standby.
+2. **Transport Handover Wire Integration & Seamless Voice Stream Hedging (`HybridTransportRouter.kt`, `CloudRelayBridge.kt`)**:
+   - Implemented proactive dual-stream sequence packet hedging across both BLE GATT flooding and Ktor WebSocket SFU cloud relay during RF transition zones.
+   - Receiving nodes leverage `PacketDeduplicator.kt` to play the first arriving frame and drop duplicates with zero audio latency penalty.
+3. **Subsystem Hardware Bridge Wiring & Multiplatform Handover HUD Presentation**:
+   - Integrated into `IntercomHardwareBridge`, `AndroidPlatformBridge`, and `IntercomBridge` (`iosMain`) with `CancellationHandle` callbacks.
+   - Live link quality badge and handover warning banner in Jetpack Compose (`HomeScreen.kt`) and 100% Native iOS SwiftUI (`ContentView.swift` / `IntercomViewModel.swift`).
+4. **Highway Convoy Out-of-Range Handover Simulation Harness (`MultiPathHandoverSimulationHarness.kt`)**:
+   - Simulated 16-node high-speed convoy splitting across highway interchanges with loss degradation.
+   - Verified 100% audio frame continuity, zero syllable loss during handover, and correct recovery hysteresis.
+5. **Verification & Release**:
+   - Multiplatform tests: 327 passing cleanly (`./gradlew test`).
+   - Platform builds: `assembleDebug` and `compileKotlinIosSimulatorArm64` clean.
+   - OpenCodeReview: 0 findings (APPROVED).
+   - Released `v2.12.0`.
+
+---
+
+## 📅 2026-10-09: Sprint 24 — Mesh Airtime QoS Traffic Shaping & Airtime Contention Mitigator (Phase 22)
+
+### Summary
+1. **Pure KMP Dynamic Airtime QoS Token-Bucket Traffic Shaper (`AirtimeQoSTrafficShaper.kt`, `AirtimeQoSModels.kt`)**:
+   - Pure KMP token-bucket bandwidth regulator and packet classifier categorizing traffic into 4 strict tiers (`Priority 0: EMERGENCY`, `Priority 1: VOICE`, `Priority 2: NETWORK_CONTROL`, `Priority 3: TELEMETRY`).
+2. **Strict Priority Queue & Preemption Arbiter (`PriorityBroadcastManager.kt`)**:
+   - High-priority preemption engine ensuring life-safety eCall crash impact alerts and emergency voice broadcasts immediately preempt lower-priority airtime and bypass rate limits.
+3. **Weighted Fair Queuing (WFQ) Scheduler (`AirtimeQoSScheduler.kt`)**:
+   - Enforces fair bandwidth sharing (60/40 ratio) between network routing frames and background GPS telemetry when voice channels are idle.
+4. **Airtime Saturation Stress Simulation & Zero-Drop Benchmark (`AirtimeQoSTest.kt`)**:
+   - Benchmark verifying zero emergency drops and consistent voice playout under 100% mesh channel saturation.
+5. **Verification & Release**:
+   - Multiplatform verification passed cleanly; OCR gate approved; released `v2.11.0`.
+
+---
+## ðŸ“… 2026-10-09: Sprint 23 â€” Multi-Group Inter-Convoy Gateway & Cross-Mesh Federation (Phase 21)
 
 ### Summary
 1. **Pure KMP Multi-Group Gateway Engine & Cross-Mesh Protocol (`InterGroupGateway.kt`, `FederationModels.kt`, `CrossMeshRelayEngine.kt`)**:
@@ -25,7 +63,7 @@
 
 ---
 
-## 📅 2026-10-08: Sprint 22 — Dynamic Mesh Directed Routing & AODV-Lite (Phase 20)
+## ðŸ“… 2026-10-08: Sprint 22 â€” Dynamic Mesh Directed Routing & AODV-Lite (Phase 20)
 
 ### Summary
 1. **Pure KMP AODV-Lite Directed Routing Engine (`AodvRoutingEngine.kt`, `RoutingModels.kt`)**:
@@ -39,19 +77,19 @@
 
 ---
 
-## 📅 2026-10-07: Sprint 21 — Autonomous Crash Impact Detection & Offline Voice Command HUD (Phase 19)
+## ðŸ“… 2026-10-07: Sprint 21 â€” Autonomous Crash Impact Detection & Offline Voice Command HUD (Phase 19)
 
 ### Summary
 1. **Pure KMP Crash Detection & Fall-Over IMU State Machine (`CrashDetector.kt`)**:
-   - Multi-axis IMU collision shock (8.5g severe impact, 4.5g collision, >60° sustained fall-over) with 30s abortable countdown.
+   - Multi-axis IMU collision shock (8.5g severe impact, 4.5g collision, >60Â° sustained fall-over) with 30s abortable countdown.
 2. **Pure KMP Offline Voice Command & Keyword Spotting DSP (`VoiceCommandRecognizer.kt`)**:
-   - Acoustic DSP keyword spotting ("Intercom SOS", "Next Channel", "Prev Channel", "Toggle Mute", "Battery Status", "Cancel Alert") under 80–120 km/h wind noise.
+   - Acoustic DSP keyword spotting ("Intercom SOS", "Next Channel", "Prev Channel", "Toggle Mute", "Battery Status", "Cancel Alert") under 80â€“120 km/h wind noise.
 3. **Emergency HUD Integration**:
    - Real-time pre-alert countdown banner across Compose and 100% Native SwiftUI. Released `v2.8.0`.
 
 ---
 
-## 📅 2026-10-07: Sprint 20 — Tactical Convoy Geofencing, Autonomous Power Governor & Multi-Node Stress Benchmark Suite (Phase 18)
+## ðŸ“… 2026-10-07: Sprint 20 â€” Tactical Convoy Geofencing, Autonomous Power Governor & Multi-Node Stress Benchmark Suite (Phase 18)
 
 ### Summary
 1. **Pure KMP Convoy Geofencing & Split Engine (`ConvoyGeofenceEngine.kt`, `ConvoyGeofenceModels.kt`)**:
@@ -79,7 +117,7 @@
 
 ---
 
-## 📅 2026-10-06: Sprint 16 — Mesh Repeater, Audio DSP & Convoy Simulation (Phase 14)
+## ðŸ“… 2026-10-06: Sprint 16 â€” Mesh Repeater, Audio DSP & Convoy Simulation (Phase 14)
 
 ### Summary
 1. **Audio DSP Hardening: Pure KMP AGC & Dynamic Range Compression (`AutomaticGainControl.kt`, `DynamicRangeCompressor.kt`)**:
@@ -106,7 +144,7 @@
 
 ---
 
-## 📅 2026-10-06: Sprint 15 — Zero-Scroll Tactical Cockpit HUD & Telemetry Integration (Phase 13)
+## ðŸ“… 2026-10-06: Sprint 15 â€” Zero-Scroll Tactical Cockpit HUD & Telemetry Integration (Phase 13)
 
 ### Summary
 1. **Zero-Scroll Tactical Cockpit HUD (`HomeScreen.kt` & `ContentView.swift`)**:
@@ -119,7 +157,7 @@
 
 ---
 
-## 📅 2026-10-04: Sprint 14 — Advanced Convoy Mesh, Forward-Secret Key Ratchet & Live Activity (Phase 12)
+## ðŸ“… 2026-10-04: Sprint 14 â€” Advanced Convoy Mesh, Forward-Secret Key Ratchet & Live Activity (Phase 12)
 
 ### Summary
 1. **Pure KMP Perfect Forward Secrecy (PFS) & Ephemeral Key Ratchet Engine (`MeshKeyRatchet.kt`)**:
@@ -150,7 +188,7 @@
 
 ---
 
-## 📅 2026-10-01: Sprint 12 — Multiplatform Cockpit UI & Bridge Integration (Phase 10 - v2.0 Roadmap)
+## ðŸ“… 2026-10-01: Sprint 12 â€” Multiplatform Cockpit UI & Bridge Integration (Phase 10 - v2.0 Roadmap)
 
 ### Summary
 1. **KMP Swift Bridge Extension for v2.0 Subsystems (`IntercomBridge.kt`)**:
@@ -159,7 +197,7 @@
    - Guaranteed thread safety via `SupervisorJob` on `Dispatchers.Main` with zero memory leaks.
 2. **Native iOS SwiftUI Cockpit v2.0 (`ContentView.swift` & `IntercomViewModel.swift`)**:
    - Upgraded native SwiftUI interface strictly obeying Rule 1 (100% native SwiftUI, zero shared Compose on iOS).
-   - Ergonomic high-contrast elements: `ChannelDialView` (CH 1–16, Dual-Watch badges), `ConvoyRadarStripView` (relative bearing indicators $\pm 180^\circ$, directional arrows), `QuickHazardBar` (haptic 1-tap alerts), and `EmergencySosBanner`.
+   - Ergonomic high-contrast elements: `ChannelDialView` (CH 1â€“16, Dual-Watch badges), `ConvoyRadarStripView` (relative bearing indicators $\pm 180^\circ$, directional arrows), `QuickHazardBar` (haptic 1-tap alerts), and `EmergencySosBanner`.
 3. **Compose Multiplatform Cockpit Components (`sharedUI`)**:
    - `HomeUiState.kt` and `HomeViewModel.kt`: Centralized reactive coordinator binding all shared subsystem StateFlows.
    - Modular UI components: `ChannelSelectorBar`, `EmergencyPreemptionBanner`, `ProximityRadarView`, `QuickHazardBar`, and `MessageHistoryDialog`.
@@ -176,7 +214,7 @@
 
 ---
 
-## 📅 2026-10-01: Sprint 11 — Convoy Situational Awareness, GPS Mesh Telemetry & Blackbox Voice Cache (Phase 9 - v2.0 Roadmap)
+## ðŸ“… 2026-10-01: Sprint 11 â€” Convoy Situational Awareness, GPS Mesh Telemetry & Blackbox Voice Cache (Phase 9 - v2.0 Roadmap)
 
 ### Summary
 1. **Offline Mesh Canned Hazard & Quick Text Messaging (`MeshTextManager.kt`)**:
@@ -206,7 +244,7 @@
 
 ---
 
-## 📅 2026-09-30: Sprint 10 — Multi-Channel Intercom, Priority Emergency & Audio Spatialization (Phase 8 - v2.0 Roadmap)
+## ðŸ“… 2026-09-30: Sprint 10 â€” Multi-Channel Intercom, Priority Emergency & Audio Spatialization (Phase 8 - v2.0 Roadmap)
 
 ### Summary
 1. **Multi-Channel Sub-Group Partitioning (`ChannelManager.kt`)**:
@@ -218,7 +256,7 @@
    - Incoming emergency bursts instantly override ongoing normal chatter with 600ms hangover guard.
    - Mathematical sine synthesis (`AlertChimeSynthesizer`) generating 48kHz 16-bit PCM hazard (880Hz) and emergency (880Hz->1760Hz) alert chimes in pure Kotlin.
 3. **3D Binaural Stereo Spatializer (`SpatialAudioProcessor.kt`)**:
-   - Transforms mono voice streams into 3D stereo audio panned by rider bearing (-90° to +90°).
+   - Transforms mono voice streams into 3D stereo audio panned by rider bearing (-90Â° to +90Â°).
    - Constant-power ILD law preserving overall perceived volume ($g_L^2 + g_R^2 \approx 1.0$).
    - Psychoacoustic ITD circular delay line delaying opposite ear by up to 31 samples (~0.65ms).
    - Distance attenuation curve with 0.35 gain safety floor ensuring clarity.
@@ -232,7 +270,7 @@
 
 ---
 
-## 📅 2026-09-30: Sprint 09 — Cellular Fallback & Cloud Relay Bridge (Phase 7 - v2.0 Roadmap)
+## ðŸ“… 2026-09-30: Sprint 09 â€” Cellular Fallback & Cloud Relay Bridge (Phase 7 - v2.0 Roadmap)
 
 ### Summary
 1. **Ktor WebSocket Cloud Relay Gateway (`CloudRelayBridge.kt`)**:
@@ -250,7 +288,7 @@
 
 ---
 
-## 📅 2026-09-29: Sprint 08 — Real-World Field Testing & Hardening (Phase 6 - v1.0 Release)
+## ðŸ“… 2026-09-29: Sprint 08 â€” Real-World Field Testing & Hardening (Phase 6 - v1.0 Release)
 
 ### Summary
 1. **Field Range Benchmark & Mesh Diagnostics (`MeshDiagnostics.kt`)**:
@@ -267,7 +305,7 @@
 
 ---
 
-## 📅 2026-09-27: Sprint 07 — Audio Codec Optimization, Jitter Buffering & PLC (Phase 5)
+## ðŸ“… 2026-09-27: Sprint 07 â€” Audio Codec Optimization, Jitter Buffering & PLC (Phase 5)
 
 ### Summary
 1. **Adaptive Jitter Buffer (`AdaptiveJitterBuffer.kt`)**:
@@ -283,7 +321,7 @@
 
 ---
 
-## 📅 2026-09-27: Sprint 06 — Background Services & OS Power Management (Phase 4)
+## ðŸ“… 2026-09-27: Sprint 06 â€” Background Services & OS Power Management (Phase 4)
 
 ### Summary
 1. **Android Foreground Service (`IntercomForegroundService.kt`)**:
@@ -299,7 +337,7 @@
 
 ---
 
-## 📅 2026-09-27: Sprint 05 — Multi-Hop Flooding Relay, Sliding-Window Deduplication & ChaCha20-Poly1305 Encryption
+## ðŸ“… 2026-09-27: Sprint 05 â€” Multi-Hop Flooding Relay, Sliding-Window Deduplication & ChaCha20-Poly1305 Encryption
 
 ### Summary
 1. **Sliding-Window Packet Deduplication (`PacketDeduplicator.kt`)**:
@@ -315,7 +353,7 @@
    - Zero native or platform-specific C/JNI dependencies: runs identically across Android, iOS Native, JVM, and Wasm/JS.
    - Verified byte-for-byte against the official RFC 8439 Section 2.8.2 test vector.
 4. **Multi-Hop Simulation & Relay Unit Tests (`CrossPlatformGattMeshTest.kt` & `PacketCipherTest.kt`)**:
-   - Added `SimulatedMeshNode` verifying 3-node topology (A ➔ B ➔ C) with TTL decrement (3 ➔ 2), local delivery at B, packet forwarding to C, broadcast loop suppression, and end-to-end encrypted PCM voice payload delivery.
+   - Added `SimulatedMeshNode` verifying 3-node topology (A âž” B âž” C) with TTL decrement (3 âž” 2), local delivery at B, packet forwarding to C, broadcast loop suppression, and end-to-end encrypted PCM voice payload delivery.
 5. **Verification**:
    - `./gradlew test`: 100% passing across all targets.
    - `./gradlew :app:androidApp:assembleDebug`: BUILD SUCCESSFUL in 8s.
@@ -324,7 +362,7 @@
 
 ---
 
-## 📅 2026-09-27: Standard Application Flow, Multiplatform Koin DI & Jetpack Navigation Compose
+## ðŸ“… 2026-09-27: Standard Application Flow, Multiplatform Koin DI & Jetpack Navigation Compose
 
 ### Summary
 1. **Multiplatform Dependency Injection (Koin 4.0.2)**:
@@ -349,10 +387,10 @@
 
 ---
 
-## 📅 2026-09-26: Sprint 04 — Swift ↔ KMP Bridge, QR Scanner & Vault Restructuring
+## ðŸ“… 2026-09-26: Sprint 04 â€” Swift â†” KMP Bridge, QR Scanner & Vault Restructuring
 
 ### Summary
-1. **Swift ↔ KMP Bridge (`IntercomBridge.kt`)**:
+1. **Swift â†” KMP Bridge (`IntercomBridge.kt`)**:
    - Implemented `IntercomBridge` in `app/sharedLogic/src/iosMain` providing clean, non-blocking Swift callback observers (`CancellationHandle`) for input/output audio levels, recording state, peers, connection state, headset route, and active group.
    - Piped incoming Mesh audio directly to `audioEngine.playAudio(shorts)` and recorded microphone audio to `meshTransport.sendAudio(...)`.
    - Wired `HeadsetManager` physical button events (PTT_PRESS / PTT_RELEASE) directly to transmission.
@@ -372,7 +410,7 @@
 
 ---
 
-## 📅 2026-09-26: Phase 2 & Phase 3 Implementation (Android + iOS + Cross-Platform GATT)
+## ðŸ“… 2026-09-26: Phase 2 & Phase 3 Implementation (Android + iOS + Cross-Platform GATT)
 
 ### Summary
 Completed the platform implementations for both Android and iOS in `app/sharedLogic`, established a unified single-source GATT mesh protocol, updated native SwiftUI UI in `app/iosApp`, and verified all unit tests across the monorepo.
@@ -402,8 +440,9 @@ Completed the platform implementations for both Android and iOS in `app/sharedLo
 
 ---
 
-## 📅 2026-09-26: Phase 1 Core Networking & Signaling
+## ðŸ“… 2026-09-26: Phase 1 Core Networking & Signaling
 - Built polymorphic protocol in `:core` (`SignalingProtocol.kt`).
 - Built Ktor WebSocket Server in `:server` (`/ws/intercom`, `/api/status`).
 - Built KMP Signaling Client in `app/sharedLogic` (`IntercomSignalingClient.kt`).
 - Retained `:core` and `:server` per ADR-009 for cloud audio relay & signaling fallback.
+

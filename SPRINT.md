@@ -1,29 +1,29 @@
-# Current Status: Sprint 25 (Phase 23: Automated Multi-Path Mesh Failover & Hybrid Cellular/SFU Relay Handover)
+﻿# Current Status: Sprint 26 (Phase 24: Long-Haul Fleet Hardening & Low-Bandwidth Visual Telemetry)
 
 > **Active Sprint Reference:** [TASKS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/TASKS.md) & [prd.json](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/tasks/ralph/prd.json)  
-> **Sprint Branch:** `sprint/sprint-25-multipath-mesh-failover`  
+> **Sprint Branch:** `sprint/sprint-26-fleet-hardening`  
 > **Sprint Governance Rules:** [SPRINT-RULES.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/SPRINT-RULES.md)  
 > **Engineering Contract:** [AGENTS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/AGENTS.md)  
 > **Knowledge Base:** [MEMORY.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/MEMORY.md)  
 
 ---
 
-## 🚀 Active Sprint: Sprint 25 (Phase 23: Automated Multi-Path Mesh Failover & Hybrid Cellular/SFU Relay Handover)
-**Goal:** Implement pure KMP multi-path link quality monitoring, automated BLE-to-Cellular failover state machine, packet sequence stream hedging to ensure zero audio frame drops during RF disconnects, multiplatform avionics HUD presentation, and a highway split simulation harness.  
-- **Sprint Branch:** `sprint/sprint-25-multipath-mesh-failover`  
-- **Target Release:** `v2.12.0`  
+## ⚡ Active Sprint: Sprint 26 (Phase 24: Long-Haul Fleet Hardening & Low-Bandwidth Visual Telemetry)
+**Goal:** Implement ultra-low-framerate tactical snapshot mesh transport (0.5 fps thumbnail broadcast), concurrent multi-radio arbiter (BLE + Wi-Fi Direct), fleet-wide over-the-air group rekeying protocol, and an 8-hour continuous expedition battery & memory soak test.  
+- **Sprint Branch:** `sprint/sprint-26-fleet-hardening`  
+- **Target Release:** `v2.13.0`  
 
 | Task ID | Item | Owner | Target Files | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **ICA-2501** | Pure KMP Multi-Path Link Quality Arbiter & Automated Failover State Machine | Ralph | `FailoverModels.kt`, `MultiPathFailoverArbiter.kt`, `MultiPathFailoverArbiterTest.kt` | ✅ Passed |
-| **ICA-2502** | Transport Handover Wire Integration & Seamless Voice Stream Hedging | Ralph | `CloudRelayBridge.kt`, `HybridTransportRouter.kt`, `HybridTransportRouterTest.kt` | ✅ Passed |
-| **ICA-2503** | Subsystem Hardware Bridge Wiring & Multiplatform Tactical Transport Handover HUD | Ralph | `IntercomHardwareBridge.kt`, `AndroidPlatformBridge.kt`, `IntercomBridge.kt`, `HomeScreen.kt`, `ContentView.swift` | ✅ Passed |
-| **ICA-2504** | Highway Convoy Out-of-Range Handover Simulation Harness & Archify Showcase Update | Ralph | `MultiPathHandoverSimulationHarness.kt`, `intercom-alpha.architecture.json` | ✅ Passed |
+| **ICA-2601** | Ultra-low-framerate tactical snapshot mesh transport (0.5 fps) | Ralph | `TacticalSnapshotProtocol.kt` | ⏳ In Progress |
+| **ICA-2602** | Dynamic multi-path routing with BLE + Wi-Fi Direct concurrent multi-radio | Ralph | `MultiRadioArbiter.kt` | 📋 Backlog |
+| **ICA-2603** | Fleet-wide over-the-air cryptographic group rekeying protocol | Ralph | `GroupRekeyProtocol.kt` | 📋 Backlog |
+| **ICA-2604** | Long-haul field telemetry battery profile validation across 8-hour expeditions | Ralph | `ExpeditionBatteryTest.kt` | 📋 Backlog |
 
 ---
 
-## 📦 Historical Sprint Archive
-- ✅ **Sprint 25: Automated Multi-Path Mesh Failover & Hybrid Cellular/SFU Relay Handover**: Completed 2026-10-09 (100% DoD, v2.12.0 Released).
+## 📜 Historical Sprint Archive
+- ✅ **Sprint 25: Automated Multi-Path Mesh Failover & Hybrid Cellular/SFU Relay Handover**: Completed 2026-10-10 (100% DoD, v2.12.0 Released).
 - ✅ **Sprint 24: Mesh Airtime QoS Traffic Shaping & Airtime Contention Mitigator**: Completed 2026-10-09 (100% DoD, v2.11.0 Released).
 - ✅ **Sprint 23: Multi-Group Inter-Convoy Gateway & Cross-Mesh Federation**: Completed 2026-10-09 (100% DoD, v2.10.0 Released).
 - ✅ **Sprint 22: Dynamic Mesh Directed Routing, AODV-Lite Route Optimization & RF Collision Reduction**: Completed 2026-10-08 (100% DoD, v2.9.0 Released).
