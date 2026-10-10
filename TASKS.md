@@ -1,4 +1,4 @@
-﻿# Master Tasks & Engineering Roadmap â€” Intercom-Alpha
+# Master Tasks & Engineering Roadmap â€” Intercom-Alpha
 
 > **Document Version:** 2.12  
 > **Status:** Active / Tracked  
@@ -333,15 +333,21 @@
 
 ---
 
-### ⚡ Sprint 26: Long-Haul Fleet Hardening & Low-Bandwidth Visual Telemetry (Phase 24 - v2.13 Roadmap)`r`n- **Sprint Goal**: Implement ultra-low-framerate tactical snapshot mesh transport (0.5 fps thumbnail broadcast), concurrent multi-radio arbiter (BLE + Wi-Fi Direct), fleet-wide over-the-air group rekeying protocol, and an 8-hour continuous expedition battery & memory soak test.`r`n- **Sprint Branch**: `sprint/sprint-26-fleet-hardening``r`n- **Target Release**: `v2.13.0``r`n- **Status**: ⚡ Active`r`n`r`n| Task ID | Item | Target Files | Status |
+### ⚡ Sprint 26: Long-Haul Fleet Hardening & Low-Bandwidth Visual Telemetry (Phase 24 - v2.13 Roadmap)
+- **Sprint Goal**: Implement ultra-low-framerate tactical snapshot mesh transport (0.5 fps thumbnail broadcast), concurrent multi-radio arbiter (BLE + Wi-Fi Direct), fleet-wide over-the-air group rekeying protocol, and an 8-hour continuous expedition battery & memory soak test.
+- **Sprint Branch**: `sprint/sprint-26-fleet-hardening`
+- **Target Release**: `v2.13.0`
+- **Status**: ✅ 100% Complete (All 4 Stories Passed & Released under `v2.13.0`)
+
+| Task ID | Item | Target Files | Status |
 | :--- | :--- | :--- | :--- |
-| **ICA-2601** | Ultra-low-framerate tactical snapshot mesh transport (0.5 fps) | `TacticalSnapshotProtocol.kt` | ⏳ In Progress |
-| **ICA-2602** | Dynamic multi-path routing with BLE + Wi-Fi Direct concurrent multi-radio | `MultiRadioArbiter.kt` | 📋 Backlog |
-| **ICA-2603** | Fleet-wide over-the-air cryptographic group rekeying protocol | `GroupRekeyProtocol.kt` | 📋 Backlog |
-| **ICA-2604** | Long-haul field telemetry battery profile validation across 8-hour expeditions | `ExpeditionBatteryTest.kt` | 📋 Backlog |
+| **ICA-2601** | Ultra-low-framerate tactical snapshot mesh transport (0.5 fps) | `SnapshotModels.kt`, `TacticalSnapshotProtocol.kt`, `SnapshotTransferManager.kt` | ✅ Completed |
+| **ICA-2602** | Dynamic multi-path routing with BLE + Wi-Fi Direct concurrent multi-radio | `RadioModels.kt`, `MultiRadioArbiter.kt` | ✅ Completed |
+| **ICA-2603** | Fleet-wide over-the-air cryptographic group rekeying protocol | `RekeyModels.kt`, `GroupRekeyProtocol.kt` | ✅ Completed |
+| **ICA-2604** | 8-hour continuous expedition soak benchmark & Archify architecture showcase update | `ExpeditionSoakSimulationHarness.kt`, `intercom-alpha.architecture.json` | ✅ Completed |
 
 #### 📋 Tasks Plugin Checklist (Sprint 26)
-- [ ] #task [ICA-2601] Implement TacticalSnapshotProtocol chunked thumbnail broadcaster ➕ 2026-10-10 ⏳ 2026-10-12 📅 2026-10-16 ⏫
-- [ ] #task [ICA-2602] Implement MultiRadioArbiter for concurrent BLE + Wi-Fi Direct ➕ 2026-10-10 ⏳ 2026-10-14 📅 2026-10-18 ⏫
-- [ ] #task [ICA-2603] Implement GroupRekeyProtocol with forward-secrecy verification ➕ 2026-10-10 ⏳ 2026-10-15 📅 2026-10-19 🔼
-- [ ] #task [ICA-2604] Execute 8-hour expedition battery & memory soak test benchmark ➕ 2026-10-10 ⏳ 2026-10-16 📅 2026-10-20 🔼
+- [x] #task [ICA-2601] Implement TacticalSnapshotProtocol chunked thumbnail broadcaster ➕ 2026-10-10 ⏳ 2026-10-12 📅 2026-10-16 ⏫ ✅ 2026-10-10
+- [x] #task [ICA-2602] Implement MultiRadioArbiter for concurrent BLE + Wi-Fi Direct ➕ 2026-10-10 ⏳ 2026-10-14 📅 2026-10-18 ⏫ ✅ 2026-10-10
+- [x] #task [ICA-2603] Implement GroupRekeyProtocol with forward-secrecy verification ➕ 2026-10-10 ⏳ 2026-10-15 📅 2026-10-19 🔼 ✅ 2026-10-10
+- [x] #task [ICA-2604] Execute 8-hour expedition battery & memory soak test benchmark ➕ 2026-10-10 ⏳ 2026-10-16 📅 2026-10-20 🔼 ✅ 2026-10-10

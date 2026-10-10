@@ -2006,3 +2006,35 @@
   - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL in 53s (Rule 6).
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-26-fleet-hardening`).
+
+### [2026-10-10] - ICA-2604: 8-Hour Expedition Continuous Soak Benchmark & Architecture Showcase Update
+- **Branch**: `feature/ICA-2604-expedition-soak-benchmark`
+- **Objective**: Implement `ExpeditionSoakSimulationHarness.kt` simulating an 8-hour continuous convoy expedition across 20 virtual nodes with dynamic topology shifts, voice bursts, visual snapshots, and power governor transitions. Validate zero memory leaks, zero coroutine leaks, and update Archify interactive architecture specifications.
+- **Implementation**:
+  - `ExpeditionSoakSimulationHarness.kt`:
+    - Simulated 20-node expedition convoy across 28,800,000 virtual milliseconds (8 hours).
+    - Modeled dynamic phases: Open Highway (high-speed Wi-Fi Direct bulk offload), Mountain Switchbacks (RF degradation and relay forwarding), Squad Split (recon separation), and Battery Conservation (low power throttle).
+    - Executed scheduled OTA group rekeyings via `GroupRekeyProtocol` at Hours 2, 4, and 6 with 0% packet loss.
+    - Verified tactical snapshot transmission (0.5 fps, <=128 byte chunks) via `SnapshotTransferManager`.
+    - Verified `MultiRadioArbiter` offloading bulk telemetry to Wi-Fi Direct while isolating real-time voice on BLE mesh.
+    - Verified `BatteryGovernor` autonomous power scaling to CONSERVATIVE and EXTREME_SURVIVAL.
+    - Validated heap allocation stability and strictly bounded `PacketDeduplicator` queues (<=2000 items).
+  - Archify Architecture Specification & Showcase:
+    - Updated `docs/architecture/intercom-alpha.architecture.json` with `tactical_snapshot`, `multi_radio_arbiter`, and `group_rekey_protocol` components in KMP Core Engine.
+    - Added unified `qos-failover-and-fleet-hardening` guided view and Sprint 26 interactive showcase card.
+    - Validated and delivered `docs/architecture/intercom-alpha-architecture.html` via Archify CLI with 9/9 checks passed, 0 errors, 0 warnings.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: BUILD SUCCESSFUL (100% test pass).
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL in 2s (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-26-fleet-hardening`).
+
+---
+
+## 🏆 Sprint 26: Long-Haul Fleet Hardening & Low-Bandwidth Visual Telemetry — 100% Complete
+- **All 4 Sprint 26 stories PASSED**:
+  - `ICA-2601`: Pure KMP Ultra-Low-Framerate Tactical Snapshot Mesh Transport Engine [PASSED]
+  - `ICA-2602`: Concurrent Multi-Radio Arbiter (BLE + Wi-Fi Direct) [PASSED]
+  - `ICA-2603`: Fleet-Wide Over-The-Air Cryptographic Group Rekeying Protocol [PASSED]
+  - `ICA-2604`: 8-Hour Expedition Continuous Soak Benchmark & Architecture Showcase Update [PASSED]
+- **Milestone Version Tag**: `v2.13.0`
