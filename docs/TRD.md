@@ -1,11 +1,11 @@
-﻿# Technical Requirements Document (TRD) — Intercom-Alpha
+# Technical Requirements Document (TRD) — Intercom-Alpha
 
 > **Document Version:** 2.12  
 > **Status:** Approved / Active (`v2.12.0`)  
 > **Target Platforms:** Android 13+ (API 33+), iOS 16+, JVM / Ktor Server  
 > **Core Stack:** Kotlin Multiplatform 2.1+, Jetpack Compose, SwiftUI, Ktor 3.x, Koin 4.0.2  
 > **Repository:** `Intercom-Alpha`  
-> **Related Documents:** `docs/BRD.md`, `docs/PRD.md`, `docs/ARCHITECTURE.md`, `docs/MEMORY.md`
+> **Related Documents:** `docs/FEATURES.md`, `docs/BRD.md`, `docs/PRD.md`, `docs/ARCHITECTURE.md`, `docs/MEMORY.md`
 
 ---
 

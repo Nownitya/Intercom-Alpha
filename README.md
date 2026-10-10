@@ -1,4 +1,4 @@
-﻿<div align="center">
+<div align="center">
 
 # 🏍️ Intercom-Alpha
 
@@ -15,7 +15,7 @@
 
 *Zero-infrastructure, peer-to-peer voice communication for motorcyclists, outdoor expeditions, search-and-rescue, and tactical field teams when cellular and internet connectivity are unavailable.*
 
-[Product Requirements (PRD)](./docs/PRD.md) • [Technical Architecture (TRD)](./docs/TRD.md) • [Business Requirements (BRD)](./docs/BRD.md) • [System Architecture](./docs/ARCHITECTURE.md) • [Roadmap](./docs/TASKS.md)
+[Feature Specifications (FEATURES)](./docs/FEATURES.md) • [Product Requirements (PRD)](./docs/PRD.md) • [Technical Architecture (TRD)](./docs/TRD.md) • [Business Requirements (BRD)](./docs/BRD.md) • [System Architecture](./docs/ARCHITECTURE.md) • [Roadmap](./docs/TASKS.md)
 
 </div>
 

@@ -1,4 +1,4 @@
-﻿# Intercom-Alpha — Project Overview
+# Intercom-Alpha — Project Overview
 
 > **Offline Mesh Voice Communication for Motorcycle/Bike Groups**  
 > *Kotlin Multiplatform • Compose Multiplatform (Android/Desktop/Web) • Native SwiftUI (iOS)*  
@@ -91,6 +91,7 @@ Think of it as a **modern, digital tactical mesh intercom** that works through h
 ---
 
 ## 📚 Key Obsidian Hubs
+- **Feature Specifications**: [[03_Specifications/Features/INDEX|Complete Feature Specifications MOC]] (`docs/FEATURES.md`)
 - **Full Roadmap**: [[01_Management/Roadmap|23-Phase Multiplatform Roadmap]]
 - **Kanban Board**: [[01_Management/Kanban|Agile Sprint Board]]
 - **Architecture MOC**: [[02_Architecture/Architecture-MOC|Architecture Map of Content]]
