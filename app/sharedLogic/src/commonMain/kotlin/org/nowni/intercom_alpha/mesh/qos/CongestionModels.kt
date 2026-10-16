@@ -54,6 +54,11 @@ data class CongestionMetricsSnapshot(
 )
 
 /**
+ * Typealias for uniform bridge snapshot terminology.
+ */
+typealias AirtimeCongestionSnapshot = CongestionMetricsSnapshot
+
+/**
  * Configuration options for the airtime congestion governor.
  */
 @Serializable

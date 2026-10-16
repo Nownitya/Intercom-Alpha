@@ -164,6 +164,15 @@ class IntercomBridge(
                         }
                     }
                 }
+                launch {
+                    wakeWordEngine.voxState.collect { state ->
+                        if (state == VoxState.TRIGGERED) {
+                            setPttActive(true)
+                        } else if (state == VoxState.COOLDOWN || state == VoxState.IDLE) {
+                            setPttActive(false)
+                        }
+                    }
+                }
             }
 
             // 7. Synchronize dynamic bitrate profile
@@ -1183,6 +1192,61 @@ class IntercomBridge(
             wearableProtocol.processPttEvent(state, currentTimeMillis())
             setPttActive(pressed)
         }
+    }
+
+    // --- Swift-Friendly Spectral Noise DSP, Hands-Free VOX & Airtime Congestion Observers & Controls (Sprint 28 / Sprint 29) ---
+
+    val spectralSuppressor: org.nowni.intercom_alpha.audio.SpectralNoiseSuppressor =
+        org.nowni.intercom_alpha.audio.SpectralNoiseSuppressor()
+
+    val wakeWordEngine: org.nowni.intercom_alpha.audio.AcousticWakeWordEngine =
+        org.nowni.intercom_alpha.audio.AcousticWakeWordEngine()
+
+    val congestionGovernor: org.nowni.intercom_alpha.mesh.qos.AirtimeCongestionGovernor =
+        org.nowni.intercom_alpha.mesh.qos.AirtimeCongestionGovernor()
+
+    fun observeNoiseSuppression(onSnapshot: (org.nowni.intercom_alpha.audio.SpectralNoiseSnapshot) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            onSnapshot(spectralSuppressor.getSnapshot())
+            spectralSuppressor.latestDiagnostics.collect { _ ->
+                onSnapshot(spectralSuppressor.getSnapshot())
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun observeVoxState(onSnapshot: (org.nowni.intercom_alpha.audio.VoxStateSnapshot) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            onSnapshot(wakeWordEngine.getSnapshot())
+            launch {
+                wakeWordEngine.voxState.collect {
+                    onSnapshot(wakeWordEngine.getSnapshot())
+                }
+            }
+            launch {
+                wakeWordEngine.latestEvent.collect {
+                    onSnapshot(wakeWordEngine.getSnapshot())
+                }
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun observeCongestionLevel(onSnapshot: (org.nowni.intercom_alpha.mesh.qos.AirtimeCongestionSnapshot) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            congestionGovernor.metrics.collect { metrics ->
+                onSnapshot(metrics)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun setNoiseSuppressionMode(mode: org.nowni.intercom_alpha.audio.NoiseSuppressionMode) {
+        spectralSuppressor.setMode(mode)
+    }
+
+    fun setVoxSensitivity(energyThresholdDb: Float) {
+        wakeWordEngine.setSensitivity(energyThresholdDb)
     }
 }
 

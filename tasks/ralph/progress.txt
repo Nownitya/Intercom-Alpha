@@ -2295,3 +2295,37 @@
   - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-29-unified-bridge-certification`).
+
+### [2026-10-10] - ICA-2903: Spectral Noise DSP, Wake Word VOX & Airtime Congestion Governor Bridge Wiring
+- **Branch**: `feature/ICA-2903-spectral-vox-congestion-bridge`
+- **Objective**: Wire SpectralNoiseSuppressor, AcousticWakeWordEngine, and AirtimeCongestionGovernor into IntercomHardwareBridge and iOS IntercomBridge.kt. Exposes reactive snapshots for real-time wind noise dB attenuation, hands-free VOX state machine transitions, and channel busy ratio (CBR) congestion levels with adaptive FEC indicators.
+- **Implementation**:
+  - `SpectralNoiseModels.kt` & `SpectralNoiseSuppressor.kt`:
+    - Defined `SpectralNoiseSnapshot` data model with mode, attenuationDb, isSpeechPresent, estimatedSnrDb, inputRmsDb, and outputRmsDb.
+    - Added `getSnapshot()` and `setMode(mode: NoiseSuppressionMode)` to `SpectralNoiseSuppressor`.
+  - `WakeWordModels.kt` & `AcousticWakeWordEngine.kt`:
+    - Defined `VoxStateSnapshot` data model with state, lastDetectedKeyword, confidence, isPttActive, and energyDb.
+    - Added `getSnapshot()` and `setSensitivity(energyThresholdDb: Float)` to `AcousticWakeWordEngine` for dynamic threshold calibration.
+  - `CongestionModels.kt`:
+    - Added `typealias AirtimeCongestionSnapshot = CongestionMetricsSnapshot` for unified bridge terminology.
+  - `IntercomHardwareBridge.kt`:
+    - Added StateFlows and properties for `spectralNoiseSnapshot`, `voxStateSnapshot`, and `airtimeCongestionSnapshot`.
+    - Added override functions for `updateSpectralNoiseSnapshot`, `updateVoxStateSnapshot`, `updateAirtimeCongestionSnapshot`, `setNoiseSuppressionMode`, and `setVoxSensitivity`.
+    - Extended `attachSubsystems` parameters for `spectralSuppressor`, `wakeWordEngine`, and `congestionGovernor`.
+    - Added simulation helpers to `NoOpIntercomHardwareBridge`.
+  - `AndroidPlatformBridge.kt`:
+    - Added `spectralSuppressor`, `wakeWordEngine`, and `congestionGovernor` to `attachSubsystems` with background flow collectors.
+    - Implemented override methods: `updateSpectralNoiseSnapshot`, `updateVoxStateSnapshot`, `updateAirtimeCongestionSnapshot`, `setNoiseSuppressionMode`, and `setVoxSensitivity`.
+  - `IntercomBridge.kt` (iOS):
+    - Wired `spectralSuppressor`, `wakeWordEngine`, and `congestionGovernor`.
+    - Added Swift-friendly reactive listeners: `observeNoiseSuppression`, `observeVoxState`, and `observeCongestionLevel` returning lifecycle-managed `CancellationHandle`.
+    - Integrated hands-free VOX triggering directly into PTT transmitter activation in `start()`.
+    - Added `setNoiseSuppressionMode` and `setVoxSensitivity` controls.
+  - `IntercomAcousticQoSBridgeTest.kt`:
+    - 100% unit test coverage validating initial states, direct updates, mode switching, VOX sensitivity tuning, and real subsystem integrations.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest :app:androidApp:testDebugUnitTest :app:androidApp:assembleDebug`: BUILD SUCCESSFUL.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-29-unified-bridge-certification`).
+
