@@ -1095,5 +1095,95 @@ class IntercomBridge(
         }
         return true
     }
+
+    // --- Swift-Friendly Satellite Emergency Lifeline Observers & Controls (Sprint 27 / Sprint 29) ---
+
+    val satelliteBridge: org.nowni.intercom_alpha.mesh.satellite.SatelliteGatewayBridge =
+        org.nowni.intercom_alpha.mesh.satellite.SatelliteGatewayBridge(localNodeId = localPeerId)
+
+    fun observeSatelliteStatus(onStatus: (org.nowni.intercom_alpha.mesh.satellite.SatelliteBridgeStatus) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            satelliteBridge.status.collect { status ->
+                onStatus(status)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun triggerSatelliteDistressBeacon(message: String = "EMERGENCY SOS"): Boolean {
+        val loc = org.nowni.intercom_alpha.mesh.satellite.SatelliteGpsLocation(
+            latitude = 45.9237,
+            longitude = 6.8694,
+            altitudeMeters = 3842.0
+        )
+        val payload = org.nowni.intercom_alpha.mesh.satellite.SatelliteDispatchPayload(
+            dispatchId = "sat-sos-${currentTimeMillis()}",
+            senderRiderId = localPeerId,
+            groupId = "fleet-ios",
+            timestamp = currentTimeMillis(),
+            priority = org.nowni.intercom_alpha.mesh.satellite.SatelliteDispatchPriority.EMERGENCY_SOS_MANUAL,
+            location = loc,
+            messageText = message
+        )
+        scope.launch {
+            satelliteBridge.enqueueEmergencyDispatch(payload)
+        }
+        return true
+    }
+
+    // --- Swift-Friendly Alpine Coded PHY Observers & Controls (Sprint 27 / Sprint 29) ---
+
+    val phyArbiter: org.nowni.intercom_alpha.mesh.phy.AdaptivePhyArbiter =
+        org.nowni.intercom_alpha.mesh.phy.AdaptivePhyArbiter(localNodeId = localPeerId)
+
+    fun observePhyNegotiation(onSnapshot: (org.nowni.intercom_alpha.mesh.phy.PhyNegotiationSnapshot) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            onSnapshot(phyArbiter.getSnapshot())
+            phyArbiter.negotiationEvents.collect { event ->
+                onSnapshot(phyArbiter.getSnapshot().copy(lastEvent = event))
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    // --- Swift-Friendly Smartwatch / Apple Watch Companion Observers & Controls (Sprint 27 / Sprint 29) ---
+
+    val wearableProtocol: org.nowni.intercom_alpha.mesh.wearable.WearableCompanionProtocol =
+        org.nowni.intercom_alpha.mesh.wearable.WearableCompanionProtocol(
+            localRiderId = localPeerId,
+            localDeviceId = "apple-watch-$localPeerId",
+            deviceType = org.nowni.intercom_alpha.mesh.wearable.WearableDeviceType.APPLE_WATCH
+        )
+
+    fun observeWearableCompanion(onSnapshot: (org.nowni.intercom_alpha.mesh.wearable.WearableCompanionSnapshot) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            onSnapshot(wearableProtocol.getSnapshot())
+            launch {
+                wearableProtocol.pttState.collect {
+                    onSnapshot(wearableProtocol.getSnapshot())
+                }
+            }
+            launch {
+                wearableProtocol.riderDistressStatus.collect {
+                    onSnapshot(wearableProtocol.getSnapshot())
+                }
+            }
+            launch {
+                wearableProtocol.latestVitals.collect {
+                    onSnapshot(wearableProtocol.getSnapshot())
+                }
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun processWearablePttClick(pressed: Boolean) {
+        scope.launch {
+            val state = if (pressed) org.nowni.intercom_alpha.mesh.wearable.PttButtonState.PRESSED else org.nowni.intercom_alpha.mesh.wearable.PttButtonState.RELEASED
+            wearableProtocol.processPttEvent(state, currentTimeMillis())
+            setPttActive(pressed)
+        }
+    }
 }
+
 

@@ -76,6 +76,9 @@ interface IntercomHardwareBridge {
     val snapshotProgress: StateFlow<org.nowni.intercom_alpha.mesh.visual.SnapshotTransferProgress?>
     val multiRadioState: StateFlow<org.nowni.intercom_alpha.mesh.radio.MultiRadioState>
     val rekeyEpochSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.security.RekeyEpochSnapshot>
+    val satelliteBridgeStatus: StateFlow<org.nowni.intercom_alpha.mesh.satellite.SatelliteBridgeStatus>
+    val phyNegotiationSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.phy.PhyNegotiationSnapshot>
+    val wearableCompanionSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.wearable.WearableCompanionSnapshot>
 
     fun setPttActive(active: Boolean)
     fun setRepeaterModeActive(active: Boolean)
@@ -94,6 +97,9 @@ interface IntercomHardwareBridge {
     fun updateSnapshotProgress(progress: org.nowni.intercom_alpha.mesh.visual.SnapshotTransferProgress?)
     fun updateMultiRadioState(state: org.nowni.intercom_alpha.mesh.radio.MultiRadioState)
     fun updateRekeyEpochSnapshot(snapshot: org.nowni.intercom_alpha.mesh.security.RekeyEpochSnapshot)
+    fun updateSatelliteBridgeStatus(status: org.nowni.intercom_alpha.mesh.satellite.SatelliteBridgeStatus)
+    fun updatePhyNegotiationSnapshot(snapshot: org.nowni.intercom_alpha.mesh.phy.PhyNegotiationSnapshot)
+    fun updateWearableCompanionSnapshot(snapshot: org.nowni.intercom_alpha.mesh.wearable.WearableCompanionSnapshot)
     fun setFailoverModeOverride(mode: org.nowni.intercom_alpha.mesh.failover.FailoverMode?) {}
     fun setFederationPolicy(groupId: String, policy: org.nowni.intercom_alpha.mesh.federation.CrossGroupPolicy) {}
     fun createFederationInvite(): String? = null
@@ -101,6 +107,8 @@ interface IntercomHardwareBridge {
     fun initiateRouteDiscovery(destinationId: String) {}
     fun initiateManualRekey(reason: org.nowni.intercom_alpha.mesh.security.RekeyTriggerReason = org.nowni.intercom_alpha.mesh.security.RekeyTriggerReason.MANUAL_REKEY): org.nowni.intercom_alpha.mesh.security.RekeyControlPacket? = null
     fun setPreferredRadioForBulk(radio: org.nowni.intercom_alpha.mesh.radio.RadioType) {}
+    fun triggerSatelliteDistressBeacon(message: String = "EMERGENCY SOS"): Boolean = false
+    fun processWearablePttClick(pressed: Boolean) {}
     fun cancelCrashCountdown()
     fun triggerManualCrashSos()
     fun processImuReading(reading: org.nowni.intercom_alpha.safety.ImuReading) {}
@@ -127,7 +135,10 @@ interface IntercomHardwareBridge {
         failoverArbiter: org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter? = null,
         snapshotManager: org.nowni.intercom_alpha.mesh.visual.SnapshotTransferManager? = null,
         multiRadioArbiter: org.nowni.intercom_alpha.mesh.radio.MultiRadioArbiter? = null,
-        groupRekeyProtocol: org.nowni.intercom_alpha.mesh.security.GroupRekeyProtocol? = null
+        groupRekeyProtocol: org.nowni.intercom_alpha.mesh.security.GroupRekeyProtocol? = null,
+        satelliteBridge: org.nowni.intercom_alpha.mesh.satellite.SatelliteGatewayBridge? = null,
+        phyArbiter: org.nowni.intercom_alpha.mesh.phy.AdaptivePhyArbiter? = null,
+        wearableProtocol: org.nowni.intercom_alpha.mesh.wearable.WearableCompanionProtocol? = null
     ) {}
 }
 
@@ -245,6 +256,15 @@ open class NoOpIntercomHardwareBridge(
     protected val _rekeyEpochSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.security.RekeyEpochSnapshot())
     override val rekeyEpochSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.security.RekeyEpochSnapshot> = _rekeyEpochSnapshot.asStateFlow()
 
+    protected val _satelliteBridgeStatus = MutableStateFlow(org.nowni.intercom_alpha.mesh.satellite.SatelliteBridgeStatus())
+    override val satelliteBridgeStatus: StateFlow<org.nowni.intercom_alpha.mesh.satellite.SatelliteBridgeStatus> = _satelliteBridgeStatus.asStateFlow()
+
+    protected val _phyNegotiationSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.phy.PhyNegotiationSnapshot())
+    override val phyNegotiationSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.phy.PhyNegotiationSnapshot> = _phyNegotiationSnapshot.asStateFlow()
+
+    protected val _wearableCompanionSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.wearable.WearableCompanionSnapshot())
+    override val wearableCompanionSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.wearable.WearableCompanionSnapshot> = _wearableCompanionSnapshot.asStateFlow()
+
     override fun setPttActive(active: Boolean) {
         _isTransmitting.value = active
     }
@@ -343,6 +363,45 @@ open class NoOpIntercomHardwareBridge(
 
     override fun setPreferredRadioForBulk(radio: org.nowni.intercom_alpha.mesh.radio.RadioType) {
         _multiRadioState.value = _multiRadioState.value.copy(bulkTransferPreferredRadio = radio)
+    }
+
+    override fun updateSatelliteBridgeStatus(status: org.nowni.intercom_alpha.mesh.satellite.SatelliteBridgeStatus) {
+        _satelliteBridgeStatus.value = status
+    }
+
+    fun simulateSatelliteBridgeStatus(status: org.nowni.intercom_alpha.mesh.satellite.SatelliteBridgeStatus) {
+        _satelliteBridgeStatus.value = status
+    }
+
+    override fun updatePhyNegotiationSnapshot(snapshot: org.nowni.intercom_alpha.mesh.phy.PhyNegotiationSnapshot) {
+        _phyNegotiationSnapshot.value = snapshot
+    }
+
+    fun simulatePhyNegotiationSnapshot(snapshot: org.nowni.intercom_alpha.mesh.phy.PhyNegotiationSnapshot) {
+        _phyNegotiationSnapshot.value = snapshot
+    }
+
+    override fun updateWearableCompanionSnapshot(snapshot: org.nowni.intercom_alpha.mesh.wearable.WearableCompanionSnapshot) {
+        _wearableCompanionSnapshot.value = snapshot
+    }
+
+    fun simulateWearableCompanionSnapshot(snapshot: org.nowni.intercom_alpha.mesh.wearable.WearableCompanionSnapshot) {
+        _wearableCompanionSnapshot.value = snapshot
+    }
+
+    override fun triggerSatelliteDistressBeacon(message: String): Boolean {
+        _satelliteBridgeStatus.value = _satelliteBridgeStatus.value.copy(
+            linkState = org.nowni.intercom_alpha.mesh.satellite.SatelliteLinkState.TRANSMITTING,
+            totalDispatchedCount = _satelliteBridgeStatus.value.totalDispatchedCount + 1
+        )
+        return true
+    }
+
+    override fun processWearablePttClick(pressed: Boolean) {
+        _wearableCompanionSnapshot.value = _wearableCompanionSnapshot.value.copy(
+            pttState = if (pressed) org.nowni.intercom_alpha.mesh.wearable.PttButtonState.PRESSED else org.nowni.intercom_alpha.mesh.wearable.PttButtonState.RELEASED
+        )
+        _isTransmitting.value = pressed
     }
 
     override fun setFederationPolicy(groupId: String, policy: org.nowni.intercom_alpha.mesh.federation.CrossGroupPolicy) {

@@ -2265,3 +2265,33 @@
   - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-29-unified-bridge-certification`).
+
+### [2026-10-10] - ICA-2902: Satellite Lifeline, Alpine Coded PHY & Wearable Companion Bridge Wiring
+- **Branch**: `feature/ICA-2902-satellite-phy-wearable-bridge`
+- **Objective**: Wire SatelliteGatewayBridge, AdaptivePhyArbiter, and WearableCompanionProtocol into IntercomHardwareBridge and iOS IntercomBridge.kt. Expose reactive states for satellite uplink beacons, BLE PHY negotiation (LE 1M, 2M, Coded S=8), and smartwatch companion telemetry (quick-PTT, heart rate, rider fall detection) with typed observers.
+- **Implementation**:
+  - `AlpineRfModels.kt` & `AdaptivePhyArbiter.kt`:
+    - Defined `PhyNegotiationSnapshot` data model with activeModes, lastEvent, and terrainProfile.
+    - Added `getSnapshot()` method to `AdaptivePhyArbiter`.
+  - `WearableCompanionModels.kt` & `WearableCompanionProtocol.kt`:
+    - Defined `WearableCompanionSnapshot` data model with deviceType, pttState, distressStatus, and vitals.
+    - Added `getSnapshot()` method to `WearableCompanionProtocol`.
+  - `IntercomHardwareBridge.kt`:
+    - Added StateFlows and properties for `satelliteBridgeStatus`, `phyNegotiationSnapshot`, and `wearableCompanionSnapshot`.
+    - Added override functions for `updateSatelliteBridgeStatus`, `updatePhyNegotiationSnapshot`, `updateWearableCompanionSnapshot`, `triggerSatelliteDistressBeacon`, and `processWearablePttClick`.
+    - Extended `attachSubsystems` parameters for `satelliteBridge`, `phyArbiter`, and `wearableProtocol`.
+    - Added simulation helpers to `NoOpIntercomHardwareBridge`.
+  - `AndroidPlatformBridge.kt`:
+    - Added `satelliteBridge`, `phyArbiter`, and `wearableProtocol` to `attachSubsystems` with background flow collectors.
+    - Implemented override methods: `updateSatelliteBridgeStatus`, `updatePhyNegotiationSnapshot`, `updateWearableCompanionSnapshot`, `triggerSatelliteDistressBeacon`, and `processWearablePttClick`.
+  - `IntercomBridge.kt` (iOS):
+    - Wired `satelliteBridge`, `phyArbiter`, and `wearableProtocol`.
+    - Added Swift-friendly reactive listeners: `observeSatelliteStatus`, `observePhyNegotiation`, and `observeWearableCompanion` returning lifecycle-managed `CancellationHandle`.
+    - Added `triggerSatelliteDistressBeacon` and `processWearablePttClick` controls.
+  - `IntercomSatellitePhyBridgeTest.kt`:
+    - 100% unit test coverage validating initial states, direct updates, satellite distress beacon dispatch, Coded PHY S=8 events, and wearable PTT clicks.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest :app:androidApp:testDebugUnitTest :app:androidApp:assembleDebug`: BUILD SUCCESSFUL.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-29-unified-bridge-certification`).

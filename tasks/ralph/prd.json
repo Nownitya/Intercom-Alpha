@@ -41,7 +41,7 @@
         "Subsystem hooks for triggering satellite distress beacon and wearable PTT clicks",
         "100% unit test pass across all platforms"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-2903",
