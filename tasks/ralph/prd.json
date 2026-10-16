@@ -1,85 +1,79 @@
 {
   "project": "Intercom-Alpha",
-  "branchName": "sprint/sprint-30-design-system-foundations",
-  "phase": "Phase 28: Dedicated UI/UX Evolution (Design System Foundations)",
-  "sprint": "Sprint 30",
-  "updatedAt": "2026-10-16T18:17:00Z",
+  "branchName": "sprint/sprint-31-tactical-cockpit-redesign",
+  "phase": "Phase 28: Dedicated UI/UX Evolution (Zero-Scroll Tactical Cockpit)",
+  "sprint": "Sprint 31",
+  "updatedAt": "2026-10-17T01:25:00Z",
   "stories": [
     {
-      "id": "ICA-3001",
+      "id": "ICA-3101",
       "priority": 1,
-      "title": "Compose Material 3 Expressive Tokens, Neobrutalist & Claymorphic Modifier Engine",
-      "description": "Establish the foundational design system in :app:sharedUI adhering to ADR-014. Implements IntercomDesignTokens.kt with M3 Expressive color schemes (Tactile Dark/High-Contrast Light, Neon Signal Accents: Tactical Amber #FF9F0A, International Orange #FF453A, Emergency Crimson #FF3B30, Coded PHY Emerald #30D158), expressive typography with tabular numbers, and custom Compose Modifier extensions in TactileModifiers.kt (claymorphic double inner/outer depth shadows, crisp 2dp neobrutalist outlines, and frosted liquid-glass blur overlays).",
+      "title": "Android Jetpack Compose Zero-Scroll Tactical Cockpit Integration",
+      "description": "Refactor HomeScreen.kt in :app:sharedUI into a clean zero-scroll tactical cockpit adhering to ADR-014. Integrates TactileAvionicsHeader.kt (RF link, mesh status, battery chips), TactileChannelDial.kt (skeuomorphic rotary detents), ExpressivePttActuator (160dp master actuator), ExpressiveVuMeter (14-segment phosphor decay), and GuardedSosSwitch (mil-spec safety flip-cover). All secondary diagnostics tucked into gesture-driven bottom sheets.",
       "targetFiles": [
-        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/theme/IntercomDesignTokens.kt",
-        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/theme/TactileModifiers.kt",
-        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/theme/IntercomTheme.kt",
-        "app/sharedUI/src/commonTest/kotlin/org/nowni/intercom_alpha/ui/theme/DesignSystemTokenTest.kt"
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/HomeScreen.kt",
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/TactileAvionicsHeader.kt",
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/TactileChannelDial.kt"
       ],
       "acceptanceCriteria": [
-        "IntercomDesignTokens defines comprehensive color roles, typography, shape scales (M3 Expressive squircles), and tactile dimension tokens",
-        "TactileModifiers provides reusable Compose Modifiers: .claymorphic(), .neobrutalistBorder(), and .liquidGlass()",
-        "Zero AI template code: pure hand-crafted Compose canvas drawing, layout modifiers, and shadow layering",
-        "100% test coverage for token metrics, contrast ratios, and modifier composition across JVM and Android targets"
+        "Zero-scroll cockpit layout fits entirely within primary viewport on standard phone displays",
+        "Integrates ExpressivePttActuator, ExpressiveVuMeter, GuardedSosSwitch, TactileAvionicsHeader, and TactileChannelDial",
+        "Monospaced tabular telemetry labels for jitter-free readouts",
+        "100% test pass on JVM and Android targets"
       ],
       "passes": true
     },
     {
-      "id": "ICA-3002",
+      "id": "ICA-3102",
       "priority": 2,
-      "title": "iOS SwiftUI Tactical Design System, Liquid Glass & Tactile Haptic Modifiers",
-      "description": "Establish the native iOS 18+ SwiftUI design system foundation in :app:iosApp (strictly adhering to Rule 1: No Compose on iOS). Implements TactileDesignSystem.swift, LiquidGlassView.swift, and TactileHaptics.swift providing .claymorphicDepth(), .neobrutalistOutline(), .liquidGlassBackground(), and high-performance UIImpactFeedbackGenerator / UINotificationFeedbackGenerator tactile actuation triggers for heavy gloves.",
+      "title": "iOS 100% Native SwiftUI Tactical Cockpit Integration",
+      "description": "Refactor ContentView.swift in :app:iosApp into a zero-scroll tactile cockpit adhering strictly to Rule 1 and ADR-014. Integrates TactileAvionicsHeader.swift, TactileChannelDial.swift, TactilePttButton, TactileVuMeter, and GuardedSosSwitch with .liquidGlassBackground() and TactileHaptics feedback.",
       "targetFiles": [
-        "app/iosApp/iosApp/Design/TactileDesignSystem.swift",
-        "app/iosApp/iosApp/Design/LiquidGlassView.swift",
-        "app/iosApp/iosApp/Design/TactileHaptics.swift"
+        "app/iosApp/iosApp/ContentView.swift",
+        "app/iosApp/iosApp/Components/TactileAvionicsHeader.swift",
+        "app/iosApp/iosApp/Components/TactileChannelDial.swift"
       ],
       "acceptanceCriteria": [
         "100% native SwiftUI without shared Compose UI (Rule 1)",
-        "Provides liquid glass ultraThinMaterial overlays with specular edge reflections",
-        "Provides claymorphic tactile depth modifiers and 2pt high-contrast neobrutalist borders",
-        "Tactile haptic engine with low-latency rigid and heavy impact patterns for gloved riding"
+        "Zero-scroll tactical cockpit layout with liquid glass overlay cards",
+        "Tactile channel dial with selection haptic clicks",
+        "Clean compilation on iOS simulator target"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-3003",
+      "id": "ICA-3103",
       "priority": 3,
-      "title": "Expressive Tactical Audio & Cockpit Widget Components (PTT, VU Meter, SOS Switch)",
-      "description": "Build production-grade tactile cockpit components fusing Skeuomorphism, Claymorphism, Neobrutalism, and Liquid Glass. On Android (:app:sharedUI): ExpressivePttActuator.kt (recessed knurled bevel, spring-damped deformation, dynamic ripple), ExpressiveVuMeter.kt (phosphor decay, peak hold, clipping alerts), and GuardedSosSwitch.kt (spring-loaded flip cover). On iOS (:app:iosApp): matching native SwiftUI TactilePttActuator.swift, TactileVuMeter.swift, and GuardedSosSwitch.swift.",
+      "title": "Glove-Friendly Spatial Radar & Telemetry Liquid Glass Card Integration",
+      "description": "Refactor ProximityRadarView.kt and iOS ProximityRadarView into sleek Liquid Glass HUD cards floating over real-time spatial vectors, topo trail contours, and convoy telemetry, featuring quick-range zoom toggles (50m/250m/1000m) with 84dp glove targets.",
       "targetFiles": [
-        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/ExpressivePttActuator.kt",
-        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/ExpressiveVuMeter.kt",
-        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/GuardedSosSwitch.kt",
-        "app/iosApp/iosApp/Components/TactilePttActuator.swift",
-        "app/iosApp/iosApp/Components/TactileVuMeter.swift",
-        "app/iosApp/iosApp/Components/GuardedSosSwitch.swift"
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/TactileRadarCard.kt",
+        "app/iosApp/iosApp/Components/TactileRadarCard.swift"
       ],
       "acceptanceCriteria": [
-        "Oversized 84x84dp minimum touch target bounding boxes for gloved operation",
-        "Tactile deformation animation with spring damping physics",
-        "Real-time audio VU meter with phosphor decay and clip indicator",
-        "Guarded SOS switch requiring deliberate flip-guard gesture before triggering emergency"
+        "Frosted liquid glass translucent card floating over radar vectors",
+        "Glove-friendly 84dp zoom cycle button",
+        "Monospaced tabular distance and bearing chips",
+        "100% multiplatform verification pass"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-3004",
+      "id": "ICA-3104",
       "priority": 4,
-      "title": "Design System Verification Harness & Archify Visual Specification Update",
-      "description": "Implement multiplatform test suite DesignSystemTokenTest.kt validating token contracts, color contrast ratios, accessibility sizes, and component bounds. Updates docs/architecture/intercom-alpha.architecture.json and intercom-alpha-architecture.html showcasing Phase 28 Design System Foundations with 10/10 verified checks.",
+      "title": "Tactical Cockpit E2E Interaction Simulation & Archify Showcase Update",
+      "description": "Implement TacticalCockpitInteractionTest.kt verifying PTT engagement, rotary channel changes, guarded SOS flip-cover state transitions, and audio meter telemetry updates. Updates Archify architecture specification with Sprint 31 Tactical Cockpit showcase card.",
       "targetFiles": [
-        "app/sharedUI/src/commonTest/kotlin/org/nowni/intercom_alpha/ui/theme/DesignSystemTokenTest.kt",
+        "app/sharedUI/src/commonTest/kotlin/org/nowni/intercom_alpha/feature/home/TacticalCockpitInteractionTest.kt",
         "docs/architecture/intercom-alpha.architecture.json",
         "docs/architecture/intercom-alpha-architecture.html"
       ],
       "acceptanceCriteria": [
-        "All design tokens and modifier contracts verified via automated tests",
+        "E2E interaction simulation verifies zero-scroll cockpit state transitions",
         "Clean Gradle test passes across JVM and Android targets",
-        "Clean iOS simulator compilation for SwiftUI design system",
-        "Archify architecture specification updated to v3.0.0-alpha1 with design system validation"
+        "Archify architecture specification updated with 9/9 verification checks passed"
       ],
-      "passes": true
+      "passes": false
     }
   ]
 }

@@ -2439,4 +2439,21 @@
   - `ICA-3004`: Design System Verification Harness & Archify Visual Specification Update [PASSED]
 - **Milestone Release**: `v3.0.0-alpha1`
 
+### [2026-10-17] - ICA-3101: Android Jetpack Compose Zero-Scroll Tactical Cockpit Integration
+- **Branch**: `feature/ICA-3101-android-tactical-cockpit`
+- **Objective**: Refactor `HomeScreen.kt` in `:app:sharedUI` into a clean zero-scroll tactical cockpit adhering to ADR-014. Integrates `TactileAvionicsHeader.kt` (RF link, mesh status, battery chips), `TactileChannelDial.kt` (skeuomorphic rotary detents), `ExpressivePttActuator` (160dp master actuator), `ExpressiveVuMeter` (10-bar phosphor decay), and `GuardedSosSwitch` (mil-spec safety flip-cover).
+- **Implementation**:
+  - `TactileAvionicsHeader.kt`:
+    - Glanceable top avionics header featuring dynamic callsign badge, mesh mode indicators, node count chip, and battery telemetry.
+  - `TactileChannelDial.kt`:
+    - High-contrast channel switcher bar covering Channels 1–8 with active amber indicator and dual-watch green status.
+  - `HomeScreen.kt`:
+    - Replaced legacy multi-row UI and nested scroll with single-viewport zero-scroll tactile cockpit layout.
+    - Integrated oversized $160\text{ dp}$ master PTT button, guarded emergency SOS switch, and 10-bar LED audio spectrum meter.
+- **Verification**:
+  - `./gradlew :app:sharedUI:jvmTest :app:androidApp:testDebugUnitTest`: BUILD SUCCESSFUL (100% unit test pass).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+  - Graphify Knowledge Sync (`graphify update .`): 4,293 nodes, 9,321 edges, 283 communities (Rule 7).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-31-tactical-cockpit-redesign`).
+
 
