@@ -2374,4 +2374,23 @@
   - Graphify Knowledge Sync (`graphify update .`): 4,204 nodes, 9,042 edges, 298 communities (Rule 7).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-30-design-system-foundations`).
 
+### [2026-10-17] - ICA-3002: iOS SwiftUI Tactical Design System, Liquid Glass & Tactile Haptic Modifiers
+- **Branch**: `feature/ICA-3002-ios-swiftui-design-system`
+- **Objective**: Establish the native iOS 18+ SwiftUI design system foundation in `:app:iosApp` adhering to ADR-014 and Rule 1 (100% native SwiftUI, zero Compose on iOS). Implements `TactileDesignSystem.swift`, `LiquidGlassView.swift`, and `TactileHaptics.swift` providing `.claymorphicDepth()`, `.neobrutalistOutline()`, `.liquidGlassBackground()`, `.skeuomorphicBezel()`, and high-performance pre-warmed `UIImpactFeedbackGenerator` tactile actuation triggers for heavy riding gloves.
+- **Implementation**:
+  - `TactileDesignSystem.swift`:
+    - Defined tactical tokens (`cockpitObsidian`, `cockpitElevated`, `neobrutalBorderActive`, `signalAmber`, `signalHotMicOrange`, `signalEmergencyCrimson`).
+    - Enforced $84\text{ pt}$ minimum touch target and $2\text{ pt}$ / $3\text{ pt}$ neobrutalist outline modifiers.
+    - Added `.claymorphicDepth()` modifier with dual specular and ambient shadow simulation.
+    - Added `.skeuomorphicBezel()` modifier with machined knurling rings.
+  - `LiquidGlassView.swift`:
+    - Implemented `LiquidGlassBackground` and `.liquidGlassBackground()` with `.ultraThinMaterial`, tactical dark tinting, and $1\text{ pt}$ specular reflection edge.
+  - `TactileHaptics.swift`:
+    - Implemented pre-warmed singleton `TactileHaptics.shared` supporting `.pttEngage()` (.rigid), `.pttRelease()` (.medium), `.emergencySos()` (double .heavy pulse), `.channelDetentClick()`, `.warningAlert()`, and `.successAlert()`.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+  - Graphify Knowledge Sync (`graphify update .`): 4,246 nodes, 9,130 edges, 301 communities (Rule 7).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-30-design-system-foundations`).
+
 

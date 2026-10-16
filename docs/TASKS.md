@@ -426,13 +426,13 @@
 | Task ID | Item | Target Files | Status |
 | :--- | :--- | :--- | :--- |
 | **ICA-3001** | Compose Material 3 Expressive Tokens, Neobrutalist & Claymorphic Modifier Engine | `IntercomDesignTokens.kt`, `TactileModifiers.kt`, `IntercomTheme.kt` | ✅ Completed |
-| **ICA-3002** | iOS SwiftUI Tactical Design System, Liquid Glass & Tactile Haptic Modifiers | `TactileDesignSystem.swift`, `LiquidGlassView.swift`, `TactileHaptics.swift` | ⏳ Ready |
-| **ICA-3003** | Expressive Tactical Audio & Cockpit Widget Components (PTT, VU Meter, SOS Switch) | `ExpressivePttActuator.kt`, `TactilePttButton.swift`, `ExpressiveVuMeter.kt` | ⏳ Queued |
+| **ICA-3002** | iOS SwiftUI Tactical Design System, Liquid Glass & Tactile Haptic Modifiers | `TactileDesignSystem.swift`, `LiquidGlassView.swift`, `TactileHaptics.swift` | ✅ Completed |
+| **ICA-3003** | Expressive Tactical Audio & Cockpit Widget Components (PTT, VU Meter, SOS Switch) | `ExpressivePttActuator.kt`, `TactilePttButton.swift`, `ExpressiveVuMeter.kt` | ⏳ Ready |
 | **ICA-3004** | Design System Verification Harness & Golden Cross-Platform Render Specification | `DesignSystemTokenTest.kt`, `DesignSystemSnapshotTest.kt` | ⏳ Queued |
 
 #### 📋 Tasks Plugin Checklist (Sprint 30)
 - [x] #task [ICA-3001] Implement Compose Material 3 Expressive Tokens, Neobrutalist & Claymorphic Modifier Engine ➕ 2026-10-16 ⏳ 2026-10-18 📅 2026-10-22 ⏫ ✅ 2026-10-16
-- [ ] #task [ICA-3002] Implement iOS SwiftUI Tactical Design System, Liquid Glass & Tactile Haptic Modifiers ➕ 2026-10-16 ⏳ 2026-10-19 📅 2026-10-23 ⏫
+- [x] #task [ICA-3002] Implement iOS SwiftUI Tactical Design System, Liquid Glass & Tactile Haptic Modifiers ➕ 2026-10-16 ⏳ 2026-10-19 📅 2026-10-23 ⏫ ✅ 2026-10-17
 - [ ] #task [ICA-3003] Implement Expressive Tactical Audio & Cockpit Widget Components (PTT, VU Meter, SOS Switch) ➕ 2026-10-16 ⏳ 2026-10-20 📅 2026-10-24 🔼
 - [ ] #task [ICA-3004] Execute Design System Verification Harness & Golden Cross-Platform Render Specification ➕ 2026-10-16 ⏳ 2026-10-21 📅 2026-10-25 🔼
 

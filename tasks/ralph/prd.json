@@ -40,7 +40,7 @@
         "Provides claymorphic tactile depth modifiers and 2pt high-contrast neobrutalist borders",
         "Tactile haptic engine with low-latency rigid and heavy impact patterns for gloved riding"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-3003",
