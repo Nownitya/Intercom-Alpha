@@ -2352,8 +2352,26 @@
 - **Verification**:
   - `./gradlew :app:sharedLogic:jvmTest :app:androidApp:testDebugUnitTest :app:androidApp:assembleDebug`: BUILD SUCCESSFUL (402/402 multiplatform tests passed).
   - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+### [2026-10-16] - ICA-3001: Compose Material 3 Expressive Tokens, Neobrutalist & Claymorphic Modifier Engine
+- **Branch**: `feature/ICA-3001-compose-design-tokens`
+- **Objective**: Establish the foundational design system in `:app:sharedUI` adhering to ADR-014. Implements `IntercomDesignTokens.kt` with M3 Expressive color schemes (Tactile Dark/High-Contrast Light, Neon Signal Accents: Tactical Amber `#FF9F0A`, International Orange `#FF453A`, Emergency Crimson `#FF3B30`, Coded PHY Emerald `#30D158`), expressive typography with tabular monospace numbers, and custom Compose Modifier extensions in `TactileModifiers.kt` (claymorphic double inner/outer depth shadows, crisp 2dp neobrutalist outlines, and frosted liquid-glass blur overlays).
+- **Implementation**:
+  - `IntercomDesignTokens.kt`:
+    - Defined tactile dark/light color roles (`chassisBackground`, `surfaceElevated`, `surfacePressed`, `neobrutalOutline`, `signalActive`, `signalHotMic`, `signalSuccess`, `signalEmergency`, `liquidGlassTint`, `specularRim`).
+    - Enforced ADR-014 ergonomic glove standards: minimum touch target $\ge 84\text{ dp}$, master PTT diameter $160\text{ dp}$, neobrutalist border $2\text{ dp}$ (high-sun contrast).
+  - `TactileModifiers.kt`:
+    - `.neobrutalistBorder()`: Hard high-contrast 2dp perimeter outlines for sunlight legibility through tinted visors.
+    - `.claymorphic()`: Soft 3D tactile convex cushion volume using dual specular highlights and recessed ambient drop shadows.
+    - `.liquidGlass()`: Frosted translucent backdrop with specular 1dp micro-rim highlight for HUD layering.
+    - `.skeuomorphicBezel()`: Concentric machined knurling and aluminum bevel styling for physical dials.
+  - `IntercomTheme.kt`:
+    - Full theme provider integrating Material 3 ColorScheme, Expressive Typography with tabular monospace telemetry labels, and `LocalTacticalColors`.
+  - `DesignSystemTokenTest.kt`:
+    - Unit tests validating touch target bounds, contrast palettes, and monospace typography contracts.
+- **Verification**:
+  - `./gradlew :app:sharedUI:jvmTest :app:androidApp:testDebugUnitTest`: BUILD SUCCESSFUL (100% unit test pass).
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
-  - Archify Validation: 9/9 checks passed, 0 composition errors, 0 warnings.
-- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-29-unified-bridge-certification`).
+  - Graphify Knowledge Sync (`graphify update .`): 4,204 nodes, 9,042 edges, 298 communities (Rule 7).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-30-design-system-foundations`).
 
 
