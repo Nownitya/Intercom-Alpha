@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import org.nowni.intercom_alpha.feature.home.state.HomeUiAction
 import org.nowni.intercom_alpha.feature.home.state.HomeUiState
 import org.nowni.intercom_alpha.ui.components.*
+import org.nowni.intercom_alpha.ui.theme.IntercomTokens
 
 /**
  * The Master Zero-Scroll Tactical Motorcycle Cockpit HUD for Intercom-Alpha.
@@ -692,12 +693,12 @@ fun HomeScreen(
                 }
             }
 
-            // ================= 3. 16-CHANNEL SELECTOR RACK =================
-            ChannelSelectorBar(
-                channelState = uiState.channelState,
+            // ================= 3. TACTICAL CHANNEL SELECTOR DIAL =================
+            TactileChannelDial(
+                activeChannelId = uiState.channelState.activeChannelId,
+                monitoredChannelIds = uiState.channelState.monitoredChannelIds,
                 onSelectChannel = { onAction(HomeUiAction.SelectChannel(it)) },
-                onToggleDualWatch = { onAction(HomeUiAction.ToggleDualWatch(it)) },
-                onToggleScanMode = { onAction(HomeUiAction.ToggleScanMode) }
+                onToggleDualWatch = { onAction(HomeUiAction.ToggleDualWatch(it)) }
             )
 
             // ================= 4. COMPACT CONVOY SPATIAL RADAR =================
@@ -711,71 +712,53 @@ fun HomeScreen(
                 onOpenTrailSheet = { onAction(HomeUiAction.ToggleTrailSheet(true)) }
             )
 
-            // ================= 5. MASTER 140DP TACTICAL PTT ACTUATOR =================
-            PttButton(
-                isPressed = uiState.isTransmitting,
-                onPressStart = { onAction(HomeUiAction.StartTransmitting) },
-                onPressEnd = { onAction(HomeUiAction.StopTransmitting) },
-                isVoxLocked = uiState.isVoxLocked,
-                onToggleVoxLock = { onAction(HomeUiAction.ToggleVoxLock) },
-                channelLabel = "CH 0${uiState.channelState.activeChannelId}"
-            )
-
-            // ================= 6. SINGLE-ROW 4-MACRO HAZARD STRIP =================
-            QuickHazardBar(
-                unreadCount = uiState.unreadTextCount,
-                onSendHazard = { onAction(HomeUiAction.SendCannedHazard(it)) },
-                onOpenMessages = { onAction(HomeUiAction.ToggleMessagesDialog(true)) },
-                onTriggerSos = { onAction(HomeUiAction.TriggerSos) }
-            )
-
-            // ================= 7. PINNED EMERGENCY SOS OVERRIDE STRIP =================
-            Surface(
-                onClick = { onAction(HomeUiAction.TriggerSos) },
-                modifier = Modifier.fillMaxWidth().height(42.dp),
-                shape = RoundedCornerShape(8.dp),
-                color = Color(0xFF2A0A0A),
-                border = BorderStroke(1.dp, Color(0xFFFF1744))
+            // ================= 5. MASTER TACTICAL PTT & SENSORY CONTROLS =================
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 10.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                // Left: Guarded Emergency SOS Switch
+                GuardedSosSwitch(
+                    isEmergencyActive = uiState.isEmergencyActive,
+                    onTriggerEmergency = { onAction(HomeUiAction.TriggerSos) },
+                    onCancelEmergency = { onAction(HomeUiAction.TriggerSos) }
+                )
+
+                // Center: 160dp Master Expressive PTT Actuator
+                ExpressivePttActuator(
+                    isTransmitting = uiState.isTransmitting,
+                    onPressStart = { onAction(HomeUiAction.StartTransmitting) },
+                    onPressEnd = { onAction(HomeUiAction.StopTransmitting) },
+                    channelLabel = "CH 0${uiState.channelState.activeChannelId}",
+                    subtitle = if (uiState.isVoxLocked) "VOX LOCK" else "HOLD PTT"
+                )
+
+                // Right: Audio VU Level Meter & VOX Lock Toggle
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text("🚨", fontSize = 14.sp)
-                        Column {
-                            Text(
-                                text = "EMERGENCY SOS OVERRIDE",
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Black,
-                                letterSpacing = 0.5.sp,
-                                color = Color(0xFFFF5252)
-                            )
-                            Text(
-                                text = "PRIORITY-0 // BLACKBOX AUDIO CACHE ARMED",
-                                fontSize = 8.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFFFFCDD2)
-                            )
-                        }
-                    }
+                    ExpressiveVuMeter(
+                        currentRmsLevel = uiState.inputLevel,
+                        barCount = 10,
+                        showDbLabel = true
+                    )
 
                     Surface(
-                        shape = RoundedCornerShape(4.dp),
-                        color = Color(0xFFD32F2F)
+                        onClick = { onAction(HomeUiAction.ToggleVoxLock) },
+                        shape = RoundedCornerShape(8.dp),
+                        color = if (uiState.isVoxLocked) Color(0xFF2E1912) else Color(0xFF1E242C),
+                        border = BorderStroke(1.dp, if (uiState.isVoxLocked) IntercomTokens.SignalAmber else Color(0x33FFFFFF))
                     ) {
                         Text(
-                            text = "HOLD SOS",
+                            text = if (uiState.isVoxLocked) "VOX ON" else "VOX OFF",
                             fontSize = 9.sp,
-                            fontWeight = FontWeight.Black,
-                            color = Color.White,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                            fontWeight = FontWeight.Bold,
+                            color = if (uiState.isVoxLocked) IntercomTokens.SignalAmber else Color(0xFF8B949E),
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)
                         )
                     }
                 }
