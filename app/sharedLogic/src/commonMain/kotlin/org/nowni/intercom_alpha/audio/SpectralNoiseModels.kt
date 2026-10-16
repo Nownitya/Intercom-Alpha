@@ -107,3 +107,16 @@ data class NoiseEstimationStats(
     val averageSnrDb: Float,
     val currentNoiseFloorRmsDb: Float
 )
+
+/**
+ * Real-time snapshot of spectral noise suppression filter state.
+ */
+@Serializable
+data class SpectralNoiseSnapshot(
+    val mode: NoiseSuppressionMode = NoiseSuppressionMode.AGGRESSIVE,
+    val attenuationDb: Float = 0.0f,
+    val isSpeechPresent: Boolean = false,
+    val estimatedSnrDb: Float = 0.0f,
+    val inputRmsDb: Float = -100.0f,
+    val outputRmsDb: Float = -100.0f
+)

@@ -166,6 +166,15 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
     private val _wearableCompanionSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.wearable.WearableCompanionSnapshot())
     override val wearableCompanionSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.wearable.WearableCompanionSnapshot> = _wearableCompanionSnapshot.asStateFlow()
 
+    private val _spectralNoiseSnapshot = MutableStateFlow(org.nowni.intercom_alpha.audio.SpectralNoiseSnapshot())
+    override val spectralNoiseSnapshot: StateFlow<org.nowni.intercom_alpha.audio.SpectralNoiseSnapshot> = _spectralNoiseSnapshot.asStateFlow()
+
+    private val _voxStateSnapshot = MutableStateFlow(org.nowni.intercom_alpha.audio.VoxStateSnapshot())
+    override val voxStateSnapshot: StateFlow<org.nowni.intercom_alpha.audio.VoxStateSnapshot> = _voxStateSnapshot.asStateFlow()
+
+    private val _airtimeCongestionSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.qos.AirtimeCongestionSnapshot())
+    override val airtimeCongestionSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.qos.AirtimeCongestionSnapshot> = _airtimeCongestionSnapshot.asStateFlow()
+
     var channelManager: ChannelManager? = null
         private set
     var directedRouter: DirectedMeshRouter? = null
@@ -187,6 +196,12 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
     var phyArbiter: org.nowni.intercom_alpha.mesh.phy.AdaptivePhyArbiter? = null
         private set
     var wearableProtocol: org.nowni.intercom_alpha.mesh.wearable.WearableCompanionProtocol? = null
+        private set
+    var spectralSuppressor: org.nowni.intercom_alpha.audio.SpectralNoiseSuppressor? = null
+        private set
+    var wakeWordEngine: org.nowni.intercom_alpha.audio.AcousticWakeWordEngine? = null
+        private set
+    var congestionGovernor: org.nowni.intercom_alpha.mesh.qos.AirtimeCongestionGovernor? = null
         private set
     var blackboxRecorder: EmergencyBlackboxRecorder? = null
         private set
@@ -234,7 +249,10 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         groupRekeyProtocol: org.nowni.intercom_alpha.mesh.security.GroupRekeyProtocol?,
         satelliteBridge: org.nowni.intercom_alpha.mesh.satellite.SatelliteGatewayBridge?,
         phyArbiter: org.nowni.intercom_alpha.mesh.phy.AdaptivePhyArbiter?,
-        wearableProtocol: org.nowni.intercom_alpha.mesh.wearable.WearableCompanionProtocol?
+        wearableProtocol: org.nowni.intercom_alpha.mesh.wearable.WearableCompanionProtocol?,
+        spectralSuppressor: org.nowni.intercom_alpha.audio.SpectralNoiseSuppressor?,
+        wakeWordEngine: org.nowni.intercom_alpha.audio.AcousticWakeWordEngine?,
+        congestionGovernor: org.nowni.intercom_alpha.mesh.qos.AirtimeCongestionGovernor?
     ) {
         this.channelManager = channelManager
         this.blackboxRecorder = blackboxRecorder
@@ -256,6 +274,9 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         this.satelliteBridge = satelliteBridge
         this.phyArbiter = phyArbiter
         this.wearableProtocol = wearableProtocol
+        this.spectralSuppressor = spectralSuppressor
+        this.wakeWordEngine = wakeWordEngine
+        this.congestionGovernor = congestionGovernor
 
         failoverArbiter?.let { arbiter ->
             scope.launch {
@@ -427,6 +448,39 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
                     wearable.latestVitals.collect {
                         _wearableCompanionSnapshot.value = wearable.getSnapshot()
                     }
+                }
+            }
+        }
+
+        spectralSuppressor?.let { suppressor ->
+            scope.launch {
+                _spectralNoiseSnapshot.value = suppressor.getSnapshot()
+                suppressor.latestDiagnostics.collect { _ ->
+                    _spectralNoiseSnapshot.value = suppressor.getSnapshot()
+                }
+            }
+        }
+
+        wakeWordEngine?.let { engine ->
+            scope.launch {
+                _voxStateSnapshot.value = engine.getSnapshot()
+                launch {
+                    engine.voxState.collect {
+                        _voxStateSnapshot.value = engine.getSnapshot()
+                    }
+                }
+                launch {
+                    engine.latestEvent.collect {
+                        _voxStateSnapshot.value = engine.getSnapshot()
+                    }
+                }
+            }
+        }
+
+        congestionGovernor?.let { governor ->
+            scope.launch {
+                governor.metrics.collect { metrics ->
+                    _airtimeCongestionSnapshot.value = metrics
                 }
             }
         }
@@ -630,6 +684,28 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
 
     override fun updateWearableCompanionSnapshot(snapshot: org.nowni.intercom_alpha.mesh.wearable.WearableCompanionSnapshot) {
         _wearableCompanionSnapshot.value = snapshot
+    }
+
+    override fun updateSpectralNoiseSnapshot(snapshot: org.nowni.intercom_alpha.audio.SpectralNoiseSnapshot) {
+        _spectralNoiseSnapshot.value = snapshot
+    }
+
+    override fun updateVoxStateSnapshot(snapshot: org.nowni.intercom_alpha.audio.VoxStateSnapshot) {
+        _voxStateSnapshot.value = snapshot
+    }
+
+    override fun updateAirtimeCongestionSnapshot(snapshot: org.nowni.intercom_alpha.mesh.qos.AirtimeCongestionSnapshot) {
+        _airtimeCongestionSnapshot.value = snapshot
+    }
+
+    override fun setNoiseSuppressionMode(mode: org.nowni.intercom_alpha.audio.NoiseSuppressionMode) {
+        spectralSuppressor?.setMode(mode)
+        _spectralNoiseSnapshot.value = spectralSuppressor?.getSnapshot() ?: _spectralNoiseSnapshot.value.copy(mode = mode)
+    }
+
+    override fun setVoxSensitivity(energyThresholdDb: Float) {
+        wakeWordEngine?.setSensitivity(energyThresholdDb)
+        _voxStateSnapshot.value = wakeWordEngine?.getSnapshot() ?: _voxStateSnapshot.value.copy(energyDb = energyThresholdDb)
     }
 
     override fun triggerSatelliteDistressBeacon(message: String): Boolean {

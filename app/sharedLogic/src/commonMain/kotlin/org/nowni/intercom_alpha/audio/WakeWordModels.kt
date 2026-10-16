@@ -67,3 +67,15 @@ data class WakeWordConfig(
     val enableEmergencySos: Boolean = true,
     val enableHeyAlpha: Boolean = true
 )
+
+/**
+ * Real-time telemetry snapshot of VOX arbiter and hands-free keyword spotting.
+ */
+@Serializable
+data class VoxStateSnapshot(
+    val state: VoxState = VoxState.IDLE,
+    val lastDetectedKeyword: WakeWordType? = null,
+    val confidence: Float = 0.0f,
+    val isPttActive: Boolean = false,
+    val energyDb: Float = -100.0f
+)
