@@ -39,4 +39,13 @@ class DesignSystemTokenTest {
         assertTrue(typography.labelMedium.fontFamily == androidx.compose.ui.text.font.FontFamily.Monospace)
         assertTrue(typography.labelSmall.fontFamily == androidx.compose.ui.text.font.FontFamily.Monospace)
     }
+
+    @Test
+    fun testTacticalWidgetDimensions() {
+        // Enforce widget bounding box constraints for thick riding gloves
+        assertEquals(160.dp, IntercomTokens.PttMasterDiameter)
+        assertEquals(18.dp, IntercomTokens.CardCornerRadius)
+        assertTrue(IntercomTokens.HeavyBorderThickness > IntercomTokens.NeobrutalBorderThickness)
+    }
 }
+
