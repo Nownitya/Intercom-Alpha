@@ -92,6 +92,11 @@ class HomeViewModel(
                 _uiState.update { it.copy(failoverSnapshot = snapshot) }
             }
         }
+        viewModelScope.launch {
+            hardwareBridge.failoverSnapshot.collect { snapshot ->
+                _uiState.update { it.copy(failoverSnapshot = snapshot) }
+            }
+        }
 
         viewModelScope.launch {
             hardwareBridge.federationSnapshot.collect { snapshot ->
