@@ -30,7 +30,13 @@ class AdaptivePhyArbiter(
 ) {
     private val mutex = Mutex()
 
-    private var currentTerrainProfile: TerrainShadowingProfile = initialTerrainProfile
+    var currentTerrainProfile: TerrainShadowingProfile = initialTerrainProfile
+        private set
+
+    fun getSnapshot(): PhyNegotiationSnapshot = PhyNegotiationSnapshot(
+        activeModes = _peerPhyMap.value,
+        terrainProfile = currentTerrainProfile
+    )
 
     private val _peerPhyMap = MutableStateFlow<Map<String, BlePhyMode>>(emptyMap())
     val peerPhyMap: StateFlow<Map<String, BlePhyMode>> = _peerPhyMap.asStateFlow()

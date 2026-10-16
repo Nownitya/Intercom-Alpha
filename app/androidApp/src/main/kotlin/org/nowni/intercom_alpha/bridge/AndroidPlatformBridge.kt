@@ -157,6 +157,15 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
     private val _rekeyEpochSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.security.RekeyEpochSnapshot())
     override val rekeyEpochSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.security.RekeyEpochSnapshot> = _rekeyEpochSnapshot.asStateFlow()
 
+    private val _satelliteBridgeStatus = MutableStateFlow(org.nowni.intercom_alpha.mesh.satellite.SatelliteBridgeStatus())
+    override val satelliteBridgeStatus: StateFlow<org.nowni.intercom_alpha.mesh.satellite.SatelliteBridgeStatus> = _satelliteBridgeStatus.asStateFlow()
+
+    private val _phyNegotiationSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.phy.PhyNegotiationSnapshot())
+    override val phyNegotiationSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.phy.PhyNegotiationSnapshot> = _phyNegotiationSnapshot.asStateFlow()
+
+    private val _wearableCompanionSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.wearable.WearableCompanionSnapshot())
+    override val wearableCompanionSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.wearable.WearableCompanionSnapshot> = _wearableCompanionSnapshot.asStateFlow()
+
     var channelManager: ChannelManager? = null
         private set
     var directedRouter: DirectedMeshRouter? = null
@@ -172,6 +181,12 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
     var multiRadioArbiter: org.nowni.intercom_alpha.mesh.radio.MultiRadioArbiter? = null
         private set
     var groupRekeyProtocol: org.nowni.intercom_alpha.mesh.security.GroupRekeyProtocol? = null
+        private set
+    var satelliteBridge: org.nowni.intercom_alpha.mesh.satellite.SatelliteGatewayBridge? = null
+        private set
+    var phyArbiter: org.nowni.intercom_alpha.mesh.phy.AdaptivePhyArbiter? = null
+        private set
+    var wearableProtocol: org.nowni.intercom_alpha.mesh.wearable.WearableCompanionProtocol? = null
         private set
     var blackboxRecorder: EmergencyBlackboxRecorder? = null
         private set
@@ -216,7 +231,10 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         failoverArbiter: org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter?,
         snapshotManager: org.nowni.intercom_alpha.mesh.visual.SnapshotTransferManager?,
         multiRadioArbiter: org.nowni.intercom_alpha.mesh.radio.MultiRadioArbiter?,
-        groupRekeyProtocol: org.nowni.intercom_alpha.mesh.security.GroupRekeyProtocol?
+        groupRekeyProtocol: org.nowni.intercom_alpha.mesh.security.GroupRekeyProtocol?,
+        satelliteBridge: org.nowni.intercom_alpha.mesh.satellite.SatelliteGatewayBridge?,
+        phyArbiter: org.nowni.intercom_alpha.mesh.phy.AdaptivePhyArbiter?,
+        wearableProtocol: org.nowni.intercom_alpha.mesh.wearable.WearableCompanionProtocol?
     ) {
         this.channelManager = channelManager
         this.blackboxRecorder = blackboxRecorder
@@ -235,6 +253,9 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         this.snapshotManager = snapshotManager
         this.multiRadioArbiter = multiRadioArbiter
         this.groupRekeyProtocol = groupRekeyProtocol
+        this.satelliteBridge = satelliteBridge
+        this.phyArbiter = phyArbiter
+        this.wearableProtocol = wearableProtocol
 
         failoverArbiter?.let { arbiter ->
             scope.launch {
@@ -368,6 +389,44 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
                 _rekeyEpochSnapshot.value = rekey.getSnapshot()
                 rekey.events.collect { _ ->
                     _rekeyEpochSnapshot.value = rekey.getSnapshot()
+                }
+            }
+        }
+
+        satelliteBridge?.let { sat ->
+            scope.launch {
+                sat.status.collect { status ->
+                    _satelliteBridgeStatus.value = status
+                }
+            }
+        }
+
+        phyArbiter?.let { phy ->
+            scope.launch {
+                _phyNegotiationSnapshot.value = phy.getSnapshot()
+                phy.negotiationEvents.collect { event ->
+                    _phyNegotiationSnapshot.value = phy.getSnapshot().copy(lastEvent = event)
+                }
+            }
+        }
+
+        wearableProtocol?.let { wearable ->
+            scope.launch {
+                _wearableCompanionSnapshot.value = wearable.getSnapshot()
+                launch {
+                    wearable.pttState.collect {
+                        _wearableCompanionSnapshot.value = wearable.getSnapshot()
+                    }
+                }
+                launch {
+                    wearable.riderDistressStatus.collect {
+                        _wearableCompanionSnapshot.value = wearable.getSnapshot()
+                    }
+                }
+                launch {
+                    wearable.latestVitals.collect {
+                        _wearableCompanionSnapshot.value = wearable.getSnapshot()
+                    }
                 }
             }
         }
@@ -559,6 +618,49 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
             _rekeyEpochSnapshot.value = rekey.getSnapshot(System.currentTimeMillis())
         }
         return result
+    }
+
+    override fun updateSatelliteBridgeStatus(status: org.nowni.intercom_alpha.mesh.satellite.SatelliteBridgeStatus) {
+        _satelliteBridgeStatus.value = status
+    }
+
+    override fun updatePhyNegotiationSnapshot(snapshot: org.nowni.intercom_alpha.mesh.phy.PhyNegotiationSnapshot) {
+        _phyNegotiationSnapshot.value = snapshot
+    }
+
+    override fun updateWearableCompanionSnapshot(snapshot: org.nowni.intercom_alpha.mesh.wearable.WearableCompanionSnapshot) {
+        _wearableCompanionSnapshot.value = snapshot
+    }
+
+    override fun triggerSatelliteDistressBeacon(message: String): Boolean {
+        val sat = satelliteBridge ?: return false
+        val coord = _localGpsCoordinate.value
+        val loc = org.nowni.intercom_alpha.mesh.satellite.SatelliteGpsLocation(
+            latitude = coord?.latitude ?: 0.0,
+            longitude = coord?.longitude ?: 0.0,
+            altitudeMeters = coord?.altitudeMeters ?: 0.0
+        )
+        val payload = org.nowni.intercom_alpha.mesh.satellite.SatelliteDispatchPayload(
+            dispatchId = "sat-sos-${System.currentTimeMillis()}",
+            senderRiderId = "android-local",
+            groupId = "fleet-alpha",
+            timestamp = System.currentTimeMillis(),
+            priority = org.nowni.intercom_alpha.mesh.satellite.SatelliteDispatchPriority.EMERGENCY_SOS_MANUAL,
+            location = loc,
+            messageText = message
+        )
+        scope.launch {
+            sat.enqueueEmergencyDispatch(payload)
+        }
+        return true
+    }
+
+    override fun processWearablePttClick(pressed: Boolean) {
+        scope.launch {
+            val state = if (pressed) org.nowni.intercom_alpha.mesh.wearable.PttButtonState.PRESSED else org.nowni.intercom_alpha.mesh.wearable.PttButtonState.RELEASED
+            wearableProtocol?.processPttEvent(state, System.currentTimeMillis())
+            setPttActive(pressed)
+        }
     }
 
     override fun setFailoverModeOverride(mode: org.nowni.intercom_alpha.mesh.failover.FailoverMode?) {
