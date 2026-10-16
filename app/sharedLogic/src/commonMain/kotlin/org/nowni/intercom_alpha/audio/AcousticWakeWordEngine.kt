@@ -49,6 +49,25 @@ class AcousticWakeWordEngine(
     private val _eventsChannel = Channel<WakeWordEvent>(Channel.BUFFERED)
     val events: ReceiveChannel<WakeWordEvent> = _eventsChannel
 
+    @kotlin.concurrent.Volatile
+    private var customEnergyThresholdDb: Float? = null
+
+    fun setSensitivity(energyThresholdDb: Float) {
+        customEnergyThresholdDb = energyThresholdDb
+    }
+
+    fun getSnapshot(): VoxStateSnapshot {
+        val event = _latestEvent.value
+        val state = _voxState.value
+        return VoxStateSnapshot(
+            state = state,
+            lastDetectedKeyword = event?.type,
+            confidence = event?.confidence ?: 0.0f,
+            isPttActive = state == VoxState.TRIGGERED || state == VoxState.HOLD_TAIL,
+            energyDb = customEnergyThresholdDb ?: (event?.energyDb ?: -100.0f)
+        )
+    }
+
     // Utterance tracking buffer for keyword spotting
     private val activeUtteranceFrames = mutableListOf<WakeWordFeatureFrame>()
     private var utteranceStartTimeMs: Long = 0L
@@ -220,7 +239,8 @@ class AcousticWakeWordEngine(
         val zcr = zeroCrossings.toFloat() / frame.size
         val avgDiff = highFreqDiffSum / frame.size
         val sibilantRatio = if (rms > 1.0) (avgDiff / rms).toFloat() else 0f
-        val isSpeech = rmsDb >= config.energyThresholdDb
+        val threshold = customEnergyThresholdDb ?: config.energyThresholdDb
+        val isSpeech = rmsDb >= threshold
 
         return WakeWordFeatureFrame(
             rmsEnergyDb = rmsDb,

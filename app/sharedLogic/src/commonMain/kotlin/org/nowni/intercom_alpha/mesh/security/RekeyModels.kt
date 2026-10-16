@@ -146,3 +146,17 @@ sealed interface RekeyResult {
 
     data class Rejected(val reason: String) : RekeyResult
 }
+
+/**
+ * Real-time observable snapshot of fleet-wide group rekey state.
+ */
+@Serializable
+data class RekeyEpochSnapshot(
+    val currentEpoch: Long = 1L,
+    val isGracePeriodActive: Boolean = false,
+    val previousEpoch: Long? = null,
+    val gracePeriodRemainingSeconds: Int = 0,
+    val lastRekeyTimestampMs: Long = 0L,
+    val lastRekeyReason: RekeyTriggerReason = RekeyTriggerReason.SCHEDULED_ROTATION
+)
+

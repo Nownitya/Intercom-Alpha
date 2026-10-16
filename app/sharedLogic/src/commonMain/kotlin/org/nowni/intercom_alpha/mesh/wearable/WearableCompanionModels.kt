@@ -192,3 +192,14 @@ data class WearableCompanionPacket(
         }
     }
 }
+
+/**
+ * Real-time telemetry snapshot of connected wearable device state.
+ */
+@Serializable
+data class WearableCompanionSnapshot(
+    val deviceType: WearableDeviceType = WearableDeviceType.APPLE_WATCH,
+    val pttState: PttButtonState = PttButtonState.RELEASED,
+    val distressStatus: RiderDistressStatus = RiderDistressStatus.NORMAL,
+    val vitals: RiderBiometricVitals? = null
+)
