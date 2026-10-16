@@ -2393,4 +2393,22 @@
   - Graphify Knowledge Sync (`graphify update .`): 4,246 nodes, 9,130 edges, 301 communities (Rule 7).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-30-design-system-foundations`).
 
+### [2026-10-17] - ICA-3003: Expressive Tactical Audio & Cockpit Widget Components (PTT, VU Meter, SOS Switch)
+- **Branch**: `feature/ICA-3003-expressive-tactile-widgets`
+- **Objective**: Build production-grade tactical cockpit components fusing Skeuomorphism, Claymorphism, Neobrutalism, and Liquid Glass. On Android (`:app:sharedUI`): `ExpressivePttActuator.kt` (recessed knurled bevel, spring-damped deformation, dynamic ripple), `ExpressiveVuMeter.kt` (phosphor decay, peak hold, clipping alerts), and `GuardedSosSwitch.kt` (spring-loaded flip cover). On iOS (`:app:iosApp`): matching native SwiftUI `TactilePttButton.swift`, `TactileVuMeter.swift`, and `GuardedSosSwitch.swift`.
+- **Implementation**:
+  - Android Jetpack Compose (`:app:sharedUI`):
+    - `ExpressivePttActuator.kt`: $160\text{ dp}$ master PTT button with concentric knurled outer chassis bezel, spring physics deformation (`dampingRatio = MediumBouncy`), dynamic hot-mic pulse glow, and claymorphic dual shadows.
+    - `ExpressiveVuMeter.kt`: 14-segment dynamic LED bar with phosphor decay, clipping alert, and tabular monospace dB telemetry readout.
+    - `GuardedSosSwitch.kt`: Mil-spec emergency safety flip-cover requiring a deliberate lift-guard gesture before activating the crimson SOS transmitter.
+  - Native iOS SwiftUI (`:app:iosApp`):
+    - `TactilePttButton.swift`: 100% native SwiftUI button with skeuomorphic bezel, claymorphic depth, spring scale animation, and sensory haptic actuation.
+    - `TactileVuMeter.swift`: Native SwiftUI segmented audio VU meter.
+    - `GuardedSosSwitch.swift`: Native SwiftUI hinged safety flip-guard SOS switch with double-heavy haptic confirmation.
+- **Verification**:
+  - `./gradlew :app:sharedUI:jvmTest :app:androidApp:testDebugUnitTest`: BUILD SUCCESSFUL (100% unit test pass).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+  - Graphify Knowledge Sync (`graphify update .`): 4,284 nodes, 9,267 edges, 286 communities (Rule 7).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-30-design-system-foundations`).
+
 

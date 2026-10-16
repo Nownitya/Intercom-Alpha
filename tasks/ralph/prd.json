@@ -61,7 +61,7 @@
         "Real-time audio VU meter with phosphor decay and clip indicator",
         "Guarded SOS switch requiring deliberate flip-guard gesture before triggering emergency"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-3004",
