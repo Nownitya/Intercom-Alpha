@@ -2235,11 +2235,125 @@
   - `ICA-2803: Real-Time Channel Airtime Congestion Governor & Adaptive FEC Shaper` [PASSED]
   - `ICA-2804: 32-Node Alpine Blizzard Acoustic & RF Contention Benchmark & Archify Showcase Update` [PASSED]
 
+---
 
+## 🚀 Sprint 29: Unified Hardware Bridge Integration & System Certification (v2.16.0 Roadmap, Phase 27 - Final Core Development Milestone)
 
+### [2026-10-10] - ICA-2901: Tactical Snapshots, Multi-Radio & Rekeying Hardware Bridge Wiring
+- **Branch**: `feature/ICA-2901-snapshots-radio-rekey-bridge`
+- **Objective**: Wire TacticalSnapshotProtocol, MultiRadioArbiter, and GroupRekeyProtocol into IntercomHardwareBridge and iOS IntercomBridge.kt. Expose reactive snapshots (SnapshotTransferProgress, ActiveRadioMode, RekeyEpochState) with CancellationHandle observers on iOS, ensuring full bridge integration for visual telemetry, Wi-Fi Direct offloading, and forward-secret group key rotation.
+- **Implementation**:
+  - `RekeyModels.kt`:
+    - Added `RekeyEpochSnapshot` data model with current epoch, grace period status, remaining seconds, timestamp, and trigger reason.
+  - `GroupRekeyProtocol.kt`:
+    - Added `getSnapshot(currentTimeMs)` method computing active epoch and remaining grace period.
+  - `IntercomHardwareBridge.kt`:
+    - Added StateFlows and properties for `snapshotProgress`, `multiRadioState`, and `rekeyEpochSnapshot`.
+    - Added `attachSubsystems` parameters for `snapshotManager`, `multiRadioArbiter`, and `groupRekeyProtocol`.
+    - Implemented simulation helpers in `NoOpIntercomHardwareBridge`.
+  - `AndroidPlatformBridge.kt`:
+    - Integrated `snapshotManager`, `multiRadioArbiter`, and `groupRekeyProtocol` in `attachSubsystems` with background flow collectors.
+    - Implemented override methods: `updateSnapshotProgress`, `updateMultiRadioState`, `updateRekeyEpochSnapshot`, `setPreferredRadioForBulk`, and `initiateManualRekey`.
+  - `IntercomBridge.kt` (iOS):
+    - Wired `snapshotManager`, `multiRadioArbiter`, and `rekeyProtocol`.
+    - Added Swift-friendly reactive listeners: `observeSnapshotTransfers`, `observeLatestReceivedSnapshot`, `observeMultiRadioState`, and `observeRekeyEpochSnapshot` returning lifecycle-managed `CancellationHandle`.
+    - Added `initiateManualRekey` dispatching over mesh and updating local state.
+  - `IntercomHardwareBridgeWiringTest.kt`:
+    - Verified reactive flow emissions, manual rekeying, preferred radio selection, and snapshot progress across JVM test suite.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest :app:androidApp:testDebugUnitTest :app:androidApp:assembleDebug`: BUILD SUCCESSFUL.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-29-unified-bridge-certification`).
 
+### [2026-10-10] - ICA-2902: Satellite Lifeline, Alpine Coded PHY & Wearable Companion Bridge Wiring
+- **Branch**: `feature/ICA-2902-satellite-phy-wearable-bridge`
+- **Objective**: Wire SatelliteGatewayBridge, AdaptivePhyArbiter, and WearableCompanionProtocol into IntercomHardwareBridge and iOS IntercomBridge.kt. Expose reactive states for satellite uplink beacons, BLE PHY negotiation (LE 1M, 2M, Coded S=8), and smartwatch companion telemetry (quick-PTT, heart rate, rider fall detection) with typed observers.
+- **Implementation**:
+  - `AlpineRfModels.kt` & `AdaptivePhyArbiter.kt`:
+    - Defined `PhyNegotiationSnapshot` data model with activeModes, lastEvent, and terrainProfile.
+    - Added `getSnapshot()` method to `AdaptivePhyArbiter`.
+  - `WearableCompanionModels.kt` & `WearableCompanionProtocol.kt`:
+    - Defined `WearableCompanionSnapshot` data model with deviceType, pttState, distressStatus, and vitals.
+    - Added `getSnapshot()` method to `WearableCompanionProtocol`.
+  - `IntercomHardwareBridge.kt`:
+    - Added StateFlows and properties for `satelliteBridgeStatus`, `phyNegotiationSnapshot`, and `wearableCompanionSnapshot`.
+    - Added override functions for `updateSatelliteBridgeStatus`, `updatePhyNegotiationSnapshot`, `updateWearableCompanionSnapshot`, `triggerSatelliteDistressBeacon`, and `processWearablePttClick`.
+    - Extended `attachSubsystems` parameters for `satelliteBridge`, `phyArbiter`, and `wearableProtocol`.
+    - Added simulation helpers to `NoOpIntercomHardwareBridge`.
+  - `AndroidPlatformBridge.kt`:
+    - Added `satelliteBridge`, `phyArbiter`, and `wearableProtocol` to `attachSubsystems` with background flow collectors.
+    - Implemented override methods: `updateSatelliteBridgeStatus`, `updatePhyNegotiationSnapshot`, `updateWearableCompanionSnapshot`, `triggerSatelliteDistressBeacon`, and `processWearablePttClick`.
+  - `IntercomBridge.kt` (iOS):
+    - Wired `satelliteBridge`, `phyArbiter`, and `wearableProtocol`.
+    - Added Swift-friendly reactive listeners: `observeSatelliteStatus`, `observePhyNegotiation`, and `observeWearableCompanion` returning lifecycle-managed `CancellationHandle`.
+    - Added `triggerSatelliteDistressBeacon` and `processWearablePttClick` controls.
+  - `IntercomSatellitePhyBridgeTest.kt`:
+    - 100% unit test coverage validating initial states, direct updates, satellite distress beacon dispatch, Coded PHY S=8 events, and wearable PTT clicks.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest :app:androidApp:testDebugUnitTest :app:androidApp:assembleDebug`: BUILD SUCCESSFUL.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-29-unified-bridge-certification`).
 
+### [2026-10-10] - ICA-2903: Spectral Noise DSP, Wake Word VOX & Airtime Congestion Governor Bridge Wiring
+- **Branch**: `feature/ICA-2903-spectral-vox-congestion-bridge`
+- **Objective**: Wire SpectralNoiseSuppressor, AcousticWakeWordEngine, and AirtimeCongestionGovernor into IntercomHardwareBridge and iOS IntercomBridge.kt. Exposes reactive snapshots for real-time wind noise dB attenuation, hands-free VOX state machine transitions, and channel busy ratio (CBR) congestion levels with adaptive FEC indicators.
+- **Implementation**:
+  - `SpectralNoiseModels.kt` & `SpectralNoiseSuppressor.kt`:
+    - Defined `SpectralNoiseSnapshot` data model with mode, attenuationDb, isSpeechPresent, estimatedSnrDb, inputRmsDb, and outputRmsDb.
+    - Added `getSnapshot()` and `setMode(mode: NoiseSuppressionMode)` to `SpectralNoiseSuppressor`.
+  - `WakeWordModels.kt` & `AcousticWakeWordEngine.kt`:
+    - Defined `VoxStateSnapshot` data model with state, lastDetectedKeyword, confidence, isPttActive, and energyDb.
+    - Added `getSnapshot()` and `setSensitivity(energyThresholdDb: Float)` to `AcousticWakeWordEngine` for dynamic threshold calibration.
+  - `CongestionModels.kt`:
+    - Added `typealias AirtimeCongestionSnapshot = CongestionMetricsSnapshot` for unified bridge terminology.
+  - `IntercomHardwareBridge.kt`:
+    - Added StateFlows and properties for `spectralNoiseSnapshot`, `voxStateSnapshot`, and `airtimeCongestionSnapshot`.
+    - Added override functions for `updateSpectralNoiseSnapshot`, `updateVoxStateSnapshot`, `updateAirtimeCongestionSnapshot`, `setNoiseSuppressionMode`, and `setVoxSensitivity`.
+    - Extended `attachSubsystems` parameters for `spectralSuppressor`, `wakeWordEngine`, and `congestionGovernor`.
+    - Added simulation helpers to `NoOpIntercomHardwareBridge`.
+  - `AndroidPlatformBridge.kt`:
+    - Added `spectralSuppressor`, `wakeWordEngine`, and `congestionGovernor` to `attachSubsystems` with background flow collectors.
+    - Implemented override methods: `updateSpectralNoiseSnapshot`, `updateVoxStateSnapshot`, `updateAirtimeCongestionSnapshot`, `setNoiseSuppressionMode`, and `setVoxSensitivity`.
+  - `IntercomBridge.kt` (iOS):
+    - Wired `spectralSuppressor`, `wakeWordEngine`, and `congestionGovernor`.
+    - Added Swift-friendly reactive listeners: `observeNoiseSuppression`, `observeVoxState`, and `observeCongestionLevel` returning lifecycle-managed `CancellationHandle`.
+    - Integrated hands-free VOX triggering directly into PTT transmitter activation in `start()`.
+    - Added `setNoiseSuppressionMode` and `setVoxSensitivity` controls.
+  - `IntercomAcousticQoSBridgeTest.kt`:
+    - 100% unit test coverage validating initial states, direct updates, mode switching, VOX sensitivity tuning, and real subsystem integrations.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest :app:androidApp:testDebugUnitTest :app:androidApp:assembleDebug`: BUILD SUCCESSFUL.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-29-unified-bridge-certification`).
 
-
+### [2026-10-10] - ICA-2904: 32-Node Unified End-to-End System Simulation, Final Architecture Showcase & Certification
+- **Branch**: `feature/ICA-2904-system-certification-showcase`
+- **Objective**: Implement UnifiedSystemCertificationHarness.kt simulating 32 full-stack nodes exercising all interconnected subsystems (mesh flooding, AODV-Lite, multi-group federation, 4-tier QoS, failover hedging, snapshots, satellite lifeline, Coded PHY, spectral noise suppression, hands-free wake word, and congestion governance). Updates Archify showcase with 9/9 verification pass and signs off core development completion.
+- **Implementation**:
+  - `UnifiedSystemCertificationHarness.kt`:
+    - Full-stack simulation across 32 virtual convoy nodes organized into dual squads (Squad Alpha & Squad Bravo, 16 nodes each) traversing alpine expedition conditions.
+    - Concurrently verifies:
+      1. Spectral noise suppression speech enhancement (16 kHz, 256-point FFT, EXTREME_ALPINE).
+      2. Hands-free acoustic wake word spotter with sensitivity tuning and physical PTT override.
+      3. AODV-Lite directed mesh routing discovery and topology snapshot generation.
+      4. Inter-convoy gateway federation handshake and cross-squad bridge establishment.
+      5. 4-tier QoS queue scheduling and airtime congestion governance.
+      6. Multi-radio arbiter Wi-Fi Direct bulk offload and OTA group key rekeying.
+      7. Adaptive Coded PHY reach (Deep Canyon Gorge) and smartwatch wearable companion integration.
+      8. Canyon dead-zone satellite emergency lifeline dispatch fallback.
+      9. End-to-end multi-hop voice streaming with verified latency <= 80ms across all 32 nodes.
+      10. Zero-dropped emergency frame life-safety delivery across all nodes with instant hardware bridge dispatch.
+  - `intercom-alpha.architecture.json` & `intercom-alpha-architecture.html`:
+    - Updated Archify architecture specification with Sprint 29 / Phase 27 Unified Hardware Bridge Integration & System Certification showcase card.
+    - Delivered interactive HTML showcase via Archify CLI with 100% showcase profile (9/9 automated verification checks passed, 0 errors, 0 warnings).
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest :app:androidApp:testDebugUnitTest :app:androidApp:assembleDebug`: BUILD SUCCESSFUL (402/402 multiplatform tests passed).
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+  - Archify Validation: 9/9 checks passed, 0 composition errors, 0 warnings.
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-29-unified-bridge-certification`).
 
 

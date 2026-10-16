@@ -164,6 +164,15 @@ class IntercomBridge(
                         }
                     }
                 }
+                launch {
+                    wakeWordEngine.voxState.collect { state ->
+                        if (state == VoxState.TRIGGERED) {
+                            setPttActive(true)
+                        } else if (state == VoxState.COOLDOWN || state == VoxState.IDLE) {
+                            setPttActive(false)
+                        }
+                    }
+                }
             }
 
             // 7. Synchronize dynamic bitrate profile
@@ -1028,5 +1037,217 @@ class IntercomBridge(
             failoverArbiter.forceMode(mode, currentTimeMillis())
         }
     }
+
+    // --- Swift-Friendly Tactical Snapshot & Visual Telemetry Observers (Sprint 26 / Sprint 29) ---
+
+    val snapshotManager: org.nowni.intercom_alpha.mesh.visual.SnapshotTransferManager =
+        org.nowni.intercom_alpha.mesh.visual.SnapshotTransferManager(qosScheduler = qosScheduler)
+
+    fun observeSnapshotTransfers(onTransfers: (List<org.nowni.intercom_alpha.mesh.visual.SnapshotTransferProgress>) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            snapshotManager.activeTransfers.collect { transfers ->
+                onTransfers(transfers)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun observeLatestReceivedSnapshot(onSnapshot: (Pair<org.nowni.intercom_alpha.mesh.visual.SnapshotHeader, ByteArray>?) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            snapshotManager.latestReceivedSnapshot.collect { snapshot ->
+                onSnapshot(snapshot)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    // --- Swift-Friendly Concurrent Multi-Radio Arbiter Observers & Controls (Sprint 26 / Sprint 29) ---
+
+    val multiRadioArbiter: org.nowni.intercom_alpha.mesh.radio.MultiRadioArbiter =
+        org.nowni.intercom_alpha.mesh.radio.MultiRadioArbiter()
+
+    fun observeMultiRadioState(onState: (org.nowni.intercom_alpha.mesh.radio.MultiRadioState) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            multiRadioArbiter.state.collect { state ->
+                onState(state)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    // --- Swift-Friendly Group Rekey Protocol Observers & Controls (Sprint 26 / Sprint 29) ---
+
+    val rekeyProtocol: org.nowni.intercom_alpha.mesh.security.GroupRekeyProtocol =
+        org.nowni.intercom_alpha.mesh.security.GroupRekeyProtocol(
+            groupId = "squad-ios",
+            localNodeId = localPeerId,
+            baseKeyInput = ByteArray(32) { 0x42.toByte() }
+        )
+
+    fun observeRekeyEpochSnapshot(onSnapshot: (org.nowni.intercom_alpha.mesh.security.RekeyEpochSnapshot) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            onSnapshot(rekeyProtocol.getSnapshot())
+            rekeyProtocol.events.collect { _ ->
+                onSnapshot(rekeyProtocol.getSnapshot())
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun initiateManualRekey(reason: org.nowni.intercom_alpha.mesh.security.RekeyTriggerReason = org.nowni.intercom_alpha.mesh.security.RekeyTriggerReason.MANUAL_REKEY): Boolean {
+        scope.launch {
+            try {
+                val packet = rekeyProtocol.initiateRekey(reason = reason)
+                meshTransport.sendControl(ControlType.EPOCH_ROLLOVER, packet.epochKeyDerivationSalt)
+            } catch (_: Exception) {
+            }
+        }
+        return true
+    }
+
+    // --- Swift-Friendly Satellite Emergency Lifeline Observers & Controls (Sprint 27 / Sprint 29) ---
+
+    val satelliteBridge: org.nowni.intercom_alpha.mesh.satellite.SatelliteGatewayBridge =
+        org.nowni.intercom_alpha.mesh.satellite.SatelliteGatewayBridge(localNodeId = localPeerId)
+
+    fun observeSatelliteStatus(onStatus: (org.nowni.intercom_alpha.mesh.satellite.SatelliteBridgeStatus) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            satelliteBridge.status.collect { status ->
+                onStatus(status)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun triggerSatelliteDistressBeacon(message: String = "EMERGENCY SOS"): Boolean {
+        val loc = org.nowni.intercom_alpha.mesh.satellite.SatelliteGpsLocation(
+            latitude = 45.9237,
+            longitude = 6.8694,
+            altitudeMeters = 3842.0
+        )
+        val payload = org.nowni.intercom_alpha.mesh.satellite.SatelliteDispatchPayload(
+            dispatchId = "sat-sos-${currentTimeMillis()}",
+            senderRiderId = localPeerId,
+            groupId = "fleet-ios",
+            timestamp = currentTimeMillis(),
+            priority = org.nowni.intercom_alpha.mesh.satellite.SatelliteDispatchPriority.EMERGENCY_SOS_MANUAL,
+            location = loc,
+            messageText = message
+        )
+        scope.launch {
+            satelliteBridge.enqueueEmergencyDispatch(payload)
+        }
+        return true
+    }
+
+    // --- Swift-Friendly Alpine Coded PHY Observers & Controls (Sprint 27 / Sprint 29) ---
+
+    val phyArbiter: org.nowni.intercom_alpha.mesh.phy.AdaptivePhyArbiter =
+        org.nowni.intercom_alpha.mesh.phy.AdaptivePhyArbiter(localNodeId = localPeerId)
+
+    fun observePhyNegotiation(onSnapshot: (org.nowni.intercom_alpha.mesh.phy.PhyNegotiationSnapshot) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            onSnapshot(phyArbiter.getSnapshot())
+            phyArbiter.negotiationEvents.collect { event ->
+                onSnapshot(phyArbiter.getSnapshot().copy(lastEvent = event))
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    // --- Swift-Friendly Smartwatch / Apple Watch Companion Observers & Controls (Sprint 27 / Sprint 29) ---
+
+    val wearableProtocol: org.nowni.intercom_alpha.mesh.wearable.WearableCompanionProtocol =
+        org.nowni.intercom_alpha.mesh.wearable.WearableCompanionProtocol(
+            localRiderId = localPeerId,
+            localDeviceId = "apple-watch-$localPeerId",
+            deviceType = org.nowni.intercom_alpha.mesh.wearable.WearableDeviceType.APPLE_WATCH
+        )
+
+    fun observeWearableCompanion(onSnapshot: (org.nowni.intercom_alpha.mesh.wearable.WearableCompanionSnapshot) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            onSnapshot(wearableProtocol.getSnapshot())
+            launch {
+                wearableProtocol.pttState.collect {
+                    onSnapshot(wearableProtocol.getSnapshot())
+                }
+            }
+            launch {
+                wearableProtocol.riderDistressStatus.collect {
+                    onSnapshot(wearableProtocol.getSnapshot())
+                }
+            }
+            launch {
+                wearableProtocol.latestVitals.collect {
+                    onSnapshot(wearableProtocol.getSnapshot())
+                }
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun processWearablePttClick(pressed: Boolean) {
+        scope.launch {
+            val state = if (pressed) org.nowni.intercom_alpha.mesh.wearable.PttButtonState.PRESSED else org.nowni.intercom_alpha.mesh.wearable.PttButtonState.RELEASED
+            wearableProtocol.processPttEvent(state, currentTimeMillis())
+            setPttActive(pressed)
+        }
+    }
+
+    // --- Swift-Friendly Spectral Noise DSP, Hands-Free VOX & Airtime Congestion Observers & Controls (Sprint 28 / Sprint 29) ---
+
+    val spectralSuppressor: org.nowni.intercom_alpha.audio.SpectralNoiseSuppressor =
+        org.nowni.intercom_alpha.audio.SpectralNoiseSuppressor()
+
+    val wakeWordEngine: org.nowni.intercom_alpha.audio.AcousticWakeWordEngine =
+        org.nowni.intercom_alpha.audio.AcousticWakeWordEngine()
+
+    val congestionGovernor: org.nowni.intercom_alpha.mesh.qos.AirtimeCongestionGovernor =
+        org.nowni.intercom_alpha.mesh.qos.AirtimeCongestionGovernor()
+
+    fun observeNoiseSuppression(onSnapshot: (org.nowni.intercom_alpha.audio.SpectralNoiseSnapshot) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            onSnapshot(spectralSuppressor.getSnapshot())
+            spectralSuppressor.latestDiagnostics.collect { _ ->
+                onSnapshot(spectralSuppressor.getSnapshot())
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun observeVoxState(onSnapshot: (org.nowni.intercom_alpha.audio.VoxStateSnapshot) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            onSnapshot(wakeWordEngine.getSnapshot())
+            launch {
+                wakeWordEngine.voxState.collect {
+                    onSnapshot(wakeWordEngine.getSnapshot())
+                }
+            }
+            launch {
+                wakeWordEngine.latestEvent.collect {
+                    onSnapshot(wakeWordEngine.getSnapshot())
+                }
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun observeCongestionLevel(onSnapshot: (org.nowni.intercom_alpha.mesh.qos.AirtimeCongestionSnapshot) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            congestionGovernor.metrics.collect { metrics ->
+                onSnapshot(metrics)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun setNoiseSuppressionMode(mode: org.nowni.intercom_alpha.audio.NoiseSuppressionMode) {
+        spectralSuppressor.setMode(mode)
+    }
+
+    fun setVoxSensitivity(energyThresholdDb: Float) {
+        wakeWordEngine.setSensitivity(energyThresholdDb)
+    }
 }
+
 

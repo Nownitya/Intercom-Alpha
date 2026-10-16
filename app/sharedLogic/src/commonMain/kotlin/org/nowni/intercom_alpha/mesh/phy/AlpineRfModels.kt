@@ -106,3 +106,13 @@ data class PhyNegotiationPacket(
     val isAcknowledgement: Boolean = false,
     val accepted: Boolean = true
 )
+
+/**
+ * Real-time snapshot of active BLE PHY modes and negotiation events.
+ */
+@Serializable
+data class PhyNegotiationSnapshot(
+    val activeModes: Map<String, BlePhyMode> = emptyMap(),
+    val lastEvent: PhyNegotiationEvent? = null,
+    val terrainProfile: TerrainShadowingProfile = TerrainShadowingProfile.OPEN_ALPINE_RIDGE
+)
