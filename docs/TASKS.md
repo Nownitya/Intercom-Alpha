@@ -375,22 +375,65 @@
  
 ---
  
-### ⚡ Sprint 28: Edge Acoustic Intelligence & Mesh Airtime Congestion Governance (Phase 26 - v2.15 Roadmap)
+### ✅ Sprint 28: Edge Acoustic Intelligence & Mesh Airtime Congestion Governance (Phase 26 - v2.15 Roadmap)
 - **Sprint Goal**: Implement pure KMP spectral subtraction speech enhancer for motorcycle wind noise, offline hands-free wake word engine ("Hey Alpha" / "Emergency SOS"), channel busy ratio (CBR) airtime congestion governor with adaptive FEC, and 32-node alpine blizzard simulation benchmark.
 - **Sprint Branch**: `sprint/sprint-28-edge-acoustic-congestion`
 - **Target Release**: `v2.15.0`
-- **Status**: ⚡ Active
+- **Status**: ✅ Completed (Released under `v2.15.0`)
  
 | Task ID | Item | Target Files | Status |
 | :--- | :--- | :--- | :--- |
 | **ICA-2801** | Pure KMP Spectral Subtraction Speech Enhancer & Wind Noise Suppressor | `SpectralNoiseModels.kt`, `SpectralNoiseSuppressor.kt`, `SpectralNoiseSuppressorTest.kt` | ✅ Completed |
 | **ICA-2802** | Hands-Free Acoustic Wake Word Engine & Continuous VOX Arbiter | `WakeWordModels.kt`, `AcousticWakeWordEngine.kt`, `AcousticWakeWordEngineTest.kt` | ✅ Completed |
 | **ICA-2803** | Real-Time Channel Airtime Congestion Governor & Adaptive FEC Shaper | `CongestionModels.kt`, `AirtimeCongestionGovernor.kt`, `AirtimeCongestionGovernorTest.kt` | ✅ Completed |
-| **ICA-2804** | 32-Node Alpine Blizzard Acoustic & RF Contention Benchmark & Archify Showcase Update | `AlpineBlizzardSimulationHarness.kt`, `intercom-alpha.architecture.json` | ⏳ In Progress |
+| **ICA-2804** | 32-Node Alpine Blizzard Acoustic & RF Contention Benchmark & Archify Showcase Update | `AlpineBlizzardSimulationHarness.kt`, `intercom-alpha.architecture.json` | ✅ Completed |
  
 #### 📋 Tasks Plugin Checklist (Sprint 28)
 - [x] #task [ICA-2801] Implement SpectralNoiseSuppressor for real-time wind noise reduction ➕ 2026-10-10 ⏳ 2026-10-12 📅 2026-10-16 ⏫ ✅ 2026-10-10
 - [x] #task [ICA-2802] Implement AcousticWakeWordEngine for hands-free 'Hey Alpha' and 'Emergency SOS' ➕ 2026-10-10 ⏳ 2026-10-14 📅 2026-10-18 ⏫ ✅ 2026-10-10
 - [x] #task [ICA-2803] Implement AirtimeCongestionGovernor for CBR channel pacing & adaptive FEC ➕ 2026-10-10 ⏳ 2026-10-15 📅 2026-10-19 🔼 ✅ 2026-10-10
-- [ ] #task [ICA-2804] Execute 32-node Alpine Blizzard simulation harness & Archify showcase update ➕ 2026-10-10 ⏳ 2026-10-16 📅 2026-10-20 🔼
+- [x] #task [ICA-2804] Execute 32-node Alpine Blizzard simulation harness & Archify showcase update ➕ 2026-10-10 ⏳ 2026-10-16 📅 2026-10-20 🔼 ✅ 2026-10-10
+
+---
+
+### ✅ Sprint 29: Unified Hardware Bridge Integration & System Certification (Phase 27 - v2.16 Roadmap)
+- **Sprint Goal**: Wire Tactical Snapshots, Multi-Radio Arbiter, Group Rekeying, Satellite Gateway, Coded PHY, Wearables, Spectral DSP, Wake Word VOX, and Airtime Governor into unified hardware bridge interfaces across Android and iOS (`IntercomHardwareBridge.kt` and `IntercomBridge.kt`), and execute 32-node end-to-end multiplatform certification.
+- **Sprint Branch**: `sprint/sprint-29-unified-bridge-certification`
+- **Target Release**: `v2.16.0`
+- **Status**: ✅ Completed (Released under `v2.16.0`)
+
+| Task ID | Item | Target Files | Status |
+| :--- | :--- | :--- | :--- |
+| **ICA-2901** | Tactical Snapshots, Multi-Radio & Rekeying Hardware Bridge Wiring | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `IntercomHardwareBridgeWiringTest.kt` | ✅ Completed |
+| **ICA-2902** | Satellite Lifeline, Alpine Coded PHY & Wearable Companion Bridge Wiring | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `IntercomSatellitePhyBridgeTest.kt` | ✅ Completed |
+| **ICA-2903** | Spectral Noise DSP, Wake Word VOX & Airtime Congestion Governor Bridge Wiring | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `IntercomAcousticQoSBridgeTest.kt` | ✅ Completed |
+| **ICA-2904** | 32-Node Unified End-to-End System Simulation, Final Architecture Showcase & Certification | `UnifiedSystemCertificationHarness.kt`, `intercom-alpha-architecture.html` | ✅ Completed |
+
+#### 📋 Tasks Plugin Checklist (Sprint 29)
+- [x] #task [ICA-2901] Tactical Snapshots, Multi-Radio & Rekeying Hardware Bridge Wiring ➕ 2026-10-10 ⏳ 2026-10-12 📅 2026-10-16 ⏫ ✅ 2026-10-10
+- [x] #task [ICA-2902] Satellite Lifeline, Alpine Coded PHY & Wearable Companion Bridge Wiring ➕ 2026-10-10 ⏳ 2026-10-14 📅 2026-10-18 ⏫ ✅ 2026-10-10
+- [x] #task [ICA-2903] Spectral Noise DSP, Wake Word VOX & Airtime Congestion Governor Bridge Wiring ➕ 2026-10-10 ⏳ 2026-10-15 📅 2026-10-19 🔼 ✅ 2026-10-10
+- [x] #task [ICA-2904] 32-Node Unified End-to-End System Simulation, Final Architecture Showcase & Certification ➕ 2026-10-10 ⏳ 2026-10-16 📅 2026-10-20 🔼 ✅ 2026-10-10
+
+---
+
+### 🎨 Sprint 30: Dedicated UI/UX Design System Foundations (Phase 28 - Part 1)
+- **Sprint Goal**: Implement core design tokens, color roles, elevation shadows, neobrutalist borders, claymorphic touch modifiers, and liquid glass materials across Android Jetpack Compose (Material 3: Expressive) and Native iOS SwiftUI (iOS 18+ HIG), adhering strictly to ADR-014 and Rule 1.
+- **Sprint Branch**: `sprint/sprint-30-design-system-foundations`
+- **Target Release**: `v3.0.0-alpha1`
+- **Status**: ✅ 100% Complete (All 4 Stories Passed)
+
+| Task ID | Item | Target Files | Status |
+| :--- | :--- | :--- | :--- |
+| **ICA-3001** | Compose Material 3 Expressive Tokens, Neobrutalist & Claymorphic Modifier Engine | `IntercomDesignTokens.kt`, `TactileModifiers.kt`, `IntercomTheme.kt` | ✅ Completed |
+| **ICA-3002** | iOS SwiftUI Tactical Design System, Liquid Glass & Tactile Haptic Modifiers | `TactileDesignSystem.swift`, `LiquidGlassView.swift`, `TactileHaptics.swift` | ✅ Completed |
+| **ICA-3003** | Expressive Tactical Audio & Cockpit Widget Components (PTT, VU Meter, SOS Switch) | `ExpressivePttActuator.kt`, `TactilePttButton.swift`, `ExpressiveVuMeter.kt` | ✅ Completed |
+| **ICA-3004** | Design System Verification Harness & Golden Cross-Platform Render Specification | `DesignSystemTokenTest.kt`, `DesignSystemSnapshotTest.kt` | ✅ Completed |
+
+#### 📋 Tasks Plugin Checklist (Sprint 30)
+- [x] #task [ICA-3001] Implement Compose Material 3 Expressive Tokens, Neobrutalist & Claymorphic Modifier Engine ➕ 2026-10-16 ⏳ 2026-10-18 📅 2026-10-22 ⏫ ✅ 2026-10-16
+- [x] #task [ICA-3002] Implement iOS SwiftUI Tactical Design System, Liquid Glass & Tactile Haptic Modifiers ➕ 2026-10-16 ⏳ 2026-10-19 📅 2026-10-23 ⏫ ✅ 2026-10-17
+- [x] #task [ICA-3003] Implement Expressive Tactical Audio & Cockpit Widget Components (PTT, VU Meter, SOS Switch) ➕ 2026-10-16 ⏳ 2026-10-20 📅 2026-10-24 🔼 ✅ 2026-10-17
+- [x] #task [ICA-3004] Execute Design System Verification Harness & Golden Cross-Platform Render Specification ➕ 2026-10-16 ⏳ 2026-10-21 📅 2026-10-25 🔼 ✅ 2026-10-17
+
 

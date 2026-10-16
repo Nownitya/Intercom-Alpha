@@ -776,6 +776,16 @@
         "Comprehensive 32-Node Unified System Certification validating end-to-end voice latency <= 80ms, zero dropped emergency frames, and complete hardware bridge synchronization",
         "Full multiplatform test suite pass across all targets certifying official completion of core engine development"
       ]
+    },
+    {
+      "dot": "amber",
+      "title": "Dedicated UI/UX Design System Foundations (Sprint 30 / Phase 28)",
+      "items": [
+        "Material 3 Expressive & iOS 18+ HIG tokens enforcing 84dp glove targets, 160dp master PTT diameter, and 2-3dp neobrutalist outlines",
+        "Tactile Modifiers Engine: .claymorphic() convex 3D cushion volume, .neobrutalistBorder() high-sun legibility, and .liquidGlass() frosted HUD overlays",
+        "Skeuomorphic & Sensory Cockpit Widgets: Concentric machined knurled bezels, 14-segment LED VU meter with phosphor decay, and mil-spec hinged safety flip-guard SOS switch",
+        "100% Native SwiftUI on iOS (Rule 1) with pre-warmed TactileHaptics engine and zero Compose UI on Apple targets"
+      ]
     }
   ]
 }

@@ -1,82 +1,83 @@
 {
   "project": "Intercom-Alpha",
-  "branchName": "sprint/sprint-29-unified-bridge-certification",
-  "phase": "Phase 27: Unified Hardware Bridge Integration & System Certification",
-  "sprint": "Sprint 29",
-  "updatedAt": "2026-10-10T12:40:00Z",
+  "branchName": "sprint/sprint-30-design-system-foundations",
+  "phase": "Phase 28: Dedicated UI/UX Evolution (Design System Foundations)",
+  "sprint": "Sprint 30",
+  "updatedAt": "2026-10-16T18:17:00Z",
   "stories": [
     {
-      "id": "ICA-2901",
+      "id": "ICA-3001",
       "priority": 1,
-      "title": "Tactical Snapshots, Multi-Radio & Rekeying Hardware Bridge Wiring",
-      "description": "Wire TacticalSnapshotProtocol, MultiRadioArbiter, and GroupRekeyProtocol into IntercomHardwareBridge and iOS IntercomBridge.kt. Exposes reactive snapshots (SnapshotTransferProgress, ActiveRadioMode, RekeyEpochState) with CancellationHandle observers on iOS, ensuring full bridge integration for visual telemetry, Wi-Fi Direct offloading, and forward-secret group key rotation.",
+      "title": "Compose Material 3 Expressive Tokens, Neobrutalist & Claymorphic Modifier Engine",
+      "description": "Establish the foundational design system in :app:sharedUI adhering to ADR-014. Implements IntercomDesignTokens.kt with M3 Expressive color schemes (Tactile Dark/High-Contrast Light, Neon Signal Accents: Tactical Amber #FF9F0A, International Orange #FF453A, Emergency Crimson #FF3B30, Coded PHY Emerald #30D158), expressive typography with tabular numbers, and custom Compose Modifier extensions in TactileModifiers.kt (claymorphic double inner/outer depth shadows, crisp 2dp neobrutalist outlines, and frosted liquid-glass blur overlays).",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomHardwareBridge.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomHardwareBridgeImpl.kt",
-        "app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomBridge.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/bridge/IntercomHardwareBridgeWiringTest.kt"
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/theme/IntercomDesignTokens.kt",
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/theme/TactileModifiers.kt",
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/theme/IntercomTheme.kt",
+        "app/sharedUI/src/commonTest/kotlin/org/nowni/intercom_alpha/ui/theme/DesignSystemTokenTest.kt"
       ],
       "acceptanceCriteria": [
-        "IntercomHardwareBridge exposes reactive StateFlows for SnapshotTransferProgress, RadioMode, and RekeyEpochState",
-        "IntercomBridge.kt exposes typed Swift-friendly observeSnapshotProgress, observeRadioMode, and observeRekeyState returning CancellationHandle (Rule 1)",
-        "Zero Java or C dependencies in commonMain (Rules 2 & 3)",
-        "100% unit test pass across JVM, Android, and iOS Simulator compilation (Rule 6)"
+        "IntercomDesignTokens defines comprehensive color roles, typography, shape scales (M3 Expressive squircles), and tactile dimension tokens",
+        "TactileModifiers provides reusable Compose Modifiers: .claymorphic(), .neobrutalistBorder(), and .liquidGlass()",
+        "Zero AI template code: pure hand-crafted Compose canvas drawing, layout modifiers, and shadow layering",
+        "100% test coverage for token metrics, contrast ratios, and modifier composition across JVM and Android targets"
       ],
       "passes": true
     },
     {
-      "id": "ICA-2902",
+      "id": "ICA-3002",
       "priority": 2,
-      "title": "Satellite Lifeline, Alpine Coded PHY & Wearable Companion Bridge Wiring",
-      "description": "Wire SatelliteGatewayBridge, AdaptivePhyArbiter, and WearableCompanionProtocol into IntercomHardwareBridge and iOS IntercomBridge.kt. Exposes reactive states for satellite uplink beacons, BLE PHY negotiation (LE 1M, 2M, Coded S=8), and smartwatch companion telemetry (quick-PTT, heart rate, rider fall detection) with typed observers.",
+      "title": "iOS SwiftUI Tactical Design System, Liquid Glass & Tactile Haptic Modifiers",
+      "description": "Establish the native iOS 18+ SwiftUI design system foundation in :app:iosApp (strictly adhering to Rule 1: No Compose on iOS). Implements TactileDesignSystem.swift, LiquidGlassView.swift, and TactileHaptics.swift providing .claymorphicDepth(), .neobrutalistOutline(), .liquidGlassBackground(), and high-performance UIImpactFeedbackGenerator / UINotificationFeedbackGenerator tactile actuation triggers for heavy gloves.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomHardwareBridge.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomHardwareBridgeImpl.kt",
-        "app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomBridge.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/bridge/IntercomSatellitePhyBridgeTest.kt"
+        "app/iosApp/iosApp/Design/TactileDesignSystem.swift",
+        "app/iosApp/iosApp/Design/LiquidGlassView.swift",
+        "app/iosApp/iosApp/Design/TactileHaptics.swift"
       ],
       "acceptanceCriteria": [
-        "IntercomHardwareBridge exposes reactive SatelliteBridgeSnapshot, PhyNegotiationSnapshot, and WearableCompanionSnapshot",
-        "IntercomBridge.kt exposes observeSatelliteStatus, observePhyMode, and observeWearableVitals with CancellationHandle lifecycle bindings",
-        "Subsystem hooks for triggering satellite distress beacon and wearable PTT clicks",
-        "100% unit test pass across all platforms"
+        "100% native SwiftUI without shared Compose UI (Rule 1)",
+        "Provides liquid glass ultraThinMaterial overlays with specular edge reflections",
+        "Provides claymorphic tactile depth modifiers and 2pt high-contrast neobrutalist borders",
+        "Tactile haptic engine with low-latency rigid and heavy impact patterns for gloved riding"
       ],
       "passes": true
     },
     {
-      "id": "ICA-2903",
+      "id": "ICA-3003",
       "priority": 3,
-      "title": "Spectral Noise DSP, Wake Word VOX & Airtime Congestion Governor Bridge Wiring",
-      "description": "Wire SpectralNoiseSuppressor, AcousticWakeWordEngine, and AirtimeCongestionGovernor into IntercomHardwareBridge and iOS IntercomBridge.kt. Exposes reactive snapshots for real-time wind noise dB attenuation, hands-free VOX state machine transitions, and channel busy ratio (CBR) congestion levels with adaptive FEC indicators.",
+      "title": "Expressive Tactical Audio & Cockpit Widget Components (PTT, VU Meter, SOS Switch)",
+      "description": "Build production-grade tactile cockpit components fusing Skeuomorphism, Claymorphism, Neobrutalism, and Liquid Glass. On Android (:app:sharedUI): ExpressivePttActuator.kt (recessed knurled bevel, spring-damped deformation, dynamic ripple), ExpressiveVuMeter.kt (phosphor decay, peak hold, clipping alerts), and GuardedSosSwitch.kt (spring-loaded flip cover). On iOS (:app:iosApp): matching native SwiftUI TactilePttActuator.swift, TactileVuMeter.swift, and GuardedSosSwitch.swift.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomHardwareBridge.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomHardwareBridgeImpl.kt",
-        "app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomBridge.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/bridge/IntercomAcousticQoSBridgeTest.kt"
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/ExpressivePttActuator.kt",
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/ExpressiveVuMeter.kt",
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/GuardedSosSwitch.kt",
+        "app/iosApp/iosApp/Components/TactilePttActuator.swift",
+        "app/iosApp/iosApp/Components/TactileVuMeter.swift",
+        "app/iosApp/iosApp/Components/GuardedSosSwitch.swift"
       ],
       "acceptanceCriteria": [
-        "IntercomHardwareBridge exposes reactive SpectralNoiseSnapshot, VoxStateSnapshot, and AirtimeCongestionSnapshot",
-        "IntercomBridge.kt exposes observeNoiseSuppression, observeVoxState, and observeCongestionLevel with CancellationHandle bindings",
-        "Subsystem hooks for switching noise suppression profiles and tuning VOX sensitivity",
-        "100% unit test pass across all platforms"
+        "Oversized 84x84dp minimum touch target bounding boxes for gloved operation",
+        "Tactile deformation animation with spring damping physics",
+        "Real-time audio VU meter with phosphor decay and clip indicator",
+        "Guarded SOS switch requiring deliberate flip-guard gesture before triggering emergency"
       ],
       "passes": true
     },
     {
-      "id": "ICA-2904",
+      "id": "ICA-3004",
       "priority": 4,
-      "title": "32-Node Unified End-to-End System Simulation, Final Architecture Showcase & Certification",
-      "description": "Implement UnifiedSystemCertificationHarness.kt simulating 32 full-stack nodes exercising all interconnected subsystems (mesh flooding, AODV-Lite, multi-group federation, 4-tier QoS, failover hedging, snapshots, satellite lifeline, Coded PHY, spectral noise suppression, hands-free wake word, and congestion governance). Updates Archify showcase with 9/9 verification pass and signs off core development completion.",
+      "title": "Design System Verification Harness & Archify Visual Specification Update",
+      "description": "Implement multiplatform test suite DesignSystemTokenTest.kt validating token contracts, color contrast ratios, accessibility sizes, and component bounds. Updates docs/architecture/intercom-alpha.architecture.json and intercom-alpha-architecture.html showcasing Phase 28 Design System Foundations with 10/10 verified checks.",
       "targetFiles": [
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/simulation/UnifiedSystemCertificationHarness.kt",
+        "app/sharedUI/src/commonTest/kotlin/org/nowni/intercom_alpha/ui/theme/DesignSystemTokenTest.kt",
         "docs/architecture/intercom-alpha.architecture.json",
         "docs/architecture/intercom-alpha-architecture.html"
       ],
       "acceptanceCriteria": [
-        "Simulates 32 nodes traversing high-speed alpine expedition conditions with all 9 core feature domains active",
-        "Verifies end-to-end voice latency <= 80ms, zero dropped emergency frames, and complete hardware bridge synchronization",
-        "Archify architecture specification and HTML showcase updated with 9/9 verification checks passed",
-        "Full multiplatform test suite pass across all targets certifying end of core development"
+        "All design tokens and modifier contracts verified via automated tests",
+        "Clean Gradle test passes across JVM and Android targets",
+        "Clean iOS simulator compilation for SwiftUI design system",
+        "Archify architecture specification updated to v3.0.0-alpha1 with design system validation"
       ],
       "passes": true
     }

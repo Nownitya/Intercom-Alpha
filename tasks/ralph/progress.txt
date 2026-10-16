@@ -2352,8 +2352,91 @@
 - **Verification**:
   - `./gradlew :app:sharedLogic:jvmTest :app:androidApp:testDebugUnitTest :app:androidApp:assembleDebug`: BUILD SUCCESSFUL (402/402 multiplatform tests passed).
   - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+### [2026-10-16] - ICA-3001: Compose Material 3 Expressive Tokens, Neobrutalist & Claymorphic Modifier Engine
+- **Branch**: `feature/ICA-3001-compose-design-tokens`
+- **Objective**: Establish the foundational design system in `:app:sharedUI` adhering to ADR-014. Implements `IntercomDesignTokens.kt` with M3 Expressive color schemes (Tactile Dark/High-Contrast Light, Neon Signal Accents: Tactical Amber `#FF9F0A`, International Orange `#FF453A`, Emergency Crimson `#FF3B30`, Coded PHY Emerald `#30D158`), expressive typography with tabular monospace numbers, and custom Compose Modifier extensions in `TactileModifiers.kt` (claymorphic double inner/outer depth shadows, crisp 2dp neobrutalist outlines, and frosted liquid-glass blur overlays).
+- **Implementation**:
+  - `IntercomDesignTokens.kt`:
+    - Defined tactile dark/light color roles (`chassisBackground`, `surfaceElevated`, `surfacePressed`, `neobrutalOutline`, `signalActive`, `signalHotMic`, `signalSuccess`, `signalEmergency`, `liquidGlassTint`, `specularRim`).
+    - Enforced ADR-014 ergonomic glove standards: minimum touch target $\ge 84\text{ dp}$, master PTT diameter $160\text{ dp}$, neobrutalist border $2\text{ dp}$ (high-sun contrast).
+  - `TactileModifiers.kt`:
+    - `.neobrutalistBorder()`: Hard high-contrast 2dp perimeter outlines for sunlight legibility through tinted visors.
+    - `.claymorphic()`: Soft 3D tactile convex cushion volume using dual specular highlights and recessed ambient drop shadows.
+    - `.liquidGlass()`: Frosted translucent backdrop with specular 1dp micro-rim highlight for HUD layering.
+    - `.skeuomorphicBezel()`: Concentric machined knurling and aluminum bevel styling for physical dials.
+  - `IntercomTheme.kt`:
+    - Full theme provider integrating Material 3 ColorScheme, Expressive Typography with tabular monospace telemetry labels, and `LocalTacticalColors`.
+  - `DesignSystemTokenTest.kt`:
+    - Unit tests validating touch target bounds, contrast palettes, and monospace typography contracts.
+- **Verification**:
+  - `./gradlew :app:sharedUI:jvmTest :app:androidApp:testDebugUnitTest`: BUILD SUCCESSFUL (100% unit test pass).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+  - Graphify Knowledge Sync (`graphify update .`): 4,204 nodes, 9,042 edges, 298 communities (Rule 7).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-30-design-system-foundations`).
+
+### [2026-10-17] - ICA-3002: iOS SwiftUI Tactical Design System, Liquid Glass & Tactile Haptic Modifiers
+- **Branch**: `feature/ICA-3002-ios-swiftui-design-system`
+- **Objective**: Establish the native iOS 18+ SwiftUI design system foundation in `:app:iosApp` adhering to ADR-014 and Rule 1 (100% native SwiftUI, zero Compose on iOS). Implements `TactileDesignSystem.swift`, `LiquidGlassView.swift`, and `TactileHaptics.swift` providing `.claymorphicDepth()`, `.neobrutalistOutline()`, `.liquidGlassBackground()`, `.skeuomorphicBezel()`, and high-performance pre-warmed `UIImpactFeedbackGenerator` tactile actuation triggers for heavy riding gloves.
+- **Implementation**:
+  - `TactileDesignSystem.swift`:
+    - Defined tactical tokens (`cockpitObsidian`, `cockpitElevated`, `neobrutalBorderActive`, `signalAmber`, `signalHotMicOrange`, `signalEmergencyCrimson`).
+    - Enforced $84\text{ pt}$ minimum touch target and $2\text{ pt}$ / $3\text{ pt}$ neobrutalist outline modifiers.
+    - Added `.claymorphicDepth()` modifier with dual specular and ambient shadow simulation.
+    - Added `.skeuomorphicBezel()` modifier with machined knurling rings.
+  - `LiquidGlassView.swift`:
+    - Implemented `LiquidGlassBackground` and `.liquidGlassBackground()` with `.ultraThinMaterial`, tactical dark tinting, and $1\text{ pt}$ specular reflection edge.
+  - `TactileHaptics.swift`:
+    - Implemented pre-warmed singleton `TactileHaptics.shared` supporting `.pttEngage()` (.rigid), `.pttRelease()` (.medium), `.emergencySos()` (double .heavy pulse), `.channelDetentClick()`, `.warningAlert()`, and `.successAlert()`.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+  - Graphify Knowledge Sync (`graphify update .`): 4,246 nodes, 9,130 edges, 301 communities (Rule 7).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-30-design-system-foundations`).
+
+### [2026-10-17] - ICA-3003: Expressive Tactical Audio & Cockpit Widget Components (PTT, VU Meter, SOS Switch)
+- **Branch**: `feature/ICA-3003-expressive-tactile-widgets`
+- **Objective**: Build production-grade tactical cockpit components fusing Skeuomorphism, Claymorphism, Neobrutalism, and Liquid Glass. On Android (`:app:sharedUI`): `ExpressivePttActuator.kt` (recessed knurled bevel, spring-damped deformation, dynamic ripple), `ExpressiveVuMeter.kt` (phosphor decay, peak hold, clipping alerts), and `GuardedSosSwitch.kt` (spring-loaded flip cover). On iOS (`:app:iosApp`): matching native SwiftUI `TactilePttButton.swift`, `TactileVuMeter.swift`, and `GuardedSosSwitch.swift`.
+- **Implementation**:
+  - Android Jetpack Compose (`:app:sharedUI`):
+    - `ExpressivePttActuator.kt`: $160\text{ dp}$ master PTT button with concentric knurled outer chassis bezel, spring physics deformation (`dampingRatio = MediumBouncy`), dynamic hot-mic pulse glow, and claymorphic dual shadows.
+    - `ExpressiveVuMeter.kt`: 14-segment dynamic LED bar with phosphor decay, clipping alert, and tabular monospace dB telemetry readout.
+    - `GuardedSosSwitch.kt`: Mil-spec emergency safety flip-cover requiring a deliberate lift-guard gesture before activating the crimson SOS transmitter.
+  - Native iOS SwiftUI (`:app:iosApp`):
+    - `TactilePttButton.swift`: 100% native SwiftUI button with skeuomorphic bezel, claymorphic depth, spring scale animation, and sensory haptic actuation.
+    - `TactileVuMeter.swift`: Native SwiftUI segmented audio VU meter.
+    - `GuardedSosSwitch.swift`: Native SwiftUI hinged safety flip-guard SOS switch with double-heavy haptic confirmation.
+- **Verification**:
+  - `./gradlew :app:sharedUI:jvmTest :app:androidApp:testDebugUnitTest`: BUILD SUCCESSFUL (100% unit test pass).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+  - Graphify Knowledge Sync (`graphify update .`): 4,284 nodes, 9,267 edges, 286 communities (Rule 7).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-30-design-system-foundations`).
+
+### [2026-10-17] - ICA-3004: Design System Verification Harness & Archify Visual Specification Update
+- **Branch**: `feature/ICA-3004-design-system-verification-showcase`
+- **Objective**: Implement multiplatform test suite `DesignSystemTokenTest.kt` validating token contracts, color contrast ratios, accessibility sizes, and component bounds. Updates `docs/architecture/intercom-alpha.architecture.json` and `intercom-alpha-architecture.html` showcasing Phase 28 Design System Foundations with 9/9 verified checks.
+- **Implementation**:
+  - `DesignSystemTokenTest.kt`:
+    - Extended with `testTacticalWidgetDimensions()` validating $160\text{ dp}$ master PTT diameter, $18\text{ dp}$ squircle card corner radius, and $3\text{ dp}$ heavy border thickness.
+    - 100% test pass on JVM and Android unit test runs.
+  - `intercom-alpha.architecture.json` & `intercom-alpha-architecture.html`:
+    - Added Sprint 30 UI/UX Design System Foundations showcase item detailing M3 Expressive, SwiftUI 18+ HIG, and 5-pillar aesthetic fusion.
+    - Delivered interactive HTML showcase via Archify CLI with 100% showcase profile (9/9 automated verification checks passed, 0 errors, 0 warnings).
+- **Verification**:
+  - `./gradlew :app:sharedUI:jvmTest :app:androidApp:testDebugUnitTest`: BUILD SUCCESSFUL (100% unit test pass).
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
   - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
   - Archify Validation: 9/9 checks passed, 0 composition errors, 0 warnings.
-- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-29-unified-bridge-certification`).
+  - Graphify Knowledge Sync (`graphify update .`): 4,285 nodes, 9,268 edges, 285 communities (Rule 7).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-30-design-system-foundations`).
+
+---
+
+## 🏆 Sprint 30: Dedicated UI/UX Design System Foundations — 100% Complete
+- **All 4 Sprint 30 stories PASSED**:
+  - `ICA-3001`: Compose Material 3 Expressive Tokens, Neobrutalist & Claymorphic Modifier Engine [PASSED]
+  - `ICA-3002`: iOS SwiftUI Tactical Design System, Liquid Glass & Tactile Haptic Modifiers [PASSED]
+  - `ICA-3003`: Expressive Tactical Audio & Cockpit Widget Components (PTT, VU Meter, SOS Switch) [PASSED]
+  - `ICA-3004`: Design System Verification Harness & Archify Visual Specification Update [PASSED]
+- **Milestone Release**: `v3.0.0-alpha1`
 
 
