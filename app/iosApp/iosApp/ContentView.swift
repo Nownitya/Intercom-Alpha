@@ -25,18 +25,27 @@ struct ContentView: View {
                     )
                 }
 
-                // 2. Top Avionics Bar
+                // 2. Top Tactile Avionics Header (ADR-014 / ICA-3102)
+                TactileAvionicsHeader(
+                    groupName: vm.groupName,
+                    peerCount: max(vm.peers.count, 1),
+                    isCloudConnected: vm.failoverSnapshot?.isCloudConnected ?? false,
+                    batteryPercentage: vm.accessoryState?.batteryLevel?.intValue ?? 85,
+                    isLowPower: (vm.powerGovernorState?.dutyCycle.dutyCyclePercent ?? 100) < 50,
+                    onOpenPeersSheet: { showPeersSheet = true }
+                )
+                .padding(.horizontal, 14)
+
+                // Subsystem Diagnostics & Action Toolbar
                 TacticalAvionicsBar(vm: vm, onShowPeers: { showPeersSheet = true })
                     .padding(.horizontal, 14)
 
-                // 3. Sub-Channel Bar
-                ChannelDialView(
+                // 3. Tactile Skeuomorphic Channel Selector Dial (ADR-014 / ICA-3102)
+                TactileChannelDial(
                     activeChannelId: vm.activeChannelId,
                     monitoredChannelIds: vm.monitoredChannelIds,
-                    isScanMode: vm.isScanMode,
                     onSelectChannel: { id in vm.selectChannel(id: id) },
-                    onToggleDualWatch: { id in vm.toggleDualWatch(channelId: id) },
-                    onToggleScan: { vm.toggleScanMode() }
+                    onToggleDualWatch: { id in vm.toggleDualWatch(channelId: id) }
                 )
                 .padding(.horizontal, 14)
 
@@ -70,7 +79,7 @@ struct ContentView: View {
                     TacticalVoiceCommandBadge(command: cmd, onDismiss: { vm.dismissVoiceCommandBadge() })
                 }
 
-                // 4. Tactical Vector Radar
+                // 4. Tactical Vector Radar with Liquid Glass HUD Card
                 TacticalVectorRadarView(
                     radarSnapshot: vm.radarSnapshot,
                     convoySnapshot: vm.convoySnapshot,
@@ -81,76 +90,76 @@ struct ContentView: View {
                     onOpenTrailCockpit: { vm.showTrailSheet = true }
                 )
                 .padding(.horizontal, 14)
+                .padding(.vertical, 2)
 
                 Spacer(minLength: 4)
 
-                // 5. Tactical Center PTT with Flanking Controls (Volume & VOX Lock)
-                HStack(alignment: .center, spacing: 18) {
-                    // Left: Volume Cycle Button (58pt touch target)
-                    Button(action: {
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        vm.cycleVolume()
-                    }) {
-                        VStack(spacing: 2) {
-                            Image(systemName: volumeIcon(for: vm.speakerVolume))
-                                .font(.system(size: 20, weight: .bold))
-                                .foregroundColor(.white)
-                            Text("\(Int(vm.speakerVolume * 100))%")
-                                .font(.system(size: 10, weight: .black, design: .monospaced))
-                                .foregroundColor(.white.opacity(0.85))
-                        }
-                        .frame(width: 58, height: 58)
-                        .background(Color.white.opacity(0.12))
-                        .clipShape(Circle())
-                        .overlay(Circle().stroke(Color.white.opacity(0.2), lineWidth: 1.5))
-                    }
-
-                    // Center: 140pt PTT Actuator
-                    TacticalPttButton(
-                        isTransmitting: vm.isTransmitting,
-                        isVoxLocked: vm.isVoxLocked,
-                        onPress: { vm.startPtt() },
-                        onRelease: { vm.stopPtt() }
+                // 5. Zero-Scroll Master Tactical Controls (ADR-014 / ICA-3102)
+                HStack(alignment: .center, spacing: 10) {
+                    // Left: Guarded Emergency SOS Switch (Safety Flip-Cover)
+                    GuardedSosSwitch(
+                        isEmergencyActive: vm.isEmergencyActive,
+                        onTriggerEmergency: { vm.triggerEmergencySos() },
+                        onCancelEmergency: { vm.clearBlackboxCache() }
                     )
 
-                    // Right: VOX Lock Button (58pt touch target)
-                    Button(action: {
-                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                        vm.toggleVoxLock()
-                    }) {
-                        VStack(spacing: 2) {
-                            Image(systemName: vm.isVoxLocked ? "lock.fill" : "lock.open.fill")
-                                .font(.system(size: 20, weight: .bold))
-                                .foregroundColor(vm.isVoxLocked ? .orange : .white)
-                            Text(vm.isVoxLocked ? "LOCKED" : "VOX")
-                                .font(.system(size: 10, weight: .black, design: .monospaced))
-                                .foregroundColor(vm.isVoxLocked ? .orange : .white.opacity(0.85))
+                    // Center: 160pt Master Tactile PTT Actuator
+                    TactilePttButton(
+                        isTransmitting: vm.isTransmitting,
+                        onPressStart: { vm.startPtt() },
+                        onPressEnd: { vm.stopPtt() },
+                        channelLabel: "CH 0\(vm.activeChannelId)",
+                        subtitle: vm.isVoxLocked ? "VOX LOCK" : "HOLD TO TALK"
+                    )
+
+                    // Right: Audio VU Level Meter, VOX Lock & Volume quick toggles
+                    VStack(spacing: 8) {
+                        TactileVuMeter(
+                            currentRmsLevel: vm.inputLevel,
+                            barCount: 10,
+                            showDbLabel: true
+                        )
+
+                        HStack(spacing: 6) {
+                            // Volume quick toggle button
+                            Button(action: {
+                                TactileHaptics.shared.channelDetentClick()
+                                vm.cycleVolume()
+                            }) {
+                                Image(systemName: volumeIcon(for: vm.speakerVolume))
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .frame(width: 36, height: 32)
+                                    .background(Color(red: 0.12, green: 0.14, blue: 0.18))
+                                    .neobrutalistOutline(
+                                        color: TacticalTokens.neobrutalBorderIdle,
+                                        lineWidth: 1.0,
+                                        cornerRadius: 6
+                                    )
+                            }
+                            .buttonStyle(.plain)
+
+                            // VOX Lock toggle button
+                            Button(action: {
+                                TactileHaptics.shared.channelDetentClick()
+                                vm.toggleVoxLock()
+                            }) {
+                                Text(vm.isVoxLocked ? "VOX ON" : "VOX OFF")
+                                    .font(.system(size: 9, weight: .black, design: .monospaced))
+                                    .foregroundColor(vm.isVoxLocked ? TacticalTokens.signalAmber : Color(red: 0.55, green: 0.58, blue: 0.62))
+                                    .frame(height: 32)
+                                    .padding(.horizontal, 6)
+                                    .background(vm.isVoxLocked ? Color(red: 0.18, green: 0.10, blue: 0.07) : Color(red: 0.12, green: 0.14, blue: 0.18))
+                                    .neobrutalistOutline(
+                                        color: vm.isVoxLocked ? TacticalTokens.signalAmber : TacticalTokens.neobrutalBorderIdle,
+                                        lineWidth: 1.0,
+                                        cornerRadius: 6
+                                    )
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .frame(width: 58, height: 58)
-                        .background(vm.isVoxLocked ? Color.orange.opacity(0.2) : Color.white.opacity(0.12))
-                        .clipShape(Circle())
-                        .overlay(Circle().stroke(vm.isVoxLocked ? Color.orange : Color.white.opacity(0.2), lineWidth: 1.5))
                     }
                 }
-
-                Spacer(minLength: 4)
-
-                // 6. Single-Row 4-Column Hazard Macro Strip
-                TacticalQuickHazardBar(onSelectCanned: { code in
-                    UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
-                    vm.sendCannedMessage(code)
-                })
-                .padding(.horizontal, 14)
-
-                // 7. Emergency SOS Bar
-                TacticalSosBar(
-                    isEmergencyActive: vm.isEmergencyActive,
-                    bufferedFrames: vm.blackboxBufferedCount,
-                    onTriggerSos: {
-                        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
-                        vm.triggerEmergencySos()
-                    }
-                )
                 .padding(.horizontal, 14)
                 .padding(.bottom, 6)
             }
@@ -457,35 +466,9 @@ struct TacticalAvionicsBar: View {
     let onShowPeers: () -> Void
 
     var body: some View {
-        HStack(alignment: .center, spacing: 8) {
-            // Group & Mesh Status
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 5) {
-                    Text(vm.groupName)
-                        .font(.system(size: 15, weight: .heavy))
-                        .lineLimit(1)
-
-                    if vm.isPfsRatchetActive {
-                        Image(systemName: "lock.shield.fill")
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundColor(.green)
-                    }
-                }
-
-                HStack(spacing: 5) {
-                    Circle()
-                        .fill(vm.isConnected ? Color.green : Color.orange)
-                        .frame(width: 7, height: 7)
-
-                    Text(vm.isConnected ? "MESH ONLINE (\(vm.peers.count))" : "SCANNING MESH")
-                        .font(.system(size: 9, weight: .black, design: .monospaced))
-                        .foregroundColor(.secondary)
-                }
-            }
-
-            Spacer()
-
-            // Helmet Accessory / Audio Route Badge
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(alignment: .center, spacing: 8) {
+                // Helmet Accessory / Audio Route Badge
             if let acc = vm.accessoryState, acc.isConnected {
                 HStack(spacing: 4) {
                     Image(systemName: "headphones")
@@ -787,6 +770,15 @@ struct TacticalAvionicsBar: View {
                     .clipShape(Circle())
             }
         }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        }
+        .liquidGlassBackground(cornerRadius: 10)
+        .neobrutalistOutline(
+            color: TacticalTokens.neobrutalBorderIdle,
+            lineWidth: 1.0,
+            cornerRadius: 10
+        )
     }
 }
 
