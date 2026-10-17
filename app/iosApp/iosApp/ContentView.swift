@@ -79,8 +79,8 @@ struct ContentView: View {
                     TacticalVoiceCommandBadge(command: cmd, onDismiss: { vm.dismissVoiceCommandBadge() })
                 }
 
-                // 4. Tactical Vector Radar with Liquid Glass HUD Card
-                TacticalVectorRadarView(
+                // 4. Tactical Vector Radar with Liquid Glass HUD Card (ICA-3103)
+                TactileRadarCard(
                     radarSnapshot: vm.radarSnapshot,
                     convoySnapshot: vm.convoySnapshot,
                     trailMapSnapshot: vm.trailMapSnapshot,

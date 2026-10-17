@@ -201,15 +201,14 @@ fun HomeScreen(
                 onToggleDualWatch = { onAction(HomeUiAction.ToggleDualWatch(it)) }
             )
 
-            // ================= 4. COMPACT CONVOY SPATIAL RADAR =================
-            ProximityRadarView(
+            // ================= 4. GLOVE-FRIENDLY SPATIAL RADAR HUD CARD =================
+            TactileRadarCard(
                 radarSnapshot = uiState.radarSnapshot,
                 convoySnapshot = uiState.convoySnapshot,
                 trailMapSnapshot = uiState.trailMapSnapshot,
                 geofenceSnapshot = uiState.geofenceSnapshot,
-                powerGovernorState = uiState.powerGovernorState,
                 onCycleZoom = { onAction(HomeUiAction.CycleRadarZoom) },
-                onOpenTrailSheet = { onAction(HomeUiAction.ToggleTrailSheet(true)) }
+                onOpenTrailCockpit = { onAction(HomeUiAction.ToggleTrailSheet(true)) }
             )
 
             // ================= 5. MASTER TACTICAL PTT & SENSORY CONTROLS =================
