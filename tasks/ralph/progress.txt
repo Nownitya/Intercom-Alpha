@@ -2474,5 +2474,29 @@
   - Graphify Knowledge Sync (`graphify update .`): 4,307 nodes, 9,347 edges, 278 communities (Rule 7).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-31-tactical-cockpit-redesign`).
 
+### [2026-10-17] - ICA-3103: Glove-Friendly Spatial Radar & Telemetry Liquid Glass Card Integration
+- **Branch**: `feature/ICA-3103-tactile-radar-card`
+- **Objective**: Refactor radar viewport in Android (`HomeScreen.kt`) and iOS (`ContentView.swift`) into sleek Liquid Glass HUD cards floating over real-time spatial vectors, topo trail contours, and convoy telemetry, featuring quick-range zoom toggles (500m/1.5km/5.0km) with 84dp glove targets.
+- **Implementation**:
+  - `TactileRadarCard.kt` (`app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/TactileRadarCard.kt`):
+    - Frosted liquid glass semi-translucent chassis (`Color(0xEE11161D)`) with neobrutalist border.
+    - Glove-friendly 84dp minimum touch target zoom cycle button with tabular range labels (`500m`, `1.5km`, `5.0km`).
+    - High-contrast circular vector radar rendering concentric distance rings, crosshairs, geofence tether perimeter, projected topo contours, active trail polylines, and proximity-color-coded convoy riders.
+    - Monospaced tabular telemetry readout chips displaying closest rider distance, bearing, and active trail launcher.
+  - `TactileRadarCard.swift` (`app/iosApp/iosApp/Components/TactileRadarCard.swift`):
+    - 100% Native SwiftUI liquid glass radar HUD card (`.liquidGlassBackground(cornerRadius: 14)`).
+    - Glove-friendly 84pt interactive zoom cycle button with tactile haptic feedback (`TactileHaptics.shared.channelDetentClick()`).
+    - Tabular monospaced telemetry chips for distance, bearing, and trail cockpit shortcut.
+  - Integration:
+    - Integrated `TactileRadarCard` into Android `HomeScreen.kt` and iOS `ContentView.swift`.
+- **Verification**:
+  - `./gradlew :app:sharedUI:compileKotlinJvm`: BUILD SUCCESSFUL.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - `./gradlew test`: 100% passing across all multiplatform test tasks.
+  - `./gradlew :app:androidApp:assembleDebug`: BUILD SUCCESSFUL.
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+  - Graphify Knowledge Sync (`graphify update .`): 4,317 nodes, 9,392 edges, 279 communities (Rule 7).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-31-tactical-cockpit-redesign`).
+
 
 

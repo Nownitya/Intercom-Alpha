@@ -56,7 +56,7 @@
         "Monospaced tabular distance and bearing chips",
         "100% multiplatform verification pass"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-3104",
