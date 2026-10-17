@@ -16,6 +16,9 @@ public struct TactileAvionicsHeader: View {
     public let batteryPercentage: Int
     public let isLowPower: Bool
     public let onOpenPeersSheet: () -> Void
+    public let onOpenTrailSheet: (() -> Void)?
+    public let onOpenShareSheet: (() -> Void)?
+    public let onOpenDiagnostics: (() -> Void)?
 
     public init(
         groupName: String,
@@ -23,7 +26,10 @@ public struct TactileAvionicsHeader: View {
         isCloudConnected: Bool,
         batteryPercentage: Int,
         isLowPower: Bool = false,
-        onOpenPeersSheet: @escaping () -> Void
+        onOpenPeersSheet: @escaping () -> Void,
+        onOpenTrailSheet: (() -> Void)? = nil,
+        onOpenShareSheet: (() -> Void)? = nil,
+        onOpenDiagnostics: (() -> Void)? = nil
     ) {
         self.groupName = groupName
         self.peerCount = peerCount
@@ -31,10 +37,13 @@ public struct TactileAvionicsHeader: View {
         self.batteryPercentage = batteryPercentage
         self.isLowPower = isLowPower
         self.onOpenPeersSheet = onOpenPeersSheet
+        self.onOpenTrailSheet = onOpenTrailSheet
+        self.onOpenShareSheet = onOpenShareSheet
+        self.onOpenDiagnostics = onOpenDiagnostics
     }
 
     public var body: some View {
-        HStack(alignment: .center, spacing: 10) {
+        HStack(alignment: .center, spacing: 8) {
             // 1. Group Name & Tactical Call-Sign
             VStack(alignment: .leading, spacing: 2) {
                 Text(groupName.uppercased())
@@ -54,9 +63,9 @@ public struct TactileAvionicsHeader: View {
                 }
             }
 
-            Spacer(minLength: 6)
+            Spacer(minLength: 4)
 
-            // 2. Right Telemetry Chips
+            // 2. Right Telemetry & Action Buttons (iOS HIG)
             HStack(spacing: 6) {
                 // Peer Count Chip
                 Button(action: {
@@ -66,11 +75,11 @@ public struct TactileAvionicsHeader: View {
                     HStack(spacing: 4) {
                         Image(systemName: "person.2.fill")
                             .font(.system(size: 9, weight: .bold))
-                        Text("\(peerCount) NODES")
+                        Text("\(peerCount)")
                             .font(.system(size: 10, weight: .black, design: .monospaced))
                     }
                     .foregroundColor(TacticalTokens.signalAmber)
-                    .padding(.horizontal, 8)
+                    .padding(.horizontal, 7)
                     .padding(.vertical, 4)
                     .background(Color(red: 0.13, green: 0.15, blue: 0.18))
                     .neobrutalistOutline(
@@ -81,22 +90,56 @@ public struct TactileAvionicsHeader: View {
                 }
                 .buttonStyle(.plain)
 
-                // Battery / Power Chip
-                HStack(spacing: 4) {
-                    Image(systemName: isLowPower ? "battery.25" : "battery.100")
-                        .font(.system(size: 9, weight: .bold))
-                    Text("\(batteryPercentage)%")
-                        .font(.system(size: 10, weight: .bold, design: .monospaced))
+                // Trail Cockpit Action
+                if let onTrail = onOpenTrailSheet {
+                    Button(action: {
+                        TactileHaptics.shared.channelDetentClick()
+                        onTrail()
+                    }) {
+                        Image(systemName: "map")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 5)
+                            .background(Color(red: 0.13, green: 0.15, blue: 0.18))
+                            .cornerRadius(6)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .foregroundColor(isLowPower ? TacticalTokens.signalAmber : Color(red: 0.89, green: 0.91, blue: 0.94))
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(isLowPower ? Color(red: 0.18, green: 0.10, blue: 0.07) : Color(red: 0.13, green: 0.15, blue: 0.18))
-                .neobrutalistOutline(
-                    color: isLowPower ? TacticalTokens.signalAmber : Color.white.opacity(0.20),
-                    lineWidth: 1.0,
-                    cornerRadius: 6
-                )
+
+                // QR Share Action
+                if let onShare = onOpenShareSheet {
+                    Button(action: {
+                        TactileHaptics.shared.channelDetentClick()
+                        onShare()
+                    }) {
+                        Image(systemName: "qrcode")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 5)
+                            .background(Color(red: 0.13, green: 0.15, blue: 0.18))
+                            .cornerRadius(6)
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                // Subsystems Diagnostics Gear
+                if let onDiag = onOpenDiagnostics {
+                    Button(action: {
+                        TactileHaptics.shared.channelDetentClick()
+                        onDiag()
+                    }) {
+                        Image(systemName: "slider.horizontal.3")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(TacticalTokens.signalCodedPhyEmerald)
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 5)
+                            .background(Color(red: 0.13, green: 0.15, blue: 0.18))
+                            .cornerRadius(6)
+                    }
+                    .buttonStyle(.plain)
+                }
             }
         }
         .padding(.horizontal, 12)

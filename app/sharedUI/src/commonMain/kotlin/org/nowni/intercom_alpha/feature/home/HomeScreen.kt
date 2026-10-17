@@ -23,10 +23,16 @@ import org.nowni.intercom_alpha.feature.home.state.HomeUiState
 import org.nowni.intercom_alpha.ui.components.*
 import org.nowni.intercom_alpha.ui.theme.IntercomTokens
 
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.material3.ExperimentalMaterial3Api
+
 /**
  * The Master Zero-Scroll Tactical Motorcycle Cockpit HUD for Intercom-Alpha.
  * Engineered for single-viewport RAM-mount operation and coarse leather riding gloves.
+ * Complies with official Material 3 Design Kit specifications.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     uiState: HomeUiState,
@@ -34,6 +40,8 @@ fun HomeScreen(
     onNavigateToRepeater: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    var showDiagnosticsSheet by remember { mutableStateOf(false) }
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -47,591 +55,83 @@ fun HomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // ================= 1. TOP AVIONICS TELEMETRY HEADER =================
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                // Primary App Status Bar
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFF00E676))
-                        )
+            // ================= 1. MATERIAL 3 TOP APP BAR =================
+            TopAppBar(
+                title = {
+                    Column {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0xFF00E676))
+                            )
+                            Text(
+                                text = "ALPHA SQUAD",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
                         Text(
-                            text = "TAC-MESH // COMMS",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = 0.5.sp,
-                            color = Color(0xFFFFB59E)
-                        )
-                        Text(
-                            text = "ALPHA-01",
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.Bold,
+                            text = "${maxOf(uiState.peers.size, 1)} NODES • ${if (uiState.isCloudBridgeConnected) "SFU CLOUD" else "BLE MESH"}",
+                            style = MaterialTheme.typography.labelSmall,
                             color = Color(0xFF00E5FF)
                         )
                     }
-
-                    // Top Quick Actions
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        FilledTonalButton(
-                            onClick = { onAction(HomeUiAction.ToggleTrailSheet(true)) },
-                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
-                            shape = RoundedCornerShape(6.dp),
-                            colors = ButtonDefaults.filledTonalButtonColors(
-                                containerColor = if (uiState.trailMapSnapshot.isOverlayEnabled) Color(0xFF1B3B32) else Color(0xFF1D2023),
-                                contentColor = if (uiState.trailMapSnapshot.isOverlayEnabled) Color(0xFF00E5FF) else Color(0xFFB0B8C1)
-                            )
-                        ) {
-                            Text("Trail", fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                        }
-
-                        FilledTonalButton(
-                            onClick = { onAction(HomeUiAction.ToggleTrailManagerSheet(true)) },
-                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
-                            shape = RoundedCornerShape(6.dp),
-                            colors = ButtonDefaults.filledTonalButtonColors(
-                                containerColor = if (uiState.activeTransfers.isNotEmpty()) Color(0xFF1B3B32) else Color(0xFF1D2023),
-                                contentColor = if (uiState.activeTransfers.isNotEmpty()) Color(0xFF00E676) else Color(0xFF00E5FF)
-                            )
-                        ) {
-                            Text(
-                                if (uiState.activeTransfers.isNotEmpty()) "OTA (${uiState.activeTransfers.size})" else "Routes",
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-
-                        FilledTonalButton(
-                            onClick = onNavigateToRepeater,
-                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
-                            shape = RoundedCornerShape(6.dp),
-                            colors = ButtonDefaults.filledTonalButtonColors(
-                                containerColor = Color(0xFF1D2023),
-                                contentColor = Color(0xFFFFB300)
-                            )
-                        ) {
-                            Text("Relay", fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                        }
-
-                        FilledTonalButton(
-                            onClick = { onAction(HomeUiAction.ToggleShareDialog(true)) },
-                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
-                            shape = RoundedCornerShape(6.dp),
-                            colors = ButtonDefaults.filledTonalButtonColors(
-                                containerColor = Color(0xFF1D2023),
-                                contentColor = Color(0xFF00E5FF)
-                            )
-                        ) {
-                            Text("QR Code", fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                        }
-
-                        FilledTonalButton(
-                            onClick = { onAction(HomeUiAction.ToggleJoinDialog(true)) },
-                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
-                            shape = RoundedCornerShape(6.dp),
-                            colors = ButtonDefaults.filledTonalButtonColors(
-                                containerColor = Color(0xFF1D2023),
-                                contentColor = Color(0xFF00E676)
-                            )
-                        ) {
-                            Text("Join", fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                        }
+                },
+                actions = {
+                    IconButton(onClick = { onAction(HomeUiAction.ToggleTrailSheet(true)) }) {
+                        Text("🗺️", fontSize = 16.sp)
                     }
-                }
+                    IconButton(onClick = { onAction(HomeUiAction.ToggleTrailManagerSheet(true)) }) {
+                        Text("📡", fontSize = 16.sp)
+                    }
+                    IconButton(onClick = onNavigateToRepeater) {
+                        Text("⛺", fontSize = 16.sp)
+                    }
+                    IconButton(onClick = { onAction(HomeUiAction.ToggleShareDialog(true)) }) {
+                        Text("📲", fontSize = 16.sp)
+                    }
+                    IconButton(onClick = { showDiagnosticsSheet = true }) {
+                        Text("⚙️", fontSize = 16.sp)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    titleContentColor = Color.White,
+                    actionIconContentColor = Color.White
+                )
+            )
 
-                // Helmet Accessory & Mesh Cluster Status Bar
+            // Voice Command Banner (Floating Chip if active)
+            if (uiState.latestVoiceCommand != null) {
+                val cmd = uiState.latestVoiceCommand
                 Surface(
-                    shape = RoundedCornerShape(6.dp),
-                    color = Color(0xFF14181D),
-                    border = BorderStroke(1.dp, Color(0xFF2B3848))
+                    onClick = { onAction(HomeUiAction.DismissVoiceCommandBadge) },
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFF0B2228),
+                    border = BorderStroke(1.dp, Color(0xFF00E5FF)),
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
                 ) {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Helmet Accessory Info
-                        val accessory = uiState.accessoryState
-                        val deviceName = if (accessory.deviceName.isNotEmpty()) {
-                            accessory.deviceName
-                        } else {
-                            "Cardo PackTalk Edge"
-                        }
-                        val batteryText = if (accessory.batteryPercent > 0) {
-                            "🔋 ${accessory.batteryPercent}%"
-                        } else {
-                            "🔋 85%"
-                        }
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Text("🎧", fontSize = 11.sp)
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text("🎙️", fontSize = 12.sp)
                             Text(
-                                text = deviceName,
-                                fontSize = 10.sp,
+                                text = "VOICE: ${cmd.command.phrase.uppercase()} (${kotlin.math.round(cmd.confidence * 100).toInt()}%)",
+                                fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                            Text(
-                                text = "• $batteryText",
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF00E676)
-                            )
-                        }
-
-                        // Mesh Cluster & Transport Status
-                        val peerCount = maxOf(uiState.peers.size, 1)
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Text(
-                                text = "$peerCount PEERS",
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Black,
                                 color = Color(0xFF00E5FF)
                             )
-                            Text(
-                                text = if (uiState.isCloudBridgeConnected) "• SFU CLOUD" else "• BLE MESH",
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFFB0B8C1)
-                            )
                         }
-                    }
-                }
-
-                // Basecamp Stationary Repeater Beacon Strip (Sprint 17 - ICA-1704)
-                if (uiState.latestRepeaterBeacon != null) {
-                    val beacon = uiState.latestRepeaterBeacon
-                    Surface(
-                        onClick = { onAction(HomeUiAction.TriggerRepeaterPing) },
-                        shape = RoundedCornerShape(6.dp),
-                        color = Color(0xFF141C16),
-                        border = BorderStroke(1.dp, Color(0xFF1B5E20))
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp, vertical = 3.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Text("⛺", fontSize = 11.sp)
-                                Text(
-                                    text = beacon.repeaterName.ifBlank { "BASECAMP" },
-                                    fontSize = 10.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                                Text(
-                                    text = "• 🔋 ${beacon.batteryPercent}%",
-                                    fontSize = 10.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF00E676)
-                                )
-                                if (beacon.isSolarPowered) {
-                                    Text(
-                                        text = "• ☀️ SOLAR",
-                                        fontSize = 9.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color(0xFFFFB300)
-                                    )
-                                }
-                            }
-
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                if (uiState.repeaterPingLatencyMs != null) {
-                                    Text(
-                                        text = "RTT ${uiState.repeaterPingLatencyMs}ms",
-                                        fontSize = 9.sp,
-                                        fontWeight = FontWeight.Black,
-                                        color = Color(0xFF00E676)
-                                    )
-                                }
-                                Surface(
-                                    shape = RoundedCornerShape(4.dp),
-                                    color = if (uiState.isPingingRepeater) Color(0xFF00E5FF) else Color(0xFF2E7D32)
-                                ) {
-                                    Text(
-                                        text = if (uiState.isPingingRepeater) "PINGING..." else "PING",
-                                        fontSize = 8.sp,
-                                        fontWeight = FontWeight.Black,
-                                        color = Color.White,
-                                        modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Offline Voice Command Feedback Badge (Sprint 21 - ICA-2103)
-                if (uiState.latestVoiceCommand != null) {
-                    val cmd = uiState.latestVoiceCommand
-                    Surface(
-                        onClick = { onAction(HomeUiAction.DismissVoiceCommandBadge) },
-                        shape = RoundedCornerShape(6.dp),
-                        color = Color(0xFF0B2228),
-                        border = BorderStroke(1.dp, Color(0xFF00E5FF))
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp, vertical = 4.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
-                            ) {
-                                Text("🎙️", fontSize = 11.sp)
-                                Text(
-                                    text = "VOICE: ${cmd.command.phrase.uppercase()}",
-                                    fontSize = 10.sp,
-                                    fontWeight = FontWeight.Black,
-                                    color = Color(0xFF00E5FF)
-                                )
-                                Text(
-                                    text = "(${kotlin.math.round(cmd.confidence * 100).toInt()}%)",
-                                    fontSize = 9.sp,
-                                    color = Color(0xFF80DEEA)
-                                )
-                            }
-                            Text("✕", fontSize = 10.sp, color = Color(0xFF80DEEA))
-                        }
-                    }
-                }
-
-                // Directed AODV-Lite Mesh Routing Strip (Sprint 22 - ICA-2203)
-                Surface(
-                    onClick = { onAction(HomeUiAction.ToggleRoutingDiagnosticsSheet(true)) },
-                    shape = RoundedCornerShape(6.dp),
-                    color = Color(0xFF0F1A15),
-                    border = BorderStroke(1.dp, Color(0xFF00E676))
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 3.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Text("⚡", fontSize = 11.sp)
-                            Text(
-                                text = "AODV ROUTING: ${uiState.routingSnapshot.activeRoutes.size} ROUTES",
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                            val savings = kotlin.math.round(uiState.routingSnapshot.airtimeSavingsPercentage).toInt()
-                            Text(
-                                text = "• $savings% RF SAVED",
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF00E676)
-                            )
-                        }
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Text(
-                                text = "${uiState.routingSnapshot.totalDirectedPackets} DIR / ${uiState.routingSnapshot.totalFloodedPackets} FLD",
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Black,
-                                color = Color(0xFF00E5FF)
-                            )
-                            Surface(
-                                shape = RoundedCornerShape(4.dp),
-                                color = Color(0xFF1B5E20)
-                            ) {
-                                Text(
-                                    text = "DIAG",
-                                    fontSize = 8.sp,
-                                    fontWeight = FontWeight.Black,
-                                    color = Color.White,
-                                    modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
-                                )
-                            }
-                        }
-                    }
-                }
-
-                // Multi-Group Federation Strip (Sprint 23 - ICA-2303)
-                Surface(
-                    onClick = { onAction(HomeUiAction.ToggleFederationSheet(true)) },
-                    shape = RoundedCornerShape(6.dp),
-                    color = Color(0xFF101A24),
-                    border = BorderStroke(1.dp, Color(0xFF29B6F6))
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 3.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Text("🌐", fontSize = 11.sp)
-                            Text(
-                                text = "FEDERATION: ${uiState.federationSnapshot.federatedGroups.size} SQUADS",
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                            Surface(
-                                shape = RoundedCornerShape(3.dp),
-                                color = if (uiState.federationSnapshot.localRole == org.nowni.intercom_alpha.mesh.federation.GatewayRole.PRIMARY) Color(0xFF0288D1) else Color(0xFF455A64)
-                            ) {
-                                Text(
-                                    text = uiState.federationSnapshot.localRole.name,
-                                    fontSize = 8.sp,
-                                    fontWeight = FontWeight.Black,
-                                    color = Color.White,
-                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
-                                )
-                            }
-                            Text(
-                                text = "• ${uiState.federationSnapshot.activePolicy.name}",
-                                fontSize = 8.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF81D4FA)
-                            )
-                        }
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Text(
-                                text = "${uiState.federationSnapshot.totalRelayedPacketsIn}↓ / ${uiState.federationSnapshot.totalRelayedPacketsOut}↑",
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Black,
-                                color = Color(0xFF80D8FF)
-                            )
-                            Surface(
-                                shape = RoundedCornerShape(4.dp),
-                                color = Color(0xFF0277BD)
-                            ) {
-                                Text(
-                                    text = "HUD",
-                                    fontSize = 8.sp,
-                                    fontWeight = FontWeight.Black,
-                                    color = Color.White,
-                                    modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
-                                )
-                            }
-                        }
-                    }
-                }
-
-                // Mesh Airtime QoS Traffic Shaping Strip (Sprint 24 - ICA-2403)
-                val qos = uiState.qosSnapshot
-                Surface(
-                    onClick = { onAction(HomeUiAction.ToggleQoSSheet(true)) },
-                    shape = RoundedCornerShape(6.dp),
-                    color = if (qos.isChannelCongested) Color(0xFF2A1010) else Color(0xFF131B24),
-                    border = BorderStroke(1.dp, if (qos.isChannelCongested) Color(0xFFFF5252) else (if (qos.estimatedAirtimeUtilizationPercent > 50) Color(0xFFFFB300) else Color(0xFF00E5FF)))
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 3.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Text("📊", fontSize = 11.sp)
-                            Text(
-                                text = "QoS AIRTIME: ${qos.estimatedAirtimeUtilizationPercent}%",
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                            if (qos.isChannelCongested) {
-                                Surface(
-                                    shape = RoundedCornerShape(3.dp),
-                                    color = Color(0xFFD32F2F)
-                                ) {
-                                    Text(
-                                        text = "CONGESTED",
-                                        fontSize = 8.sp,
-                                        fontWeight = FontWeight.Black,
-                                        color = Color.White,
-                                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
-                                    )
-                                }
-                            } else if (qos.voicePreemptionCount > 0) {
-                                Surface(
-                                    shape = RoundedCornerShape(3.dp),
-                                    color = Color(0xFF0288D1)
-                                ) {
-                                    Text(
-                                        text = "PREEMPT (${qos.voicePreemptionCount})",
-                                        fontSize = 8.sp,
-                                        fontWeight = FontWeight.Black,
-                                        color = Color.White,
-                                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
-                                    )
-                                }
-                            }
-                            if (qos.bulkThrottleActive) {
-                                Text(
-                                    text = "• THROTTLED",
-                                    fontSize = 8.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFFFFB300)
-                                )
-                            }
-                        }
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Text(
-                                text = "Q:${qos.totalPendingQueueDepth} • DR:${qos.totalPacketsDropped}",
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Black,
-                                color = if (qos.totalPacketsDropped > 0) Color(0xFFFF5252) else Color(0xFF80D8FF)
-                            )
-                            Surface(
-                                shape = RoundedCornerShape(4.dp),
-                                color = if (qos.isChannelCongested) Color(0xFFB71C1C) else Color(0xFF00838F)
-                            ) {
-                                Text(
-                                    text = "QoS",
-                                    fontSize = 8.sp,
-                                    fontWeight = FontWeight.Black,
-                                    color = Color.White,
-                                    modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
-                                )
-                            }
-                        }
-                    }
-                }
-
-                // Multi-Path Mesh Failover & Handover Strip (Sprint 25 - ICA-2503)
-                val failover = uiState.failoverSnapshot
-                Surface(
-                    onClick = { onAction(HomeUiAction.ToggleFailoverSheet(true)) },
-                    shape = RoundedCornerShape(6.dp),
-                    color = when (failover.currentMode) {
-                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT -> Color(0xFF0D2319)
-                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED -> Color(0xFF281E0D)
-                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY -> Color(0xFF20132B)
-                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE -> Color(0xFF1E1E1E)
-                    },
-                    border = BorderStroke(1.dp, when (failover.currentMode) {
-                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT -> Color(0xFF00E676)
-                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED -> Color(0xFFFFB300)
-                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY -> Color(0xFFB388FF)
-                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE -> Color(0xFF757575)
-                    })
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 3.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Text(
-                                text = when (failover.currentMode) {
-                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT -> "📡"
-                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED -> "⚡"
-                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY -> "☁️"
-                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE -> "🚫"
-                                },
-                                fontSize = 11.sp
-                            )
-                            Text(
-                                text = when (failover.currentMode) {
-                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT -> "PATH: BLE DIRECT (OFFLINE)"
-                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED -> "PATH: HEDGED DUAL-STREAM"
-                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY -> "PATH: CLOUD RELAY (SFU)"
-                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE -> "PATH: RESTRICTED OFFLINE"
-                                },
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                        }
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Text(
-                                text = "ETX:${(failover.averageEtx * 10).toInt() / 10.0} • H:${failover.totalHandovers}",
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Black,
-                                color = if (failover.isBleDegraded) Color(0xFFFFB300) else Color(0xFFB9F6CA)
-                            )
-                            Surface(
-                                shape = RoundedCornerShape(4.dp),
-                                color = when (failover.currentMode) {
-                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT -> Color(0xFF007E33)
-                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED -> Color(0xFFFF8800)
-                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY -> Color(0xFF7C4DFF)
-                                    org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE -> Color(0xFF424242)
-                                }
-                            ) {
-                                Text(
-                                    text = when (failover.currentMode) {
-                                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.BLE_DIRECT -> "BLE"
-                                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.MULTI_PATH_HEDGED -> "HEDGED"
-                                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.CLOUD_RELAY_ONLY -> "CLOUD"
-                                        org.nowni.intercom_alpha.mesh.failover.FailoverMode.RESTRICTED_OFFLINE -> "OFFLINE"
-                                    },
-                                    fontSize = 8.sp,
-                                    fontWeight = FontWeight.Black,
-                                    color = Color.White,
-                                    modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
-                                )
-                            }
-                        }
+                        Text("✕", fontSize = 11.sp, color = Color(0xFF80DEEA))
                     }
                 }
             }
@@ -862,6 +362,197 @@ fun HomeScreen(
                 onDismiss = { onAction(HomeUiAction.ToggleFailoverSheet(false)) },
                 onSetOverride = { mode -> onAction(HomeUiAction.SetFailoverModeOverride(mode)) }
             )
+        }
+
+        // ================= MATERIAL 3 SUBSYSTEM DIAGNOSTICS BOTTOM SHEET =================
+        if (showDiagnosticsSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showDiagnosticsSheet = false },
+                containerColor = Color(0xFF14181F),
+                contentColor = Color.White
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 8.dp)
+                        .padding(bottom = 32.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text(
+                        text = "DIAGNOSTICS & SUBSYSTEMS",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Black,
+                        color = Color(0xFFFFB300)
+                    )
+
+                    // 1. Helmet Audio Accessory
+                    val acc = uiState.accessoryState
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color(0xFF1E242D),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                Text("🎧", fontSize = 18.sp)
+                                Column {
+                                    Text(acc.deviceName.ifBlank { "Cardo PackTalk Edge" }, fontWeight = FontWeight.Bold, color = Color.White)
+                                    Text("Headset Audio Route", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                                }
+                            }
+                            Text("🔋 ${if (acc.batteryPercent > 0) acc.batteryPercent else 85}%", color = Color(0xFF00E676), fontWeight = FontWeight.Bold)
+                        }
+                    }
+
+                    // 2. AODV Directed Routing
+                    Surface(
+                        onClick = {
+                            showDiagnosticsSheet = false
+                            onAction(HomeUiAction.ToggleRoutingDiagnosticsSheet(true))
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color(0xFF14241C),
+                        border = BorderStroke(1.dp, Color(0xFF00E676).copy(alpha = 0.5f)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                Text("⚡", fontSize = 18.sp)
+                                Column {
+                                    Text("AODV Directed Routing", fontWeight = FontWeight.Bold, color = Color.White)
+                                    Text("${uiState.routingSnapshot.activeRoutes.size} Active Routes • ${uiState.routingSnapshot.airtimeSavingsPercentage.toInt()}% Airtime Saved", style = MaterialTheme.typography.labelSmall, color = Color(0xFF00E676))
+                                }
+                            }
+                            FilledTonalButton(
+                                onClick = {
+                                    showDiagnosticsSheet = false
+                                    onAction(HomeUiAction.ToggleRoutingDiagnosticsSheet(true))
+                                },
+                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text("DIAG", fontSize = 11.sp, fontWeight = FontWeight.Black)
+                            }
+                        }
+                    }
+
+                    // 3. Multi-Group Federation Gateway
+                    Surface(
+                        onClick = {
+                            showDiagnosticsSheet = false
+                            onAction(HomeUiAction.ToggleFederationSheet(true))
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color(0xFF122232),
+                        border = BorderStroke(1.dp, Color(0xFF0288D1).copy(alpha = 0.5f)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                Text("🌐", fontSize = 18.sp)
+                                Column {
+                                    Text("Convoy Federation", fontWeight = FontWeight.Bold, color = Color.White)
+                                    Text("${uiState.federationSnapshot.federatedGroups.size} Squads • Role: ${uiState.federationSnapshot.localRole.name}", style = MaterialTheme.typography.labelSmall, color = Color(0xFF81D4FA))
+                                }
+                            }
+                            FilledTonalButton(
+                                onClick = {
+                                    showDiagnosticsSheet = false
+                                    onAction(HomeUiAction.ToggleFederationSheet(true))
+                                },
+                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text("HUD", fontSize = 11.sp, fontWeight = FontWeight.Black)
+                            }
+                        }
+                    }
+
+                    // 4. Mesh QoS Airtime Shaper
+                    Surface(
+                        onClick = {
+                            showDiagnosticsSheet = false
+                            onAction(HomeUiAction.ToggleQoSSheet(true))
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color(0xFF222018),
+                        border = BorderStroke(1.dp, Color(0xFFFFB300).copy(alpha = 0.5f)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                Text("📊", fontSize = 18.sp)
+                                Column {
+                                    Text("Mesh QoS Airtime", fontWeight = FontWeight.Bold, color = Color.White)
+                                    Text("Utilization: ${uiState.qosSnapshot.estimatedAirtimeUtilizationPercent}% • Preemptions: ${uiState.qosSnapshot.voicePreemptionCount}", style = MaterialTheme.typography.labelSmall, color = Color(0xFFFFB300))
+                                }
+                            }
+                            FilledTonalButton(
+                                onClick = {
+                                    showDiagnosticsSheet = false
+                                    onAction(HomeUiAction.ToggleQoSSheet(true))
+                                },
+                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text("QoS", fontSize = 11.sp, fontWeight = FontWeight.Black)
+                            }
+                        }
+                    }
+
+                    // 5. Multi-Path Failover
+                    Surface(
+                        onClick = {
+                            showDiagnosticsSheet = false
+                            onAction(HomeUiAction.ToggleFailoverSheet(true))
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color(0xFF26181A),
+                        border = BorderStroke(1.dp, Color(0xFFFF5252).copy(alpha = 0.5f)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                Text("🔀", fontSize = 18.sp)
+                                Column {
+                                    Text("Multi-Path Failover", fontWeight = FontWeight.Bold, color = Color.White)
+                                    Text("Mode: ${uiState.failoverSnapshot.currentMode.name} • Cloud: ${if (uiState.failoverSnapshot.isCloudConnected) "ONLINE" else "OFFLINE"}", style = MaterialTheme.typography.labelSmall, color = Color(0xFFFF8A80))
+                                }
+                            }
+                            FilledTonalButton(
+                                onClick = {
+                                    showDiagnosticsSheet = false
+                                    onAction(HomeUiAction.ToggleFailoverSheet(true))
+                                },
+                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text("PATH", fontSize = 11.sp, fontWeight = FontWeight.Black)
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
