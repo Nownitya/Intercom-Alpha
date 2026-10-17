@@ -39,7 +39,7 @@
         "Tactile channel dial with selection haptic clicks",
         "Clean compilation on iOS simulator target"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-3103",
