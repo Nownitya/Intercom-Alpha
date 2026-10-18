@@ -1,75 +1,77 @@
 {
   "project": "Intercom-Alpha",
-  "branchName": "sprint/sprint-36-vector-trail-elevation-hud",
-  "phase": "Phase 31: High-Definition Offline Vector Topographic & Trail Elevation Profile HUD",
-  "sprint": "Sprint 36",
-  "updatedAt": "2026-10-18T17:00:00Z",
+  "branchName": "sprint/sprint-37-fleet-congestion-control",
+  "phase": "Phase 32: Autonomous Fleet Mesh Congestion Control & Adaptive PHY",
+  "sprint": "Sprint 37",
+  "updatedAt": "2026-10-18T17:48:00Z",
   "stories": [
     {
-      "id": "ICA-3601",
+      "id": "ICA-3701",
       "priority": 1,
-      "title": "Pure KMP Offline Vector Map Tile Parser & Spatial Bounding Box Cacher",
-      "description": "Implement OfflineVectorTileEngine.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/geo/ providing pure Kotlin protobuf/MVT tile decompression, local SQLite/spatial index caching, and zero Java/C dependencies (Rules 2 & 3).",
+      "title": "Dynamic BLE Advertising Interval Throttler & Flooding Redundancy Governor",
+      "description": "Implement MeshCongestionGovernor.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/ dynamically adjusting BLE advertising intervals (20ms to 250ms) and probabilistic flooding suppression based on local node density and channel utilization.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/geo/OfflineVectorTileEngine.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/geo/OfflineVectorTileEngineTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/MeshCongestionGovernor.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/MeshCongestionGovernorTest.kt"
       ],
       "acceptanceCriteria": [
-        "Parses MVT vector map tiles from local storage with zero network access",
-        "Spatial bounding-box queries return road vectors and topographic contours in < 15ms",
+        "Throttles BLE advertisement intervals dynamically when RF channel utilization exceeds 70%",
+        "Applies probabilistic relay dampening for non-emergency flooded packets in high-density clusters",
+        "Maintains zero latency degradation for emergency SOS frames",
         "100% test coverage in commonTest"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-3602",
+      "id": "ICA-3702",
       "priority": 2,
-      "title": "Real-Time Convoy Elevation Profile & Altitude Incline Math Engine",
-      "description": "Implement ConvoyElevationEngine.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/geo/ computing route grade percentage, upcoming elevation summits, and relative altitude deltas between convoy lead and tail riders.",
+      "title": "Adaptive Multi-PHY Switcher Engine (LE 1M, LE 2M, LE Coded S8)",
+      "description": "Implement AdaptivePhySwitcher.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/ dynamically negotiating Bluetooth 5.0 PHY modes (LE 2M for high throughput at close range, LE Coded S8 for 4x long range through mountain passes).",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/geo/ConvoyElevationEngine.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/geo/ConvoyElevationEngineTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/AdaptivePhySwitcher.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/AdaptivePhySwitcherTest.kt"
       ],
       "acceptanceCriteria": [
-        "Calculates moving elevation profile and slope grade percentage from GPS telemetry",
-        "Detects steep alpine descent/climb warnings (> 12% grade)",
-        "Computes relative vertical altitude separation between convoy members",
+        "Switches to LE 2M when link quality score > 85 and RSSI > -65 dBm",
+        "Switches to LE Coded S8 when RSSI drops below -85 dBm or packet drop exceeds 15%",
+        "Provides hysteresis dampening to prevent rapid PHY flapping",
         "Full unit tests in commonTest"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-3603",
+      "id": "ICA-3703",
       "priority": 3,
-      "title": "Tactile Trail Elevation HUD Overlay & Cockpit Sheet Presentation",
-      "description": "Create TrailElevationHudOverlay.kt in app/sharedUI and integrate into MainCockpitScreen.kt and iOS SwiftUI ContentView.swift. Renders dynamic elevation profile line chart with color-coded convoy rider altitude pins and glove-friendly scale toggles.",
+      "title": "Hardware Bridge Multi-PHY Binding & Tactical Cockpit RF Pill Telemetry",
+      "description": "Wire AdaptivePhySwitcher and MeshCongestionGovernor into IntercomHardwareBridge, AndroidPlatformBridge, and IntercomBridge (iOS). Update MainCockpitScreen with tactile RF PHY pills (2M / 1M / S8) and channel congestion indicators.",
       "targetFiles": [
-        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/TrailElevationHudOverlay.kt",
-        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/MainCockpitScreen.kt",
-        "app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomBridge.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomHardwareBridge.kt",
+        "app/androidApp/src/main/kotlin/org/nowni/intercom_alpha/bridge/AndroidPlatformBridge.kt",
+        "app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomBridge.kt",
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/MainCockpitScreen.kt"
       ],
       "acceptanceCriteria": [
-        "Renders high-contrast OLED altitude profile chart with 64dp glove-friendly zoom buttons",
-        "Displays real-time rider pins along elevation curve with distance markers",
-        "Wired reactively via IntercomBridge to iOS Native SwiftUI with CancellationHandle",
-        "Compiles cleanly across Android and iOS targets"
+        "Streams live PHY and channel congestion metrics to UI state",
+        "Exposes reactive observation closures to iOS SwiftUI with CancellationHandle",
+        "Renders glove-friendly high-contrast RF status badge in cockpit header",
+        "Compiles cleanly on Android and iOS targets"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-3604",
+      "id": "ICA-3704",
       "priority": 4,
-      "title": "Alpine Mountain Pass Multi-Node Elevation & Trail Sync Simulation Test",
-      "description": "Implement AlpineElevationSimulationTest.kt validating a 12-node convoy climbing a 2,500m mountain pass. Simulates altitude delta tracking, automatic grade warnings, and vector route synchronization under intermittent BLE mesh connectivity.",
+      "title": "24-Node High-Density RF Congestion Simulation & Range Benchmark Test",
+      "description": "Implement FleetMeshCongestionSimulationTest.kt simulating 24 nodes under severe 2.4 GHz channel saturation, validating automatic PHY step-downs, collision avoidance, and voice delivery guarantees.",
       "targetFiles": [
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/geo/AlpineElevationSimulationTest.kt"
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/FleetMeshCongestionSimulationTest.kt"
       ],
       "acceptanceCriteria": [
-        "Simulates 12 nodes ascending alpine pass with 1,200m elevation gain",
-        "Verifies elevation profile calculation and straggler vertical distance warnings",
+        "Simulates 24 nodes transmitting voice, telemetry, and control traffic simultaneously",
+        "Verifies channel utilization throttling and automated PHY switching",
         "100% passing tests in ./gradlew test"
       ],
-      "passes": true
+      "passes": false
     }
   ]
 }
