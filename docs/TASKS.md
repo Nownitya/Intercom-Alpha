@@ -2,7 +2,7 @@
 
 > **Document Version:** 3.0
 > **Status:** Active / Tracked  
-> **Current Sprint:** Sprint 32 Complete (`sprint/sprint-32-tactile-subscreens`) — v3.0.0-alpha1 Roadmap
+> **Current Sprint:** Sprint 33 Active (`sprint/sprint-33-adaptive-mesh-bitrate`) — v3.0.0-alpha2 Roadmap
 > **Obsidian Reference:** `01_Management/Roadmap.md` & `01_Management/Kanban.md`
 
 ---
@@ -477,6 +477,28 @@
 - [x] #task [ICA-3202] Modernize Android Tactile Message Dialog & Subsystem Diagnostics ➕ 2026-10-18 ⏳ 2026-10-21 📅 2026-10-25 ⏫ ✅ 2026-10-18
 - [x] #task [ICA-3203] Modernize iOS Native SwiftUI Trail Cockpit, File Manager & Diagnostics ➕ 2026-10-18 ⏳ 2026-10-22 📅 2026-10-26 ⏫ ✅ 2026-10-18
 - [x] #task [ICA-3204] Execute Multiplatform Sub-Screen E2E Interaction Test & Certification ➕ 2026-10-18 ⏳ 2026-10-23 📅 2026-10-27 🔼 ✅ 2026-10-18
+
+---
+
+### 📶 Sprint 33: Dynamic Adaptive Mesh Bitrate Tuning (Phase 29 - Part 1)
+- **Sprint Goal**: Implement closed-loop dynamic audio codec bitrate adaptation and frame sizing over the BLE mesh. Fuses EWMA RSSI link margin, moving PDR, jitter variance, and ETX into composite $Q_{link}$ scores, automatically scaling audio encoding between 16 kbps and 48 kbps with asymmetric hysteresis to eliminate audio dropouts during fading.
+- **Sprint Branch**: `sprint/sprint-33-adaptive-mesh-bitrate`
+- **Target Release**: `v3.0.0-alpha2`
+- **Status**: 🟡 Active (In Progress)
+
+| Task ID | Item | Target Files | Status |
+| :--- | :--- | :--- | :--- |
+| **ICA-3301** | Real-Time Mesh Link Quality Scoring & EWMA Loss Estimator | `MeshLinkQualityScorer.kt`, `MeshLinkQualityScorerTest.kt` | 🟡 Active |
+| **ICA-3302** | Dynamic Adaptive Bitrate & Frame Sizing Controller | `AdaptiveBitrateEngine.kt`, `AdaptiveBitrateEngineTest.kt` | ⏳ Pending |
+| **ICA-3303** | Audio Pipeline Dynamic Frame Multiplexing & Cockpit Telemetry Wiring | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `TactileDiagnosticsSheet.kt` | ⏳ Pending |
+| **ICA-3304** | Multi-Node Dynamic Bitrate Simulation Test & Multiplatform Certification | `AdaptiveBitrateSimulationTest.kt` | ⏳ Pending |
+
+#### 📋 Tasks Plugin Checklist (Sprint 33)
+- [ ] #task [ICA-3301] Implement Real-Time Mesh Link Quality Scoring & EWMA Loss Estimator ➕ 2026-10-18 ⏳ 2026-10-20 📅 2026-10-24 ⏫
+- [ ] #task [ICA-3302] Implement Dynamic Adaptive Bitrate & Frame Sizing Controller ➕ 2026-10-18 ⏳ 2026-10-21 📅 2026-10-25 ⏫
+- [ ] #task [ICA-3303] Wire Audio Pipeline Dynamic Frame Multiplexing & Cockpit Telemetry ➕ 2026-10-18 ⏳ 2026-10-22 📅 2026-10-26 ⏫
+- [ ] #task [ICA-3304] Execute Multi-Node Dynamic Bitrate Simulation Test & Multiplatform Certification ➕ 2026-10-18 ⏳ 2026-10-23 📅 2026-10-27 🔼
+
 
 
 
