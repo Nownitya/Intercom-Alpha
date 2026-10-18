@@ -74,7 +74,7 @@
         "Confirms end-to-end voice recovery under 25% burst packet loss with de-interleaving + FEC",
         "All tests pass cleanly in ./gradlew test"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }

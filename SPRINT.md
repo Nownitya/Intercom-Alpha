@@ -17,8 +17,8 @@
 | :--- | :--- | :--- | :--- | :--- |
 | **ICA-3501** | Multiplatform BLE ATT MTU Frame Aggregator & Sub-Packet Framer | Ralph | `BleMtuAggregator.kt`, `BleMtuAggregatorTest.kt` | ✅ Passed |
 | **ICA-3502** | Time-Diversity Block Interleaver & Playout De-jittering Unpacker | Ralph | `BleFrameInterleaver.kt`, `BleFrameInterleaverTest.kt` | ✅ Passed |
-| **ICA-3503** | Transport Dynamic MTU Negotiation & Cockpit Packing Telemetry Wiring | Ralph | `AudioEngine.kt`, `IntercomHardwareBridge.kt`, `IntercomBridge.kt` | ⏳ Pending |
-| **ICA-3504** | 16-Node High-Throughput MTU Packing & Burst Loss Simulation Test | Ralph | `BleMtuPackingSimulationTest.kt` | ⏳ Pending |
+| **ICA-3503** | Transport Dynamic MTU Negotiation & Cockpit Packing Telemetry Wiring | Ralph | `AudioEngine.kt`, `IntercomHardwareBridge.kt`, `IntercomBridge.kt` | ✅ Passed |
+| **ICA-3504** | 16-Node High-Throughput MTU Packing & Burst Loss Simulation Test | Ralph | `BleMtuPackingSimulationTest.kt` | ✅ Passed |
 
 ---
 
