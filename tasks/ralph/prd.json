@@ -1,23 +1,23 @@
 {
   "project": "Intercom-Alpha",
-  "branchName": "sprint/sprint-35-congestion-and-adaptive-phy",
-  "phase": "Phase 30: Fleet Mesh Congestion Control & Adaptive PHY Switching",
+  "branchName": "sprint/sprint-35-ble-mtu-packing",
+  "phase": "Phase 30: Ultra-Low Latency BLE MTU Frame Packing & Interleaved Diversity",
   "sprint": "Sprint 35",
-  "updatedAt": "2026-10-18T16:15:00Z",
+  "updatedAt": "2026-10-18T16:26:00Z",
   "stories": [
     {
       "id": "ICA-3501",
       "priority": 1,
-      "title": "Dynamic BLE Advertising Interval Throttler & Flooding Redundancy Governor",
-      "description": "Implement MeshCongestionController.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/ providing pure Kotlin mesh congestion estimation, adaptive advertisement throttling (20ms\u2013250ms), and probabilistic rebroadcast suppression under high node density with zero Java dependencies (Rules 2 & 3).",
+      "title": "Multiplatform BLE ATT MTU Frame Aggregator & Sub-Packet Framer",
+      "description": "Implement BleMtuAggregator.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/ to pack multiple 20ms compressed voice/control frames into a single negotiated 247-byte BLE ATT MTU payload with compact 2-byte frame headers, dynamic flush timeout, and pure Kotlin memory efficiency (Rules 2 & 3).",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/MeshCongestionController.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/MeshCongestionControllerTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/BleMtuAggregator.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/BleMtuAggregatorTest.kt"
       ],
       "acceptanceCriteria": [
-        "Computes local channel density metric based on unique node beacons heard per 5-second epoch",
-        "Dynamically scales advertising interval from 20ms (sparse) up to 250ms (dense > 12 nodes)",
-        "Applies probabilistic relay suppression for non-critical telemetry frames to eliminate broadcast storms",
+        "Packs 2-4 compressed audio frames up to target negotiated MTU limit (default 247 bytes, safe fallback 185 bytes)",
+        "Enforces max hold flush delay (<= 20ms) to ensure low mouth-to-ear latency",
+        "Compact 2-byte sub-frame header encoding frame length and packet type discriminator",
         "100% test coverage in commonTest"
       ],
       "passes": false
@@ -25,26 +25,27 @@
     {
       "id": "ICA-3502",
       "priority": 2,
-      "title": "Adaptive Multi-PHY Switcher Engine (LE 1M, LE 2M, LE Coded S8)",
-      "description": "Implement AdaptivePhyManager.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/ to negotiate and select optimal Bluetooth 5.0 PHY layers based on moving RSSI and link distance. Transitions between LE 2M (high throughput, close range), LE 1M (standard), and LE Coded S8 (long-range canyon mode).",
+      "title": "Time-Diversity Block Interleaver & Playout De-jittering Unpacker",
+      "description": "Implement BleFrameInterleaver.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/ to perform matrix block interleaving across consecutive MTU packets, dispersing burst radio dropouts across disjoint time slots to maximize FEC and PLC recovery.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/AdaptivePhyManager.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/AdaptivePhyManagerTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/BleFrameInterleaver.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/BleFrameInterleaverTest.kt"
       ],
       "acceptanceCriteria": [
-        "Negotiates LE 2M when peer RSSI > -65 dBm for high-speed burst throughput",
-        "Switches to LE Coded S8 when peer RSSI < -85 dBm to extend link reach up to 500m+",
-        "Implements 4-second hysteresis to prevent PHY oscillation during cornering",
-        "Comprehensive unit tests in commonTest"
+        "Disperses adjacent audio frames across M consecutive MTU packets using deterministic (M x N) block interleaving",
+        "Unpacker reassembles frames in strict sequence order with bounded de-jitter window",
+        "Seamless pass-through of high-priority emergency SOS frames bypassing interleaving delay",
+        "Full unit tests in commonTest"
       ],
       "passes": false
     },
     {
       "id": "ICA-3503",
       "priority": 3,
-      "title": "Hardware Bridge Multi-PHY Binding & Tactical Cockpit RF Pill Telemetry",
-      "description": "Integrate MeshCongestionController and AdaptivePhyManager into IntercomHardwareBridge.kt, AndroidPlatformBridge.kt, and IntercomBridge.kt (iOS Swift). Expose active PHY mode (1M / 2M / CODED) and channel airtime utilization percentage to MainCockpitScreen.kt and TactileDiagnosticsSheet.kt.",
+      "title": "Transport Dynamic MTU Negotiation & Cockpit Packing Telemetry Wiring",
+      "description": "Integrate BleMtuAggregator and BleFrameInterleaver into AudioEngine.kt, IntercomHardwareBridge.kt, AndroidPlatformBridge.kt, and IntercomBridge.kt (iOS Swift). Expose active negotiated MTU and packing efficiency percentage to MainCockpitScreen.kt and TactileDiagnosticsSheet.kt.",
       "targetFiles": [
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/AudioEngine.kt",
         "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomHardwareBridge.kt",
         "app/sharedLogic/src/androidMain/kotlin/org/nowni/intercom_alpha/bridge/AndroidPlatformBridge.kt",
         "app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomBridge.kt",
@@ -52,25 +53,25 @@
         "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/TactileDiagnosticsSheet.kt"
       ],
       "acceptanceCriteria": [
-        "Exposes reactive ActivePhyState with typed CancellationHandle to iOS Swift bridge",
-        "Displays RF PHY pill (2M / 1M / CODED) in Tactical Cockpit HUD with color coding",
-        "Exposes live channel airtime contention percentage in Diagnostics Sheet",
-        "Compiles without warnings across Android and iOS targets"
+        "AndroidPlatformBridge initiates requestMtu(247) and handles onMtuChanged",
+        "iOS IntercomBridge binds CoreBluetooth maximumWriteValueLength (typically 185 bytes)",
+        "Exposes live MTU packing metrics (active MTU, packed frames/pkt, packing efficiency %) to UI state",
+        "Displays MTU pill in TactileDiagnosticsSheet.kt with real-time stats"
       ],
       "passes": false
     },
     {
       "id": "ICA-3504",
       "priority": 4,
-      "title": "24-Node High-Density RF Congestion Simulation & Range Benchmark Test",
-      "description": "Create CongestionSimulationTest.kt validating a 24-node convoy operating in tight cluster and high-speed highway stretch. Simulates high-density RF collision, verifies dynamic advertisement throttling, zero dropped Emergency SOS broadcasts, and automatic fallback to LE Coded S8.",
+      "title": "16-Node High-Throughput MTU Packing & Burst Loss Simulation Test",
+      "description": "Implement BleMtuPackingSimulationTest.kt validating a 16-node convoy under heavy audio transmission. Simulates RF burst dropouts, verifies > 50% reduction in transmitted packet overhead, sub-60ms mouth-to-ear latency, and 100% voice reconstruction when combined with Sprint 34 FEC/PLC.",
       "targetFiles": [
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/CongestionSimulationTest.kt"
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/BleMtuPackingSimulationTest.kt"
       ],
       "acceptanceCriteria": [
-        "Simulates 24 nodes broadcasting simultaneous voice and telemetry frames",
-        "Verifies total channel collision reduction > 40% when CongestionController is enabled",
-        "100% Emergency SOS packet delivery rate within 250ms under heavy congestion",
+        "Simulates 16 nodes transmitting packed audio frames across lossy BLE mesh",
+        "Verifies >= 50% fewer RF packets transmitted per minute compared to single-frame-per-packet",
+        "Confirms end-to-end voice recovery under 25% burst packet loss with de-interleaving + FEC",
         "All tests pass cleanly in ./gradlew test"
       ],
       "passes": false
