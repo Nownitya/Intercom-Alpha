@@ -2822,5 +2822,22 @@
   - OpenCodeReview: 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-36-vector-trail-elevation-hud`).
 
+### [2026-10-18] - ICA-3602: Real-Time Convoy Elevation Profile & Altitude Incline Math Engine
+- **Branch**: `feature/ICA-3602-convoy-elevation-engine`
+- **Objective**: Implement ConvoyElevationEngine in commonMain to compute real-time route slope grade percentage, steep alpine descent/climb warnings (> 12% grade), vertical altitude separation between convoy members, and summit peaks.
+- **Implementation**:
+  - Created `ConvoyElevationEngine.kt` in `commonMain`:
+    - Pure KMP slope grade percentage calculation with moving window smoothing over Haversine distance intervals.
+    - Steep caution (> 8%) and extreme alpine climb/descent warning detection (> 12% grade) with pure KMP formatting.
+    - Convoy vertical altitude separation ($\Delta h$) tracking between lead and tail/sweep riders.
+    - Upcoming mountain pass summit detection along planned route polylines.
+  - Created `ConvoyElevationEngineTest.kt` in `commonTest`:
+    - 5 comprehensive unit tests covering initial state, alpine climb/descent warnings, convoy vertical altitude separation, and planned route summit detection.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly in 1m 9s.
+  - `./gradlew :app:androidApp:assembleDebug`: Passed cleanly in 1m 19s.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-36-vector-trail-elevation-hud`).
+
 
 

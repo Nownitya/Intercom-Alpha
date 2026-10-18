@@ -36,7 +36,7 @@
         "Computes relative vertical altitude separation between convoy members",
         "Full unit tests in commonTest"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-3603",
