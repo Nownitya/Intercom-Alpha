@@ -86,6 +86,7 @@ interface IntercomHardwareBridge {
     val adaptiveBitrateSnapshot: StateFlow<org.nowni.intercom_alpha.audio.BitrateEngineTelemetry>
     val fecTelemetrySnapshot: StateFlow<org.nowni.intercom_alpha.audio.FecTelemetry>
     val plcTelemetrySnapshot: StateFlow<org.nowni.intercom_alpha.audio.PlcTelemetry>
+    val bleMtuSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.BleMtuTelemetry>
 
     fun setPttActive(active: Boolean)
     fun setRepeaterModeActive(active: Boolean)
@@ -114,6 +115,8 @@ interface IntercomHardwareBridge {
     fun updateAdaptiveBitrateSnapshot(telemetry: org.nowni.intercom_alpha.audio.BitrateEngineTelemetry)
     fun updateFecTelemetry(telemetry: org.nowni.intercom_alpha.audio.FecTelemetry)
     fun updatePlcTelemetry(telemetry: org.nowni.intercom_alpha.audio.PlcTelemetry)
+    fun updateBleMtuTelemetry(telemetry: org.nowni.intercom_alpha.mesh.BleMtuTelemetry)
+    fun setNegotiatedMtu(mtu: Int) {}
     fun setFecRatio(ratio: org.nowni.intercom_alpha.audio.FecRatio) {}
     fun pinAudioBitrateProfile(profile: org.nowni.intercom_alpha.common.AudioProfile?) {}
     fun setClusterPolicy(policy: org.nowni.intercom_alpha.audio.ClusterPolicy) {}
@@ -343,6 +346,19 @@ open class NoOpIntercomHardwareBridge(
     protected val _plcTelemetrySnapshot = MutableStateFlow(org.nowni.intercom_alpha.audio.PlcTelemetry())
     override val plcTelemetrySnapshot: StateFlow<org.nowni.intercom_alpha.audio.PlcTelemetry> = _plcTelemetrySnapshot.asStateFlow()
 
+    protected val _bleMtuSnapshot = MutableStateFlow(
+        org.nowni.intercom_alpha.mesh.BleMtuTelemetry(
+            negotiatedMtu = 247,
+            effectivePayloadCapacity = 240,
+            totalFramesIngested = 0L,
+            totalPacketsEmitted = 0L,
+            averageFramesPerPacket = 0.0,
+            packingEfficiencyPct = 0.0,
+            rfPacketReductionPct = 0.0
+        )
+    )
+    override val bleMtuSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.BleMtuTelemetry> = _bleMtuSnapshot.asStateFlow()
+
     override fun setPttActive(active: Boolean) {
         _isTransmitting.value = active
     }
@@ -516,6 +532,14 @@ open class NoOpIntercomHardwareBridge(
 
     override fun updatePlcTelemetry(telemetry: org.nowni.intercom_alpha.audio.PlcTelemetry) {
         _plcTelemetrySnapshot.value = telemetry
+    }
+
+    override fun updateBleMtuTelemetry(telemetry: org.nowni.intercom_alpha.mesh.BleMtuTelemetry) {
+        _bleMtuSnapshot.value = telemetry
+    }
+
+    override fun setNegotiatedMtu(mtu: Int) {
+        _bleMtuSnapshot.value = _bleMtuSnapshot.value.copy(negotiatedMtu = mtu)
     }
 
     override fun setFecRatio(ratio: org.nowni.intercom_alpha.audio.FecRatio) {

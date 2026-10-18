@@ -1322,6 +1322,28 @@ class IntercomBridge(
             fecEngine.setFecRatio(ratio)
         }
     }
+
+    // --- Swift-Friendly BLE ATT MTU Frame Aggregator Observers & Controls (Sprint 35 / ICA-3503) ---
+
+    val mtuAggregator: org.nowni.intercom_alpha.mesh.BleMtuAggregator =
+        org.nowni.intercom_alpha.mesh.BleMtuAggregator()
+
+    private val _bleMtuTelemetry = MutableStateFlow(mtuAggregator.getTelemetry())
+    val bleMtuTelemetry: StateFlow<org.nowni.intercom_alpha.mesh.BleMtuTelemetry> = _bleMtuTelemetry.asStateFlow()
+
+    fun observeBleMtuTelemetry(onTelemetry: (org.nowni.intercom_alpha.mesh.BleMtuTelemetry) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            _bleMtuTelemetry.collect { telemetry ->
+                onTelemetry(telemetry)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun setNegotiatedMtu(mtu: Int) {
+        mtuAggregator.setNegotiatedMtu(mtu)
+        _bleMtuTelemetry.value = mtuAggregator.getTelemetry()
+    }
 }
 
 
