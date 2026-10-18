@@ -457,5 +457,27 @@
 - [x] #task [ICA-3103] Implement Glove-Friendly Spatial Radar & Telemetry Liquid Glass Card Integration ➕ 2026-10-17 ⏳ 2026-10-21 📅 2026-10-25 🔼 ✅ 2026-10-17
 - [x] #task [ICA-3104] Execute Tactical Cockpit E2E Interaction Simulation & Archify Showcase Update ➕ 2026-10-17 ⏳ 2026-10-22 📅 2026-10-26 🔼 ✅ 2026-10-17
 
+---
+
+### 🗺️ Sprint 32: Tactile Sub-Screens & Secondary Overlays Polish (Phase 28 - Part 3)
+- **Sprint Goal**: Modernize secondary overlay sheets and full-screen diagnostic destinations across Android Jetpack Compose and iOS 100% Native SwiftUI adhering strictly to ADR-014 and Rule 1. Applies `IntercomDesignTokens` (claymorphic surfaces, neobrutalist borders, 84dp glove targets), monospace tabular telemetry, and non-blocking sheet navigation.
+- **Sprint Branch**: `sprint/sprint-32-tactile-subscreens`
+- **Target Release**: `v3.0.0-alpha1`
+- **Status**: 🟡 Active (In Progress)
+
+| Task ID | Item | Target Files | Status |
+| :--- | :--- | :--- | :--- |
+| **ICA-3201** | Android Tactile Offline Trail Sheet & File Manager Modernization | `OfflineTrailCockpitSheet.kt`, `TrailFileManagerSheet.kt` | 🟡 Active |
+| **ICA-3202** | Android Tactile Message Dialog & Subsystem Diagnostics Modernization | `MessageHistoryDialog.kt`, `TactileDiagnosticsSheet.kt`, `MainCockpitScreen.kt` | ⏳ Pending |
+| **ICA-3203** | iOS Native SwiftUI Trail Cockpit, File Manager & Diagnostics Modernization | `ContentView.swift` | ⏳ Pending |
+| **ICA-3204** | Multiplatform Sub-Screen E2E Interaction Test & Certification | `SubScreenInteractionTest.kt` | ⏳ Pending |
+
+#### 📋 Tasks Plugin Checklist (Sprint 32)
+- [ ] #task [ICA-3201] Modernize Android Tactile Offline Trail Sheet & File Manager ➕ 2026-10-18 ⏳ 2026-10-20 📅 2026-10-24 ⏫
+- [ ] #task [ICA-3202] Modernize Android Tactile Message Dialog & Subsystem Diagnostics ➕ 2026-10-18 ⏳ 2026-10-21 📅 2026-10-25 ⏫
+- [ ] #task [ICA-3203] Modernize iOS Native SwiftUI Trail Cockpit, File Manager & Diagnostics ➕ 2026-10-18 ⏳ 2026-10-22 📅 2026-10-26 ⏫
+- [ ] #task [ICA-3204] Execute Multiplatform Sub-Screen E2E Interaction Test & Certification ➕ 2026-10-18 ⏳ 2026-10-23 📅 2026-10-27 🔼
+
+
 
 
