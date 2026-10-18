@@ -8,8 +8,8 @@
 [![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20Desktop%20%7C%20Web%20%7C%20Server-blue.svg?style=flat-square)](https://kotlinlang.org/docs/multiplatform.html)
 [![Android](https://img.shields.io/badge/Android-API%2033+-green.svg?style=flat-square&logo=android)](https://developer.android.com)
 [![iOS](https://img.shields.io/badge/iOS-16.0+%20(100%25%20Native%20SwiftUI)-black.svg?style=flat-square&logo=apple)](https://developer.apple.com/swiftui/)
-[![Release](https://img.shields.io/badge/Release-v3.0.0--alpha3-emerald.svg?style=flat-square)](https://github.com/Nownitya/Intercom-Alpha/releases)
-[![Tests](https://img.shields.io/badge/Tests-490%20Passed%20(100%25)-brightgreen.svg?style=flat-square)](#-verification--quality-gates)
+[![Release](https://img.shields.io/badge/Release-v3.0.0--beta1-emerald.svg?style=flat-square)](https://github.com/Nownitya/Intercom-Alpha/releases)
+[![Tests](https://img.shields.io/badge/Tests-506%20Passed%20(100%25)-brightgreen.svg?style=flat-square)](#-verification--quality-gates)
 [![Crypto](https://img.shields.io/badge/AEAD-RFC%208439%20ChaCha20--Poly1305-orange.svg?style=flat-square)](https://datatracker.ietf.org/doc/html/rfc8439)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square)](./LICENSE)
 
@@ -21,8 +21,9 @@
 
 ---
 
-## ⚡ Core Capabilities (v3.0.0-alpha3)
+## ⚡ Core Capabilities (v3.0.0-beta1)
 
+* **🗺️ Offline Vector Topographic & Trail Elevation Profile HUD (Sprint 36)**: Zero-dependency pure KMP MVT vector tile parser and sub-15ms spatial bounding box LRU cache. Real-time convoy elevation profile engine detecting steep alpine cautions (> 8%) and extreme warnings (> 12% grade), vertical altitude separation ($\Delta h$) alerts, upcoming mountain pass summits, and high-contrast OLED tactile HUD overlay.
 * **📦 Ultra-Low Latency BLE MTU Frame Packing & Interleaving (Sprint 35)**: Dynamically aggregates multiple 20ms voice frames into negotiated 247-byte ATT MTU payloads, slashing radio packet transmission overhead by > 50% (~66.7%). Deterministic $(M \times N)$ matrix block interleaving disperses burst dropouts into isolated single erasures, enabling 100% FEC/PLC reconstruction under heavy RF congestion.
 * **🛡️ Forward Error Correction & Waveform PLC (Sprint 34)**: Galois Field $GF(2^8)$ Reed-Solomon dual erasure FEC and multi-peer isolated pitch-synchronous waveform packet loss concealment (PLC) recovering up to 25% burst packet drop with zero audio dropouts.
 * **📶 Dynamic Adaptive Mesh Bitrate Tuning (Sprint 33)**: Real-time EWMA RSSI and PDR link quality scoring ($Q_{link}$) dynamically modulating audio bitrates between 16 kbps and 48 kbps with asymmetric hysteresis to eliminate fading audio distortion.
