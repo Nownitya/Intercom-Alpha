@@ -37,7 +37,7 @@
         "Seamless pass-through of high-priority emergency SOS frames bypassing interleaving delay",
         "Full unit tests in commonTest"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-3503",
