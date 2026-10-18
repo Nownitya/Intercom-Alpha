@@ -237,5 +237,49 @@ class SubScreenInteractionTest {
         assertEquals(14L, viewModel.uiState.value.bleMtuTelemetry.totalPacketsEmitted)
         assertEquals(66.7, viewModel.uiState.value.bleMtuTelemetry.rfPacketReductionPct)
     }
+
+    @Test
+    fun testTrailElevationHudOverlayLifecycle() = runTest(testDispatcher) {
+        testScheduler.advanceUntilIdle()
+
+        // 1. Initial default state
+        assertFalse(viewModel.uiState.value.showElevationSheet, "Elevation sheet must start dismissed")
+        assertEquals(0.0, viewModel.uiState.value.elevationProfile.localAltitudeMeters)
+
+        // 2. Open Elevation HUD Sheet
+        viewModel.onAction(HomeUiAction.ToggleElevationSheet(true))
+        testScheduler.advanceUntilIdle()
+        assertTrue(viewModel.uiState.value.showElevationSheet, "Elevation sheet must be open")
+
+        // 3. Receive real-time elevation profile telemetry from hardware bridge
+        val testProfile = org.nowni.intercom_alpha.geo.ConvoyElevationProfile(
+            localAltitudeMeters = 1850.0,
+            currentGradePercentage = 9.4,
+            leadTailVerticalSeparationMeters = 145.0,
+            minAltitudeMeters = 1200.0,
+            maxAltitudeMeters = 2400.0,
+            activeWarnings = listOf(
+                org.nowni.intercom_alpha.geo.SlopeGradeWarning(
+                    severity = org.nowni.intercom_alpha.geo.GradeSeverity.STEEP_CAUTION,
+                    gradePercentage = 9.4,
+                    isClimb = true,
+                    message = "Caution: Steep climb ahead (9.4%)"
+                )
+            )
+        )
+        hardwareBridge.updateElevationProfile(testProfile)
+        testScheduler.advanceUntilIdle()
+
+        assertEquals(1850.0, viewModel.uiState.value.elevationProfile.localAltitudeMeters)
+        assertEquals(9.4, viewModel.uiState.value.elevationProfile.currentGradePercentage)
+        assertEquals(145.0, viewModel.uiState.value.elevationProfile.leadTailVerticalSeparationMeters)
+        assertEquals(1, viewModel.uiState.value.elevationProfile.activeWarnings.size)
+        assertEquals("Caution: Steep climb ahead (9.4%)", viewModel.uiState.value.elevationProfile.activeWarnings.first().message)
+
+        // 4. Dismiss Elevation HUD Sheet
+        viewModel.onAction(HomeUiAction.ToggleElevationSheet(false))
+        testScheduler.advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.showElevationSheet, "Elevation sheet must dismiss cleanly")
+    }
 }
 

@@ -179,6 +179,12 @@ fun MainCockpitScreen(
                     onClick = { onAction(HomeUiAction.ToggleDiagnosticsSheet(true)) }
                 )
                 CockpitNavTab(
+                    icon = "⛰️",
+                    label = "ELEV",
+                    isSelected = uiState.showElevationSheet,
+                    onClick = { onAction(HomeUiAction.ToggleElevationSheet(true)) }
+                )
+                CockpitNavTab(
                     icon = "🆘",
                     label = "SOS",
                     isSelected = false,
@@ -211,6 +217,13 @@ fun MainCockpitScreen(
                 onSetFecRatio = { onAction(HomeUiAction.SetFecRatio(it)) },
                 bleMtuTelemetry = uiState.bleMtuTelemetry,
                 onDismiss = { onAction(HomeUiAction.ToggleDiagnosticsSheet(false)) }
+            )
+        }
+
+        if (uiState.showElevationSheet) {
+            TrailElevationHudOverlay(
+                elevationProfile = uiState.elevationProfile,
+                onDismiss = { onAction(HomeUiAction.ToggleElevationSheet(false)) }
             )
         }
 

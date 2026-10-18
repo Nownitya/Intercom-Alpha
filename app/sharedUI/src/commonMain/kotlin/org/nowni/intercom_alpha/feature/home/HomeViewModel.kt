@@ -446,6 +446,11 @@ class HomeViewModel(
                 _uiState.update { it.copy(bleMtuTelemetry = snapshot) }
             }
         }
+        viewModelScope.launch {
+            hardwareBridge.elevationProfileSnapshot.collect { snapshot ->
+                _uiState.update { it.copy(elevationProfile = snapshot) }
+            }
+        }
     }
 
     fun onAction(action: HomeUiAction) {
@@ -790,6 +795,10 @@ class HomeViewModel(
 
             is HomeUiAction.SetNegotiatedMtu -> {
                 hardwareBridge.setNegotiatedMtu(action.mtu)
+            }
+
+            is HomeUiAction.ToggleElevationSheet -> {
+                _uiState.update { it.copy(showElevationSheet = action.show) }
             }
         }
     }
