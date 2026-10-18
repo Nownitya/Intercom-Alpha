@@ -38,7 +38,7 @@
         "Diagnostics accessible from MainCockpitScreen header or navigation bar",
         "Passes multiplatform JVM tests"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-3203",
