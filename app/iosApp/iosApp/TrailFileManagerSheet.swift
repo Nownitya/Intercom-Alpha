@@ -9,6 +9,7 @@ import SharedLogic
 /// - Live transmission progress bars displaying chunk sequence and Adler-32 integrity states.
 /// - Offline storage library manager for GPX 1.1 and RFC 7946 GeoJSON routes.
 /// - Raw text import dialog for rapid offline route pasting.
+/// - Styled with ADR-014 Tactical Design Tokens (TacticalTokens, claymorphic depth, neobrutalist outlines).
 struct TrailFileManagerSheet: View {
     @ObservedObject var vm: IntercomViewModel
     @Environment(\.dismiss) private var dismiss
@@ -21,7 +22,7 @@ struct TrailFileManagerSheet: View {
 
     var body: some View {
         ZStack {
-            Color(red: 0.08, green: 0.09, blue: 0.11)
+            TacticalTokens.cockpitObsidian
                 .ignoresSafeArea()
 
             VStack(spacing: 12) {
@@ -63,7 +64,7 @@ struct TrailFileManagerSheet: View {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
                     Circle()
-                        .fill(Color(red: 0.0, green: 0.9, blue: 1.0))
+                        .fill(TacticalTokens.signalSatelliteCyan)
                         .frame(width: 8, height: 8)
                     Text("TRAIL FILE MANAGER")
                         .font(.system(size: 13, weight: .black, design: .monospaced))
@@ -71,21 +72,24 @@ struct TrailFileManagerSheet: View {
 
                     Text("OFF-GRID OTA")
                         .font(.system(size: 8, weight: .black, design: .monospaced))
-                        .foregroundColor(Color(red: 0.0, green: 0.9, blue: 0.46))
+                        .foregroundColor(TacticalTokens.signalCodedPhyEmerald)
                         .padding(.horizontal, 5)
                         .padding(.vertical, 2)
-                        .background(Color(red: 0.0, green: 0.9, blue: 0.46).opacity(0.15))
+                        .background(TacticalTokens.signalCodedPhyEmerald.opacity(0.15))
                         .cornerRadius(4)
                 }
 
                 Text("BLE Mesh Chunked GPX/GeoJSON Exchange")
                     .font(.system(size: 10, weight: .semibold, design: .monospaced))
-                    .foregroundColor(Color(red: 0.0, green: 0.9, blue: 1.0).opacity(0.8))
+                    .foregroundColor(TacticalTokens.signalSatelliteCyan.opacity(0.85))
             }
 
             Spacer()
 
-            Button(action: { dismiss() }) {
+            Button(action: {
+                TactileHaptics.shared.channelDetentClick()
+                dismiss()
+            }) {
                 Image(systemName: "xmark.circle.fill")
                     .font(.system(size: 20))
                     .foregroundColor(.gray)
@@ -119,7 +123,7 @@ struct TrailFileManagerSheet: View {
             HStack(spacing: 8) {
                 // 1-Tap Beam to Convoy
                 Button(action: {
-                    UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+                    TactileHaptics.shared.pttReleaseThump()
                     vm.beamActiveTrail(format: selectedFormat)
                 }) {
                     HStack(spacing: 6) {
@@ -131,13 +135,13 @@ struct TrailFileManagerSheet: View {
                     .foregroundColor(.black)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 11)
-                    .background(Color(red: 0.0, green: 0.9, blue: 1.0))
+                    .background(TacticalTokens.signalSatelliteCyan)
                     .cornerRadius(8)
                 }
 
                 // Import Text Button
                 Button(action: {
-                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                    TactileHaptics.shared.channelDetentClick()
                     showImportModal = true
                 }) {
                     HStack(spacing: 4) {
@@ -146,25 +150,27 @@ struct TrailFileManagerSheet: View {
                         Text("IMPORT")
                             .font(.system(size: 10, weight: .black, design: .monospaced))
                     }
-                    .foregroundColor(.cyan)
+                    .foregroundColor(TacticalTokens.signalSatelliteCyan)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 11)
-                    .background(Color.cyan.opacity(0.12))
-                    .cornerRadius(8)
-                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.cyan.opacity(0.35), lineWidth: 1))
+                    .background(TacticalTokens.signalSatelliteCyan.opacity(0.12))
+                    .neobrutalistOutline(
+                        color: TacticalTokens.signalSatelliteCyan.opacity(0.35),
+                        lineWidth: 1,
+                        cornerRadius: 8
+                    )
                 }
             }
         }
         .padding(12)
-        .background(Color(red: 0.08, green: 0.1, blue: 0.12))
-        .cornerRadius(10)
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(red: 0.0, green: 0.9, blue: 1.0).opacity(0.3), lineWidth: 1))
+        .claymorphicDepth(surfaceColor: TacticalTokens.cockpitElevated, cornerRadius: 10)
+        .neobrutalistOutline(color: TacticalTokens.signalSatelliteCyan.opacity(0.3), lineWidth: 1, cornerRadius: 10)
     }
 
     private func formatButton(title: String, type: FileTransferType) -> some View {
         let isSelected = selectedFormat == type
         return Button(action: {
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            TactileHaptics.shared.channelDetentClick()
             selectedFormat = type
         }) {
             Text(title)
@@ -172,7 +178,7 @@ struct TrailFileManagerSheet: View {
                 .foregroundColor(isSelected ? .black : .white)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 5)
-                .background(isSelected ? Color.cyan : Color.white.opacity(0.1))
+                .background(isSelected ? TacticalTokens.signalSatelliteCyan : Color.white.opacity(0.1))
                 .cornerRadius(5)
         }
     }
@@ -182,7 +188,7 @@ struct TrailFileManagerSheet: View {
             HStack {
                 Text("LIVE OTA TRANSFERS (\(vm.activeTransfers.count))")
                     .font(.system(size: 10, weight: .black, design: .monospaced))
-                    .foregroundColor(Color.orange)
+                    .foregroundColor(TacticalTokens.signalAmber)
                 Spacer()
             }
 
@@ -193,9 +199,8 @@ struct TrailFileManagerSheet: View {
             }
         }
         .padding(12)
-        .background(Color(red: 0.12, green: 0.09, blue: 0.06))
-        .cornerRadius(10)
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.orange.opacity(0.35), lineWidth: 1))
+        .claymorphicDepth(surfaceColor: TacticalTokens.cockpitElevated, cornerRadius: 10)
+        .neobrutalistOutline(color: TacticalTokens.signalAmber.opacity(0.35), lineWidth: 1, cornerRadius: 10)
     }
 
     private func transferRow(transfer: FileTransferProgress) -> some View {
@@ -205,7 +210,7 @@ struct TrailFileManagerSheet: View {
         return VStack(spacing: 6) {
             HStack {
                 Image(systemName: isOutgoing ? "arrow.up.circle.fill" : "arrow.down.circle.fill")
-                    .foregroundColor(isOutgoing ? .orange : .cyan)
+                    .foregroundColor(isOutgoing ? TacticalTokens.signalAmber : TacticalTokens.signalSatelliteCyan)
                     .font(.system(size: 14))
 
                 VStack(alignment: .leading, spacing: 1) {
@@ -229,15 +234,15 @@ struct TrailFileManagerSheet: View {
 
                 Text("\(percent)%")
                     .font(.system(size: 13, weight: .black, design: .monospaced))
-                    .foregroundColor(isOutgoing ? .orange : .cyan)
+                    .foregroundColor(isOutgoing ? TacticalTokens.signalAmber : TacticalTokens.signalSatelliteCyan)
 
                 Button(action: {
-                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                    TactileHaptics.shared.channelDetentClick()
                     vm.cancelTransfer(transferId: transfer.transferId)
                 }) {
                     Image(systemName: "xmark.circle")
                         .font(.system(size: 14))
-                        .foregroundColor(.red)
+                        .foregroundColor(TacticalTokens.signalEmergencyCrimson)
                 }
             }
 
@@ -249,14 +254,14 @@ struct TrailFileManagerSheet: View {
                         .frame(height: 6)
 
                     RoundedRectangle(cornerRadius: 3)
-                        .fill(isOutgoing ? Color.orange : Color.cyan)
+                        .fill(isOutgoing ? TacticalTokens.signalAmber : TacticalTokens.signalSatelliteCyan)
                         .frame(width: max(0, min(geo.size.width * CGFloat(transfer.progressPercent), geo.size.width)), height: 6)
                 }
             }
             .frame(height: 6)
         }
         .padding(8)
-        .background(Color.black.opacity(0.25))
+        .background(Color.black.opacity(0.35))
         .cornerRadius(8)
     }
 
@@ -289,9 +294,8 @@ struct TrailFileManagerSheet: View {
             }
         }
         .padding(12)
-        .background(Color(red: 0.08, green: 0.1, blue: 0.12))
-        .cornerRadius(10)
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.white.opacity(0.1), lineWidth: 1))
+        .claymorphicDepth(surfaceColor: TacticalTokens.cockpitElevated, cornerRadius: 10)
+        .neobrutalistOutline(color: TacticalTokens.neobrutalBorderIdle, lineWidth: 1, cornerRadius: 10)
     }
 
     private func storedTrailRow(trail: TrailPolyline) -> some View {
@@ -302,11 +306,11 @@ struct TrailFileManagerSheet: View {
         return HStack(spacing: 10) {
             // Radio/Active Indicator
             Button(action: {
-                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                TactileHaptics.shared.channelDetentClick()
                 vm.selectStoredTrail(trail: trail)
             }) {
                 Image(systemName: isActive ? "checkmark.circle.fill" : "circle")
-                    .foregroundColor(isActive ? .cyan : .gray)
+                    .foregroundColor(isActive ? TacticalTokens.signalSatelliteCyan : .gray)
                     .font(.system(size: 16))
             }
 
@@ -337,32 +341,32 @@ struct TrailFileManagerSheet: View {
 
             // Beam Action Button
             Button(action: {
-                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                TactileHaptics.shared.pttReleaseThump()
                 vm.beamTrail(trail: trail, format: selectedFormat)
             }) {
                 Image(systemName: "antenna.radiowaves.left.and.right")
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(.cyan)
+                    .foregroundColor(TacticalTokens.signalSatelliteCyan)
                     .padding(6)
-                    .background(Color.cyan.opacity(0.15))
+                    .background(TacticalTokens.signalSatelliteCyan.opacity(0.15))
                     .clipShape(Circle())
             }
 
             // Delete Action Button
             Button(action: {
-                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                TactileHaptics.shared.channelDetentClick()
                 vm.deleteStoredTrail(trailId: trail.id)
             }) {
                 Image(systemName: "trash")
                     .font(.system(size: 12))
-                    .foregroundColor(.red.opacity(0.8))
+                    .foregroundColor(TacticalTokens.signalEmergencyCrimson.opacity(0.85))
                     .padding(6)
             }
         }
         .padding(9)
-        .background(isActive ? Color.cyan.opacity(0.08) : Color.black.opacity(0.2))
+        .background(isActive ? TacticalTokens.signalSatelliteCyan.opacity(0.08) : Color.black.opacity(0.2))
         .cornerRadius(8)
-        .overlay(RoundedRectangle(cornerRadius: 8).stroke(isActive ? Color.cyan.opacity(0.4) : Color.clear, lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(isActive ? TacticalTokens.signalSatelliteCyan.opacity(0.4) : Color.clear, lineWidth: 1))
     }
 
     private func difficultyBadge(for diff: TrailDifficulty) -> some View {
@@ -378,17 +382,17 @@ struct TrailFileManagerSheet: View {
 
     private func difficultyDisplay(for diff: TrailDifficulty) -> (String, Color) {
         switch diff {
-        case .easy: return ("EASY", .green)
-        case .moderate: return ("MODERATE", .blue)
-        case .difficult: return ("HARD", .orange)
-        case .extremeTechnical: return ("EXPERT", .red)
+        case .easy: return ("EASY", TacticalTokens.signalCodedPhyEmerald)
+        case .moderate: return ("MODERATE", TacticalTokens.signalSatelliteCyan)
+        case .difficult: return ("HARD", TacticalTokens.signalAmber)
+        case .extremeTechnical: return ("EXPERT", TacticalTokens.signalHotMicOrange)
         default: return ("TRAIL", .gray)
         }
     }
 
     private var quickSampleButton: some View {
         Button(action: {
-            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            TactileHaptics.shared.channelDetentClick()
             vm.loadSampleAlpineTrail()
         }) {
             HStack(spacing: 8) {
@@ -397,12 +401,15 @@ struct TrailFileManagerSheet: View {
                 Text("RELOAD SAMPLE ALPINE TRAIL & TOPO")
                     .font(.system(size: 11, weight: .black, design: .monospaced))
             }
-            .foregroundColor(.cyan)
+            .foregroundColor(TacticalTokens.signalSatelliteCyan)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
-            .background(Color.cyan.opacity(0.12))
-            .cornerRadius(8)
-            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.cyan.opacity(0.3), lineWidth: 1))
+            .background(TacticalTokens.signalSatelliteCyan.opacity(0.12))
+            .neobrutalistOutline(
+                color: TacticalTokens.signalSatelliteCyan.opacity(0.35),
+                lineWidth: 1,
+                cornerRadius: 8
+            )
         }
     }
 
@@ -410,7 +417,7 @@ struct TrailFileManagerSheet: View {
 
     private var importRouteModal: some View {
         ZStack {
-            Color(red: 0.08, green: 0.09, blue: 0.11)
+            TacticalTokens.cockpitObsidian
                 .ignoresSafeArea()
 
             VStack(spacing: 14) {
@@ -425,6 +432,7 @@ struct TrailFileManagerSheet: View {
                     }
                     Spacer()
                     Button("Cancel") {
+                        TactileHaptics.shared.channelDetentClick()
                         showImportModal = false
                     }
                     .font(.system(size: 11, weight: .bold))
@@ -436,27 +444,33 @@ struct TrailFileManagerSheet: View {
                     TextField("Route Name (e.g. Pass 4)", text: $importName)
                         .font(.system(size: 11, design: .monospaced))
                         .padding(8)
-                        .background(Color.black.opacity(0.3))
+                        .background(Color.black.opacity(0.35))
                         .cornerRadius(6)
                         .foregroundColor(.white)
 
                     HStack(spacing: 4) {
-                        Button(action: { importFormat = .gpx }) {
+                        Button(action: {
+                            TactileHaptics.shared.channelDetentClick()
+                            importFormat = .gpx
+                        }) {
                             Text("GPX")
                                 .font(.system(size: 9, weight: .black, design: .monospaced))
                                 .foregroundColor(importFormat == .gpx ? .black : .white)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 6)
-                                .background(importFormat == .gpx ? Color.cyan : Color.white.opacity(0.1))
+                                .background(importFormat == .gpx ? TacticalTokens.signalSatelliteCyan : Color.white.opacity(0.1))
                                 .cornerRadius(5)
                         }
-                        Button(action: { importFormat = .geojson }) {
+                        Button(action: {
+                            TactileHaptics.shared.channelDetentClick()
+                            importFormat = .geojson
+                        }) {
                             Text("GEOJSON")
                                 .font(.system(size: 9, weight: .black, design: .monospaced))
                                 .foregroundColor(importFormat == .geojson ? .black : .white)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 6)
-                                .background(importFormat == .geojson ? Color.cyan : Color.white.opacity(0.1))
+                                .background(importFormat == .geojson ? TacticalTokens.signalSatelliteCyan : Color.white.opacity(0.1))
                                 .cornerRadius(5)
                         }
                     }
@@ -474,7 +488,7 @@ struct TrailFileManagerSheet: View {
                 // Import Button
                 Button(action: {
                     guard !importText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-                    UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+                    TactileHaptics.shared.pttReleaseThump()
                     let name = importName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Imported Trail" : importName
                     vm.importTrailText(text: importText, fileName: name, format: importFormat)
                     showImportModal = false
@@ -490,7 +504,7 @@ struct TrailFileManagerSheet: View {
                     .foregroundColor(.black)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
-                    .background(Color(red: 0.0, green: 0.9, blue: 1.0))
+                    .background(TacticalTokens.signalSatelliteCyan)
                     .cornerRadius(8)
                 }
             }

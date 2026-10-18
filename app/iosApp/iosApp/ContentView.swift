@@ -728,6 +728,7 @@ struct SubsystemDiagnosticsSheetView: View {
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") {
+                        TactileHaptics.shared.channelDetentClick()
                         dismiss()
                     }
                 }
