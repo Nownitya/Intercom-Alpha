@@ -38,7 +38,7 @@
         "Manual profile override and lock capability",
         "Comprehensive unit tests in commonTest"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-3303",
