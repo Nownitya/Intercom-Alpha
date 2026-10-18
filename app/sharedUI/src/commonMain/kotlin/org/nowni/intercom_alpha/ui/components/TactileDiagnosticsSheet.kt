@@ -34,9 +34,13 @@ fun TactileDiagnosticsSheet(
     routingSnapshot: RoutingSnapshot,
     peers: List<Peer>,
     onDismiss: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    linkHealth: org.nowni.intercom_alpha.mesh.ClusterLinkHealth? = null,
+    bitrateTelemetry: org.nowni.intercom_alpha.audio.BitrateEngineTelemetry? = null,
+    onPinBitrate: ((org.nowni.intercom_alpha.common.AudioProfile?) -> Unit)? = null
 ) {
-    val qScore = (failoverMetrics.averageDeliveryRatio * 100).toInt()
+    val qScore = linkHealth?.averageScore ?: (failoverMetrics.averageDeliveryRatio * 100).toInt()
+    val qGrade = linkHealth?.overallGrade ?: org.nowni.intercom_alpha.mesh.LinkQualityGrade.fromScore(qScore)
 
     Dialog(onDismissRequest = onDismiss) {
         Box(
@@ -126,11 +130,12 @@ fun TactileDiagnosticsSheet(
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 MetricCell(
-                                    label = "DELIVERY RATIO",
-                                    value = "$qScore%",
-                                    color = when {
-                                        qScore >= 70 -> IntercomTokens.SignalCodedPhyEmerald
-                                        qScore >= 30 -> IntercomTokens.SignalAmber
+                                    label = "Q_LINK SCORE",
+                                    value = "$qScore (${qGrade.name})",
+                                    color = when (qGrade) {
+                                        org.nowni.intercom_alpha.mesh.LinkQualityGrade.EXCELLENT -> IntercomTokens.SignalCodedPhyEmerald
+                                        org.nowni.intercom_alpha.mesh.LinkQualityGrade.GOOD -> IntercomTokens.SignalSatelliteCyan
+                                        org.nowni.intercom_alpha.mesh.LinkQualityGrade.FAIR -> IntercomTokens.SignalAmber
                                         else -> IntercomTokens.SignalEmergencyCrimson
                                     }
                                 )
@@ -143,6 +148,45 @@ fun TactileDiagnosticsSheet(
                                     label = "CLOUD SFU",
                                     value = if (failoverMetrics.isCloudConnected) "ONLINE" else "OFFLINE",
                                     color = if (failoverMetrics.isCloudConnected) IntercomTokens.SignalCodedPhyEmerald else Color(0xFF7A8B9E)
+                                )
+                            }
+                        }
+                    }
+
+                    // 1b. Dynamic Adaptive Bitrate
+                    bitrateTelemetry?.let { bTelemetry ->
+                        item {
+                            TelemetryCard(title = "DYNAMIC ADAPTIVE BITRATE (OPUS/ADPCM)") {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    MetricCell(
+                                        label = "BITRATE",
+                                        value = "${bTelemetry.effectiveBitrateKbps} kbps",
+                                        color = when {
+                                            bTelemetry.effectiveBitrateKbps >= 32 -> IntercomTokens.SignalCodedPhyEmerald
+                                            bTelemetry.effectiveBitrateKbps >= 24 -> IntercomTokens.SignalAmber
+                                            else -> IntercomTokens.SignalEmergencyCrimson
+                                        }
+                                    )
+                                    MetricCell(
+                                        label = "FRAME DURATION",
+                                        value = "${bTelemetry.effectiveFrameDurationMs} ms",
+                                        color = IntercomTokens.SignalSatelliteCyan
+                                    )
+                                    MetricCell(
+                                        label = "POLICY",
+                                        value = if (bTelemetry.isPinned) "PINNED" else bTelemetry.clusterPolicy.name,
+                                        color = if (bTelemetry.isPinned) IntercomTokens.SignalAmber else IntercomTokens.SignalCodedPhyEmerald
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "Status: ${bTelemetry.lastTransitionReason}",
+                                    fontSize = 9.sp,
+                                    fontFamily = FontFamily.Monospace,
+                                    color = Color(0xFF94A3B8)
                                 )
                             }
                         }

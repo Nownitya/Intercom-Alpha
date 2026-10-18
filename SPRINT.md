@@ -1,25 +1,25 @@
-# Current Status: Sprint 32 (Phase 28: Tactile Sub-Screens & Secondary Overlays Polish) — Completed
+# Current Status: Sprint 33 (Phase 29: Dynamic Adaptive Mesh Bitrate Tuning)
 
 > **Active Sprint Reference:** [TASKS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/TASKS.md) & [prd.json](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/tasks/ralph/prd.json)  
-> **Sprint Branch:** `sprint/sprint-32-tactile-subscreens`  
+> **Sprint Branch:** `sprint/sprint-33-adaptive-mesh-bitrate`  
 > **Sprint Governance Rules:** [SPRINT-RULES.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/SPRINT-RULES.md)  
 > **Engineering Contract:** [AGENTS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/AGENTS.md)  
 > **Knowledge Base:** [MEMORY.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/MEMORY.md)  
 
 ---
 
-## ⚡ Sprint 32: Tactile Sub-Screens & Secondary Overlays Polish (100% Completed)
-**Goal:** Modernize secondary overlay sheets and full-screen diagnostic destinations across Android Jetpack Compose and iOS 100% Native SwiftUI adhering strictly to ADR-014 and Rule 1. Applies `IntercomDesignTokens` (claymorphic surfaces, neobrutalist borders, 84dp glove targets), monospace tabular telemetry, and non-blocking sheet navigation.  
-- **Sprint Branch:** `sprint/sprint-32-tactile-subscreens`  
-- **Target Release:** `v3.0.0-alpha1`  
-- **Status:** ✅ 100% Complete (4/4 Stories Passed, 0 OCR Findings)
+## ⚡ Sprint 33: Dynamic Adaptive Mesh Bitrate Tuning (Phase 29) — ✅ 100% Complete
+**Goal:** Implement closed-loop dynamic audio codec bitrate adaptation and frame sizing over the BLE mesh. Fuses EWMA RSSI link margin, moving PDR, jitter variance, and ETX into composite $Q_{link}$ scores, automatically scaling audio encoding between 16 kbps and 48 kbps with asymmetric hysteresis to eliminate audio dropouts during fading.  
+- **Sprint Branch:** `sprint/sprint-33-adaptive-mesh-bitrate`  
+- **Target Release:** `v3.0.0-alpha2`  
+- **Outcome:** 100% Definition of Done achieved across all 4 stories (`ICA-3301` through `ICA-3304`). All verification gates passed cleanly.
 
 | Task ID | Item | Owner | Target Files | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **ICA-3201** | Android Tactile Offline Trail Sheet & File Manager Modernization | Ralph | `OfflineTrailCockpitSheet.kt`, `TrailFileManagerSheet.kt` | ✅ Completed |
-| **ICA-3202** | Android Tactile Message Dialog & Subsystem Diagnostics Modernization | Ralph | `MessageHistoryDialog.kt`, `TactileDiagnosticsSheet.kt`, `MainCockpitScreen.kt` | ✅ Completed |
-| **ICA-3203** | iOS Native SwiftUI Trail Cockpit, File Manager & Diagnostics Modernization | Ralph | `ContentView.swift` | ✅ Completed |
-| **ICA-3204** | Multiplatform Sub-Screen E2E Interaction Test & Certification | Ralph | `SubScreenInteractionTest.kt` | ✅ Completed |
+| **ICA-3301** | Real-Time Mesh Link Quality Scoring & EWMA Loss Estimator | Ralph | `MeshLinkQualityScorer.kt`, `MeshLinkQualityScorerTest.kt` | ✅ Passed |
+| **ICA-3302** | Dynamic Adaptive Bitrate & Frame Sizing Controller | Ralph | `AdaptiveBitrateEngine.kt`, `AdaptiveBitrateEngineTest.kt` | ✅ Passed |
+| **ICA-3303** | Audio Pipeline Dynamic Frame Multiplexing & Cockpit Telemetry Wiring | Ralph | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `TactileDiagnosticsSheet.kt` | ✅ Passed |
+| **ICA-3304** | Multi-Node Dynamic Bitrate Simulation Test & Multiplatform Certification | Ralph | `AdaptiveBitrateSimulationTest.kt` | ✅ Passed |
 
 ---
 

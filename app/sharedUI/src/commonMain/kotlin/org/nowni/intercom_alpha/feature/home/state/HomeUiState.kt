@@ -104,7 +104,31 @@ data class HomeUiState(
     val showFailoverSheet: Boolean = false,
 
     // Sprint 32 Tactile Sub-Screens & Overlays (ICA-3202)
-    val showDiagnosticsSheet: Boolean = false
+    val showDiagnosticsSheet: Boolean = false,
+
+    // Sprint 33 Dynamic Adaptive Mesh Bitrate Tuning (ICA-3303)
+    val linkQualityHealth: org.nowni.intercom_alpha.mesh.ClusterLinkHealth = org.nowni.intercom_alpha.mesh.ClusterLinkHealth(
+        peerCount = 0,
+        averageScore = 100,
+        worstScore = 100,
+        bestScore = 100,
+        overallGrade = org.nowni.intercom_alpha.mesh.LinkQualityGrade.EXCELLENT,
+        peerScores = emptyList()
+    ),
+    val bitrateTelemetry: org.nowni.intercom_alpha.audio.BitrateEngineTelemetry = org.nowni.intercom_alpha.audio.BitrateEngineTelemetry(
+        activeProfile = org.nowni.intercom_alpha.common.AudioProfile.MEDIUM,
+        effectiveBitrateKbps = 32,
+        effectiveFrameDurationMs = 20,
+        candidateProfile = org.nowni.intercom_alpha.common.AudioProfile.MEDIUM,
+        consecutivePristineCycles = 0,
+        hysteresisThresholdCycles = 3,
+        isPinned = false,
+        clusterPolicy = org.nowni.intercom_alpha.audio.ClusterPolicy.WORST_LINK,
+        governingScore = 100,
+        governingGrade = org.nowni.intercom_alpha.mesh.LinkQualityGrade.EXCELLENT,
+        lastTransitionReason = "Initial baseline",
+        timestampMs = 0L
+    )
 )
 
 sealed interface HomeUiAction {
@@ -174,6 +198,10 @@ sealed interface HomeUiAction {
 
     // Sprint 32 Tactile Diagnostics Action (ICA-3202)
     data class ToggleDiagnosticsSheet(val show: Boolean) : HomeUiAction
+
+    // Sprint 33 Dynamic Adaptive Bitrate Actions (ICA-3303)
+    data class PinAudioProfile(val profile: org.nowni.intercom_alpha.common.AudioProfile?) : HomeUiAction
+    data class SetClusterPolicy(val policy: org.nowni.intercom_alpha.audio.ClusterPolicy) : HomeUiAction
 }
 
 sealed interface HomeUiEvent {

@@ -154,6 +154,15 @@
   - Formatted all elevation, GPS coordinates, $Q_{link}$ scores, RSSI link margins, RF duty-cycle, and battery metrics using monospaced tabular numerals (`FontFamily.Monospace` / `.monospacedDigit()`) ensuring zero jitter during real-time mesh streaming.
   - Wired real-time RF diagnostics sheet into the zero-scroll cockpit header with instantaneous link-quality breakdown.
 
+### 2.17 Dynamic Adaptive Mesh Bitrate Tuning & Link Quality Scoring (`MeshLinkQualityScorer.kt`, `AdaptiveBitrateEngine.kt`)
+- **Challenge**: BLE mesh audio transmission over varying outdoor terrain experiences sudden RF multi-path fading, shadow zones, and packet collisions. Fixed-bitrate codecs cause abrupt speech dropouts, severe buffer underruns, or unnecessary channel congestion when links degrade.
+- **Solution**:
+  - Implemented real-time composite link quality scoring ($Q_{link} \in [0, 100]$) fusing EWMA RSSI link margin (35%), moving Packet Delivery Ratio (PDR, 40%), RFC 3550 interarrival jitter variance (15%), and ETX hop cost (10%).
+  - Added physical RF sanity bounds where severe packet loss ($PDR < 0.30$) hard-caps maximum achievable scores to $<30$ regardless of raw RSSI.
+  - Implemented asymmetric bitrate hysteresis: rapid step-down (<200ms) upon link degradation downshifting from 48 kbps HIGH down to 16 kbps ULTRA_LOW and 60ms consolidated frames; conservative step-up requiring 3 consecutive pristine evaluation cycles before upgrading to prevent audio flapping.
+  - Provided cluster governance policies (`WORST_LINK` protecting trailing sweep riders vs `CLUSTER_AVERAGE` optimizing majority throughput) with manual pin overrides.
+  - Dynamic encoding profile byte embedded directly in packet headers (`packet[1] = profile.ordinal`) enabling seamless receiver decode without out-of-band renegotiation.
+
 ---
 
 ## ⚠️ 3. Critical Technical Gotchas & Edge Cases
