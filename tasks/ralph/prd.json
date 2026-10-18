@@ -20,7 +20,7 @@
         "Glove-friendly 84dp action buttons and waypoint chips",
         "Zero regressions in JVM unit tests and Android assemble"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-3202",
