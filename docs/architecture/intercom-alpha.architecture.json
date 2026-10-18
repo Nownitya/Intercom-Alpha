@@ -786,6 +786,16 @@
         "Skeuomorphic & Sensory Cockpit Widgets: Concentric machined knurled bezels, 14-segment LED VU meter with phosphor decay, and mil-spec hinged safety flip-guard SOS switch",
         "100% Native SwiftUI on iOS (Rule 1) with pre-warmed TactileHaptics engine and zero Compose UI on Apple targets"
       ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Tactical Cockpit Zero-Scroll Redesign & Spatial Radar HUD (Sprint 31 / Phase 28)",
+      "items": [
+        "Zero-Scroll Tactical Cockpit: Android Jetpack Compose (M3 TopAppBar + ModalBottomSheet) & iOS 100% Native SwiftUI (HIG Navigation + InsetGrouped Diagnostics)",
+        "Glove-Friendly Spatial Radar Card: Frosted liquid glass HUD with 84dp zoom cycle (500m/1.5km/5.0km), concentric rings, crosshairs, topo contours, and monospaced tabular telemetry",
+        "Skeuomorphic Rotary Selector & Master Actuator: TactileChannelDial with stepped detent haptics, 160dp ExpressivePttActuator, phosphor VU decay & guarded SOS flip-cover",
+        "Tactical Cockpit E2E Simulation: Multiplatform interaction test verifying PTT, rotary detents, SOS flip-cover, VOX lock, radar zoom, and sheet transitions"
+      ]
     }
   ]
 }

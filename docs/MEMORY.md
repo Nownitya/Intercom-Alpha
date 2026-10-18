@@ -140,6 +140,14 @@
   - Sub-millisecond PTT state broadcast (`PRESS_PTT`, `RELEASE_PTT`, `TOGGLE_MUTE`).
   - Biometric vitals transmission (heart rate, SpO2, skin temp) feeding into automated crash / hypothermia SOS alerts.
 
+### 2.15 Zero-Scroll Tactical Cockpit & Spatial Radar HUD (`HomeScreen.kt`, `ContentView.swift`, `TactileRadarCard.kt`, `TactileRadarCard.swift`)
+- **Challenge**: Legacy tactical interfaces featured deep nested vertical scrolling, diagnostic debug strips cluttering the primary viewport, and small touch targets impossible to operate with heavy motorcycle/ski gloves.
+- **Solution**:
+  - Re-architected both Android (Material 3 Expressive) and iOS (100% Native SwiftUI iOS 18+ HIG) to fit entirely within a single zero-scroll viewport.
+  - Secondary diagnostics and convoy telemetry tucked cleanly into gesture-driven sheets (`ModalBottomSheet` on Android, HIG `.insetGrouped` sheet on iOS).
+  - Oversized 160dp tactile master PTT actuator, skeuomorphic rotary channel selector with detent haptics, mil-spec guarded SOS flip-cover, and 84dp glove-friendly spatial radar zoom button with liquid glass HUD overlays.
+  - Monospaced tabular telemetry readouts ensuring zero layout jitter during high-frequency vector, GPS, and RSSI updates.
+
 ---
 
 ## ⚠️ 3. Critical Technical Gotchas & Edge Cases

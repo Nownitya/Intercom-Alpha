@@ -8,8 +8,8 @@
 [![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20Desktop%20%7C%20Web%20%7C%20Server-blue.svg?style=flat-square)](https://kotlinlang.org/docs/multiplatform.html)
 [![Android](https://img.shields.io/badge/Android-API%2033+-green.svg?style=flat-square&logo=android)](https://developer.android.com)
 [![iOS](https://img.shields.io/badge/iOS-16.0+%20(100%25%20Native%20SwiftUI)-black.svg?style=flat-square&logo=apple)](https://developer.apple.com/swiftui/)
-[![Release](https://img.shields.io/badge/Release-v2.12.0-emerald.svg?style=flat-square)](https://github.com/Nownitya/Intercom-Alpha/releases)
-[![Tests](https://img.shields.io/badge/Tests-327%20Passed%20(100%25)-brightgreen.svg?style=flat-square)](#-verification--quality-gates)
+[![Release](https://img.shields.io/badge/Release-v3.0.0--alpha1-emerald.svg?style=flat-square)](https://github.com/Nownitya/Intercom-Alpha/releases)
+[![Tests](https://img.shields.io/badge/Tests-451%20Passed%20(100%25)-brightgreen.svg?style=flat-square)](#-verification--quality-gates)
 [![Crypto](https://img.shields.io/badge/AEAD-RFC%208439%20ChaCha20--Poly1305-orange.svg?style=flat-square)](https://datatracker.ietf.org/doc/html/rfc8439)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square)](./LICENSE)
 

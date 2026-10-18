@@ -41,7 +41,7 @@
    - Multiplatform verification passed cleanly; OCR gate approved; released `v2.11.0`.
 
 ---
-## ðŸ“… 2026-10-09: Sprint 23 â€” Multi-Group Inter-Convoy Gateway & Cross-Mesh Federation (Phase 21)
+## ðŸ“… 2026-10-09: Sprint 23 — Multi-Group Inter-Convoy Gateway & Cross-Mesh Federation (Phase 21)
 
 ### Summary
 1. **Pure KMP Multi-Group Gateway Engine & Cross-Mesh Protocol (`InterGroupGateway.kt`, `FederationModels.kt`, `CrossMeshRelayEngine.kt`)**:
@@ -63,7 +63,7 @@
 
 ---
 
-## ðŸ“… 2026-10-08: Sprint 22 â€” Dynamic Mesh Directed Routing & AODV-Lite (Phase 20)
+## ðŸ“… 2026-10-08: Sprint 22 — Dynamic Mesh Directed Routing & AODV-Lite (Phase 20)
 
 ### Summary
 1. **Pure KMP AODV-Lite Directed Routing Engine (`AodvRoutingEngine.kt`, `RoutingModels.kt`)**:
@@ -77,19 +77,19 @@
 
 ---
 
-## ðŸ“… 2026-10-07: Sprint 21 â€” Autonomous Crash Impact Detection & Offline Voice Command HUD (Phase 19)
+## ðŸ“… 2026-10-07: Sprint 21 — Autonomous Crash Impact Detection & Offline Voice Command HUD (Phase 19)
 
 ### Summary
 1. **Pure KMP Crash Detection & Fall-Over IMU State Machine (`CrashDetector.kt`)**:
    - Multi-axis IMU collision shock (8.5g severe impact, 4.5g collision, >60Â° sustained fall-over) with 30s abortable countdown.
 2. **Pure KMP Offline Voice Command & Keyword Spotting DSP (`VoiceCommandRecognizer.kt`)**:
-   - Acoustic DSP keyword spotting ("Intercom SOS", "Next Channel", "Prev Channel", "Toggle Mute", "Battery Status", "Cancel Alert") under 80â€“120 km/h wind noise.
+   - Acoustic DSP keyword spotting ("Intercom SOS", "Next Channel", "Prev Channel", "Toggle Mute", "Battery Status", "Cancel Alert") under 80–120 km/h wind noise.
 3. **Emergency HUD Integration**:
    - Real-time pre-alert countdown banner across Compose and 100% Native SwiftUI. Released `v2.8.0`.
 
 ---
 
-## ðŸ“… 2026-10-07: Sprint 20 â€” Tactical Convoy Geofencing, Autonomous Power Governor & Multi-Node Stress Benchmark Suite (Phase 18)
+## ðŸ“… 2026-10-07: Sprint 20 — Tactical Convoy Geofencing, Autonomous Power Governor & Multi-Node Stress Benchmark Suite (Phase 18)
 
 ### Summary
 1. **Pure KMP Convoy Geofencing & Split Engine (`ConvoyGeofenceEngine.kt`, `ConvoyGeofenceModels.kt`)**:
@@ -117,7 +117,7 @@
 
 ---
 
-## ðŸ“… 2026-10-06: Sprint 16 â€” Mesh Repeater, Audio DSP & Convoy Simulation (Phase 14)
+## ðŸ“… 2026-10-06: Sprint 16 — Mesh Repeater, Audio DSP & Convoy Simulation (Phase 14)
 
 ### Summary
 1. **Audio DSP Hardening: Pure KMP AGC & Dynamic Range Compression (`AutomaticGainControl.kt`, `DynamicRangeCompressor.kt`)**:
@@ -144,7 +144,7 @@
 
 ---
 
-## ðŸ“… 2026-10-06: Sprint 15 â€” Zero-Scroll Tactical Cockpit HUD & Telemetry Integration (Phase 13)
+## ðŸ“… 2026-10-06: Sprint 15 — Zero-Scroll Tactical Cockpit HUD & Telemetry Integration (Phase 13)
 
 ### Summary
 1. **Zero-Scroll Tactical Cockpit HUD (`HomeScreen.kt` & `ContentView.swift`)**:
@@ -157,7 +157,7 @@
 
 ---
 
-## ðŸ“… 2026-10-04: Sprint 14 â€” Advanced Convoy Mesh, Forward-Secret Key Ratchet & Live Activity (Phase 12)
+## ðŸ“… 2026-10-04: Sprint 14 — Advanced Convoy Mesh, Forward-Secret Key Ratchet & Live Activity (Phase 12)
 
 ### Summary
 1. **Pure KMP Perfect Forward Secrecy (PFS) & Ephemeral Key Ratchet Engine (`MeshKeyRatchet.kt`)**:
@@ -188,7 +188,7 @@
 
 ---
 
-## ðŸ“… 2026-10-01: Sprint 12 â€” Multiplatform Cockpit UI & Bridge Integration (Phase 10 - v2.0 Roadmap)
+## ðŸ“… 2026-10-01: Sprint 12 — Multiplatform Cockpit UI & Bridge Integration (Phase 10 - v2.0 Roadmap)
 
 ### Summary
 1. **KMP Swift Bridge Extension for v2.0 Subsystems (`IntercomBridge.kt`)**:
@@ -197,7 +197,7 @@
    - Guaranteed thread safety via `SupervisorJob` on `Dispatchers.Main` with zero memory leaks.
 2. **Native iOS SwiftUI Cockpit v2.0 (`ContentView.swift` & `IntercomViewModel.swift`)**:
    - Upgraded native SwiftUI interface strictly obeying Rule 1 (100% native SwiftUI, zero shared Compose on iOS).
-   - Ergonomic high-contrast elements: `ChannelDialView` (CH 1â€“16, Dual-Watch badges), `ConvoyRadarStripView` (relative bearing indicators $\pm 180^\circ$, directional arrows), `QuickHazardBar` (haptic 1-tap alerts), and `EmergencySosBanner`.
+   - Ergonomic high-contrast elements: `ChannelDialView` (CH 1–16, Dual-Watch badges), `ConvoyRadarStripView` (relative bearing indicators $\pm 180^\circ$, directional arrows), `QuickHazardBar` (haptic 1-tap alerts), and `EmergencySosBanner`.
 3. **Compose Multiplatform Cockpit Components (`sharedUI`)**:
    - `HomeUiState.kt` and `HomeViewModel.kt`: Centralized reactive coordinator binding all shared subsystem StateFlows.
    - Modular UI components: `ChannelSelectorBar`, `EmergencyPreemptionBanner`, `ProximityRadarView`, `QuickHazardBar`, and `MessageHistoryDialog`.
@@ -214,7 +214,7 @@
 
 ---
 
-## ðŸ“… 2026-10-01: Sprint 11 â€” Convoy Situational Awareness, GPS Mesh Telemetry & Blackbox Voice Cache (Phase 9 - v2.0 Roadmap)
+## ðŸ“… 2026-10-01: Sprint 11 — Convoy Situational Awareness, GPS Mesh Telemetry & Blackbox Voice Cache (Phase 9 - v2.0 Roadmap)
 
 ### Summary
 1. **Offline Mesh Canned Hazard & Quick Text Messaging (`MeshTextManager.kt`)**:
@@ -244,7 +244,7 @@
 
 ---
 
-## ðŸ“… 2026-09-30: Sprint 10 â€” Multi-Channel Intercom, Priority Emergency & Audio Spatialization (Phase 8 - v2.0 Roadmap)
+## ðŸ“… 2026-09-30: Sprint 10 — Multi-Channel Intercom, Priority Emergency & Audio Spatialization (Phase 8 - v2.0 Roadmap)
 
 ### Summary
 1. **Multi-Channel Sub-Group Partitioning (`ChannelManager.kt`)**:
@@ -270,7 +270,7 @@
 
 ---
 
-## ðŸ“… 2026-09-30: Sprint 09 â€” Cellular Fallback & Cloud Relay Bridge (Phase 7 - v2.0 Roadmap)
+## ðŸ“… 2026-09-30: Sprint 09 — Cellular Fallback & Cloud Relay Bridge (Phase 7 - v2.0 Roadmap)
 
 ### Summary
 1. **Ktor WebSocket Cloud Relay Gateway (`CloudRelayBridge.kt`)**:
@@ -288,7 +288,7 @@
 
 ---
 
-## ðŸ“… 2026-09-29: Sprint 08 â€” Real-World Field Testing & Hardening (Phase 6 - v1.0 Release)
+## ðŸ“… 2026-09-29: Sprint 08 — Real-World Field Testing & Hardening (Phase 6 - v1.0 Release)
 
 ### Summary
 1. **Field Range Benchmark & Mesh Diagnostics (`MeshDiagnostics.kt`)**:
@@ -305,7 +305,7 @@
 
 ---
 
-## ðŸ“… 2026-09-27: Sprint 07 â€” Audio Codec Optimization, Jitter Buffering & PLC (Phase 5)
+## ðŸ“… 2026-09-27: Sprint 07 — Audio Codec Optimization, Jitter Buffering & PLC (Phase 5)
 
 ### Summary
 1. **Adaptive Jitter Buffer (`AdaptiveJitterBuffer.kt`)**:
@@ -321,7 +321,7 @@
 
 ---
 
-## ðŸ“… 2026-09-27: Sprint 06 â€” Background Services & OS Power Management (Phase 4)
+## ðŸ“… 2026-09-27: Sprint 06 — Background Services & OS Power Management (Phase 4)
 
 ### Summary
 1. **Android Foreground Service (`IntercomForegroundService.kt`)**:
@@ -337,7 +337,7 @@
 
 ---
 
-## ðŸ“… 2026-09-27: Sprint 05 â€” Multi-Hop Flooding Relay, Sliding-Window Deduplication & ChaCha20-Poly1305 Encryption
+## ðŸ“… 2026-09-27: Sprint 05 — Multi-Hop Flooding Relay, Sliding-Window Deduplication & ChaCha20-Poly1305 Encryption
 
 ### Summary
 1. **Sliding-Window Packet Deduplication (`PacketDeduplicator.kt`)**:
@@ -387,7 +387,7 @@
 
 ---
 
-## ðŸ“… 2026-09-26: Sprint 04 â€” Swift â†” KMP Bridge, QR Scanner & Vault Restructuring
+## ðŸ“… 2026-09-26: Sprint 04 — Swift â†” KMP Bridge, QR Scanner & Vault Restructuring
 
 ### Summary
 1. **Swift â†” KMP Bridge (`IntercomBridge.kt`)**:

@@ -5,6 +5,7 @@ import CoreImage.CIFilterBuiltins
 struct ContentView: View {
     @StateObject private var vm = IntercomViewModel()
     @State private var showPeersSheet: Bool = false
+    @State private var showDiagnosticsSheet: Bool = false
 
     var body: some View {
         ZStack {
@@ -25,18 +26,26 @@ struct ContentView: View {
                     )
                 }
 
-                // 2. Top Avionics Bar
-                TacticalAvionicsBar(vm: vm, onShowPeers: { showPeersSheet = true })
-                    .padding(.horizontal, 14)
+                // 2. Top Tactile Avionics Header (iOS HIG / ADR-014 / ICA-3102)
+                TactileAvionicsHeader(
+                    groupName: vm.groupName,
+                    peerCount: max(vm.peers.count, 1),
+                    isCloudConnected: vm.failoverSnapshot?.isCloudConnected ?? false,
+                    batteryPercentage: vm.accessoryState?.batteryLevel?.intValue ?? 85,
+                    isLowPower: (vm.powerGovernorState?.dutyCycle.dutyCyclePercent ?? 100) < 50,
+                    onOpenPeersSheet: { showPeersSheet = true },
+                    onOpenTrailSheet: { vm.showTrailSheet = true },
+                    onOpenShareSheet: { vm.showQrShare = true },
+                    onOpenDiagnostics: { showDiagnosticsSheet = true }
+                )
+                .padding(.horizontal, 14)
 
-                // 3. Sub-Channel Bar
-                ChannelDialView(
+                // 3. Tactile Skeuomorphic Channel Selector Dial (ADR-014 / ICA-3102)
+                TactileChannelDial(
                     activeChannelId: vm.activeChannelId,
                     monitoredChannelIds: vm.monitoredChannelIds,
-                    isScanMode: vm.isScanMode,
                     onSelectChannel: { id in vm.selectChannel(id: id) },
-                    onToggleDualWatch: { id in vm.toggleDualWatch(channelId: id) },
-                    onToggleScan: { vm.toggleScanMode() }
+                    onToggleDualWatch: { id in vm.toggleDualWatch(channelId: id) }
                 )
                 .padding(.horizontal, 14)
 
@@ -70,8 +79,8 @@ struct ContentView: View {
                     TacticalVoiceCommandBadge(command: cmd, onDismiss: { vm.dismissVoiceCommandBadge() })
                 }
 
-                // 4. Tactical Vector Radar
-                TacticalVectorRadarView(
+                // 4. Tactical Vector Radar with Liquid Glass HUD Card (ICA-3103)
+                TactileRadarCard(
                     radarSnapshot: vm.radarSnapshot,
                     convoySnapshot: vm.convoySnapshot,
                     trailMapSnapshot: vm.trailMapSnapshot,
@@ -81,76 +90,76 @@ struct ContentView: View {
                     onOpenTrailCockpit: { vm.showTrailSheet = true }
                 )
                 .padding(.horizontal, 14)
+                .padding(.vertical, 2)
 
                 Spacer(minLength: 4)
 
-                // 5. Tactical Center PTT with Flanking Controls (Volume & VOX Lock)
-                HStack(alignment: .center, spacing: 18) {
-                    // Left: Volume Cycle Button (58pt touch target)
-                    Button(action: {
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        vm.cycleVolume()
-                    }) {
-                        VStack(spacing: 2) {
-                            Image(systemName: volumeIcon(for: vm.speakerVolume))
-                                .font(.system(size: 20, weight: .bold))
-                                .foregroundColor(.white)
-                            Text("\(Int(vm.speakerVolume * 100))%")
-                                .font(.system(size: 10, weight: .black, design: .monospaced))
-                                .foregroundColor(.white.opacity(0.85))
-                        }
-                        .frame(width: 58, height: 58)
-                        .background(Color.white.opacity(0.12))
-                        .clipShape(Circle())
-                        .overlay(Circle().stroke(Color.white.opacity(0.2), lineWidth: 1.5))
-                    }
-
-                    // Center: 140pt PTT Actuator
-                    TacticalPttButton(
-                        isTransmitting: vm.isTransmitting,
-                        isVoxLocked: vm.isVoxLocked,
-                        onPress: { vm.startPtt() },
-                        onRelease: { vm.stopPtt() }
+                // 5. Zero-Scroll Master Tactical Controls (ADR-014 / ICA-3102)
+                HStack(alignment: .center, spacing: 10) {
+                    // Left: Guarded Emergency SOS Switch (Safety Flip-Cover)
+                    GuardedSosSwitch(
+                        isEmergencyActive: vm.isEmergencyActive,
+                        onTriggerEmergency: { vm.triggerEmergencySos() },
+                        onCancelEmergency: { vm.clearBlackboxCache() }
                     )
 
-                    // Right: VOX Lock Button (58pt touch target)
-                    Button(action: {
-                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                        vm.toggleVoxLock()
-                    }) {
-                        VStack(spacing: 2) {
-                            Image(systemName: vm.isVoxLocked ? "lock.fill" : "lock.open.fill")
-                                .font(.system(size: 20, weight: .bold))
-                                .foregroundColor(vm.isVoxLocked ? .orange : .white)
-                            Text(vm.isVoxLocked ? "LOCKED" : "VOX")
-                                .font(.system(size: 10, weight: .black, design: .monospaced))
-                                .foregroundColor(vm.isVoxLocked ? .orange : .white.opacity(0.85))
+                    // Center: 160pt Master Tactile PTT Actuator
+                    TactilePttButton(
+                        isTransmitting: vm.isTransmitting,
+                        onPressStart: { vm.startPtt() },
+                        onPressEnd: { vm.stopPtt() },
+                        channelLabel: "CH 0\(vm.activeChannelId)",
+                        subtitle: vm.isVoxLocked ? "VOX LOCK" : "HOLD TO TALK"
+                    )
+
+                    // Right: Audio VU Level Meter, VOX Lock & Volume quick toggles
+                    VStack(spacing: 8) {
+                        TactileVuMeter(
+                            currentRmsLevel: vm.inputLevel,
+                            barCount: 10,
+                            showDbLabel: true
+                        )
+
+                        HStack(spacing: 6) {
+                            // Volume quick toggle button
+                            Button(action: {
+                                TactileHaptics.shared.channelDetentClick()
+                                vm.cycleVolume()
+                            }) {
+                                Image(systemName: volumeIcon(for: vm.speakerVolume))
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .frame(width: 36, height: 32)
+                                    .background(Color(red: 0.12, green: 0.14, blue: 0.18))
+                                    .neobrutalistOutline(
+                                        color: TacticalTokens.neobrutalBorderIdle,
+                                        lineWidth: 1.0,
+                                        cornerRadius: 6
+                                    )
+                            }
+                            .buttonStyle(.plain)
+
+                            // VOX Lock toggle button
+                            Button(action: {
+                                TactileHaptics.shared.channelDetentClick()
+                                vm.toggleVoxLock()
+                            }) {
+                                Text(vm.isVoxLocked ? "VOX ON" : "VOX OFF")
+                                    .font(.system(size: 9, weight: .black, design: .monospaced))
+                                    .foregroundColor(vm.isVoxLocked ? TacticalTokens.signalAmber : Color(red: 0.55, green: 0.58, blue: 0.62))
+                                    .frame(height: 32)
+                                    .padding(.horizontal, 6)
+                                    .background(vm.isVoxLocked ? Color(red: 0.18, green: 0.10, blue: 0.07) : Color(red: 0.12, green: 0.14, blue: 0.18))
+                                    .neobrutalistOutline(
+                                        color: vm.isVoxLocked ? TacticalTokens.signalAmber : TacticalTokens.neobrutalBorderIdle,
+                                        lineWidth: 1.0,
+                                        cornerRadius: 6
+                                    )
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .frame(width: 58, height: 58)
-                        .background(vm.isVoxLocked ? Color.orange.opacity(0.2) : Color.white.opacity(0.12))
-                        .clipShape(Circle())
-                        .overlay(Circle().stroke(vm.isVoxLocked ? Color.orange : Color.white.opacity(0.2), lineWidth: 1.5))
                     }
                 }
-
-                Spacer(minLength: 4)
-
-                // 6. Single-Row 4-Column Hazard Macro Strip
-                TacticalQuickHazardBar(onSelectCanned: { code in
-                    UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
-                    vm.sendCannedMessage(code)
-                })
-                .padding(.horizontal, 14)
-
-                // 7. Emergency SOS Bar
-                TacticalSosBar(
-                    isEmergencyActive: vm.isEmergencyActive,
-                    bufferedFrames: vm.blackboxBufferedCount,
-                    onTriggerSos: {
-                        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
-                        vm.triggerEmergencySos()
-                    }
-                )
                 .padding(.horizontal, 14)
                 .padding(.bottom, 6)
             }
@@ -201,6 +210,9 @@ struct ContentView: View {
         }
         .sheet(isPresented: $vm.showFailoverSheet) {
             TacticalTransportHandoverSheetView(vm: vm)
+        }
+        .sheet(isPresented: $showDiagnosticsSheet) {
+            SubsystemDiagnosticsSheetView(vm: vm)
         }
         .alert("Intercom Alert", isPresented: Binding(
             get: { vm.errorMessage != nil },
@@ -450,341 +462,275 @@ struct ChannelDialView: View {
     }
 }
 
-// --- Top Avionics Bar ---
+// --- Subsystems & Diagnostics Sheet (Apple HIG) ---
 
-struct TacticalAvionicsBar: View {
+struct SubsystemDiagnosticsSheetView: View {
     @ObservedObject var vm: IntercomViewModel
-    let onShowPeers: () -> Void
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        HStack(alignment: .center, spacing: 8) {
-            // Group & Mesh Status
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 5) {
-                    Text(vm.groupName)
-                        .font(.system(size: 15, weight: .heavy))
-                        .lineLimit(1)
-
-                    if vm.isPfsRatchetActive {
-                        Image(systemName: "lock.shield.fill")
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundColor(.green)
-                    }
-                }
-
-                HStack(spacing: 5) {
-                    Circle()
-                        .fill(vm.isConnected ? Color.green : Color.orange)
-                        .frame(width: 7, height: 7)
-
-                    Text(vm.isConnected ? "MESH ONLINE (\(vm.peers.count))" : "SCANNING MESH")
-                        .font(.system(size: 9, weight: .black, design: .monospaced))
-                        .foregroundColor(.secondary)
-                }
-            }
-
-            Spacer()
-
-            // Helmet Accessory / Audio Route Badge
-            if let acc = vm.accessoryState, acc.isConnected {
-                HStack(spacing: 4) {
-                    Image(systemName: "headphones")
-                        .font(.system(size: 10, weight: .bold))
-                    let batt = acc.batteryLevel?.intValue ?? 100
-                    Text("\(acc.brand.name) \(batt)%")
-                        .font(.system(size: 9, weight: .bold, design: .monospaced))
-                }
-                .foregroundColor(.cyan)
-                .padding(.horizontal, 7)
-                .padding(.vertical, 4)
-                .background(Color.cyan.opacity(0.15))
-                .cornerRadius(6)
-            } else {
-                HStack(spacing: 4) {
-                    Image(systemName: "speaker.wave.2")
-                        .font(.system(size: 10))
-                    Text("SPEAKER")
-                        .font(.system(size: 9, weight: .bold, design: .monospaced))
-                }
-                .foregroundColor(.secondary)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 4)
-                .background(Color.white.opacity(0.08))
-                .cornerRadius(6)
-            }
-
-            // Basecamp Beacon Status & 1-Tap Diagnostic Ping (Sprint 17 - ICA-1704)
-            if let beacon = vm.latestBeacon {
-                Button(action: {
-                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                    vm.triggerDiagnosticPing()
-                }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "antenna.radiowaves.left.and.right")
-                            .font(.system(size: 9, weight: .bold))
-                        Text("\(beacon.batteryPercent)%")
-                            .font(.system(size: 9, weight: .bold, design: .monospaced))
+        NavigationStack {
+            List {
+                // Section 1: Basecamp Stationary Repeater
+                Section(header: Text("Basecamp Stationary Repeater")) {
+                    if let beacon = vm.latestBeacon {
+                        HStack {
+                            Label("Repeater", systemImage: "antenna.radiowaves.left.and.right")
+                            Spacer()
+                            Text(beacon.repeaterName.isEmpty ? "BASECAMP" : beacon.repeaterName)
+                                .foregroundColor(.secondary)
+                        }
+                        HStack {
+                            Text("Battery Level")
+                            Spacer()
+                            Text("🔋 \(beacon.batteryPercent)%")
+                                .foregroundColor(.green)
+                        }
+                        HStack {
+                            Text("Power Source")
+                            Spacer()
+                            Text(beacon.isSolarPowered ? "☀️ Solar" : "External DC")
+                                .foregroundColor(.secondary)
+                        }
                         if let rtt = vm.lastPingLatencyMs {
-                            Text("• \(rtt)ms")
-                                .font(.system(size: 8, weight: .heavy, design: .monospaced))
-                        }
-                    }
-                    .foregroundColor(.green)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 4)
-                    .background(Color.green.opacity(0.15))
-                    .cornerRadius(6)
-                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.green.opacity(0.35), lineWidth: 1))
-                }
-            }
-
-            // Battery Governor Power Mode Pill (Sprint 20 - ICA-2003)
-            if let power = vm.powerGovernorState {
-                HStack(spacing: 3) {
-                    Image(systemName: power.policy == .emergencyOverride ? "bolt.trianglebadge.exclamationmark.fill" : "bolt.fill")
-                        .font(.system(size: 8, weight: .bold))
-                    let policyTag: String = {
-                        switch power.policy {
-                        case .normal: return "NORM"
-                        case .conservative: return "CONS"
-                        case .extremeSurvival: return "SURV"
-                        case .restStopSleep: return "SLEEP"
-                        case .emergencyOverride: return "SOS"
-                        default: return "PWR"
-                        }
-                    }()
-                    Text("\(policyTag) \(Int(power.dutyCycle.dutyCyclePercent))%")
-                        .font(.system(size: 8, weight: .black, design: .monospaced))
-                }
-                .foregroundColor(power.policy == .restStopSleep ? .yellow : (power.dutyCycle.dutyCyclePercent < 50 ? .orange : (power.policy == .emergencyOverride ? .red : .green)))
-                .padding(.horizontal, 5)
-                .padding(.vertical, 3)
-                .background((power.policy == .restStopSleep ? Color.yellow : (power.dutyCycle.dutyCyclePercent < 50 ? Color.orange : (power.policy == .emergencyOverride ? Color.red : Color.green))).opacity(0.15))
-                .cornerRadius(5)
-                .overlay(RoundedRectangle(cornerRadius: 5).stroke((power.policy == .restStopSleep ? Color.yellow : (power.dutyCycle.dutyCyclePercent < 50 ? Color.orange : (power.policy == .emergencyOverride ? Color.red : Color.green))).opacity(0.3), lineWidth: 1))
-            }
-
-            // Directed Mesh Routing Pill (Sprint 22 - ICA-2203)
-            if let routing = vm.routingSnapshot {
-                Button(action: {
-                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    vm.showRoutingSheet = true
-                }) {
-                    HStack(spacing: 3) {
-                        Image(systemName: "point.3.filled.connected.trianglepath.dotted")
-                            .font(.system(size: 8, weight: .bold))
-                        Text("AODV \(routing.activeRoutes.count)R")
-                            .font(.system(size: 8, weight: .black, design: .monospaced))
-                        if routing.airtimeSavingsPercentage > 0 {
-                            Text("• \(Int(routing.airtimeSavingsPercentage))%")
-                                .font(.system(size: 7, weight: .heavy, design: .monospaced))
-                        }
-                    }
-                    .foregroundColor(.cyan)
-                    .padding(.horizontal, 5)
-                    .padding(.vertical, 3)
-                    .background(Color.cyan.opacity(0.15))
-                    .cornerRadius(5)
-                    .overlay(RoundedRectangle(cornerRadius: 5).stroke(Color.cyan.opacity(0.35), lineWidth: 1))
-                }
-            }
-
-            // Multi-Group Federation Gateway Pill (Sprint 23 - ICA-2303)
-            if let fed = vm.federationSnapshot {
-                Button(action: {
-                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    vm.showFederationSheet = true
-                }) {
-                    HStack(spacing: 3) {
-                        Image(systemName: "globe")
-                            .font(.system(size: 8, weight: .bold))
-                        Text("FED \(fed.federatedGroups.count)G")
-                            .font(.system(size: 8, weight: .black, design: .monospaced))
-                        Text("• \(fed.localRole.name.prefix(4))")
-                            .font(.system(size: 7, weight: .heavy, design: .monospaced))
-                    }
-                    .foregroundColor(.blue)
-                    .padding(.horizontal, 5)
-                    .padding(.vertical, 3)
-                    .background(Color.blue.opacity(0.15))
-                    .cornerRadius(5)
-                    .overlay(RoundedRectangle(cornerRadius: 5).stroke(Color.blue.opacity(0.35), lineWidth: 1))
-                }
-            }
-
-            // Mesh Airtime QoS Traffic Shaping Pill (Sprint 24 - ICA-2403)
-            if let qos = vm.qosSnapshot {
-                Button(action: {
-                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    vm.showQoSSheet = true
-                }) {
-                    HStack(spacing: 3) {
-                        Image(systemName: "waveform.path.ecg")
-                            .font(.system(size: 8, weight: .bold))
-                        Text("QoS \(qos.estimatedAirtimeUtilizationPercent)%")
-                            .font(.system(size: 8, weight: .black, design: .monospaced))
-                        if qos.isChannelCongested {
-                            Text("CONG")
-                                .font(.system(size: 7, weight: .heavy, design: .monospaced))
-                                .foregroundColor(.red)
-                        } else if qos.voicePreemptionCount > 0 {
-                            Text("PRMT")
-                                .font(.system(size: 7, weight: .heavy, design: .monospaced))
-                        }
-                    }
-                    .foregroundColor(qos.isChannelCongested ? .red : (qos.estimatedAirtimeUtilizationPercent > 50 ? .orange : .green))
-                    .padding(.horizontal, 5)
-                    .padding(.vertical, 3)
-                    .background((qos.isChannelCongested ? Color.red : (qos.estimatedAirtimeUtilizationPercent > 50 ? Color.orange : Color.green)).opacity(0.15))
-                    .cornerRadius(5)
-                    .overlay(RoundedRectangle(cornerRadius: 5).stroke((qos.isChannelCongested ? Color.red : (qos.estimatedAirtimeUtilizationPercent > 50 ? Color.orange : Color.green)).opacity(0.35), lineWidth: 1))
-                }
-            }
-
-            // Multi-Path Failover Pill (Sprint 25 - ICA-2503)
-            if let failover = vm.failoverSnapshot {
-                Button(action: {
-                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    vm.showFailoverSheet = true
-                }) {
-                    HStack(spacing: 3) {
-                        Image(systemName: "arrow.triangle.branch")
-                            .font(.system(size: 8, weight: .bold))
-                        let modeTag: String = {
-                            switch failover.currentMode {
-                            case .bleDirect: return "BLE"
-                            case .multiPathHedged: return "HEDGE"
-                            case .cloudRelayOnly: return "SFU"
-                            case .restrictedOffline: return "OFF"
-                            default: return "PATH"
+                            HStack {
+                                Text("Ping Latency")
+                                Spacer()
+                                Text("\(rtt) ms")
+                                    .bold()
+                                    .foregroundColor(.green)
                             }
-                        }()
-                        Text(modeTag)
-                            .font(.system(size: 8, weight: .black, design: .monospaced))
-                        if failover.isCloudConnected {
-                            Text("• CLOUD")
-                                .font(.system(size: 7, weight: .heavy, design: .monospaced))
+                        }
+                        Button(action: {
+                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                            vm.triggerDiagnosticPing()
+                        }) {
+                            HStack {
+                                Spacer()
+                                Text(vm.isPingingRepeater ? "Pinging Repeater..." : "Send Diagnostic Ping")
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.cyan)
+                                Spacer()
+                            }
+                        }
+                    } else {
+                        Text("No active repeater beacon detected in BLE range.")
+                            .foregroundColor(.secondary)
+                    }
+
+                    Button(action: {
+                        dismiss()
+                        vm.showRepeaterSheet = true
+                    }) {
+                        Text("Open Full Repeater Station Cockpit")
+                            .foregroundColor(.blue)
+                    }
+                }
+
+                // Section 2: Audio & Helmet Accessory
+                Section(header: Text("Audio & Helmet Accessory")) {
+                    if let acc = vm.accessoryState, acc.isConnected {
+                        HStack {
+                            Label(acc.deviceName.isEmpty ? acc.brand.name : acc.deviceName, systemImage: "headphones")
+                            Spacer()
+                            Text("Connected")
+                                .foregroundColor(.green)
+                        }
+                        HStack {
+                            Text("Battery")
+                            Spacer()
+                            Text("\(acc.batteryLevel?.intValue ?? 100)%")
+                                .foregroundColor(.green)
+                        }
+                    } else {
+                        HStack {
+                            Label("Device Speaker / Mic", systemImage: "speaker.wave.2")
+                            Spacer()
+                            Text("Direct Audio")
+                                .foregroundColor(.secondary)
                         }
                     }
-                    .foregroundColor(failover.currentMode == .bleDirect ? .green : (failover.currentMode == .multiPathHedged ? .orange : .purple))
-                    .padding(.horizontal, 5)
-                    .padding(.vertical, 3)
-                    .background((failover.currentMode == .bleDirect ? Color.green : (failover.currentMode == .multiPathHedged ? Color.orange : Color.purple)).opacity(0.15))
-                    .cornerRadius(5)
-                    .overlay(RoundedRectangle(cornerRadius: 5).stroke((failover.currentMode == .bleDirect ? Color.green : (failover.currentMode == .multiPathHedged ? Color.orange : Color.purple)).opacity(0.35), lineWidth: 1))
                 }
-            }
 
-            // Peers Sheet Button
-            Button(action: onShowPeers) {
-                Image(systemName: "person.2.fill")
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(.white)
-                    .padding(8)
-                    .background(Color.white.opacity(0.12))
-                    .clipShape(Circle())
-            }
+                // Section 3: Mesh Routing (AODV-Lite)
+                Section(header: Text("AODV-Lite Mesh Routing")) {
+                    if let routing = vm.routingSnapshot {
+                        HStack {
+                            Text("Active Routes")
+                            Spacer()
+                            Text("\(routing.activeRoutes.count)")
+                                .bold()
+                        }
+                        HStack {
+                            Text("Airtime Savings")
+                            Spacer()
+                            Text("\(Int(routing.airtimeSavingsPercentage))%")
+                                .foregroundColor(.cyan)
+                        }
+                        HStack {
+                            Text("Packet Routing")
+                            Spacer()
+                            Text("\(routing.totalDirectedPackets) Dir / \(routing.totalFloodedPackets) Flood")
+                                .foregroundColor(.secondary)
+                        }
+                        Button(action: {
+                            dismiss()
+                            vm.showRoutingSheet = true
+                        }) {
+                            Text("Open Routing Table & Path Inspector")
+                                .foregroundColor(.blue)
+                        }
+                    } else {
+                        Text("Mesh routing active on standard flood mode.")
+                            .foregroundColor(.secondary)
+                    }
+                }
 
-            // Text Messages Drawer Button with Unread Badge
-            Button(action: { vm.showMessageDrawer = true }) {
-                ZStack(alignment: .topTrailing) {
-                    Image(systemName: "bubble.left.and.exclamationmark.bubble.right.fill")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(8)
-                        .background(Color.white.opacity(0.12))
-                        .clipShape(Circle())
+                // Section 4: Squad Federation
+                Section(header: Text("Inter-Squad Federation")) {
+                    if let fed = vm.federationSnapshot {
+                        HStack {
+                            Text("Federated Squads")
+                            Spacer()
+                            Text("\(fed.federatedGroups.count)")
+                        }
+                        HStack {
+                            Text("Local Gateway Role")
+                            Spacer()
+                            Text(fed.localRole.name)
+                                .foregroundColor(.blue)
+                        }
+                        HStack {
+                            Text("Relayed Packets")
+                            Spacer()
+                            Text("\(fed.totalRelayedPacketsIn) in / \(fed.totalRelayedPacketsOut) out")
+                                .foregroundColor(.secondary)
+                        }
+                        Button(action: {
+                            dismiss()
+                            vm.showFederationSheet = true
+                        }) {
+                            Text("Manage Federation & Squad Links")
+                                .foregroundColor(.blue)
+                        }
+                    } else {
+                        Text("Standalone Squad Mode (Unfederated).")
+                            .foregroundColor(.secondary)
+                    }
+                }
 
-                    if vm.unreadCount > 0 {
-                        Text("\(vm.unreadCount)")
-                            .font(.system(size: 8, weight: .black))
-                            .foregroundColor(.white)
-                            .padding(3)
-                            .background(Color.red)
-                            .clipShape(Circle())
-                            .offset(x: 3, y: -3)
+                // Section 5: QoS & Airtime Management
+                Section(header: Text("RF QoS & Traffic Shaping")) {
+                    if let qos = vm.qosSnapshot {
+                        HStack {
+                            Text("Estimated Airtime")
+                            Spacer()
+                            Text("\(qos.estimatedAirtimeUtilizationPercent)%")
+                                .foregroundColor(qos.isChannelCongested ? .red : .primary)
+                        }
+                        HStack {
+                            Text("Channel Status")
+                            Spacer()
+                            Text(qos.isChannelCongested ? "CONGESTED" : "OPTIMAL")
+                                .bold()
+                                .foregroundColor(qos.isChannelCongested ? .red : .green)
+                        }
+                        if qos.voicePreemptionCount > 0 {
+                            HStack {
+                                Text("Voice Preemptions")
+                                Spacer()
+                                Text("\(qos.voicePreemptionCount)")
+                                    .foregroundColor(.orange)
+                            }
+                        }
+                        Button(action: {
+                            dismiss()
+                            vm.showQoSSheet = true
+                        }) {
+                            Text("Open QoS Diagnostics")
+                                .foregroundColor(.blue)
+                        }
+                    }
+                }
+
+                // Section 6: Multi-Path Failover
+                Section(header: Text("Transport Failover & Redundancy")) {
+                    if let failover = vm.failoverSnapshot {
+                        HStack {
+                            Text("Current Path")
+                            Spacer()
+                            Text(failover.currentMode.name)
+                                .bold()
+                                .foregroundColor(.green)
+                        }
+                        HStack {
+                            Text("Average ETX Score")
+                            Spacer()
+                            Text(String(format: "%.1f", failover.averageEtx))
+                                .foregroundColor(.secondary)
+                        }
+                        HStack {
+                            Text("Total Handovers")
+                            Spacer()
+                            Text("\(failover.totalHandovers)")
+                        }
+                        Button(action: {
+                            dismiss()
+                            vm.showFailoverSheet = true
+                        }) {
+                            Text("Open Failover Monitor")
+                                .foregroundColor(.blue)
+                        }
+                    }
+                }
+
+                // Section 7: Battery Governor
+                if let power = vm.powerGovernorState {
+                    Section(header: Text("Battery Power Governor")) {
+                        HStack {
+                            Text("Active Policy")
+                            Spacer()
+                            Text(power.policy.name)
+                                .foregroundColor(.orange)
+                        }
+                        HStack {
+                            Text("Duty Cycle")
+                            Spacer()
+                            Text("\(Int(power.dutyCycle.dutyCyclePercent))%")
+                        }
+                    }
+                }
+
+                // Section 8: Quick Tools
+                Section(header: Text("Cockpit Quick Actions")) {
+                    Button(action: {
+                        dismiss()
+                        vm.showTrailManagerSheet = true
+                    }) {
+                        Label("OTA Trail Route Manager", systemImage: "arrow.triangle.2.circlepath")
+                    }
+                    Button(action: {
+                        dismiss()
+                        vm.showMessageDrawer = true
+                    }) {
+                        Label("Text Messages Drawer", systemImage: "bubble.left.and.bubble.right")
+                    }
+                    Button(action: {
+                        dismiss()
+                        vm.showQrScanner = true
+                    }) {
+                        Label("Scan QR to Join Squad", systemImage: "qrcode.viewfinder")
                     }
                 }
             }
-
-            // Basecamp Repeater Cockpit Button (Phase 15 / ICA-1703)
-            Button(action: {
-                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                vm.showRepeaterSheet = true
-            }) {
-                ZStack(alignment: .topTrailing) {
-                    Image(systemName: "antenna.radiowaves.left.and.right")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(vm.isRepeaterModeActive ? .green : .white)
-                        .padding(8)
-                        .background(vm.isRepeaterModeActive ? Color.green.opacity(0.2) : Color.white.opacity(0.12))
-                        .clipShape(Circle())
-                        .overlay(Circle().stroke(vm.isRepeaterModeActive ? Color.green.opacity(0.6) : Color.clear, lineWidth: 1.5))
-
-                    if vm.isRepeaterModeActive {
-                        Circle()
-                            .fill(Color.green)
-                            .frame(width: 6, height: 6)
-                            .offset(x: 2, y: -2)
+            .navigationTitle("Diagnostics & Tools")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
+                        dismiss()
                     }
                 }
-            }
-
-            // Offline Trail Cockpit Button (Sprint 18 / ICA-1804)
-            Button(action: {
-                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                vm.showTrailSheet = true
-            }) {
-                Image(systemName: "map.fill")
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(vm.trailMapSnapshot?.isOverlayEnabled == true ? .cyan : .white)
-                    .padding(8)
-                    .background(vm.trailMapSnapshot?.isOverlayEnabled == true ? Color.cyan.opacity(0.2) : Color.white.opacity(0.12))
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(vm.trailMapSnapshot?.isOverlayEnabled == true ? Color.cyan.opacity(0.6) : Color.clear, lineWidth: 1.5))
-            }
-
-            // Over-The-Air BLE Mesh Trail Manager Button (Sprint 19 / ICA-1904)
-            Button(action: {
-                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                vm.showTrailManagerSheet = true
-            }) {
-                ZStack(alignment: .topTrailing) {
-                    Image(systemName: "arrow.triangle.2.circlepath.circle.fill")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(vm.activeTransfers.isEmpty ? .white : .orange)
-                        .padding(8)
-                        .background(vm.activeTransfers.isEmpty ? Color.white.opacity(0.12) : Color.orange.opacity(0.2))
-                        .clipShape(Circle())
-                        .overlay(Circle().stroke(vm.activeTransfers.isEmpty ? Color.clear : Color.orange.opacity(0.6), lineWidth: 1.5))
-
-                    if !vm.activeTransfers.isEmpty {
-                        Circle()
-                            .fill(Color.orange)
-                            .frame(width: 6, height: 6)
-                            .offset(x: 2, y: -2)
-                    }
-                }
-            }
-
-            // QR Share Button
-            Button(action: { vm.showQrShare = true }) {
-                Image(systemName: "qrcode")
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(.white)
-                    .padding(8)
-                    .background(Color.white.opacity(0.12))
-                    .clipShape(Circle())
-            }
-
-            // QR Scanner Button
-            Button(action: { vm.showQrScanner = true }) {
-                Image(systemName: "qrcode.viewfinder")
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(.white)
-                    .padding(8)
-                    .background(Color.white.opacity(0.12))
-                    .clipShape(Circle())
             }
         }
     }
@@ -2102,4 +2048,4 @@ struct TacticalTransportHandoverSheetView: View {
                 .overlay(RoundedRectangle(cornerRadius: 6).stroke(color.opacity(0.5), lineWidth: 1))
         }
     }
-}
+}
