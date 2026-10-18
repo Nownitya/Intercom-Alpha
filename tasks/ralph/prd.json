@@ -1,80 +1,75 @@
 {
   "project": "Intercom-Alpha",
-  "branchName": "sprint/sprint-35-ble-mtu-packing",
-  "phase": "Phase 30: Ultra-Low Latency BLE MTU Frame Packing & Interleaved Diversity",
-  "sprint": "Sprint 35",
-  "updatedAt": "2026-10-18T16:26:00Z",
+  "branchName": "sprint/sprint-36-vector-trail-elevation-hud",
+  "phase": "Phase 31: High-Definition Offline Vector Topographic & Trail Elevation Profile HUD",
+  "sprint": "Sprint 36",
+  "updatedAt": "2026-10-18T17:00:00Z",
   "stories": [
     {
-      "id": "ICA-3501",
+      "id": "ICA-3601",
       "priority": 1,
-      "title": "Multiplatform BLE ATT MTU Frame Aggregator & Sub-Packet Framer",
-      "description": "Implement BleMtuAggregator.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/ to pack multiple 20ms compressed voice/control frames into a single negotiated 247-byte BLE ATT MTU payload with compact 2-byte frame headers, dynamic flush timeout, and pure Kotlin memory efficiency (Rules 2 & 3).",
+      "title": "Pure KMP Offline Vector Map Tile Parser & Spatial Bounding Box Cacher",
+      "description": "Implement OfflineVectorTileEngine.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/geo/ providing pure Kotlin protobuf/MVT tile decompression, local SQLite/spatial index caching, and zero Java/C dependencies (Rules 2 & 3).",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/BleMtuAggregator.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/BleMtuAggregatorTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/geo/OfflineVectorTileEngine.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/geo/OfflineVectorTileEngineTest.kt"
       ],
       "acceptanceCriteria": [
-        "Packs 2-4 compressed audio frames up to target negotiated MTU limit (default 247 bytes, safe fallback 185 bytes)",
-        "Enforces max hold flush delay (<= 20ms) to ensure low mouth-to-ear latency",
-        "Compact 2-byte sub-frame header encoding frame length and packet type discriminator",
+        "Parses MVT vector map tiles from local storage with zero network access",
+        "Spatial bounding-box queries return road vectors and topographic contours in < 15ms",
         "100% test coverage in commonTest"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-3502",
+      "id": "ICA-3602",
       "priority": 2,
-      "title": "Time-Diversity Block Interleaver & Playout De-jittering Unpacker",
-      "description": "Implement BleFrameInterleaver.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/ to perform matrix block interleaving across consecutive MTU packets, dispersing burst radio dropouts across disjoint time slots to maximize FEC and PLC recovery.",
+      "title": "Real-Time Convoy Elevation Profile & Altitude Incline Math Engine",
+      "description": "Implement ConvoyElevationEngine.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/geo/ computing route grade percentage, upcoming elevation summits, and relative altitude deltas between convoy lead and tail riders.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/BleFrameInterleaver.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/BleFrameInterleaverTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/geo/ConvoyElevationEngine.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/geo/ConvoyElevationEngineTest.kt"
       ],
       "acceptanceCriteria": [
-        "Disperses adjacent audio frames across M consecutive MTU packets using deterministic (M x N) block interleaving",
-        "Unpacker reassembles frames in strict sequence order with bounded de-jitter window",
-        "Seamless pass-through of high-priority emergency SOS frames bypassing interleaving delay",
+        "Calculates moving elevation profile and slope grade percentage from GPS telemetry",
+        "Detects steep alpine descent/climb warnings (> 12% grade)",
+        "Computes relative vertical altitude separation between convoy members",
         "Full unit tests in commonTest"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-3503",
+      "id": "ICA-3603",
       "priority": 3,
-      "title": "Transport Dynamic MTU Negotiation & Cockpit Packing Telemetry Wiring",
-      "description": "Integrate BleMtuAggregator and BleFrameInterleaver into AudioEngine.kt, IntercomHardwareBridge.kt, AndroidPlatformBridge.kt, and IntercomBridge.kt (iOS Swift). Expose active negotiated MTU and packing efficiency percentage to MainCockpitScreen.kt and TactileDiagnosticsSheet.kt.",
+      "title": "Tactile Trail Elevation HUD Overlay & Cockpit Sheet Presentation",
+      "description": "Create TrailElevationHudOverlay.kt in app/sharedUI and integrate into MainCockpitScreen.kt and iOS SwiftUI ContentView.swift. Renders dynamic elevation profile line chart with color-coded convoy rider altitude pins and glove-friendly scale toggles.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/AudioEngine.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomHardwareBridge.kt",
-        "app/sharedLogic/src/androidMain/kotlin/org/nowni/intercom_alpha/bridge/AndroidPlatformBridge.kt",
-        "app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomBridge.kt",
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/TrailElevationHudOverlay.kt",
         "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/MainCockpitScreen.kt",
-        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/TactileDiagnosticsSheet.kt"
+        "app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomBridge.kt"
       ],
       "acceptanceCriteria": [
-        "AndroidPlatformBridge initiates requestMtu(247) and handles onMtuChanged",
-        "iOS IntercomBridge binds CoreBluetooth maximumWriteValueLength (typically 185 bytes)",
-        "Exposes live MTU packing metrics (active MTU, packed frames/pkt, packing efficiency %) to UI state",
-        "Displays MTU pill in TactileDiagnosticsSheet.kt with real-time stats"
+        "Renders high-contrast OLED altitude profile chart with 64dp glove-friendly zoom buttons",
+        "Displays real-time rider pins along elevation curve with distance markers",
+        "Wired reactively via IntercomBridge to iOS Native SwiftUI with CancellationHandle",
+        "Compiles cleanly across Android and iOS targets"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-3504",
+      "id": "ICA-3604",
       "priority": 4,
-      "title": "16-Node High-Throughput MTU Packing & Burst Loss Simulation Test",
-      "description": "Implement BleMtuPackingSimulationTest.kt validating a 16-node convoy under heavy audio transmission. Simulates RF burst dropouts, verifies > 50% reduction in transmitted packet overhead, sub-60ms mouth-to-ear latency, and 100% voice reconstruction when combined with Sprint 34 FEC/PLC.",
+      "title": "Alpine Mountain Pass Multi-Node Elevation & Trail Sync Simulation Test",
+      "description": "Implement AlpineElevationSimulationTest.kt validating a 12-node convoy climbing a 2,500m mountain pass. Simulates altitude delta tracking, automatic grade warnings, and vector route synchronization under intermittent BLE mesh connectivity.",
       "targetFiles": [
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/BleMtuPackingSimulationTest.kt"
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/geo/AlpineElevationSimulationTest.kt"
       ],
       "acceptanceCriteria": [
-        "Simulates 16 nodes transmitting packed audio frames across lossy BLE mesh",
-        "Verifies >= 50% fewer RF packets transmitted per minute compared to single-frame-per-packet",
-        "Confirms end-to-end voice recovery under 25% burst packet loss with de-interleaving + FEC",
-        "All tests pass cleanly in ./gradlew test"
+        "Simulates 12 nodes ascending alpine pass with 1,200m elevation gain",
+        "Verifies elevation profile calculation and straggler vertical distance warnings",
+        "100% passing tests in ./gradlew test"
       ],
-      "passes": true
+      "passes": false
     }
   ]
 }
