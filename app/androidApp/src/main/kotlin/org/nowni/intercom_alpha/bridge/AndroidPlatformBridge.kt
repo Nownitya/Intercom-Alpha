@@ -175,6 +175,36 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
     private val _airtimeCongestionSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.qos.AirtimeCongestionSnapshot())
     override val airtimeCongestionSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.qos.AirtimeCongestionSnapshot> = _airtimeCongestionSnapshot.asStateFlow()
 
+    private val _linkQualitySnapshot = MutableStateFlow(
+        org.nowni.intercom_alpha.mesh.ClusterLinkHealth(
+            peerCount = 0,
+            averageScore = 100,
+            worstScore = 100,
+            bestScore = 100,
+            overallGrade = org.nowni.intercom_alpha.mesh.LinkQualityGrade.EXCELLENT,
+            peerScores = emptyList()
+        )
+    )
+    override val linkQualitySnapshot: StateFlow<org.nowni.intercom_alpha.mesh.ClusterLinkHealth> = _linkQualitySnapshot.asStateFlow()
+
+    private val _adaptiveBitrateSnapshot = MutableStateFlow(
+        org.nowni.intercom_alpha.audio.BitrateEngineTelemetry(
+            activeProfile = org.nowni.intercom_alpha.common.AudioProfile.MEDIUM,
+            effectiveBitrateKbps = 32,
+            effectiveFrameDurationMs = 20,
+            candidateProfile = org.nowni.intercom_alpha.common.AudioProfile.MEDIUM,
+            consecutivePristineCycles = 0,
+            hysteresisThresholdCycles = 3,
+            isPinned = false,
+            clusterPolicy = org.nowni.intercom_alpha.audio.ClusterPolicy.WORST_LINK,
+            governingScore = 100,
+            governingGrade = org.nowni.intercom_alpha.mesh.LinkQualityGrade.EXCELLENT,
+            lastTransitionReason = "Initial baseline",
+            timestampMs = 0L
+        )
+    )
+    override val adaptiveBitrateSnapshot: StateFlow<org.nowni.intercom_alpha.audio.BitrateEngineTelemetry> = _adaptiveBitrateSnapshot.asStateFlow()
+
     var channelManager: ChannelManager? = null
         private set
     var directedRouter: DirectedMeshRouter? = null
@@ -696,6 +726,36 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
 
     override fun updateAirtimeCongestionSnapshot(snapshot: org.nowni.intercom_alpha.mesh.qos.AirtimeCongestionSnapshot) {
         _airtimeCongestionSnapshot.value = snapshot
+    }
+
+    override fun updateLinkQualitySnapshot(health: org.nowni.intercom_alpha.mesh.ClusterLinkHealth) {
+        _linkQualitySnapshot.value = health
+    }
+
+    override fun updateAdaptiveBitrateSnapshot(telemetry: org.nowni.intercom_alpha.audio.BitrateEngineTelemetry) {
+        _adaptiveBitrateSnapshot.value = telemetry
+    }
+
+    override fun pinAudioBitrateProfile(profile: org.nowni.intercom_alpha.common.AudioProfile?) {
+        val current = _adaptiveBitrateSnapshot.value
+        if (profile != null) {
+            _adaptiveBitrateSnapshot.value = current.copy(
+                activeProfile = profile,
+                effectiveBitrateKbps = profile.bitrateKbps,
+                effectiveFrameDurationMs = profile.frameSizeMs,
+                isPinned = true,
+                lastTransitionReason = "Pinned to ${profile.name}"
+            )
+        } else {
+            _adaptiveBitrateSnapshot.value = current.copy(
+                isPinned = false,
+                lastTransitionReason = "Pin released: resumed auto"
+            )
+        }
+    }
+
+    override fun setClusterPolicy(policy: org.nowni.intercom_alpha.audio.ClusterPolicy) {
+        _adaptiveBitrateSnapshot.value = _adaptiveBitrateSnapshot.value.copy(clusterPolicy = policy)
     }
 
     override fun setNoiseSuppressionMode(mode: org.nowni.intercom_alpha.audio.NoiseSuppressionMode) {

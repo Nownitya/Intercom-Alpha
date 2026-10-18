@@ -161,4 +161,30 @@ class SubScreenInteractionTest {
         testScheduler.advanceUntilIdle()
         assertFalse(viewModel.uiState.value.showDiagnosticsSheet, "Diagnostics sheet must dismiss cleanly")
     }
+
+    @Test
+    fun testAdaptiveBitrateControlsLifecycle() = runTest(testDispatcher) {
+        testScheduler.advanceUntilIdle()
+
+        // 1. Initial state
+        assertEquals(org.nowni.intercom_alpha.common.AudioProfile.MEDIUM, viewModel.uiState.value.bitrateTelemetry.activeProfile)
+        assertFalse(viewModel.uiState.value.bitrateTelemetry.isPinned)
+
+        // 2. Pin to ULTRA_LOW
+        viewModel.onAction(HomeUiAction.PinAudioProfile(org.nowni.intercom_alpha.common.AudioProfile.ULTRA_LOW))
+        testScheduler.advanceUntilIdle()
+        assertTrue(viewModel.uiState.value.bitrateTelemetry.isPinned)
+        assertEquals(org.nowni.intercom_alpha.common.AudioProfile.ULTRA_LOW, viewModel.uiState.value.bitrateTelemetry.activeProfile)
+
+        // 3. Release pin
+        viewModel.onAction(HomeUiAction.PinAudioProfile(null))
+        testScheduler.advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.bitrateTelemetry.isPinned)
+
+        // 4. Change cluster policy
+        viewModel.onAction(HomeUiAction.SetClusterPolicy(org.nowni.intercom_alpha.audio.ClusterPolicy.CLUSTER_AVERAGE))
+        testScheduler.advanceUntilIdle()
+        assertEquals(org.nowni.intercom_alpha.audio.ClusterPolicy.CLUSTER_AVERAGE, viewModel.uiState.value.bitrateTelemetry.clusterPolicy)
+    }
 }
+

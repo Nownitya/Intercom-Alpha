@@ -69,17 +69,26 @@ class AudioPipelineSession(
     val drc: DynamicRangeCompressor = DynamicRangeCompressor(sampleRate = sampleRate),
     val playoutLimiter: DynamicRangeCompressor = DynamicRangeCompressor(sampleRate = sampleRate)
 ) {
+    var activeProfile: AudioProfile = profile
+
+    /**
+     * Updates active codec profile for outgoing transmission on the fly.
+     */
+    fun updateActiveProfile(newProfile: AudioProfile) {
+        activeProfile = newProfile
+    }
+
     /**
      * Processes raw microphone input. Returns compressed byte packet, or null if gated by VOX/DTX.
      */
-    fun processOutgoingMicrophone(rawPcm: ShortArray): ByteArray? {
+    fun processOutgoingMicrophone(rawPcm: ShortArray, dynamicProfile: AudioProfile = activeProfile): ByteArray? {
         val gated = noiseGate.process(rawPcm)
         if (!noiseGate.isOpen && noiseGate.currentEnvelopeDb < -55.0f) {
             return null // Discontinuous Transmission (DTX) suppresses background silence packets
         }
         val leveled = agc.process(gated)
         val compressed = drc.process(leveled)
-        return codec.encode(compressed, profile)
+        return codec.encode(compressed, dynamicProfile)
     }
 
     /**

@@ -203,6 +203,9 @@ fun MainCockpitScreen(
                 powerState = uiState.powerGovernorState,
                 routingSnapshot = uiState.routingSnapshot,
                 peers = uiState.peers,
+                linkHealth = uiState.linkQualityHealth,
+                bitrateTelemetry = uiState.bitrateTelemetry,
+                onPinBitrate = { onAction(HomeUiAction.PinAudioProfile(it)) },
                 onDismiss = { onAction(HomeUiAction.ToggleDiagnosticsSheet(false)) }
             )
         }
