@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -21,11 +22,14 @@ import org.nowni.intercom_alpha.map.FileTransferProgress
 import org.nowni.intercom_alpha.map.FileTransferStatus
 import org.nowni.intercom_alpha.map.FileTransferType
 import org.nowni.intercom_alpha.map.TrailPolyline
+import org.nowni.intercom_alpha.ui.theme.IntercomTokens
+import org.nowni.intercom_alpha.ui.theme.claymorphic
+import org.nowni.intercom_alpha.ui.theme.neobrutalistBorder
 
 /**
  * Tactical Compose Multiplatform Over-The-Air Trail File Manager & Beam Cockpit Sheet.
  * Provides riders with a 1-tap route beaming actuator, live chunk-by-chunk OTA progress bars,
- * and an offline GPX/GeoJSON trail storage library manager.
+ * and an offline GPX/GeoJSON trail storage library manager styled with ADR-014 design tokens.
  */
 @Composable
 fun TrailFileManagerSheet(
@@ -44,13 +48,19 @@ fun TrailFileManagerSheet(
     var showImportDialog by remember { mutableStateOf(false) }
 
     Dialog(onDismissRequest = onDismiss) {
-        Card(
+        Box(
             modifier = modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.88f),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF14181D)),
-            border = BorderStroke(1.dp, Color(0xFF2B3848))
+                .fillMaxHeight(0.90f)
+                .claymorphic(
+                    surfaceColor = IntercomTokens.CockpitChassis,
+                    shape = RoundedCornerShape(IntercomTokens.CardCornerRadius)
+                )
+                .neobrutalistBorder(
+                    color = IntercomTokens.NeobrutalBorderIdle,
+                    thickness = IntercomTokens.NeobrutalBorderThickness,
+                    shape = RoundedCornerShape(IntercomTokens.CardCornerRadius)
+                )
         ) {
             Column(
                 modifier = Modifier
@@ -72,19 +82,21 @@ fun TrailFileManagerSheet(
                                 text = "TRAIL FILE MANAGER",
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Black,
+                                fontFamily = FontFamily.Monospace,
                                 letterSpacing = 0.5.sp,
-                                color = Color(0xFF00E5FF)
+                                color = IntercomTokens.SignalSatelliteCyan
                             )
                             Surface(
                                 shape = RoundedCornerShape(4.dp),
-                                color = Color(0xFF1B3B32),
-                                border = BorderStroke(0.5.dp, Color(0xFF00E676))
+                                color = IntercomTokens.SignalCodedPhyEmerald.copy(alpha = 0.15f),
+                                border = BorderStroke(0.5.dp, IntercomTokens.SignalCodedPhyEmerald)
                             ) {
                                 Text(
                                     text = "OFF-GRID OTA",
                                     fontSize = 8.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF00E676),
+                                    fontFamily = FontFamily.Monospace,
+                                    color = IntercomTokens.SignalCodedPhyEmerald,
                                     modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
                                 )
                             }
@@ -97,20 +109,26 @@ fun TrailFileManagerSheet(
                     }
 
                     TextButton(onClick = onDismiss) {
-                        Text("CLOSE", fontWeight = FontWeight.Bold, color = Color(0xFF00E5FF), fontSize = 11.sp)
+                        Text(
+                            text = "CLOSE",
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace,
+                            color = IntercomTokens.SignalSatelliteCyan,
+                            fontSize = 11.sp
+                        )
                     }
                 }
 
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = 8.dp),
-                    color = Color(0xFF2B3848)
+                    color = IntercomTokens.CockpitSurfaceElevated
                 )
 
                 // 2. Beam Active Trail & Format Selector Bar
                 Surface(
                     shape = RoundedCornerShape(8.dp),
-                    color = Color(0xFF1D2023),
-                    border = BorderStroke(1.dp, Color(0xFF2B3848)),
+                    color = IntercomTokens.CockpitSurfaceElevated,
+                    border = BorderStroke(1.dp, IntercomTokens.NeobrutalBorderIdle),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
@@ -128,24 +146,25 @@ fun TrailFileManagerSheet(
                                 text = "FORMAT:",
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace,
                                 color = Color(0xFF7A8B9E)
                             )
                             FilterChip(
                                 selected = selectedFormat == FileTransferType.GPX,
                                 onClick = { selectedFormat = FileTransferType.GPX },
-                                label = { Text("GPX", fontSize = 10.sp, fontWeight = FontWeight.Bold) },
+                                label = { Text("GPX", fontSize = 10.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace) },
                                 colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = Color(0xFF00E5FF).copy(alpha = 0.2f),
-                                    selectedLabelColor = Color(0xFF00E5FF)
+                                    selectedContainerColor = IntercomTokens.SignalSatelliteCyan.copy(alpha = 0.2f),
+                                    selectedLabelColor = IntercomTokens.SignalSatelliteCyan
                                 )
                             )
                             FilterChip(
                                 selected = selectedFormat == FileTransferType.GEOJSON,
                                 onClick = { selectedFormat = FileTransferType.GEOJSON },
-                                label = { Text("GeoJSON", fontSize = 10.sp, fontWeight = FontWeight.Bold) },
+                                label = { Text("GeoJSON", fontSize = 10.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace) },
                                 colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = Color(0xFF00E5FF).copy(alpha = 0.2f),
-                                    selectedLabelColor = Color(0xFF00E5FF)
+                                    selectedContainerColor = IntercomTokens.SignalSatelliteCyan.copy(alpha = 0.2f),
+                                    selectedLabelColor = IntercomTokens.SignalSatelliteCyan
                                 )
                             )
                         }
@@ -155,11 +174,16 @@ fun TrailFileManagerSheet(
                             shape = RoundedCornerShape(6.dp),
                             contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF00E5FF),
-                                contentColor = Color(0xFF14181D)
+                                containerColor = IntercomTokens.SignalSatelliteCyan,
+                                contentColor = IntercomTokens.CockpitObsidian
                             )
                         ) {
-                            Text("⚡ BEAM TO CONVOY", fontSize = 11.sp, fontWeight = FontWeight.Black)
+                            Text(
+                                text = "⚡ BEAM TO CONVOY",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Black,
+                                fontFamily = FontFamily.Monospace
+                            )
                         }
                     }
                 }
@@ -172,8 +196,9 @@ fun TrailFileManagerSheet(
                         text = "LIVE MESH TRANSFERS (${activeTransfers.size})",
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Black,
+                        fontFamily = FontFamily.Monospace,
                         letterSpacing = 0.5.sp,
-                        color = Color(0xFF00E5FF)
+                        color = IntercomTokens.SignalSatelliteCyan
                     )
                     Spacer(modifier = Modifier.height(4.dp))
 
@@ -200,6 +225,7 @@ fun TrailFileManagerSheet(
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Black,
                         letterSpacing = 0.5.sp,
+                        fontFamily = FontFamily.Monospace,
                         color = Color(0xFF7A8B9E)
                     )
 
@@ -207,7 +233,13 @@ fun TrailFileManagerSheet(
                         onClick = { showImportDialog = true },
                         contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp)
                     ) {
-                        Text("+ Quick Import", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF00E5FF))
+                        Text(
+                            text = "+ Quick Import",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace,
+                            color = IntercomTokens.SignalSatelliteCyan
+                        )
                     }
                 }
 
@@ -271,16 +303,16 @@ private fun ActiveTransferCard(
 ) {
     val isOutgoing = transfer.direction == FileTransferDirection.OUTGOING
     val statusColor = when (transfer.status) {
-        FileTransferStatus.IN_PROGRESS -> Color(0xFF00E5FF)
-        FileTransferStatus.COMPLETED -> Color(0xFF00E676)
-        FileTransferStatus.FAILED -> Color(0xFFFF5252)
+        FileTransferStatus.IN_PROGRESS -> IntercomTokens.SignalSatelliteCyan
+        FileTransferStatus.COMPLETED -> IntercomTokens.SignalCodedPhyEmerald
+        FileTransferStatus.FAILED -> IntercomTokens.SignalEmergencyCrimson
         FileTransferStatus.CANCELLED -> Color(0xFF7A8B9E)
-        FileTransferStatus.PENDING -> Color(0xFFFFB300)
+        FileTransferStatus.PENDING -> IntercomTokens.SignalAmber
     }
 
     Surface(
         shape = RoundedCornerShape(8.dp),
-        color = Color(0xFF1D2023),
+        color = IntercomTokens.CockpitSurfaceElevated,
         border = BorderStroke(1.dp, statusColor.copy(alpha = 0.5f)),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -296,13 +328,14 @@ private fun ActiveTransferCard(
                 ) {
                     Surface(
                         shape = RoundedCornerShape(4.dp),
-                        color = if (isOutgoing) Color(0xFF00E5FF).copy(alpha = 0.2f) else Color(0xFF00E676).copy(alpha = 0.2f)
+                        color = if (isOutgoing) IntercomTokens.SignalSatelliteCyan.copy(alpha = 0.2f) else IntercomTokens.SignalCodedPhyEmerald.copy(alpha = 0.2f)
                     ) {
                         Text(
                             text = if (isOutgoing) "⬆ BEAMING" else "⬇ RECEIVING",
                             fontSize = 8.sp,
                             fontWeight = FontWeight.Black,
-                            color = if (isOutgoing) Color(0xFF00E5FF) else Color(0xFF00E676),
+                            fontFamily = FontFamily.Monospace,
+                            color = if (isOutgoing) IntercomTokens.SignalSatelliteCyan else IntercomTokens.SignalCodedPhyEmerald,
                             modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
                         )
                     }
@@ -323,17 +356,18 @@ private fun ActiveTransferCard(
                         contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
                         shape = RoundedCornerShape(4.dp),
                         colors = ButtonDefaults.filledTonalButtonColors(
-                            containerColor = Color(0xFF2B3848),
-                            contentColor = Color(0xFFFF5252)
+                            containerColor = IntercomTokens.CockpitChassis,
+                            contentColor = IntercomTokens.SignalEmergencyCrimson
                         )
                     ) {
-                        Text("CANCEL", fontSize = 8.sp, fontWeight = FontWeight.Black)
+                        Text("CANCEL", fontSize = 8.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace)
                     }
                 } else {
                     Text(
                         text = transfer.status.name,
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Black,
+                        fontFamily = FontFamily.Monospace,
                         color = statusColor
                     )
                 }
@@ -347,7 +381,7 @@ private fun ActiveTransferCard(
                     .fillMaxWidth()
                     .height(4.dp),
                 color = statusColor,
-                trackColor = Color(0xFF2B3848)
+                trackColor = IntercomTokens.CockpitChassis
             )
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -360,11 +394,13 @@ private fun ActiveTransferCard(
                     text = "${transfer.chunksTransferred}/${transfer.totalChunks} Chunks (${(transfer.progressPercent * 100).toInt()}%)",
                     fontSize = 9.sp,
                     color = Color(0xFF7A8B9E),
+                    fontFamily = FontFamily.Monospace,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = "${transfer.bytesTransferred} / ${transfer.totalBytes} B · Peer: ${transfer.peerId}",
                     fontSize = 8.sp,
+                    fontFamily = FontFamily.Monospace,
                     color = Color(0xFF7A8B9E)
                 )
             }
@@ -383,8 +419,8 @@ private fun StoredTrailCard(
 ) {
     Surface(
         shape = RoundedCornerShape(8.dp),
-        color = if (isActive) Color(0xFF1B2E3B) else Color(0xFF1D2023),
-        border = BorderStroke(1.dp, if (isActive) Color(0xFF00E5FF) else Color(0xFF2B3848)),
+        color = if (isActive) IntercomTokens.CockpitSurfacePressed else IntercomTokens.CockpitSurfaceElevated,
+        border = BorderStroke(1.dp, if (isActive) IntercomTokens.SignalSatelliteCyan else IntercomTokens.NeobrutalBorderIdle),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
@@ -408,14 +444,15 @@ private fun StoredTrailCard(
                     if (isActive) {
                         Surface(
                             shape = RoundedCornerShape(4.dp),
-                            color = Color(0xFF00E676).copy(alpha = 0.2f),
-                            border = BorderStroke(0.5.dp, Color(0xFF00E676))
+                            color = IntercomTokens.SignalCodedPhyEmerald.copy(alpha = 0.2f),
+                            border = BorderStroke(0.5.dp, IntercomTokens.SignalCodedPhyEmerald)
                         ) {
                             Text(
                                 text = "ACTIVE",
                                 fontSize = 7.sp,
                                 fontWeight = FontWeight.Black,
-                                color = Color(0xFF00E676),
+                                fontFamily = FontFamily.Monospace,
+                                color = IntercomTokens.SignalCodedPhyEmerald,
                                 modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
                             )
                         }
@@ -430,18 +467,21 @@ private fun StoredTrailCard(
                         text = "📏 ${distKm}km",
                         fontSize = 9.sp,
                         color = Color(0xFF7A8B9E),
+                        fontFamily = FontFamily.Monospace,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = "⛰️ +${trail.totalElevationGainMeters.toInt()}m",
                         fontSize = 9.sp,
-                        color = Color(0xFFFFB300),
+                        color = IntercomTokens.SignalAmber,
+                        fontFamily = FontFamily.Monospace,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = "📍 ${trail.points.size} pts",
                         fontSize = 9.sp,
-                        color = Color(0xFF00E5FF),
+                        color = IntercomTokens.SignalSatelliteCyan,
+                        fontFamily = FontFamily.Monospace,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -454,11 +494,11 @@ private fun StoredTrailCard(
                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
                         shape = RoundedCornerShape(4.dp),
                         colors = ButtonDefaults.filledTonalButtonColors(
-                            containerColor = Color(0xFF2B3848),
-                            contentColor = Color(0xFF00E5FF)
+                            containerColor = IntercomTokens.CockpitChassis,
+                            contentColor = IntercomTokens.SignalSatelliteCyan
                         )
                     ) {
-                        Text("LOAD", fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        Text("LOAD", fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
                     }
                 }
 
@@ -467,11 +507,11 @@ private fun StoredTrailCard(
                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
                     shape = RoundedCornerShape(4.dp),
                     colors = ButtonDefaults.filledTonalButtonColors(
-                        containerColor = Color(0xFF00E5FF).copy(alpha = 0.2f),
-                        contentColor = Color(0xFF00E5FF)
+                        containerColor = IntercomTokens.SignalSatelliteCyan.copy(alpha = 0.2f),
+                        contentColor = IntercomTokens.SignalSatelliteCyan
                     )
                 ) {
-                    Text("BEAM", fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                    Text("BEAM", fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
                 }
 
                 if (canDelete && !isActive) {
@@ -480,11 +520,11 @@ private fun StoredTrailCard(
                         contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
                         shape = RoundedCornerShape(4.dp),
                         colors = ButtonDefaults.filledTonalButtonColors(
-                            containerColor = Color(0xFF2B3848),
-                            contentColor = Color(0xFFFF5252)
+                            containerColor = IntercomTokens.CockpitChassis,
+                            contentColor = IntercomTokens.SignalEmergencyCrimson
                         )
                     ) {
-                        Text("✕", fontSize = 9.sp, fontWeight = FontWeight.Black)
+                        Text("✕", fontSize = 9.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace)
                     }
                 }
             }
@@ -522,7 +562,8 @@ private fun QuickImportGpxDialog(
                 text = "IMPORT GPX ROUTE",
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Black,
-                color = Color(0xFF00E5FF)
+                fontFamily = FontFamily.Monospace,
+                color = IntercomTokens.SignalSatelliteCyan
             )
         },
         text = {
@@ -537,8 +578,8 @@ private fun QuickImportGpxDialog(
                     onValueChange = { trailName = it },
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFF00E5FF),
-                        unfocusedBorderColor = Color(0xFF2B3848),
+                        focusedBorderColor = IntercomTokens.SignalSatelliteCyan,
+                        unfocusedBorderColor = IntercomTokens.NeobrutalBorderIdle,
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White
                     )
@@ -556,17 +597,20 @@ private fun QuickImportGpxDialog(
                     val safeName = trailName.ifBlank { "Imported_Trail" }
                     onImport("${safeName.replace(" ", "_")}.gpx", sampleGpxText, FileTransferType.GPX)
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E5FF), contentColor = Color(0xFF14181D))
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = IntercomTokens.SignalSatelliteCyan,
+                    contentColor = IntercomTokens.CockpitObsidian
+                )
             ) {
-                Text("IMPORT", fontWeight = FontWeight.Bold)
+                Text("IMPORT", fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("CANCEL", color = Color(0xFF7A8B9E))
+                Text("CANCEL", color = Color(0xFF7A8B9E), fontFamily = FontFamily.Monospace)
             }
         },
-        containerColor = Color(0xFF14181D),
+        containerColor = IntercomTokens.CockpitChassis,
         shape = RoundedCornerShape(12.dp)
     )
 }
