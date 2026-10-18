@@ -20,7 +20,7 @@
         "Supports dynamic FEC ratios (DISABLED, RATIO_4_1, RATIO_3_1, RATIO_2_1)",
         "100% test coverage in commonTest"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-3402",
