@@ -206,6 +206,9 @@ fun MainCockpitScreen(
                 linkHealth = uiState.linkQualityHealth,
                 bitrateTelemetry = uiState.bitrateTelemetry,
                 onPinBitrate = { onAction(HomeUiAction.PinAudioProfile(it)) },
+                fecTelemetry = uiState.fecTelemetry,
+                plcTelemetry = uiState.plcTelemetry,
+                onSetFecRatio = { onAction(HomeUiAction.SetFecRatio(it)) },
                 onDismiss = { onAction(HomeUiAction.ToggleDiagnosticsSheet(false)) }
             )
         }

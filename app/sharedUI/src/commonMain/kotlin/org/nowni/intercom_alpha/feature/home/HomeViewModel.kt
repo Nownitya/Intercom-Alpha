@@ -59,6 +59,8 @@ class HomeViewModel(
     val failoverArbiter: org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter = org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter(),
     val linkQualityScorer: org.nowni.intercom_alpha.mesh.MeshLinkQualityScorer = org.nowni.intercom_alpha.mesh.MeshLinkQualityScorer(),
     val bitrateEngine: org.nowni.intercom_alpha.audio.AdaptiveBitrateEngine = org.nowni.intercom_alpha.audio.AdaptiveBitrateEngine(),
+    val fecEngine: org.nowni.intercom_alpha.audio.MeshPacketFecEngine = org.nowni.intercom_alpha.audio.MeshPacketFecEngine(),
+    val lossConcealment: org.nowni.intercom_alpha.audio.AudioLossConcealment = org.nowni.intercom_alpha.audio.AudioLossConcealment(),
     val hardwareBridge: IntercomHardwareBridge = NoOpIntercomHardwareBridge()
 ) : ViewModel() {
 
@@ -123,6 +125,32 @@ class HomeViewModel(
         viewModelScope.launch {
             hardwareBridge.adaptiveBitrateSnapshot.collect { telemetry ->
                 _uiState.update { it.copy(bitrateTelemetry = telemetry) }
+            }
+        }
+
+        viewModelScope.launch {
+            fecEngine.telemetry.collect { telemetry ->
+                _uiState.update { it.copy(fecTelemetry = telemetry) }
+                hardwareBridge.updateFecTelemetry(telemetry)
+            }
+        }
+
+        viewModelScope.launch {
+            lossConcealment.telemetry.collect { telemetry ->
+                _uiState.update { it.copy(plcTelemetry = telemetry) }
+                hardwareBridge.updatePlcTelemetry(telemetry)
+            }
+        }
+
+        viewModelScope.launch {
+            hardwareBridge.fecTelemetrySnapshot.collect { telemetry ->
+                _uiState.update { it.copy(fecTelemetry = telemetry) }
+            }
+        }
+
+        viewModelScope.launch {
+            hardwareBridge.plcTelemetrySnapshot.collect { telemetry ->
+                _uiState.update { it.copy(plcTelemetry = telemetry) }
             }
         }
 
@@ -733,6 +761,13 @@ class HomeViewModel(
                 viewModelScope.launch {
                     bitrateEngine.setClusterPolicy(action.policy)
                     hardwareBridge.setClusterPolicy(action.policy)
+                }
+            }
+
+            is HomeUiAction.SetFecRatio -> {
+                viewModelScope.launch {
+                    fecEngine.setFecRatio(action.ratio)
+                    hardwareBridge.setFecRatio(action.ratio)
                 }
             }
         }

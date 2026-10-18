@@ -2,7 +2,7 @@
 
 > **Document Version:** 3.0
 > **Status:** Active / Tracked  
-> **Current Sprint:** Sprint 33 Active (`sprint/sprint-33-adaptive-mesh-bitrate`) — v3.0.0-alpha2 Roadmap
+> **Current Sprint:** Sprint 34 Active (`sprint/sprint-34-fec-and-plc`) — v3.0.0-alpha2 Roadmap
 > **Obsidian Reference:** `01_Management/Roadmap.md` & `01_Management/Kanban.md`
 
 ---
@@ -498,6 +498,27 @@
 - [x] #task [ICA-3302] Implement Dynamic Adaptive Bitrate & Frame Sizing Controller ➕ 2026-10-18 ⏳ 2026-10-21 📅 2026-10-25 ⏫ ✅ 2026-10-18
 - [x] #task [ICA-3303] Wire Audio Pipeline Dynamic Frame Multiplexing & Cockpit Telemetry ➕ 2026-10-18 ⏳ 2026-10-22 📅 2026-10-26 ⏫ ✅ 2026-10-18
 - [x] #task [ICA-3304] Execute Multi-Node Dynamic Bitrate Simulation Test & Multiplatform Certification ➕ 2026-10-18 ⏳ 2026-10-23 📅 2026-10-27 🔼 ✅ 2026-10-18
+
+---
+
+### 🛡️ Sprint 34: Forward Error Correction (FEC) & Packet Loss Concealment (PLC) Hardening (Phase 29 - Part 2)
+- **Sprint Goal**: Implement robust forward error correction (FEC) and pitch-synchronous waveform packet loss concealment (PLC) over the BLE mesh. Reconstruct lost voice frames up to 25% packet drop without retransmissions, smoothly concealing unrecoverable dropouts with natural acoustic decay.
+- **Sprint Branch**: `sprint/sprint-34-fec-and-plc`
+- **Target Release**: `v3.0.0-alpha2`
+- **Status**: ✅ 100% Complete (All 4 Stories Passed)
+
+| Task ID | Item | Target Files | Status |
+| :--- | :--- | :--- | :--- |
+| **ICA-3401** | Multiplatform Block Erasure FEC Encoder & Interleaved Block Decoder | `MeshPacketFecEngine.kt`, `MeshPacketFecEngineTest.kt` | ✅ Completed |
+| **ICA-3402** | Predictive Packet Loss Concealment (PLC) & Waveform Interpolator | `AudioLossConcealment.kt`, `AudioLossConcealmentTest.kt` | ✅ Completed |
+| **ICA-3403** | Closed-Loop FEC Redundancy Governor & Cockpit Telemetry Wiring | `AudioEngine.kt`, `IntercomHardwareBridge.kt`, `IntercomBridge.kt` | ✅ Completed |
+| **ICA-3404** | Multi-Node 25% Burst Loss Simulation Test & Multiplatform Certification | `FecLossConcealmentSimulationTest.kt` | ✅ Completed |
+
+#### 📋 Tasks Plugin Checklist (Sprint 34)
+- [x] #task [ICA-3401] Implement Multiplatform Block Erasure FEC Encoder & Interleaved Block Decoder ➕ 2026-10-18 ⏳ 2026-10-20 📅 2026-10-24 ⏫ ✅ 2026-10-18
+- [x] #task [ICA-3402] Implement Predictive Packet Loss Concealment (PLC) & Waveform Interpolator ➕ 2026-10-18 ⏳ 2026-10-21 📅 2026-10-25 ⏫ ✅ 2026-10-18
+- [x] #task [ICA-3403] Wire Closed-Loop FEC Redundancy Governor & Cockpit Telemetry ➕ 2026-10-18 ⏳ 2026-10-22 📅 2026-10-26 ⏫ ✅ 2026-10-18
+- [x] #task [ICA-3404] Execute Multi-Node 25% Burst Loss Simulation Test & Multiplatform Certification ➕ 2026-10-18 ⏳ 2026-10-23 📅 2026-10-27 🔼 ✅ 2026-10-18
 
 
 

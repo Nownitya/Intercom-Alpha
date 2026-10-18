@@ -26,6 +26,7 @@
 | **ADR-012** | Mesh Airtime QoS Priority Traffic Shaping | Accepted | Token-bucket rate limiting and strict preemption (Emergency > Voice > Telemetry). |
 | **ADR-013** | Automated Multi-Path Mesh Failover & Hedging | Accepted | Link quality arbiter scoring RSSI/loss/jitter with proactive BLE/Cellular stream hedging. |
 | **ADR-014** | Post-Development UI/UX Fusion & Expressive Language | Accepted | Post-development UI/UX phase fusing Material 3 Expressive, SwiftUI iOS 18+, Skeuomorphism, Neobrutalism, Claymorphism, Minimalism & Liquid Glass. Zero AI-generated artifice. |
+| **ADR-015** | Pure KMP Block Erasure FEC & Multi-Peer Waveform PLC | Accepted | Reconstructs up to 25% packet drop without retransmission via $GF(2^8)$ Galois Field arithmetic, with per-peer pitch-synchronous waveform PLC for remaining dropouts. |
 
 ---
 
@@ -162,6 +163,20 @@
   - Implemented asymmetric bitrate hysteresis: rapid step-down (<200ms) upon link degradation downshifting from 48 kbps HIGH down to 16 kbps ULTRA_LOW and 60ms consolidated frames; conservative step-up requiring 3 consecutive pristine evaluation cycles before upgrading to prevent audio flapping.
   - Provided cluster governance policies (`WORST_LINK` protecting trailing sweep riders vs `CLUSTER_AVERAGE` optimizing majority throughput) with manual pin overrides.
   - Dynamic encoding profile byte embedded directly in packet headers (`packet[1] = profile.ordinal`) enabling seamless receiver decode without out-of-band renegotiation.
+
+### 2.18 Forward Error Correction & Multi-Peer Packet Loss Concealment (`MeshPacketFecEngine.kt`, `AudioLossConcealment.kt`)
+- **Challenge**: BLE broadcast channels cannot perform TCP-style ACKs or retransmissions without overwhelming the 2.4 GHz RF band. Packet drops cause immediate audio clicks, lost syllables, or robotic artifacts.
+- **Solution**:
+  - Implemented pure Kotlin $(N, K)$ block erasure Forward Error Correction:
+    - Single-parity XOR parity generation for single-packet erasure recovery.
+    - Dual-parity Galois Field $GF(2^8)$ Reed-Solomon generation with irreducible polynomial $0x11D$ and precomputed log/exp tables for arbitrary 2-packet erasure recovery per block.
+    - Symmetrical recovery supporting single-erasure reconstruction from Parity 2 when Parity 1 is dropped.
+    - 14-byte wire envelope (`0xFE` magic byte, blockId, indexInBlock, dataCount, parityCount, originalSize).
+  - Multi-peer isolated Packet Loss Concealment (PLC):
+    - Independent per-peer ring buffer history and pitch detection preventing cross-talk pitch contamination between riders.
+    - Synthetic pitch-synchronous waveform extrapolation with progressive -2.5 dB exponential energy decay per lost frame up to 4 consecutive frames, then smoothly fading to silence.
+    - Smooth 4ms linear crossfade blending upon clean packet resumption to prevent DC offset clicks.
+  - Telemetry streamed to `IntercomHardwareBridge` and exposed in cockpit `TactileDiagnosticsSheet.kt`.
 
 ---
 
