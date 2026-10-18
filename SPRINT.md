@@ -15,14 +15,15 @@
 
 | Task ID | Item | Owner | Target Files | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **ICA-3401** | Multiplatform Block Erasure FEC Encoder & Interleaved Block Decoder | Ralph | `MeshPacketFecEngine.kt`, `MeshPacketFecEngineTest.kt` | 🟡 Active |
-| **ICA-3402** | Predictive Packet Loss Concealment (PLC) & Waveform Interpolator | Ralph | `AudioLossConcealment.kt`, `AudioLossConcealmentTest.kt` | ⏳ Pending |
-| **ICA-3403** | Closed-Loop FEC Redundancy Governor & Cockpit Telemetry Wiring | Ralph | `AudioEngine.kt`, `IntercomHardwareBridge.kt`, `IntercomBridge.kt` | ⏳ Pending |
-| **ICA-3404** | Multi-Node 25% Burst Loss Simulation Test & Multiplatform Certification | Ralph | `FecLossConcealmentSimulationTest.kt` | ⏳ Pending |
+| **ICA-3401** | Multiplatform Block Erasure FEC Encoder & Interleaved Block Decoder | Ralph | `MeshPacketFecEngine.kt`, `MeshPacketFecEngineTest.kt` | ✅ Passed |
+| **ICA-3402** | Predictive Packet Loss Concealment (PLC) & Waveform Interpolator | Ralph | `AudioLossConcealment.kt`, `AudioLossConcealmentTest.kt` | ✅ Passed |
+| **ICA-3403** | Closed-Loop FEC Redundancy Governor & Cockpit Telemetry Wiring | Ralph | `AudioEngine.kt`, `IntercomHardwareBridge.kt`, `IntercomBridge.kt` | ✅ Passed |
+| **ICA-3404** | Multi-Node 25% Burst Loss Simulation Test & Multiplatform Certification | Ralph | `FecLossConcealmentSimulationTest.kt` | ✅ Passed |
 
 ---
 
 ## 📜 Historical Sprint Archive
+- ✅ **Sprint 34: Forward Error Correction & Packet Loss Concealment**: Completed 2026-10-18 (100% DoD, v3.0.0-alpha2 Milestone).
 - ✅ **Sprint 33: Dynamic Adaptive Mesh Bitrate Tuning**: Completed 2026-10-18 (100% DoD, v3.0.0-alpha2 Milestone).
 - ✅ **Sprint 32: Tactile Sub-Screens & Secondary Overlays Polish**: Completed 2026-10-18 (100% DoD, v3.0.0-alpha1 Milestone).
 - ✅ **Sprint 31: Zero-Scroll Tactical Cockpit Redesign**: Completed 2026-10-18 (100% DoD, v3.0.0-alpha1 Milestone).

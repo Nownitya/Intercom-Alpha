@@ -2659,12 +2659,73 @@
 
 ---
 
-## 🏆 Sprint 33: Dynamic Adaptive Mesh Bitrate Tuning (Phase 29) — 100% Complete
-- **All 4 Sprint 33 stories PASSED**:
-  - `ICA-3301: Real-Time Mesh Link Quality Scoring & EWMA Loss Estimator` [PASSED]
-  - `ICA-3302: Dynamic Adaptive Bitrate & Frame Sizing Controller` [PASSED]
-  - `ICA-3303: Audio Pipeline Dynamic Frame Multiplexing & Cockpit Telemetry Wiring` [PASSED]
-  - `ICA-3304: Multi-Node Dynamic Bitrate Simulation Test & Multiplatform Certification` [PASSED]
+### [2026-10-18] - ICA-3401: Multiplatform Block Erasure FEC Encoder & Interleaved Block Decoder
+- **Branch**: `feature/ICA-3401-block-erasure-fec`
+- **Objective**: Implement `MeshPacketFecEngine.kt` in `commonMain` providing pure Kotlin block erasure forward error correction (configurable (N, K) parity framing) with zero Java dependencies (Rule 3).
+- **Implementation**:
+  - Implemented `MeshPacketFecEngine.kt` with pure Kotlin Galois Field $GF(2^8)$ arithmetic (irreducible polynomial $0x11D$, precomputed exp/log tables).
+  - Single-parity XOR parity generation and single-packet erasure reconstruction.
+  - Dual-parity Galois Field Reed-Solomon encoding and arbitrary 2-packet erasure reconstruction per block.
+  - Wire format framing with 14-byte binary header (`0xFE` magic, blockId, indexInBlock, dataCount, parityCount, originalSize).
+  - Configurable dynamic ratios (`DISABLED`, `RATIO_4_1`, `RATIO_3_1`, `RATIO_2_1`, `RATIO_4_2`).
+  - Unit tests in `MeshPacketFecEngineTest.kt` verifying envelope serialization, pass-through, XOR recovery, and Galois Field recovery.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: Passed cleanly.
+  - iOS Simulator Compilation: Passed cleanly.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-34-fec-and-plc`).
+
+### [2026-10-18] - ICA-3402: Predictive Packet Loss Concealment (PLC) & Waveform Interpolator
+- **Branch**: `feature/ICA-3402-packet-loss-concealment`
+- **Objective**: Implement `AudioLossConcealment.kt` in `commonMain` for multi-peer predictive packet loss concealment with pitch tracking, -2.5 dB attenuation decay, and smooth crossfading.
+- **Implementation**:
+  - Created `AudioLossConcealment.kt` with thread-safe per-peer isolated pitch estimation and history buffers (preventing cross-talk artifacts).
+  - Extrapolated waveforms with -2.5 dB (~0.75 gain) exponential decay per consecutive lost frame up to 4 frames.
+  - Smooth 4ms linear crossfade blending upon clean voice packet resumption to eliminate DC offset clicks.
+  - Comprehensive unit tests in `AudioLossConcealmentTest.kt`.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: Passed cleanly in 1m 42s.
+  - iOS Simulator Compilation: Passed cleanly.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-34-fec-and-plc`).
+
+### [2026-10-18] - ICA-3403: Closed-Loop FEC Redundancy Governor & Cockpit Telemetry Wiring
+- **Branch**: `feature/ICA-3403-fec-plc-wiring`
+- **Objective**: Integrate `MeshPacketFecEngine` and `AudioLossConcealment` into `AudioPipelineSession`, `IntercomHardwareBridge`, `AndroidPlatformBridge`, `IntercomBridge.kt` (iOS Swift interop), `HomeViewModel`, and `TactileDiagnosticsSheet.kt`.
+- **Implementation**:
+  - Updated `IntercomHardwareBridge` and `AndroidPlatformBridge` with `fecTelemetrySnapshot`, `plcTelemetrySnapshot`, `updateFecTelemetry`, `updatePlcTelemetry`, and `setFecRatio`.
+  - Added Swift-friendly observers and controls in `IntercomBridge.kt` (`iosMain`): `observeFecTelemetry`, `observePlcTelemetry`, and `setFecRatio`.
+  - Wired `fecTelemetry` and `plcTelemetry` flows into `HomeUiState`, `HomeViewModel`, and added `SetFecRatio` action.
+  - Updated `TactileDiagnosticsSheet.kt` with live RF resilience card displaying FEC mode, recovered packet counters, unrecovered blocks, PLC frame counts, and active concealment status.
+- **Verification**:
+  - `./gradlew :app:sharedUI:testAndroidHostTest :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly in 27s.
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: 125 actionable tasks passed cleanly.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-34-fec-and-plc`).
+
+### [2026-10-18] - ICA-3404: Multi-Node 25% Burst Loss Simulation Test & Multiplatform Certification
+- **Branch**: `feature/ICA-3404-fec-simulation`
+- **Objective**: Implement 8-node convoy simulation test under 25% burst/random packet drops, certify audio continuity, and execute full multiplatform verification gates.
+- **Implementation**:
+  - Added `FecLossConcealmentSimulationTest.kt` in `commonTest`:
+    - Scenario 1: 4:1 Single Parity FEC with 20% random drop (1 per block) across 7 receiving riders -> 100% voice packet recovery via XOR.
+    - Scenario 2: 4:2 Dual Parity Galois RS FEC with 40% heavy drop (2 per block) across 7 receiving riders -> 100% voice packet recovery via Galois Field algebra.
+    - Scenario 3: Burst drop exceeding FEC bounds (3 consecutive frames dropped) -> smooth synthetic waveform PLC with -2.5 dB decay and crossfade smoothing upon clean resumption.
+  - Fixed single-erasure Galois Field reconstruction (Case 1b) in `MeshPacketFecEngine.kt` to handle dropped Parity 1 when Parity 2 is received.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: Passed cleanly in 20s (428 tests passed).
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: 125 actionable tasks passed cleanly in 1m 6s.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-34-fec-and-plc`).
+
+---
+
+## 🏆 Sprint 34: Forward Error Correction & Packet Loss Concealment (Phase 29 - Part 2) — 100% Complete
+- **All 4 Sprint 34 stories PASSED**:
+  - `ICA-3401: Multiplatform Block Erasure FEC Encoder & Interleaved Block Decoder` [PASSED]
+  - `ICA-3402: Predictive Packet Loss Concealment (PLC) & Waveform Interpolator` [PASSED]
+  - `ICA-3403: Closed-Loop FEC Redundancy Governor & Cockpit Telemetry Wiring` [PASSED]
+  - `ICA-3404: Multi-Node 25% Burst Loss Simulation Test & Multiplatform Certification` [PASSED]
 - **Milestone DoD Status**: 100% Definition of Done criteria passed cleanly across all platforms with 0 regressions, 0 OCR findings, and full multiplatform compilation.
 
 
