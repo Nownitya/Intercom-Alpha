@@ -37,7 +37,10 @@ fun TactileDiagnosticsSheet(
     modifier: Modifier = Modifier,
     linkHealth: org.nowni.intercom_alpha.mesh.ClusterLinkHealth? = null,
     bitrateTelemetry: org.nowni.intercom_alpha.audio.BitrateEngineTelemetry? = null,
-    onPinBitrate: ((org.nowni.intercom_alpha.common.AudioProfile?) -> Unit)? = null
+    onPinBitrate: ((org.nowni.intercom_alpha.common.AudioProfile?) -> Unit)? = null,
+    fecTelemetry: org.nowni.intercom_alpha.audio.FecTelemetry? = null,
+    plcTelemetry: org.nowni.intercom_alpha.audio.PlcTelemetry? = null,
+    onSetFecRatio: ((org.nowni.intercom_alpha.audio.FecRatio) -> Unit)? = null
 ) {
     val qScore = linkHealth?.averageScore ?: (failoverMetrics.averageDeliveryRatio * 100).toInt()
     val qGrade = linkHealth?.overallGrade ?: org.nowni.intercom_alpha.mesh.LinkQualityGrade.fromScore(qScore)
@@ -188,6 +191,57 @@ fun TactileDiagnosticsSheet(
                                     fontFamily = FontFamily.Monospace,
                                     color = Color(0xFF94A3B8)
                                 )
+                            }
+                        }
+                    }
+
+                    // 1c. Forward Error Correction & Packet Loss Concealment (Sprint 34)
+                    fecTelemetry?.let { fec ->
+                        item {
+                            TelemetryCard(title = "FEC & PACKET LOSS CONCEALMENT (RF RESILIENCE)") {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    MetricCell(
+                                        label = "FEC RATIO",
+                                        value = fec.activeRatio.name,
+                                        color = IntercomTokens.SignalSatelliteCyan
+                                    )
+                                    MetricCell(
+                                        label = "RECOVERED",
+                                        value = "${fec.totalPacketsRecovered} pkts",
+                                        color = IntercomTokens.SignalCodedPhyEmerald
+                                    )
+                                    MetricCell(
+                                        label = "UNRECOVERED",
+                                        value = "${fec.totalBlocksUnrecoverable} blks",
+                                        color = if (fec.totalBlocksUnrecoverable > 0) IntercomTokens.SignalEmergencyCrimson else IntercomTokens.SignalCodedPhyEmerald
+                                    )
+                                }
+                                plcTelemetry?.let { plc ->
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        MetricCell(
+                                            label = "PLC FRAMES",
+                                            value = "${plc.totalFramesConcealed}",
+                                            color = IntercomTokens.SignalAmber
+                                        )
+                                        MetricCell(
+                                            label = "CONCEAL RATE",
+                                            value = "${plc.concealmentRatePercent.toInt()}%",
+                                            color = IntercomTokens.SignalSatelliteCyan
+                                        )
+                                        MetricCell(
+                                            label = "ACTIVE CONCEAL",
+                                            value = if (plc.activeConcealingPeers > 0) "${plc.activeConcealingPeers} PEER" else "IDLE",
+                                            color = if (plc.activeConcealingPeers > 0) IntercomTokens.SignalAmber else IntercomTokens.SignalCodedPhyEmerald
+                                        )
+                                    }
+                                }
                             }
                         }
                     }

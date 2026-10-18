@@ -128,7 +128,20 @@ data class HomeUiState(
         governingGrade = org.nowni.intercom_alpha.mesh.LinkQualityGrade.EXCELLENT,
         lastTransitionReason = "Initial baseline",
         timestampMs = 0L
-    )
+    ),
+
+    // Sprint 34 Forward Error Correction & Packet Loss Concealment (ICA-3403)
+    val fecTelemetry: org.nowni.intercom_alpha.audio.FecTelemetry = org.nowni.intercom_alpha.audio.FecTelemetry(
+        activeRatio = org.nowni.intercom_alpha.audio.FecRatio.RATIO_4_1,
+        totalPacketsEncoded = 0L,
+        totalParityGenerated = 0L,
+        totalPacketsReceived = 0L,
+        totalPacketsRecovered = 0L,
+        totalBlocksCompleted = 0L,
+        totalBlocksRecovered = 0L,
+        totalBlocksUnrecoverable = 0L
+    ),
+    val plcTelemetry: org.nowni.intercom_alpha.audio.PlcTelemetry = org.nowni.intercom_alpha.audio.PlcTelemetry()
 )
 
 sealed interface HomeUiAction {
@@ -202,6 +215,9 @@ sealed interface HomeUiAction {
     // Sprint 33 Dynamic Adaptive Bitrate Actions (ICA-3303)
     data class PinAudioProfile(val profile: org.nowni.intercom_alpha.common.AudioProfile?) : HomeUiAction
     data class SetClusterPolicy(val policy: org.nowni.intercom_alpha.audio.ClusterPolicy) : HomeUiAction
+
+    // Sprint 34 Forward Error Correction Actions (ICA-3403)
+    data class SetFecRatio(val ratio: org.nowni.intercom_alpha.audio.FecRatio) : HomeUiAction
 }
 
 sealed interface HomeUiEvent {

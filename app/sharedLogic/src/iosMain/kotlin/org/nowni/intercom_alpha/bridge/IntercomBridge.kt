@@ -1290,6 +1290,38 @@ class IntercomBridge(
             adaptiveBitrateEngine.setClusterPolicy(policy)
         }
     }
+
+    // --- Swift-Friendly FEC & Packet Loss Concealment (PLC) Observers & Controls (Sprint 34 / ICA-3403) ---
+
+    val fecEngine: org.nowni.intercom_alpha.audio.MeshPacketFecEngine =
+        org.nowni.intercom_alpha.audio.MeshPacketFecEngine()
+
+    val lossConcealment: org.nowni.intercom_alpha.audio.AudioLossConcealment =
+        org.nowni.intercom_alpha.audio.AudioLossConcealment()
+
+    fun observeFecTelemetry(onTelemetry: (org.nowni.intercom_alpha.audio.FecTelemetry) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            fecEngine.telemetry.collect { telemetry ->
+                onTelemetry(telemetry)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun observePlcTelemetry(onTelemetry: (org.nowni.intercom_alpha.audio.PlcTelemetry) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            lossConcealment.telemetry.collect { telemetry ->
+                onTelemetry(telemetry)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun setFecRatio(ratio: org.nowni.intercom_alpha.audio.FecRatio) {
+        scope.launch {
+            fecEngine.setFecRatio(ratio)
+        }
+    }
 }
 
 

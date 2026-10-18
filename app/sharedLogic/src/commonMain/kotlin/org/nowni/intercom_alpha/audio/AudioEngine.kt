@@ -67,9 +67,25 @@ class AudioPipelineSession(
     val codec: AudioCodec = AudioCodec(defaultProfile = profile),
     val agc: AutomaticGainControl = AutomaticGainControl(sampleRate = sampleRate),
     val drc: DynamicRangeCompressor = DynamicRangeCompressor(sampleRate = sampleRate),
-    val playoutLimiter: DynamicRangeCompressor = DynamicRangeCompressor(sampleRate = sampleRate)
+    val playoutLimiter: DynamicRangeCompressor = DynamicRangeCompressor(sampleRate = sampleRate),
+    val multiPeerPlc: AudioLossConcealment = AudioLossConcealment(sampleRate = sampleRate),
+    val fecEngine: MeshPacketFecEngine = MeshPacketFecEngine()
 ) {
     var activeProfile: AudioProfile = profile
+
+    /**
+     * Processes encoded voice payload through the FEC engine, generating FEC parity packets when a block completes.
+     */
+    suspend fun encodeOutgoingFec(payload: ByteArray): List<FecEnvelope> {
+        return fecEngine.ingestOutgoingPacket(payload)
+    }
+
+    /**
+     * Ingests incoming wire payload through FEC erasure reconstruction.
+     */
+    suspend fun decodeIncomingFec(envelope: FecEnvelope, timestampMs: Long): FecDecodeResult {
+        return fecEngine.ingestIncomingEnvelope(envelope, timestampMs)
+    }
 
     /**
      * Updates active codec profile for outgoing transmission on the fly.

@@ -84,6 +84,8 @@ interface IntercomHardwareBridge {
     val airtimeCongestionSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.qos.AirtimeCongestionSnapshot>
     val linkQualitySnapshot: StateFlow<org.nowni.intercom_alpha.mesh.ClusterLinkHealth>
     val adaptiveBitrateSnapshot: StateFlow<org.nowni.intercom_alpha.audio.BitrateEngineTelemetry>
+    val fecTelemetrySnapshot: StateFlow<org.nowni.intercom_alpha.audio.FecTelemetry>
+    val plcTelemetrySnapshot: StateFlow<org.nowni.intercom_alpha.audio.PlcTelemetry>
 
     fun setPttActive(active: Boolean)
     fun setRepeaterModeActive(active: Boolean)
@@ -110,6 +112,9 @@ interface IntercomHardwareBridge {
     fun updateAirtimeCongestionSnapshot(snapshot: org.nowni.intercom_alpha.mesh.qos.AirtimeCongestionSnapshot)
     fun updateLinkQualitySnapshot(health: org.nowni.intercom_alpha.mesh.ClusterLinkHealth)
     fun updateAdaptiveBitrateSnapshot(telemetry: org.nowni.intercom_alpha.audio.BitrateEngineTelemetry)
+    fun updateFecTelemetry(telemetry: org.nowni.intercom_alpha.audio.FecTelemetry)
+    fun updatePlcTelemetry(telemetry: org.nowni.intercom_alpha.audio.PlcTelemetry)
+    fun setFecRatio(ratio: org.nowni.intercom_alpha.audio.FecRatio) {}
     fun pinAudioBitrateProfile(profile: org.nowni.intercom_alpha.common.AudioProfile?) {}
     fun setClusterPolicy(policy: org.nowni.intercom_alpha.audio.ClusterPolicy) {}
     fun setFailoverModeOverride(mode: org.nowni.intercom_alpha.mesh.failover.FailoverMode?) {}
@@ -321,6 +326,23 @@ open class NoOpIntercomHardwareBridge(
     )
     override val adaptiveBitrateSnapshot: StateFlow<org.nowni.intercom_alpha.audio.BitrateEngineTelemetry> = _adaptiveBitrateSnapshot.asStateFlow()
 
+    protected val _fecTelemetrySnapshot = MutableStateFlow(
+        org.nowni.intercom_alpha.audio.FecTelemetry(
+            activeRatio = org.nowni.intercom_alpha.audio.FecRatio.RATIO_4_1,
+            totalPacketsEncoded = 0L,
+            totalParityGenerated = 0L,
+            totalPacketsReceived = 0L,
+            totalPacketsRecovered = 0L,
+            totalBlocksCompleted = 0L,
+            totalBlocksRecovered = 0L,
+            totalBlocksUnrecoverable = 0L
+        )
+    )
+    override val fecTelemetrySnapshot: StateFlow<org.nowni.intercom_alpha.audio.FecTelemetry> = _fecTelemetrySnapshot.asStateFlow()
+
+    protected val _plcTelemetrySnapshot = MutableStateFlow(org.nowni.intercom_alpha.audio.PlcTelemetry())
+    override val plcTelemetrySnapshot: StateFlow<org.nowni.intercom_alpha.audio.PlcTelemetry> = _plcTelemetrySnapshot.asStateFlow()
+
     override fun setPttActive(active: Boolean) {
         _isTransmitting.value = active
     }
@@ -486,6 +508,18 @@ open class NoOpIntercomHardwareBridge(
 
     override fun updateAdaptiveBitrateSnapshot(telemetry: org.nowni.intercom_alpha.audio.BitrateEngineTelemetry) {
         _adaptiveBitrateSnapshot.value = telemetry
+    }
+
+    override fun updateFecTelemetry(telemetry: org.nowni.intercom_alpha.audio.FecTelemetry) {
+        _fecTelemetrySnapshot.value = telemetry
+    }
+
+    override fun updatePlcTelemetry(telemetry: org.nowni.intercom_alpha.audio.PlcTelemetry) {
+        _plcTelemetrySnapshot.value = telemetry
+    }
+
+    override fun setFecRatio(ratio: org.nowni.intercom_alpha.audio.FecRatio) {
+        _fecTelemetrySnapshot.value = _fecTelemetrySnapshot.value.copy(activeRatio = ratio)
     }
 
     override fun pinAudioBitrateProfile(profile: org.nowni.intercom_alpha.common.AudioProfile?) {
