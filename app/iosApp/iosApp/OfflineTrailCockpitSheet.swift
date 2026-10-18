@@ -6,7 +6,7 @@ import SharedLogic
 /// Complies with Architectural Rule 1 (Zero Compose Multiplatform imports).
 /// Designed for glove-friendly motorcycle handlebar cockpit HUD interaction:
 /// - Displays offline vector trail metrics, elevation profile, and waypoint roster with zero cellular connectivity.
-/// - Tactical high-contrast dark aesthetic (#14181D container, #00E5FF cyan phosphors, #00E676 green badges).
+/// - Tactical high-contrast ADR-014 design system (claymorphic cards, neobrutalist outlines, monospace telemetry).
 /// - Dynamic radar range zoom switcher (500m / 1.5km / 5.0km).
 /// - Live nearest waypoint distance & bearing guidance.
 struct OfflineTrailCockpitSheet: View {
@@ -15,7 +15,7 @@ struct OfflineTrailCockpitSheet: View {
 
     var body: some View {
         ZStack {
-            Color(red: 0.08, green: 0.09, blue: 0.11)
+            TacticalTokens.cockpitObsidian
                 .ignoresSafeArea()
 
             VStack(spacing: 12) {
@@ -24,7 +24,7 @@ struct OfflineTrailCockpitSheet: View {
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(spacing: 6) {
                             Circle()
-                                .fill(Color(red: 0.0, green: 0.9, blue: 1.0))
+                                .fill(TacticalTokens.signalSatelliteCyan)
                                 .frame(width: 8, height: 8)
                             Text("OFFLINE TRAIL COCKPIT")
                                 .font(.system(size: 13, weight: .black, design: .monospaced))
@@ -32,13 +32,13 @@ struct OfflineTrailCockpitSheet: View {
                         }
                         Text(vm.trailMapSnapshot?.activeTrail?.name ?? "Alpine Ridge Pass // Offline Vector Map")
                             .font(.system(size: 10, weight: .semibold, design: .monospaced))
-                            .foregroundColor(Color(red: 0.0, green: 0.9, blue: 1.0).opacity(0.8))
+                            .foregroundColor(TacticalTokens.signalSatelliteCyan.opacity(0.85))
                     }
 
                     Spacer()
 
                     Button(action: {
-                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        TactileHaptics.shared.channelDetentClick()
                         vm.showTrailManagerSheet = true
                     }) {
                         HStack(spacing: 4) {
@@ -47,15 +47,21 @@ struct OfflineTrailCockpitSheet: View {
                             Text("OTA ROUTES")
                                 .font(.system(size: 9, weight: .black, design: .monospaced))
                         }
-                        .foregroundColor(Color(red: 0.0, green: 0.9, blue: 0.46))
+                        .foregroundColor(TacticalTokens.signalCodedPhyEmerald)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 5)
-                        .background(Color(red: 0.0, green: 0.9, blue: 0.46).opacity(0.15))
-                        .cornerRadius(6)
-                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color(red: 0.0, green: 0.9, blue: 0.46).opacity(0.35), lineWidth: 1))
+                        .background(TacticalTokens.signalCodedPhyEmerald.opacity(0.15))
+                        .neobrutalistOutline(
+                            color: TacticalTokens.signalCodedPhyEmerald.opacity(0.35),
+                            lineWidth: 1,
+                            cornerRadius: 6
+                        )
                     }
 
-                    Button(action: { dismiss() }) {
+                    Button(action: {
+                        TactileHaptics.shared.channelDetentClick()
+                        dismiss()
+                    }) {
                         Image(systemName: "xmark.circle.fill")
                             .font(.system(size: 20))
                             .foregroundColor(.gray)
@@ -80,7 +86,7 @@ struct OfflineTrailCockpitSheet: View {
 
                         // 5. Offline Demo Action
                         Button(action: {
-                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                            TactileHaptics.shared.channelDetentClick()
                             vm.loadSampleAlpineTrail()
                         }) {
                             HStack(spacing: 8) {
@@ -89,12 +95,15 @@ struct OfflineTrailCockpitSheet: View {
                                 Text("RELOAD SAMPLE ALPINE TRAIL & TOPO")
                                     .font(.system(size: 11, weight: .black, design: .monospaced))
                             }
-                            .foregroundColor(.cyan)
+                            .foregroundColor(TacticalTokens.signalSatelliteCyan)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
-                            .background(Color.cyan.opacity(0.12))
-                            .cornerRadius(8)
-                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.cyan.opacity(0.3), lineWidth: 1))
+                            .background(TacticalTokens.signalSatelliteCyan.opacity(0.12))
+                            .neobrutalistOutline(
+                                color: TacticalTokens.signalSatelliteCyan.opacity(0.35),
+                                lineWidth: 1,
+                                cornerRadius: 8
+                            )
                         }
                     }
                     .padding(.horizontal, 16)
@@ -124,24 +133,23 @@ struct OfflineTrailCockpitSheet: View {
                 Spacer()
                 Text("OFFLINE GPS ACTIVE")
                     .font(.system(size: 9, weight: .bold, design: .monospaced))
-                    .foregroundColor(Color(red: 0.0, green: 0.9, blue: 0.46))
+                    .foregroundColor(TacticalTokens.signalCodedPhyEmerald)
             }
 
             HStack(spacing: 8) {
-                metricTile(title: "CURRENT ALT", value: "\(currentAlt)m", color: .cyan)
+                metricTile(title: "CURRENT ALT", value: "\(currentAlt)m", color: TacticalTokens.signalSatelliteCyan)
                 metricTile(
                     title: "LEAD DELTA",
                     value: leadDelta >= 0 ? "+\(leadDelta)m" : "\(leadDelta)m",
-                    color: leadDelta >= 0 ? Color(red: 0.0, green: 0.9, blue: 0.46) : .orange
+                    color: leadDelta >= 0 ? TacticalTokens.signalCodedPhyEmerald : TacticalTokens.signalHotMicOrange
                 )
                 metricTile(title: "DISTANCE", value: "\(trailDistKm)km", color: .white)
-                metricTile(title: "ASCENT", value: "+\(ascentM)m", color: Color(red: 1.0, green: 0.7, blue: 0.0))
+                metricTile(title: "ASCENT", value: "+\(ascentM)m", color: TacticalTokens.signalAmber)
             }
         }
         .padding(12)
-        .background(Color(red: 0.08, green: 0.1, blue: 0.12))
-        .cornerRadius(10)
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.white.opacity(0.1), lineWidth: 1))
+        .claymorphicDepth(surfaceColor: TacticalTokens.cockpitElevated, cornerRadius: 10)
+        .neobrutalistOutline(color: TacticalTokens.neobrutalBorderIdle, lineWidth: 1, cornerRadius: 10)
     }
 
     private func metricTile(title: String, value: String, color: Color) -> some View {
@@ -155,7 +163,7 @@ struct OfflineTrailCockpitSheet: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 8)
-        .background(Color.black.opacity(0.25))
+        .background(Color.black.opacity(0.35))
         .cornerRadius(6)
     }
 
@@ -173,7 +181,7 @@ struct OfflineTrailCockpitSheet: View {
                 Toggle("", isOn: Binding(
                     get: { isOverlayEnabled },
                     set: { enabled in
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        TactileHaptics.shared.channelDetentClick()
                         vm.setTrailOverlayEnabled(enabled)
                     }
                 ))
@@ -194,14 +202,13 @@ struct OfflineTrailCockpitSheet: View {
             }
         }
         .padding(12)
-        .background(Color(red: 0.08, green: 0.1, blue: 0.12))
-        .cornerRadius(10)
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.white.opacity(0.1), lineWidth: 1))
+        .claymorphicDepth(surfaceColor: TacticalTokens.cockpitElevated, cornerRadius: 10)
+        .neobrutalistOutline(color: TacticalTokens.neobrutalBorderIdle, lineWidth: 1, cornerRadius: 10)
     }
 
     private func zoomButton(label: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: {
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            TactileHaptics.shared.channelDetentClick()
             action()
         }) {
             Text(label)
@@ -209,7 +216,7 @@ struct OfflineTrailCockpitSheet: View {
                 .foregroundColor(isSelected ? .black : .white)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 8)
-                .background(isSelected ? Color.cyan : Color.white.opacity(0.1))
+                .background(isSelected ? TacticalTokens.signalSatelliteCyan : Color.white.opacity(0.1))
                 .cornerRadius(6)
         }
     }
@@ -218,112 +225,127 @@ struct OfflineTrailCockpitSheet: View {
         let snapshot = vm.trailMapSnapshot
         let nearestWp = snapshot?.nearestWaypoint
         let dist = snapshot?.nearestWaypointDistanceMeters != nil ? Int(snapshot!.nearestWaypointDistanceMeters!.doubleValue) : 340
+        let distStr = dist >= 1000 ? String(format: "%.1f km", Double(dist) / 1000.0) : "\(dist) m"
 
         return HStack(spacing: 12) {
             ZStack {
                 Circle()
-                    .fill(Color(red: 1.0, green: 0.7, blue: 0.0).opacity(0.2))
+                    .fill(TacticalTokens.signalAmber.opacity(0.15))
                     .frame(width: 36, height: 36)
-                Text(waypointSymbol(for: nearestWp?.type))
-                    .font(.system(size: 16))
+                Image(systemName: "flag.fill")
+                    .font(.system(size: 14))
+                    .foregroundColor(TacticalTokens.signalAmber)
             }
 
             VStack(alignment: .leading, spacing: 2) {
                 Text("NEXT WAYPOINT")
                     .font(.system(size: 8, weight: .bold, design: .monospaced))
                     .foregroundColor(.gray)
-                Text(nearestWp?.name ?? "Lookout Point #1")
+                Text(nearestWp?.name ?? "Eagle Peak Junction")
                     .font(.system(size: 12, weight: .black, design: .monospaced))
                     .foregroundColor(.white)
+                    .lineLimit(1)
             }
 
             Spacer()
 
             VStack(alignment: .trailing, spacing: 2) {
-                Text("\(dist)m")
-                    .font(.system(size: 14, weight: .black, design: .monospaced))
-                    .foregroundColor(Color(red: 1.0, green: 0.7, blue: 0.0))
-                Text("AHEAD")
-                    .font(.system(size: 8, weight: .bold, design: .monospaced))
+                Text(distStr)
+                    .font(.system(size: 13, weight: .black, design: .monospaced))
+                    .foregroundColor(TacticalTokens.signalSatelliteCyan)
+                Text(nearestWp?.type.name ?? "CHECKPOINT")
+                    .font(.system(size: 7, weight: .bold, design: .monospaced))
                     .foregroundColor(.gray)
             }
         }
         .padding(12)
-        .background(Color(red: 0.12, green: 0.1, blue: 0.06))
-        .cornerRadius(10)
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(red: 1.0, green: 0.7, blue: 0.0).opacity(0.3), lineWidth: 1))
+        .claymorphicDepth(surfaceColor: TacticalTokens.cockpitElevated, cornerRadius: 10)
+        .neobrutalistOutline(color: TacticalTokens.neobrutalBorderIdle, lineWidth: 1, cornerRadius: 10)
     }
 
     private var waypointRosterCard: some View {
         let waypoints = vm.trailMapSnapshot?.projectedWaypoints ?? []
 
-        return VStack(alignment: .leading, spacing: 8) {
-            Text("TACTICAL WAYPOINT ROSTER (\(waypoints.count))")
-                .font(.system(size: 10, weight: .black, design: .monospaced))
-                .foregroundColor(.gray)
+        return VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("TRAIL WAYPOINTS & ROSTER")
+                    .font(.system(size: 10, weight: .black, design: .monospaced))
+                    .foregroundColor(.gray)
+                Spacer()
+                Text("\(waypoints.count) WAYPOINTS")
+                    .font(.system(size: 8, weight: .bold, design: .monospaced))
+                    .foregroundColor(.gray)
+            }
 
             if waypoints.isEmpty {
                 VStack(spacing: 6) {
-                    Text("No waypoints loaded on current trail.")
-                        .font(.system(size: 10, weight: .medium, design: .monospaced))
+                    Text("No waypoints loaded in active trail.")
+                        .font(.system(size: 11, design: .monospaced))
                         .foregroundColor(.gray)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
             } else {
                 VStack(spacing: 6) {
-                    ForEach(waypoints, id: \.waypoint.id) { pw in
+                    ForEach(Array(waypoints.prefix(6)), id: \.waypoint.id) { pw in
                         waypointRow(pw: pw)
                     }
                 }
             }
         }
         .padding(12)
-        .background(Color(red: 0.08, green: 0.1, blue: 0.12))
-        .cornerRadius(10)
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.white.opacity(0.1), lineWidth: 1))
+        .claymorphicDepth(surfaceColor: TacticalTokens.cockpitElevated, cornerRadius: 10)
+        .neobrutalistOutline(color: TacticalTokens.neobrutalBorderIdle, lineWidth: 1, cornerRadius: 10)
     }
 
     private func waypointRow(pw: ProjectedWaypoint) -> some View {
         let wp = pw.waypoint
-        let dist = Int(pw.projectedPoint.distanceMeters)
-        let alt = Int(wp.elevationMeters)
+        let proj = pw.projectedPoint
+        let dist = Int(proj.distanceMeters)
+        let distStr = dist >= 1000 ? String(format: "%.1f km", Double(dist) / 1000.0) : "\(dist) m"
 
-        return HStack(spacing: 8) {
-            Text(waypointSymbol(for: wp.type))
-                .font(.system(size: 12))
+        return HStack(spacing: 10) {
+            Text(waypointIcon(for: wp.type))
+                .font(.system(size: 13))
+                .frame(width: 22)
 
             VStack(alignment: .leading, spacing: 1) {
                 Text(wp.name)
                     .font(.system(size: 11, weight: .bold, design: .monospaced))
                     .foregroundColor(.white)
-                Text("Elev: \(alt)m • \(wp.description_)")
-                    .font(.system(size: 9, design: .monospaced))
-                    .foregroundColor(.gray)
                     .lineLimit(1)
+                Text(wp.type.name)
+                    .font(.system(size: 7, weight: .bold, design: .monospaced))
+                    .foregroundColor(.gray)
             }
 
             Spacer()
 
-            Text("\(dist)m")
-                .font(.system(size: 11, weight: .black, design: .monospaced))
-                .foregroundColor(.cyan)
+            VStack(alignment: .trailing, spacing: 1) {
+                Text(distStr)
+                    .font(.system(size: 11, weight: .black, design: .monospaced))
+                    .foregroundColor(TacticalTokens.signalSatelliteCyan)
+                Text(proj.isVisibleOnRadar ? "ON RADAR" : "OUT OF RANGE")
+                    .font(.system(size: 7, weight: .bold, design: .monospaced))
+                    .foregroundColor(proj.isVisibleOnRadar ? TacticalTokens.signalCodedPhyEmerald : .gray)
+            }
         }
-        .padding(8)
+        .padding(.vertical, 4)
+        .padding(.horizontal, 6)
         .background(Color.black.opacity(0.2))
         .cornerRadius(6)
     }
 
-    private func waypointSymbol(for type: WaypointType?) -> String {
-        guard let type = type else { return "📍" }
+    private func waypointIcon(for type: WaypointType) -> String {
         switch type {
+        case .basecamp: return "⛺"
         case .waterSource: return "💧"
-        case .camp: return "⛺"
-        case .hazard: return "⚠️"
-        case .summit: return "🏔️"
-        case .scenicViewpoint: return "🔭"
-        case .intersection: return "🔀"
-        default: return "📍"
+        case .trailhead: return "🚩"
+        case .checkpoint: return "📍"
+        case .obstacleHazard: return "⚠️"
+        case .mountainPass: return "⛰️"
+        case .shelter: return "🛖"
+        default: return "📌"
         }
     }
 }

@@ -684,6 +684,10 @@ class HomeViewModel(
                     failoverArbiter.forceMode(action.mode, currentTimeMillis())
                 }
             }
+
+            is HomeUiAction.ToggleDiagnosticsSheet -> {
+                _uiState.update { it.copy(showDiagnosticsSheet = action.show) }
+            }
         }
     }
 

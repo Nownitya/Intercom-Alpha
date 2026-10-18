@@ -1,77 +1,74 @@
 {
   "project": "Intercom-Alpha",
-  "branchName": "sprint/sprint-31-tactical-cockpit-redesign",
-  "phase": "Phase 28: Dedicated UI/UX Evolution (Zero-Scroll Tactical Cockpit)",
-  "sprint": "Sprint 31",
-  "updatedAt": "2026-10-17T01:25:00Z",
+  "branchName": "sprint/sprint-32-tactile-subscreens",
+  "phase": "Phase 28: Dedicated UI/UX Evolution (Tactile Sub-Screens & Overlays)",
+  "sprint": "Sprint 32",
+  "updatedAt": "2026-10-18T11:08:00Z",
   "stories": [
     {
-      "id": "ICA-3101",
+      "id": "ICA-3201",
       "priority": 1,
-      "title": "Android Jetpack Compose Zero-Scroll Tactical Cockpit Integration",
-      "description": "Refactor HomeScreen.kt in :app:sharedUI into a clean zero-scroll tactical cockpit adhering to ADR-014. Integrates TactileAvionicsHeader.kt (RF link, mesh status, battery chips), TactileChannelDial.kt (skeuomorphic rotary detents), ExpressivePttActuator (160dp master actuator), ExpressiveVuMeter (14-segment phosphor decay), and GuardedSosSwitch (mil-spec safety flip-cover). All secondary diagnostics tucked into gesture-driven bottom sheets.",
+      "title": "Android Tactile Offline Trail Sheet & File Manager Modernization",
+      "description": "Refactor OfflineTrailCockpitSheet.kt and TrailFileManagerSheet.kt in :app:sharedUI to integrate IntercomTokens, claymorphic container surfaces, neobrutalist borders, and 84dp glove-friendly touch targets with monospaced tabular telemetry for elevation, distance, and waypoint coordinates.",
       "targetFiles": [
-        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/HomeScreen.kt",
-        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/TactileAvionicsHeader.kt",
-        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/TactileChannelDial.kt"
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/OfflineTrailCockpitSheet.kt",
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/TrailFileManagerSheet.kt"
       ],
       "acceptanceCriteria": [
-        "Zero-scroll cockpit layout fits entirely within primary viewport on standard phone displays",
-        "Integrates ExpressivePttActuator, ExpressiveVuMeter, GuardedSosSwitch, TactileAvionicsHeader, and TactileChannelDial",
-        "Monospaced tabular telemetry labels for jitter-free readouts",
-        "100% test pass on JVM and Android targets"
+        "OfflineTrailCockpitSheet and TrailFileManagerSheet styled with IntercomTokens and TactileModifiers (claymorphic + neobrutalistBorder)",
+        "Monospaced tabular coordinates and elevation readouts for jitter-free viewing",
+        "Glove-friendly 84dp action buttons and waypoint chips",
+        "Zero regressions in JVM unit tests and Android assemble"
       ],
       "passes": true
     },
     {
-      "id": "ICA-3102",
+      "id": "ICA-3202",
       "priority": 2,
-      "title": "iOS 100% Native SwiftUI Tactical Cockpit Integration",
-      "description": "Refactor ContentView.swift in :app:iosApp into a zero-scroll tactile cockpit adhering strictly to Rule 1 and ADR-014. Integrates TactileAvionicsHeader.swift, TactileChannelDial.swift, TactilePttButton, TactileVuMeter, and GuardedSosSwitch with .liquidGlassBackground() and TactileHaptics feedback.",
+      "title": "Android Tactile Message Dialog & Subsystem Diagnostics Modernization",
+      "description": "Refactor MessageHistoryDialog.kt and create TactileDiagnosticsSheet.kt in :app:sharedUI with neobrutalist message bubbles, tabular network telemetry (Q_link, RSSI, loss, jitter, battery duty-cycle), and wire diagnostics toggle into MainCockpitScreen.kt.",
       "targetFiles": [
-        "app/iosApp/iosApp/ContentView.swift",
-        "app/iosApp/iosApp/Components/TactileAvionicsHeader.swift",
-        "app/iosApp/iosApp/Components/TactileChannelDial.swift"
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/MessageHistoryDialog.kt",
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/TactileDiagnosticsSheet.kt",
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/MainCockpitScreen.kt"
       ],
       "acceptanceCriteria": [
-        "100% native SwiftUI without shared Compose UI (Rule 1)",
-        "Zero-scroll tactical cockpit layout with liquid glass overlay cards",
-        "Tactile channel dial with selection haptic clicks",
+        "MessageHistoryDialog updated with high-contrast neobrutalist bubbles and quick text chips",
+        "TactileDiagnosticsSheet provides real-time tabular breakdown of link quality and RF duty cycle",
+        "Diagnostics accessible from MainCockpitScreen header or navigation bar",
+        "Passes multiplatform JVM tests"
+      ],
+      "passes": true
+    },
+    {
+      "id": "ICA-3203",
+      "priority": 3,
+      "title": "iOS Native SwiftUI Trail Cockpit, File Manager & Diagnostics Modernization",
+      "description": "Modernize iOS OfflineTrailCockpitSheet, TrailFileManagerSheet, and SubsystemDiagnosticsSheetView in ContentView.swift using TactileDesignSystem, .liquidGlassBackground(), and .neobrutalistOutline() adhering strictly to Rule 1 (100% Native SwiftUI).",
+      "targetFiles": [
+        "app/iosApp/iosApp/ContentView.swift"
+      ],
+      "acceptanceCriteria": [
+        "100% Native SwiftUI without shared Compose UI (Rule 1)",
+        "Secondary sheets use .liquidGlassBackground() and neobrutalist outline styling",
+        "Tactile haptic clicks wired into sheet button actions",
         "Clean compilation on iOS simulator target"
       ],
       "passes": true
     },
     {
-      "id": "ICA-3103",
-      "priority": 3,
-      "title": "Glove-Friendly Spatial Radar & Telemetry Liquid Glass Card Integration",
-      "description": "Refactor ProximityRadarView.kt and iOS ProximityRadarView into sleek Liquid Glass HUD cards floating over real-time spatial vectors, topo trail contours, and convoy telemetry, featuring quick-range zoom toggles (50m/250m/1000m) with 84dp glove targets.",
-      "targetFiles": [
-        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/TactileRadarCard.kt",
-        "app/iosApp/iosApp/Components/TactileRadarCard.swift"
-      ],
-      "acceptanceCriteria": [
-        "Frosted liquid glass translucent card floating over radar vectors",
-        "Glove-friendly 84dp zoom cycle button",
-        "Monospaced tabular distance and bearing chips",
-        "100% multiplatform verification pass"
-      ],
-      "passes": true
-    },
-    {
-      "id": "ICA-3104",
+      "id": "ICA-3204",
       "priority": 4,
-      "title": "Tactical Cockpit E2E Interaction Simulation & Archify Showcase Update",
-      "description": "Implement TacticalCockpitInteractionTest.kt verifying PTT engagement, rotary channel changes, guarded SOS flip-cover state transitions, and audio meter telemetry updates. Updates Archify architecture specification with Sprint 31 Tactical Cockpit showcase card.",
+      "title": "Multiplatform Sub-Screen E2E Interaction Test & Certification",
+      "description": "Implement SubScreenInteractionTest.kt in :app:sharedUI verifying modal dialog toggles, trail waypoint operations, diagnostics rendering, and execute full multiplatform build verification gate.",
       "targetFiles": [
-        "app/sharedUI/src/commonTest/kotlin/org/nowni/intercom_alpha/feature/home/TacticalCockpitInteractionTest.kt",
-        "docs/architecture/intercom-alpha.architecture.json",
-        "docs/architecture/intercom-alpha-architecture.html"
+        "app/sharedUI/src/commonTest/kotlin/org/nowni/intercom_alpha/feature/home/SubScreenInteractionTest.kt"
       ],
       "acceptanceCriteria": [
-        "E2E interaction simulation verifies zero-scroll cockpit state transitions",
-        "Clean Gradle test passes across JVM and Android targets",
-        "Archify architecture specification updated with 9/9 verification checks passed"
+        "Comprehensive interaction test verifying sub-screen state transitions",
+        "100% test pass across all multiplatform test tasks",
+        "Clean Android assemble and iOS simulator compilation (Rule 6)",
+        "OpenCodeReview gate passes with 0 findings (Rule 8)"
       ],
       "passes": true
     }

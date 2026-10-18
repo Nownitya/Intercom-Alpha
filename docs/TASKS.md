@@ -2,7 +2,7 @@
 
 > **Document Version:** 3.0
 > **Status:** Active / Tracked  
-> **Current Sprint:** Sprint 31 Complete (`sprint/sprint-31-tactical-cockpit-redesign`) — v3.0.0-alpha1 Roadmap
+> **Current Sprint:** Sprint 32 Complete (`sprint/sprint-32-tactile-subscreens`) — v3.0.0-alpha1 Roadmap
 > **Obsidian Reference:** `01_Management/Roadmap.md` & `01_Management/Kanban.md`
 
 ---
@@ -456,6 +456,28 @@
 - [x] #task [ICA-3102] Implement iOS 100% Native SwiftUI Tactical Cockpit Integration ➕ 2026-10-17 ⏳ 2026-10-20 📅 2026-10-24 ⏫ ✅ 2026-10-17
 - [x] #task [ICA-3103] Implement Glove-Friendly Spatial Radar & Telemetry Liquid Glass Card Integration ➕ 2026-10-17 ⏳ 2026-10-21 📅 2026-10-25 🔼 ✅ 2026-10-17
 - [x] #task [ICA-3104] Execute Tactical Cockpit E2E Interaction Simulation & Archify Showcase Update ➕ 2026-10-17 ⏳ 2026-10-22 📅 2026-10-26 🔼 ✅ 2026-10-17
+
+---
+
+### 🗺️ Sprint 32: Tactile Sub-Screens & Secondary Overlays Polish (Phase 28 - Part 3)
+- **Sprint Goal**: Modernize secondary overlay sheets and full-screen diagnostic destinations across Android Jetpack Compose and iOS 100% Native SwiftUI adhering strictly to ADR-014 and Rule 1. Applies `IntercomDesignTokens` (claymorphic surfaces, neobrutalist borders, 84dp glove targets), monospace tabular telemetry, and non-blocking sheet navigation.
+- **Sprint Branch**: `sprint/sprint-32-tactile-subscreens`
+- **Target Release**: `v3.0.0-alpha1`
+- **Status**: ✅ 100% Complete (All 4 Stories Passed)
+
+| Task ID | Item | Target Files | Status |
+| :--- | :--- | :--- | :--- |
+| **ICA-3201** | Android Tactile Offline Trail Sheet & File Manager Modernization | `OfflineTrailCockpitSheet.kt`, `TrailFileManagerSheet.kt` | ✅ Completed |
+| **ICA-3202** | Android Tactile Message Dialog & Subsystem Diagnostics Modernization | `MessageHistoryDialog.kt`, `TactileDiagnosticsSheet.kt`, `MainCockpitScreen.kt` | ✅ Completed |
+| **ICA-3203** | iOS Native SwiftUI Trail Cockpit, File Manager & Diagnostics Modernization | `ContentView.swift` | ✅ Completed |
+| **ICA-3204** | Multiplatform Sub-Screen E2E Interaction Test & Certification | `SubScreenInteractionTest.kt` | ✅ Completed |
+
+#### 📋 Tasks Plugin Checklist (Sprint 32)
+- [x] #task [ICA-3201] Modernize Android Tactile Offline Trail Sheet & File Manager ➕ 2026-10-18 ⏳ 2026-10-20 📅 2026-10-24 ⏫ ✅ 2026-10-18
+- [x] #task [ICA-3202] Modernize Android Tactile Message Dialog & Subsystem Diagnostics ➕ 2026-10-18 ⏳ 2026-10-21 📅 2026-10-25 ⏫ ✅ 2026-10-18
+- [x] #task [ICA-3203] Modernize iOS Native SwiftUI Trail Cockpit, File Manager & Diagnostics ➕ 2026-10-18 ⏳ 2026-10-22 📅 2026-10-26 ⏫ ✅ 2026-10-18
+- [x] #task [ICA-3204] Execute Multiplatform Sub-Screen E2E Interaction Test & Certification ➕ 2026-10-18 ⏳ 2026-10-23 📅 2026-10-27 🔼 ✅ 2026-10-18
+
 
 
 

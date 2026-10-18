@@ -23,6 +23,7 @@ import org.nowni.intercom_alpha.ui.components.TactileRadarCard
 import org.nowni.intercom_alpha.ui.components.MessageHistoryDialog
 import org.nowni.intercom_alpha.ui.components.OfflineTrailCockpitSheet
 import org.nowni.intercom_alpha.ui.components.TrailFileManagerSheet
+import org.nowni.intercom_alpha.ui.components.TactileDiagnosticsSheet
 import org.nowni.intercom_alpha.ui.theme.IntercomTokens
 import org.nowni.intercom_alpha.ui.theme.IntercomTacticalTypography
 import org.nowni.intercom_alpha.ui.theme.claymorphic
@@ -172,6 +173,12 @@ fun MainCockpitScreen(
                     onClick = { onAction(HomeUiAction.ToggleMessagesDialog(true)) }
                 )
                 CockpitNavTab(
+                    icon = "⚡",
+                    label = "DIAG",
+                    isSelected = uiState.showDiagnosticsSheet,
+                    onClick = { onAction(HomeUiAction.ToggleDiagnosticsSheet(true)) }
+                )
+                CockpitNavTab(
                     icon = "🆘",
                     label = "SOS",
                     isSelected = false,
@@ -187,6 +194,16 @@ fun MainCockpitScreen(
                 messages = uiState.messages,
                 onSendCustomText = { onAction(HomeUiAction.SendCustomText(it)) },
                 onDismiss = { onAction(HomeUiAction.ToggleMessagesDialog(false)) }
+            )
+        }
+
+        if (uiState.showDiagnosticsSheet) {
+            TactileDiagnosticsSheet(
+                failoverMetrics = uiState.failoverSnapshot,
+                powerState = uiState.powerGovernorState,
+                routingSnapshot = uiState.routingSnapshot,
+                peers = uiState.peers,
+                onDismiss = { onAction(HomeUiAction.ToggleDiagnosticsSheet(false)) }
             )
         }
 

@@ -1,28 +1,31 @@
-# Current Status: Sprint 31 (Phase 28: Zero-Scroll Tactical Cockpit Redesign)
+# Current Status: Sprint 32 (Phase 28: Tactile Sub-Screens & Secondary Overlays Polish) — Completed
 
 > **Active Sprint Reference:** [TASKS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/TASKS.md) & [prd.json](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/tasks/ralph/prd.json)  
-> **Sprint Branch:** `sprint/sprint-31-tactical-cockpit-redesign`  
+> **Sprint Branch:** `sprint/sprint-32-tactile-subscreens`  
 > **Sprint Governance Rules:** [SPRINT-RULES.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/SPRINT-RULES.md)  
 > **Engineering Contract:** [AGENTS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/AGENTS.md)  
 > **Knowledge Base:** [MEMORY.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/MEMORY.md)  
 
 ---
 
-## ⚡ Active Sprint: Sprint 31 (Phase 28: Zero-Scroll Tactical Cockpit Redesign)
-**Goal:** Redesign Android (`HomeScreen.kt`) and iOS (`ContentView.swift`) main screens into a unified zero-scroll tactical cockpit adhering to ADR-014 and Rule 1. Integrates oversized Expressive PTT actuator, real-time VU meter, rotary channel switchers with haptic detents, mil-spec guarded SOS flip-cover, and glove-friendly spatial radar HUD card.  
-- **Sprint Branch:** `sprint/sprint-31-tactical-cockpit-redesign`  
+## ⚡ Sprint 32: Tactile Sub-Screens & Secondary Overlays Polish (100% Completed)
+**Goal:** Modernize secondary overlay sheets and full-screen diagnostic destinations across Android Jetpack Compose and iOS 100% Native SwiftUI adhering strictly to ADR-014 and Rule 1. Applies `IntercomDesignTokens` (claymorphic surfaces, neobrutalist borders, 84dp glove targets), monospace tabular telemetry, and non-blocking sheet navigation.  
+- **Sprint Branch:** `sprint/sprint-32-tactile-subscreens`  
 - **Target Release:** `v3.0.0-alpha1`  
+- **Status:** ✅ 100% Complete (4/4 Stories Passed, 0 OCR Findings)
 
 | Task ID | Item | Owner | Target Files | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **ICA-3101** | Android Jetpack Compose Zero-Scroll Tactical Cockpit Integration | Ralph | `HomeScreen.kt`, `TactileAvionicsHeader.kt`, `TactileChannelDial.kt` | ✅ Completed |
-| **ICA-3102** | iOS 100% Native SwiftUI Tactical Cockpit Integration | Ralph | `ContentView.swift`, `TactileAvionicsHeader.swift`, `TactileChannelDial.swift` | ✅ Completed |
-| **ICA-3103** | Glove-Friendly Spatial Radar & Telemetry Liquid Glass Card Integration | Ralph | `TactileRadarCard.kt`, `TactileRadarCard.swift` | ✅ Completed |
-| **ICA-3104** | Tactical Cockpit E2E Interaction Simulation & Archify Showcase Update | Ralph | `TacticalCockpitInteractionTest.kt`, `intercom-alpha.architecture.json` | ✅ Completed |
+| **ICA-3201** | Android Tactile Offline Trail Sheet & File Manager Modernization | Ralph | `OfflineTrailCockpitSheet.kt`, `TrailFileManagerSheet.kt` | ✅ Completed |
+| **ICA-3202** | Android Tactile Message Dialog & Subsystem Diagnostics Modernization | Ralph | `MessageHistoryDialog.kt`, `TactileDiagnosticsSheet.kt`, `MainCockpitScreen.kt` | ✅ Completed |
+| **ICA-3203** | iOS Native SwiftUI Trail Cockpit, File Manager & Diagnostics Modernization | Ralph | `ContentView.swift` | ✅ Completed |
+| **ICA-3204** | Multiplatform Sub-Screen E2E Interaction Test & Certification | Ralph | `SubScreenInteractionTest.kt` | ✅ Completed |
 
 ---
 
 ## 📜 Historical Sprint Archive
+- ✅ **Sprint 32: Tactile Sub-Screens & Secondary Overlays Polish**: Completed 2026-10-18 (100% DoD, v3.0.0-alpha1 Milestone).
+- ✅ **Sprint 31: Zero-Scroll Tactical Cockpit Redesign**: Completed 2026-10-18 (100% DoD, v3.0.0-alpha1 Milestone).
 - ✅ **Sprint 30: Dedicated UI/UX Design System Foundations**: Completed 2026-10-17 (100% DoD, v3.0.0-alpha1 Milestone).
 - ✅ **Sprint 29: Unified Bridge Interface Certification & 32-Node Simulation**: Completed 2026-10-10 (100% DoD, v2.16.0 Released).
 - ✅ **Sprint 28: Edge Acoustic Noise Suppression & Airtime Congestion Mitigation**: Completed 2026-10-10 (100% DoD, v2.15.0 Released).

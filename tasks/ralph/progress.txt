@@ -2535,3 +2535,74 @@
   - Repaired mojibake CP-1252 corruption in `docs/TASKS.md`, `CHANGELOG.md`, and `JOURNAL.md`.
   - OpenCodeReview pre-commit gate passed cleanly (0 findings).
 
+---
+
+## 🚀 Sprint 32: Tactile Sub-Screens & Secondary Overlays Polish (Phase 28 - Dedicated UI/UX Evolution)
+
+### [2026-10-18] - ICA-3201: Android Tactile Offline Trail Sheet & File Manager Modernization
+- **Branch**: `feature/ICA-3201-offline-trail-sheet`
+- **Objective**: Refactor `OfflineTrailCockpitSheet.kt` and `TrailFileManagerSheet.kt` in `:app:sharedUI` with `IntercomTokens`, claymorphic container surfaces, neobrutalist borders, and 84dp glove-friendly touch targets with monospaced tabular telemetry.
+- **Implementation**:
+  - `OfflineTrailCockpitSheet.kt`:
+    - Liquid glass chassis with claymorphic elevation profile and waypoint chips.
+    - Monospaced tabular telemetry readouts for distance, elevation, coordinates, and ascent/descent.
+    - 84dp glove-friendly touch targets for route recording, waypoint drops, and export triggers.
+  - `TrailFileManagerSheet.kt`:
+    - Neobrutalist file cards for offline trail GPX/KML traces with file size badges and import/delete actions.
+- **Verification**:
+  - `./gradlew :app:sharedUI:jvmTest`: Passed cleanly.
+  - OpenCodeReview (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-32-tactile-subscreens`).
+
+### [2026-10-18] - ICA-3202: Android Tactile Message Dialog & Subsystem Diagnostics Modernization
+- **Branch**: `feature/ICA-3202-message-dialog-diagnostics`
+- **Objective**: Modernize `MessageHistoryDialog.kt` and implement `TactileDiagnosticsSheet.kt` in `:app:sharedUI`, adding diagnostics toggle in `HomeViewModel.kt` and `MainCockpitScreen.kt`.
+- **Implementation**:
+  - `MessageHistoryDialog.kt`: High-contrast neobrutalist chat bubbles, canned quick-response chips, and delivery ACK badges.
+  - `TactileDiagnosticsSheet.kt`: Tabular real-time breakdown of $Q_{link}$ link score, RSSI margin, RF duty-cycle, battery drain rate, AODV-lite savings, and peer telemetry list.
+  - `HomeUiState.kt` / `HomeViewModel.kt`: Added `showDiagnosticsSheet` and `ToggleDiagnosticsSheet` action.
+  - `MainCockpitScreen.kt`: Added `DIAG` tab to `CockpitNavTab` with overlay sheet.
+- **Verification**:
+  - `./gradlew :app:sharedUI:jvmTest`: Passed cleanly.
+  - OpenCodeReview (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-32-tactile-subscreens`).
+
+### [2026-10-18] - ICA-3203: iOS Native SwiftUI Trail Cockpit, File Manager & Diagnostics Modernization
+- **Branch**: `feature/ICA-3203-ios-subscreens`
+- **Objective**: Modernize iOS native secondary overlays in `OfflineTrailCockpitSheet.swift`, `TrailFileManagerSheet.swift`, and `ContentView.swift` using `TacticalTokens`, `.liquidGlassBackground()`, and `.neobrutalistOutline()`, adhering to Rule 1 (100% native SwiftUI).
+- **Implementation**:
+  - `OfflineTrailCockpitSheet.swift`: Liquid glass container with tabular GPS telemetry, elevation gains, and tactile haptic clicks.
+  - `TrailFileManagerSheet.swift`: Modernized GPX file manager sheet with neobrutalist outlines and file stats.
+  - `ContentView.swift`: Enhanced `SubsystemDiagnosticsSheetView` with tactile haptics on close/action buttons.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly (0 errors).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-32-tactile-subscreens`).
+
+### [2026-10-18] - ICA-3204: Multiplatform Sub-Screen E2E Interaction Test & Certification
+- **Branch**: `feature/ICA-3204-subscreen-interaction-test`
+- **Objective**: Implement `SubScreenInteractionTest.kt` verifying state transitions for sub-screens and execute full multiplatform build verification gate.
+- **Implementation**:
+  - Created `SubScreenInteractionTest.kt` in `:app:sharedUI:commonTest`:
+    - Verified Trail Cockpit sheet toggle (`ToggleTrailSheet`).
+    - Verified Trail File Manager sheet toggle (`ToggleTrailFileManager`).
+    - Verified Message History Dialog toggle and unread count clearing (`ToggleMessagesDialog`).
+    - Verified Tactile Diagnostics sheet toggle (`ToggleDiagnosticsSheet`).
+    - Verified waypoint additions and trail file selections.
+  - Restored `GreetingUtil.kt` in `:core` module resolving server dependency.
+- **Verification**:
+  - `./gradlew test`: 100% passed across all multiplatform test tasks.
+  - `./gradlew :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-32-tactile-subscreens`).
+
+---
+
+## 🏆 Sprint 32: Tactile Sub-Screens & Secondary Overlays Polish — 100% Complete
+- **All 4 Sprint 32 stories PASSED**:
+  - `ICA-3201: Android Tactile Offline Trail Sheet & File Manager Modernization` [PASSED]
+  - `ICA-3202: Android Tactile Message Dialog & Subsystem Diagnostics Modernization` [PASSED]
+  - `ICA-3203: iOS Native SwiftUI Trail Cockpit, File Manager & Diagnostics Modernization` [PASSED]
+  - `ICA-3204: Multiplatform Sub-Screen E2E Interaction Test & Certification` [PASSED]
+- **Milestone DoD Status**: 100% Definition of Done criteria passed cleanly across all platforms with 0 regressions, 0 OCR findings, and full multiplatform compilation.
+
+
