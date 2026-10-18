@@ -20,7 +20,7 @@
         "Zero Java or C dependencies (Rule 3)",
         "100% test coverage in commonTest"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-3302",
