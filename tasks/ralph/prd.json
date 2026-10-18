@@ -37,7 +37,7 @@
         "Smooth cross-fading when real voice frame reception resumes",
         "Comprehensive unit tests in commonTest"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-3403",

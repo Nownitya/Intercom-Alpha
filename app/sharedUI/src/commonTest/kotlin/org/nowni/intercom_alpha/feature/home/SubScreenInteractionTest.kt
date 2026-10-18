@@ -186,5 +186,24 @@ class SubScreenInteractionTest {
         testScheduler.advanceUntilIdle()
         assertEquals(org.nowni.intercom_alpha.audio.ClusterPolicy.CLUSTER_AVERAGE, viewModel.uiState.value.bitrateTelemetry.clusterPolicy)
     }
+
+    @Test
+    fun testFecAndPlcControlsLifecycle() = runTest(testDispatcher) {
+        testScheduler.advanceUntilIdle()
+
+        // 1. Initial state
+        assertEquals(org.nowni.intercom_alpha.audio.FecRatio.RATIO_4_1, viewModel.uiState.value.fecTelemetry.activeRatio)
+        assertEquals(0L, viewModel.uiState.value.plcTelemetry.totalFramesConcealed)
+
+        // 2. Change FEC Ratio to 4:2
+        viewModel.onAction(HomeUiAction.SetFecRatio(org.nowni.intercom_alpha.audio.FecRatio.RATIO_4_2))
+        testScheduler.advanceUntilIdle()
+        assertEquals(org.nowni.intercom_alpha.audio.FecRatio.RATIO_4_2, viewModel.uiState.value.fecTelemetry.activeRatio)
+
+        // 3. Change FEC Ratio to DISABLED
+        viewModel.onAction(HomeUiAction.SetFecRatio(org.nowni.intercom_alpha.audio.FecRatio.DISABLED))
+        testScheduler.advanceUntilIdle()
+        assertEquals(org.nowni.intercom_alpha.audio.FecRatio.DISABLED, viewModel.uiState.value.fecTelemetry.activeRatio)
+    }
 }
 
