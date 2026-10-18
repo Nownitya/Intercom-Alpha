@@ -19,7 +19,7 @@
         "Spatial bounding-box queries return road vectors and topographic contours in < 15ms",
         "100% test coverage in commonTest"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-3602",

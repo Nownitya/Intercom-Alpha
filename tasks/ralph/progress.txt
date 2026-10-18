@@ -2801,5 +2801,26 @@
   - `ICA-3504: 16-Node High-Throughput MTU Packing & Burst Loss Simulation Test` [PASSED]
 - **Milestone DoD Status**: 100% Definition of Done criteria passed cleanly across all platforms with 0 regressions, 0 OCR findings, and full multiplatform compilation.
 
+---
+
+## 🚀 Sprint 36: Offline Vector Topographic & Trail Elevation Profile HUD (Phase 31)
+
+### [2026-10-18] - ICA-3601: Pure KMP Offline Vector Map Tile Parser & Spatial Bounding Box Cacher
+- **Branch**: `feature/ICA-3601-offline-vector-tile-engine`
+- **Objective**: Implement OfflineVectorTileEngine in commonMain providing pure Kotlin MVT tile decoding, Web Mercator projection, spatial bounding box caching, and sub-15ms spatial querying.
+- **Implementation**:
+  - Created `OfflineVectorTileEngine.kt` in `commonMain`:
+    - `BoundingBox`: min/max lat/lon in WGS-84 with point containment and intersection algorithms.
+    - `TileCoord`: Web Mercator tile coordinates $(z, x, y)$ with forward/inverse bounding box projections and intersecting tile calculations.
+    - `MvtTileDecoder`: Pure KMP vector tile decoder with zig-zag integer encoding/decoding and multi-layer feature extraction (points, linestrings, polygons).
+    - `OfflineVectorTileEngine`: In-memory tile storage with pure KMP LRU eviction cache (`ArrayDeque`), sub-15ms spatial bounding box queries, layer filtering, and query telemetry.
+  - Created `OfflineVectorTileEngineTest.kt` in `commonTest`:
+    - 6 comprehensive unit tests validating bounding box math, Web Mercator coordinate projections, zig-zag encoding symmetry, MVT tile decoding, LRU eviction bounds, and spatial query caching.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly.
+  - `./gradlew :app:androidApp:assembleDebug`: Passed cleanly in 2m 53s.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-36-vector-trail-elevation-hud`).
+
 
 
