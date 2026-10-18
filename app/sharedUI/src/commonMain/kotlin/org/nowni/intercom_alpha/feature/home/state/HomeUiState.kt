@@ -152,7 +152,11 @@ data class HomeUiState(
         averageFramesPerPacket = 0.0,
         packingEfficiencyPct = 0.0,
         rfPacketReductionPct = 0.0
-    )
+    ),
+
+    // Sprint 36 Offline Vector Topographic & Trail Elevation Profile HUD (ICA-3603)
+    val elevationProfile: org.nowni.intercom_alpha.geo.ConvoyElevationProfile = org.nowni.intercom_alpha.geo.ConvoyElevationProfile(),
+    val showElevationSheet: Boolean = false
 )
 
 sealed interface HomeUiAction {
@@ -232,6 +236,9 @@ sealed interface HomeUiAction {
 
     // Sprint 35 BLE ATT MTU Actions (ICA-3503)
     data class SetNegotiatedMtu(val mtu: Int) : HomeUiAction
+
+    // Sprint 36 Trail Elevation HUD Actions (ICA-3603)
+    data class ToggleElevationSheet(val show: Boolean) : HomeUiAction
 }
 
 sealed interface HomeUiEvent {
