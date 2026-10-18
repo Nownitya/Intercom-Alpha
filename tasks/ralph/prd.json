@@ -20,7 +20,7 @@
         "Compact 2-byte sub-frame header encoding frame length and packet type discriminator",
         "100% test coverage in commonTest"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-3502",
