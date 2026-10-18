@@ -57,6 +57,8 @@ class HomeViewModel(
     ),
     val qosScheduler: org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler = org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler(),
     val failoverArbiter: org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter = org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter(),
+    val linkQualityScorer: org.nowni.intercom_alpha.mesh.MeshLinkQualityScorer = org.nowni.intercom_alpha.mesh.MeshLinkQualityScorer(),
+    val bitrateEngine: org.nowni.intercom_alpha.audio.AdaptiveBitrateEngine = org.nowni.intercom_alpha.audio.AdaptiveBitrateEngine(),
     val hardwareBridge: IntercomHardwareBridge = NoOpIntercomHardwareBridge()
 ) : ViewModel() {
 
@@ -95,6 +97,32 @@ class HomeViewModel(
         viewModelScope.launch {
             hardwareBridge.failoverSnapshot.collect { snapshot ->
                 _uiState.update { it.copy(failoverSnapshot = snapshot) }
+            }
+        }
+
+        viewModelScope.launch {
+            linkQualityScorer.clusterHealth.collect { health ->
+                _uiState.update { it.copy(linkQualityHealth = health) }
+                bitrateEngine.evaluateClusterHealth(health, currentTimeMillis())
+            }
+        }
+
+        viewModelScope.launch {
+            bitrateEngine.telemetry.collect { telemetry ->
+                _uiState.update { it.copy(bitrateTelemetry = telemetry) }
+                hardwareBridge.updateAdaptiveBitrateSnapshot(telemetry)
+            }
+        }
+
+        viewModelScope.launch {
+            hardwareBridge.linkQualitySnapshot.collect { health ->
+                _uiState.update { it.copy(linkQualityHealth = health) }
+            }
+        }
+
+        viewModelScope.launch {
+            hardwareBridge.adaptiveBitrateSnapshot.collect { telemetry ->
+                _uiState.update { it.copy(bitrateTelemetry = telemetry) }
             }
         }
 
@@ -687,6 +715,25 @@ class HomeViewModel(
 
             is HomeUiAction.ToggleDiagnosticsSheet -> {
                 _uiState.update { it.copy(showDiagnosticsSheet = action.show) }
+            }
+
+            is HomeUiAction.PinAudioProfile -> {
+                viewModelScope.launch {
+                    if (action.profile != null) {
+                        bitrateEngine.pinProfile(action.profile, currentTimeMillis())
+                        hardwareBridge.pinAudioBitrateProfile(action.profile)
+                    } else {
+                        bitrateEngine.releasePin(currentTimeMillis())
+                        hardwareBridge.pinAudioBitrateProfile(null)
+                    }
+                }
+            }
+
+            is HomeUiAction.SetClusterPolicy -> {
+                viewModelScope.launch {
+                    bitrateEngine.setClusterPolicy(action.policy)
+                    hardwareBridge.setClusterPolicy(action.policy)
+                }
             }
         }
     }

@@ -1248,6 +1248,48 @@ class IntercomBridge(
     fun setVoxSensitivity(energyThresholdDb: Float) {
         wakeWordEngine.setSensitivity(energyThresholdDb)
     }
+
+    // --- Swift-Friendly Dynamic Adaptive Bitrate & Link Quality Observers & Controls (Sprint 33 / ICA-3303) ---
+
+    val linkQualityScorer: org.nowni.intercom_alpha.mesh.MeshLinkQualityScorer =
+        org.nowni.intercom_alpha.mesh.MeshLinkQualityScorer()
+
+    val adaptiveBitrateEngine: org.nowni.intercom_alpha.audio.AdaptiveBitrateEngine =
+        org.nowni.intercom_alpha.audio.AdaptiveBitrateEngine()
+
+    fun observeLinkQualityHealth(onHealth: (org.nowni.intercom_alpha.mesh.ClusterLinkHealth) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            linkQualityScorer.clusterHealth.collect { health ->
+                onHealth(health)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun observeAdaptiveBitrateTelemetry(onTelemetry: (org.nowni.intercom_alpha.audio.BitrateEngineTelemetry) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            adaptiveBitrateEngine.telemetry.collect { telemetry ->
+                onTelemetry(telemetry)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun pinAudioBitrateProfile(profile: org.nowni.intercom_alpha.common.AudioProfile?) {
+        scope.launch {
+            if (profile != null) {
+                adaptiveBitrateEngine.pinProfile(profile, currentTimeMillis())
+            } else {
+                adaptiveBitrateEngine.releasePin(currentTimeMillis())
+            }
+        }
+    }
+
+    fun setClusterPolicy(policy: org.nowni.intercom_alpha.audio.ClusterPolicy) {
+        scope.launch {
+            adaptiveBitrateEngine.setClusterPolicy(policy)
+        }
+    }
 }
 
 
