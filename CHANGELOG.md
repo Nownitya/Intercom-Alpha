@@ -1,4 +1,4 @@
-# Changelog â€” Intercom-Alpha
+# Changelog — Intercom-Alpha
 
 All notable changes to this project will be documented in this file.
 
@@ -56,7 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Airtime Saturation Stress Simulation & Zero-Drop Benchmark (`AirtimeQoSTest.kt`)**: Benchmark verifying zero emergency drops and consistent voice playout under 100% mesh channel saturation.
 
 ---
-## [2.10.0] - 2026-10-09 â€” Sprint 23: Multi-Group Inter-Convoy Gateway & Cross-Mesh Federation
+## [2.10.0] - 2026-10-09 — Sprint 23: Multi-Group Inter-Convoy Gateway & Cross-Mesh Federation
 
 ### Added
 - **Pure KMP Multi-Group Gateway Engine & Cross-Mesh Federation Protocol (`FederationModels.kt`, `InterGroupGateway.kt`, `CrossMeshRelayEngine.kt`)**: Defines inter-group gateway contracts (`GroupFederationInvite`, `FederationBridgeState`, `CrossGroupPolicy`, `CrossMeshAudioPacket`). Implements gateway leader arbitration, policy-driven audio and hazard bridging between distinct cryptographic groups (Squad A vs Squad B) with key translation and destination group re-encryption, preventing unauthorized spillover while enabling seamless intercom between road captains with zero Java/C dependencies (Rules 2 & 3).
@@ -66,7 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.9.0] - 2026-10-08 â€” Sprint 22: Dynamic Mesh Directed Routing, AODV-Lite Route Optimization & RF Collision Reduction
+## [2.9.0] - 2026-10-08 — Sprint 22: Dynamic Mesh Directed Routing, AODV-Lite Route Optimization & RF Collision Reduction
 
 ### Added
 - **Pure KMP AODV-Lite Directed Routing Engine (`RoutingModels.kt`, `RoutingTable.kt`, `AodvRoutingEngine.kt`)**: Implemented on-demand route discovery (`RREQ`/`RREP`/`RERR`) with monotonic sequence numbers, link delivery ratio & RSSI-based ETX metrics, 3-failure link break circuit breaker, and route error self-healing with zero Java or C dependencies (Rules 2 & 3).
@@ -76,17 +76,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.8.0] - 2026-10-07 â€” Sprint 21: Autonomous Crash Impact Detection, eCall SOS & Offline Voice Command HUD
+## [2.8.0] - 2026-10-07 — Sprint 21: Autonomous Crash Impact Detection, eCall SOS & Offline Voice Command HUD
 
 ### Added
 - **Pure KMP Crash Detection & Fall-Over IMU State Machine (`SensorModels.kt`, `CrashDetector.kt`)**: Multi-axis IMU collision shock (8.5g severe impact, 4.5g hard collision, >60Â° sustained fall-over) with 30s abortable countdown.
-- **Pure KMP Offline Voice Command & Keyword Spotting DSP (`VoiceCommandModels.kt`, `VoiceCommandRecognizer.kt`)**: Acoustic DSP keyword spotter ("Intercom SOS", "Next Channel", "Prev Channel", "Toggle Mute", "Battery Status", "Cancel Alert") under 80â€“120 km/h wind noise.
+- **Pure KMP Offline Voice Command & Keyword Spotting DSP (`VoiceCommandModels.kt`, `VoiceCommandRecognizer.kt`)**: Acoustic DSP keyword spotter ("Intercom SOS", "Next Channel", "Prev Channel", "Toggle Mute", "Battery Status", "Cancel Alert") under 80–120 km/h wind noise.
 - **Subsystem Platform Hardware Sensor Bridge Wiring & Emergency HUD (`HomeScreen.kt`, `ContentView.swift`)**: Real-time crash pre-alert countdown banner with 1-tap abort actuator across Compose and 100% Native SwiftUI.
 - **Crash Impact & Voice Command Simulation Harness (`CrashAndVoiceSimulationHarness.kt`)**: 5,000-sample streaming simulation verifying zero false positives during aggressive cornering and rough terrain.
 
 ---
 
-## [2.7.0] - 2026-10-07 â€” Sprint 20: Tactical Convoy Geofencing, Autonomous Power Governor & Multi-Node Stress Benchmark Suite
+## [2.7.0] - 2026-10-07 — Sprint 20: Tactical Convoy Geofencing, Autonomous Power Governor & Multi-Node Stress Benchmark Suite
 
 ### Added
 - **Pure KMP Convoy Geofencing, Hazard Waypoint Radar Alarms & Convoy Split Engine (`ConvoyGeofenceModels.kt`, `ConvoyGeofenceEngine.kt`)**: Great-Circle Haversine tether monitoring (warn at >300m, breach alarm at >600m from lead rider), hazard obstacle proximity radar (e.g. 100m proximity alarm), single-linkage BFS connected-component clustering for convoy partition/split detection across rider clusters with inter-cluster gap calculation, and automatic control alarm emission with zero Java or C dependencies (Rules 2 & 3).
@@ -96,7 +96,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.6.0] - 2026-10-07 â€” Sprint 19: Over-The-Air BLE Mesh GPX/GeoJSON Trail Sharing & Storage Manager
+## [2.6.0] - 2026-10-07 — Sprint 19: Over-The-Air BLE Mesh GPX/GeoJSON Trail Sharing & Storage Manager
 
 ### Added
 - **Pure KMP Chunked Mesh File Transfer & GPX/GeoJSON Protocol Engine (`MeshFileModels.kt`, `MeshFileTransferEngine.kt`, `MeshFileTransferManager.kt`)**: Implemented pure KMP RFC 1950 Adler-32 checksum algorithm (modulo 65521), MTU chunking engine (<=100 bytes payload) guaranteeing zero packet fragmentation over BLE GATT characteristics, out-of-order `ReassemblyBuffer`, sliding-window queue with selective NACK retransmission over lossy RF hops, and pure KMP GPX 1.1 / RFC 7946 GeoJSON parsers and exporters with zero Java (`java.util.zip`) or external C/JNI dependencies (Rules 2 & 3).
@@ -106,7 +106,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.5.0] - 2026-10-07 â€” Sprint 18: Offline Vector Terrain & Trail Map Overlay
+## [2.5.0] - 2026-10-07 — Sprint 18: Offline Vector Terrain & Trail Map Overlay
 
 ### Added
 - **Pure KMP Offline Vector Trail & Terrain Geometry Engine (`VectorMapModels.kt`, `TrailMapEngine.kt`, `TrailMapManager.kt`)**: Implemented immutable data models (`GeoPoint`, `TrailWaypoint`, `TrailPolyline`, `ContourLine`, `ProjectedRadarPoint`, `RadarRangeZoom`, `TrailMapSnapshot`), Great-Circle Haversine distance, forward azimuth, relative vehicle bearing normalization ($-180^\circ..+180^\circ$), polar-to-Cartesian normalized radar projection, GeoJSON parser, and procedural alpine trail generator with zero Java or external map SDK dependencies (Rules 2 & 3).
@@ -116,7 +116,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.4.0] - 2026-10-06 â€” Sprint 17: Basecamp Stationary Repeater UI & Dedicated Low-Power Cockpit Mode
+## [2.4.0] - 2026-10-06 — Sprint 17: Basecamp Stationary Repeater UI & Dedicated Low-Power Cockpit Mode
 
 ### Added
 - **Basecamp Stationary Repeater State Management & Platform Bridge Wiring (`MeshRepeaterService.kt`, `RepeaterViewModel.kt`, `IntercomHardwareBridge.kt`, `AndroidPlatformBridge.kt`, `IntercomBridge.kt`)**: Decoupled microphone and speaker pipelines during repeater operation to dedicate 100% of airtime and battery to relaying. Added duty cycle switcher (`CONTINUOUS`, `POWER_SAVER`, `EXTREME_SURVIVAL`), companion ping/pong helpers, and Swift-friendly `CancellationHandle` observers.
@@ -126,7 +126,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.3.0] - 2026-10-06 â€” Sprint 16: Mesh Repeater, Audio DSP & Convoy Simulation
+## [2.3.0] - 2026-10-06 — Sprint 16: Mesh Repeater, Audio DSP & Convoy Simulation
 
 ### Added
 - **Pure KMP Automatic Gain Control & Dynamic Range Compression (`AutomaticGainControl.kt` & `DynamicRangeCompressor.kt`)**: Normalizes speech levels to $-18.0\text{ dBFS}$ target within $150\text{ ms}$ with anti-pumping protection below $-50\text{ dBFS}$. Implements soft-knee $4:1$ dynamic range compression and lookahead brickwall peak limiting with guaranteed peak ceiling $\le -0.5\text{ dBFS}$ without Java/C dependencies.
@@ -136,7 +136,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.2.0] - 2026-10-06 â€” Sprint 15: Zero-Scroll Tactical Cockpit HUD & Telemetry Integration
+## [2.2.0] - 2026-10-06 — Sprint 15: Zero-Scroll Tactical Cockpit HUD & Telemetry Integration
 
 ### Added
 - **Zero-Scroll Tactical Cockpit HUD (`HomeScreen.kt` & `ContentView.swift`)**: Enforced a zero-vertical-scroll layout contract on mobile handlebar RAM mounts across both Compose Multiplatform (`sharedUI`) and 100% Native iOS SwiftUI (`iosApp`). Top avionics bar, channel dial, vector radar, 140dp PTT, hazard macros, and emergency SOS bar remain permanently visible on mobile screens ($H \le 844$dp).
@@ -147,7 +147,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.1.0] - 2026-10-04 â€” Sprint 14: Advanced Convoy Mesh, Forward-Secret Key Ratchet & Live Activity
+## [2.1.0] - 2026-10-04 — Sprint 14: Advanced Convoy Mesh, Forward-Secret Key Ratchet & Live Activity
 
 ### Added
 - **Pure KMP Perfect Forward Secrecy (PFS) & Ephemeral Key Ratchet (`MeshKeyRatchet.kt` & `PacketCipher.kt`)**: Implemented RFC 2104 HMAC-SHA256 and RFC 5869 HKDF-SHA256 in 100% pure Kotlin Multiplatform (Rule 3). Implemented rolling symmetric KDF chain ratcheting deriving ephemeral keys that immediately zeroize previous secrets (`.fill(0)`), combined with a bounded skipped key cache for disordered mesh packet decryption and replay defense.
@@ -157,7 +157,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.0.0] - 2026-10-04 â€” Sprint 13: v2.0 Production Release & Hardening
+## [2.0.0] - 2026-10-04 — Sprint 13: v2.0 Production Release & Hardening
 
 ### Added
 - **Android Platform Hardware-to-Cockpit Service Bridge (`AndroidPlatformBridge.kt` & `IntercomForegroundService.kt`)**: Wired `HomeViewModel` in `sharedUI` to the live Android `IntercomForegroundService`, connecting physical PTT, live BLE mesh peer discovery, real-time microphone/speaker RMS audio levels, and OTA control packets (canned hazard text, convoy GPS telemetry, emergency SOS).
@@ -167,18 +167,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.4.0] - 2026-10-01 â€” Sprint 12: Multiplatform Cockpit UI & Bridge Integration
+## [1.4.0] - 2026-10-01 — Sprint 12: Multiplatform Cockpit UI & Bridge Integration
 
 ### Added
 - **KMP Swift Bridge Extension for v2.0 Subsystems (`IntercomBridge.kt`)**: Exposed reactive observer factory functions with memory-safe `CancellationHandle` callbacks for 16-channel dial, proximity radar, convoy GPS telemetry, mesh text, emergency broadcast, encrypted blackbox recorder, and adaptive bitrate.
 - **Native iOS SwiftUI Cockpit v2.0 (`ContentView.swift` & `IntercomViewModel.swift`)**: 100% native SwiftUI motorcycle cockpit (Rule 1) featuring `ChannelDialView`, `ConvoyRadarStripView` with relative bearing indicators (-180Â° to +180Â°), `QuickHazardBar` with haptic feedback, and `EmergencySosBanner`.
-- **Compose Multiplatform Cockpit Components (`sharedUI`)**: Enriched `HomeUiState` and `HomeViewModel` orchestrating all shared logic managers. Implemented `ChannelSelectorBar` (CH 1â€“16, Dual-Watch, Scan), `ProximityRadarView` (bearing compass vector, proximity zone tags), `QuickHazardBar` (canned alert buttons, unread badge), and `EmergencyPreemptionBanner`.
+- **Compose Multiplatform Cockpit Components (`sharedUI`)**: Enriched `HomeUiState` and `HomeViewModel` orchestrating all shared logic managers. Implemented `ChannelSelectorBar` (CH 1–16, Dual-Watch, Scan), `ProximityRadarView` (bearing compass vector, proximity zone tags), `QuickHazardBar` (canned alert buttons, unread badge), and `EmergencyPreemptionBanner`.
 - **Multiplatform End-to-End Presentation Integration Tests**: Comprehensive multiplatform contract test suites (`IntercomBridgeContractTest.kt` in `sharedLogic/commonTest` and `HomeViewModelTest.kt` in `sharedUI/commonTest`) verifying channel switching, dual-watch, scan mode, canned hazard dispatch, custom messaging, emergency preemption, and PTT state transitions.
 - **Pure KMP Bounded Memory Blackbox (`MiniLz` in `EmergencyBlackboxRecorder.kt`)**: Integrated lightweight pure Kotlin LZ77 compression for incident snapshots, bounding total resident RAM strictly under 1 MB (< 3 MB threshold).
 
 ---
 
-## [1.3.0] - 2026-10-01 â€” Sprint 11: Convoy Situational Awareness, GPS Mesh Telemetry & Blackbox Voice Cache
+## [1.3.0] - 2026-10-01 — Sprint 11: Convoy Situational Awareness, GPS Mesh Telemetry & Blackbox Voice Cache
 
 ### Added
 - **Offline Mesh Canned Hazard & Quick Text Messaging (`MeshTextManager.kt`)**: Standardized canned convoy hazard alerts (`FUEL_LOW`, `HAZARD_ROAD`, `STOP_IMMEDIATE`), custom text messages (<280 chars), peer-to-peer delivery ACK tracking, and reactive unread badge state.
@@ -188,7 +188,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.2.0] - 2026-09-30 â€” Sprint 10: Multi-Channel Intercom, Priority Emergency & Audio Spatialization
+## [1.2.0] - 2026-09-30 — Sprint 10: Multi-Channel Intercom, Priority Emergency & Audio Spatialization
 
 ### Added
 - **Multi-Channel Sub-Group Partitioning (`ChannelManager.kt`)**: 16 configurable sub-channels with convoy presets, Dual-Watch secondary channel monitoring, scan mode, and automatic audio frame segregation.
@@ -198,7 +198,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.1.0] - 2026-09-30 â€” Sprint 09: Cellular Fallback & Cloud Relay Bridge
+## [1.1.0] - 2026-09-30 — Sprint 09: Cellular Fallback & Cloud Relay Bridge
 
 ### Added
 - **Ktor WebSocket Cloud Relay Gateway (`CloudRelayBridge.kt`)**: Cellular data bridging fallback connecting local BLE mesh to Ktor WebSocket server (`:server`) via polymorphic Base64 message routing.
@@ -208,7 +208,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.0.0] - 2026-09-29 â€” Sprint 08: Real-World Field Testing & Hardening (v1.0 Production Release)
+## [1.0.0] - 2026-09-29 — Sprint 08: Real-World Field Testing & Hardening (v1.0 Production Release)
 
 ### Added
 - **Production Release Signing & ProGuard/R8 Hardening (`proguard-rules.pro`)**: Preserved polymorphic Kotlin serialization, Koin modules, and Bluetooth GATT components for minified release builds.
@@ -219,18 +219,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [0.7.0] - 2026-09-27 â€” Sprint 07: Audio Codec Optimization, Jitter Buffering & PLC
+## [0.7.0] - 2026-09-27 — Sprint 07: Audio Codec Optimization, Jitter Buffering & PLC
 
 ### Added
 - **Adaptive Jitter Buffer & Playout Sequencer (`AdaptiveJitterBuffer.kt`)**: RFC 3550 inter-arrival jitter estimation with dynamic 40ms to 150ms playout delay, sequence reordering, and gap concealment triggers.
 - **Packet Loss Concealment & Waveform Extrapolation (`PacketLossConcealment.kt`)**: Autocorrelation pitch period detection, voiced pitch extrapolation, -3 dB exponential decay, and smooth boundary crossfading.
 - **Adaptive Noise Gate & VOX Energy DSP (`NoiseGate.kt`)**: Logarithmic dBFS envelope tracker with dual-threshold hysteresis (-35 dBFS open / -42 dBFS close), 5ms attack, 100ms hold, and 50ms release.
-- **Multi-Rate Pure KMP Audio Codec Engine (`AudioCodec.kt`)**: Zero-dependency 4-bit IMA ADPCM logarithmic compression engine conforming to single BLE GATT MTU bounds (84â€“127 bytes/frame).
+- **Multi-Rate Pure KMP Audio Codec Engine (`AudioCodec.kt`)**: Zero-dependency 4-bit IMA ADPCM logarithmic compression engine conforming to single BLE GATT MTU bounds (84–127 bytes/frame).
 - **Full Duplex Audio Pipeline Session (`AudioPipelineSession`)**: End-to-end coordinated audio streaming resilient to 20% packet drops and 50ms transit jitter.
 
 ---
 
-## [0.6.0] - 2026-09-27 â€” Sprint 06: Background Services & OS Power Management
+## [0.6.0] - 2026-09-27 — Sprint 06: Background Services & OS Power Management
 
 ### Added
 - **Android Foreground Service (`IntercomForegroundService.kt`)**: Background lifecycle with sticky ongoing notification, `connectedDevice|microphone` service types, and Bluetooth SCO audio routing lock.
@@ -241,7 +241,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [0.5.0] - 2026-09-27 â€” Sprint 05: Mesh Flooding Relay, Deduplication & Encryption
+## [0.5.0] - 2026-09-27 — Sprint 05: Mesh Flooding Relay, Deduplication & Encryption
 
 ### Added
 - **Pure Kotlin RFC 8439 ChaCha20-Poly1305 AEAD**: Implemented zero-dependency, pure Kotlin cipher and SHA-256 key derivation (`PacketCipher.kt`) running on all KMP targets.
@@ -253,7 +253,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [0.4.0] - 2026-09-27 â€” Sprint 04: Swift â†” KMP Bridge & QR Onboarding
+## [0.4.0] - 2026-09-27 — Sprint 04: Swift â†” KMP Bridge & QR Onboarding
 
 ### Added
 - **Swift â†” KMP Reactive Bridge**: Non-blocking `IntercomBridge.kt` with cancellation handles in `iosMain`.
@@ -262,7 +262,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [0.3.0] - 2026-09-26 â€” Sprint 03: iOS Native Audio & CoreBluetooth Mesh
+## [0.3.0] - 2026-09-26 — Sprint 03: iOS Native Audio & CoreBluetooth Mesh
 
 ### Added
 - **iOS AVAudioEngine Tap**: Low-latency PCM input and output scheduling in `AudioEngine.ios.kt`.
@@ -271,7 +271,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [0.2.0] - 2026-09-25 â€” Sprint 02: Android Platform Engine & Compose UI
+## [0.2.0] - 2026-09-25 — Sprint 02: Android Platform Engine & Compose UI
 
 ### Added
 - **Android Audio Streaming**: `AudioRecord` / `AudioTrack` 16kHz PCM streaming with VOX thresholding.
@@ -281,7 +281,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [0.1.0] - 2026-09-20 â€” Sprint 01: Core Networking & Signaling
+## [0.1.0] - 2026-09-20 — Sprint 01: Core Networking & Signaling
 
 ### Added
 - **Polymorphic Signaling Protocol**: JSON and binary protocols in `:core`.

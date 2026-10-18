@@ -2529,3 +2529,9 @@
   - `ICA-3103: Glove-Friendly Spatial Radar & Telemetry Liquid Glass Card Integration` [PASSED]
   - `ICA-3104: Tactical Cockpit E2E Interaction Simulation & Archify Showcase Update` [PASSED]
 - **Milestone DoD Status**: 100% Definition of Done criteria passed cleanly across all platforms with 0 regression, 0 OCR findings, and full graphify AST synchronization.
+- **Audit Remediation & Unified Cockpit Wiring**:
+  - Wired `MainCockpitScreen` into `AppNavGraph.kt` with working `MessageHistoryDialog`, `OfflineTrailCockpitSheet`, and `TrailFileManagerSheet` overlays.
+  - Resolved version catalog desync (`3.0.0-alpha1`, `versionCode = 9`), eliminated shadow binaries and duplicate task trackers.
+  - Repaired mojibake CP-1252 corruption in `docs/TASKS.md`, `CHANGELOG.md`, and `JOURNAL.md`.
+  - OpenCodeReview pre-commit gate passed cleanly (0 findings).
+
