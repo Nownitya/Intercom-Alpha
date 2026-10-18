@@ -2728,5 +2728,53 @@
   - `ICA-3404: Multi-Node 25% Burst Loss Simulation Test & Multiplatform Certification` [PASSED]
 - **Milestone DoD Status**: 100% Definition of Done criteria passed cleanly across all platforms with 0 regressions, 0 OCR findings, and full multiplatform compilation.
 
+---
+
+## 🚀 Sprint 35: Ultra-Low Latency BLE MTU Frame Packing & Interleaving (Phase 30)
+
+### [2026-10-18] - ICA-3501: Multiplatform BLE ATT MTU Frame Aggregator & Sub-Packet Framer
+- **Branch**: `feature/ICA-3501-mtu-frame-aggregator`
+- **Objective**: Implement BleMtuAggregator in commonMain to pack multiple 20ms voice/control frames into a single negotiated 247-byte MTU payload with compact 2-byte frame headers, emergency immediate flush, capacity limit flush, and timeout flush.
+- **Implementation**:
+  - Created `BleMtuAggregator.kt` in `commonMain`:
+    - Frame packing up to negotiated MTU (247 bytes default, 185 safe fallback) with magic header byte `0xBE` and sequence numbers.
+    - 2-byte sub-frame header encoding 14-bit payload length and sub-frame discriminator.
+    - Full telemetry computation: `averageFramesPerPacket`, `packingEfficiencyPct`, `rfPacketReductionPct`.
+  - Created `BleMtuAggregatorTest.kt` in `commonTest` with 6 comprehensive unit tests.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-35-ble-mtu-packing`).
+
+### [2026-10-18] - ICA-3502: Time-Diversity Block Interleaver & Playout De-jittering Unpacker
+- **Branch**: `feature/ICA-3502-frame-interleaver`
+- **Objective**: Implement BleFrameInterleaver in commonMain to perform matrix block interleaving across consecutive MTU packets, dispersing burst radio dropouts across disjoint time slots.
+- **Implementation**:
+  - Created `BleFrameInterleaver.kt` in `commonMain`:
+    - Deterministic $(M \times N)$ matrix block interleaving with `totalPacketsInBlock` and `totalFramesInBlock` headers.
+    - Receiver matrix reassembly with missing frame detection, timeout flush, and zero-latency emergency SOS frame bypass.
+  - Created `BleFrameInterleaverTest.kt` in `commonTest` with 4 comprehensive unit tests.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-35-ble-mtu-packing`).
+
+### [2026-10-18] - ICA-3503: Transport Dynamic MTU Negotiation & Cockpit Packing Telemetry Wiring
+- **Branch**: `feature/ICA-3503-mtu-telemetry-wiring`
+- **Objective**: Integrate dynamic MTU negotiation and packing telemetry into hardware bridges, AudioEngine, HomeViewModel, and TactileDiagnosticsSheet.
+- **Implementation**:
+  - `IntercomHardwareBridge.kt`: Added `bleMtuSnapshot: StateFlow<BleMtuTelemetry>`, `updateBleMtuTelemetry`, and `setNegotiatedMtu(mtu)`.
+  - `AudioEngine.kt`: Integrated `BleMtuAggregator` and `BleFrameInterleaver` into `AudioPipelineSession` with `packOutgoingPayload`, `unpackIncomingPayload`, `setNegotiatedMtu`, and `getMtuTelemetry`.
+  - `AndroidPlatformBridge.kt`: Implemented `_bleMtuSnapshot`, `updateBleMtuTelemetry`, and `setNegotiatedMtu`.
+  - `IntercomBridge.kt` (iOS): Integrated `mtuAggregator`, `bleMtuTelemetry`, `observeBleMtuTelemetry`, and `setNegotiatedMtu` with `CancellationHandle`.
+  - `HomeUiState.kt` & `HomeViewModel.kt`: Added `bleMtuTelemetry: BleMtuTelemetry` in `HomeUiState` and `SetNegotiatedMtu` in `HomeUiAction`.
+  - `TactileDiagnosticsSheet.kt`: Rendered "BLE ATT MTU FRAME PACKING & DIVERSITY" card showing negotiated MTU, packing ratio, and RF overhead saved %.
+  - `SubScreenInteractionTest.kt`: Added unit test `testBleMtuControlsAndTelemetryLifecycle`.
+- **Verification**:
+  - `./gradlew :app:sharedUI:jvmTest :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly in 12s.
+  - `./gradlew :app:androidApp:assembleDebug`: Passed cleanly in 57s.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-35-ble-mtu-packing`).
+
 
 

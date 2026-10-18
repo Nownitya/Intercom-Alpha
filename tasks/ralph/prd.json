@@ -58,7 +58,7 @@
         "Exposes live MTU packing metrics (active MTU, packed frames/pkt, packing efficiency %) to UI state",
         "Displays MTU pill in TactileDiagnosticsSheet.kt with real-time stats"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-3504",
