@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -18,10 +19,14 @@ import androidx.compose.ui.window.Dialog
 import org.nowni.intercom_alpha.map.RadarRangeZoom
 import org.nowni.intercom_alpha.map.TrailMapSnapshot
 import org.nowni.intercom_alpha.map.WaypointType
+import org.nowni.intercom_alpha.ui.theme.IntercomTokens
+import org.nowni.intercom_alpha.ui.theme.claymorphic
+import org.nowni.intercom_alpha.ui.theme.neobrutalistBorder
 
 /**
  * Tactical Offline Vector Terrain & Trail Cockpit Sheet.
  * Displays offline trail metrics, elevation profile, and waypoint roster with zero cellular connectivity.
+ * Styled with ADR-014 Tactile Claymorphism, Neobrutalist outlines, and monospaced tabular readouts.
  */
 @Composable
 fun OfflineTrailCockpitSheet(
@@ -34,15 +39,19 @@ fun OfflineTrailCockpitSheet(
     modifier: Modifier = Modifier
 ) {
     Dialog(onDismissRequest = onDismiss) {
-        Card(
+        Box(
             modifier = modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.85f),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF14181D)
-            ),
-            border = BorderStroke(1.dp, Color(0xFF2B3848))
+                .fillMaxHeight(0.88f)
+                .claymorphic(
+                    surfaceColor = IntercomTokens.CockpitChassis,
+                    shape = RoundedCornerShape(IntercomTokens.CardCornerRadius)
+                )
+                .neobrutalistBorder(
+                    color = IntercomTokens.NeobrutalBorderIdle,
+                    thickness = IntercomTokens.NeobrutalBorderThickness,
+                    shape = RoundedCornerShape(IntercomTokens.CardCornerRadius)
+                )
         ) {
             Column(
                 modifier = Modifier
@@ -60,8 +69,9 @@ fun OfflineTrailCockpitSheet(
                             text = "OFFLINE TRAIL COCKPIT",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Black,
+                            fontFamily = FontFamily.Monospace,
                             letterSpacing = 0.5.sp,
-                            color = Color(0xFF00E5FF)
+                            color = IntercomTokens.SignalSatelliteCyan
                         )
                         Text(
                             text = trailMapSnapshot.activeTrail?.name ?: "No Offline Trail Loaded",
@@ -81,23 +91,33 @@ fun OfflineTrailCockpitSheet(
                                 shape = RoundedCornerShape(6.dp),
                                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
                                 colors = ButtonDefaults.filledTonalButtonColors(
-                                    containerColor = Color(0xFF00E5FF).copy(alpha = 0.2f),
-                                    contentColor = Color(0xFF00E5FF)
+                                    containerColor = IntercomTokens.SignalSatelliteCyan.copy(alpha = 0.2f),
+                                    contentColor = IntercomTokens.SignalSatelliteCyan
                                 )
                             ) {
-                                Text("⚡ OTA ROUTES", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                Text(
+                                    text = "⚡ OTA ROUTES",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = FontFamily.Monospace
+                                )
                             }
                         }
 
                         TextButton(onClick = onDismiss) {
-                            Text("CLOSE", fontWeight = FontWeight.Bold, color = Color(0xFF00E5FF))
+                            Text(
+                                text = "CLOSE",
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace,
+                                color = IntercomTokens.SignalSatelliteCyan
+                            )
                         }
                     }
                 }
 
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = 10.dp),
-                    color = Color(0xFF2B3848)
+                    color = IntercomTokens.CockpitSurfaceElevated
                 )
 
                 // 2. Metrics Summary Row
@@ -109,16 +129,23 @@ fun OfflineTrailCockpitSheet(
                     Surface(
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(8.dp),
-                        color = Color(0xFF1D2023),
-                        border = BorderStroke(1.dp, Color(0xFF2B3848))
+                        color = IntercomTokens.CockpitSurfaceElevated,
+                        border = BorderStroke(1.dp, IntercomTokens.NeobrutalBorderIdle)
                     ) {
                         Column(modifier = Modifier.padding(8.dp)) {
-                            Text("CURRENT ALT", fontSize = 8.sp, color = Color(0xFF7A8B9E), fontWeight = FontWeight.Bold)
+                            Text(
+                                text = "CURRENT ALT",
+                                fontSize = 8.sp,
+                                color = Color(0xFF7A8B9E),
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace
+                            )
                             Text(
                                 text = "${trailMapSnapshot.currentElevationMeters.toInt()}m",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Black,
-                                color = Color(0xFF00E676)
+                                fontFamily = FontFamily.Monospace,
+                                color = IntercomTokens.SignalCodedPhyEmerald
                             )
                         }
                     }
@@ -127,36 +154,50 @@ fun OfflineTrailCockpitSheet(
                     Surface(
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(8.dp),
-                        color = Color(0xFF1D2023),
-                        border = BorderStroke(1.dp, Color(0xFF2B3848))
+                        color = IntercomTokens.CockpitSurfaceElevated,
+                        border = BorderStroke(1.dp, IntercomTokens.NeobrutalBorderIdle)
                     ) {
                         Column(modifier = Modifier.padding(8.dp)) {
-                            Text("ELEV GAIN", fontSize = 8.sp, color = Color(0xFF7A8B9E), fontWeight = FontWeight.Bold)
+                            Text(
+                                text = "ELEV GAIN",
+                                fontSize = 8.sp,
+                                color = Color(0xFF7A8B9E),
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace
+                            )
                             val gain = trailMapSnapshot.activeTrail?.totalElevationGainMeters?.toInt() ?: 0
                             Text(
                                 text = "+${gain}m",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Black,
-                                color = Color(0xFFFFB300)
+                                fontFamily = FontFamily.Monospace,
+                                color = IntercomTokens.SignalAmber
                             )
                         }
                     }
 
-                    // Radar Zoom Button
+                    // Radar Zoom Button (Glove-friendly)
                     Surface(
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(8.dp),
-                        color = Color(0xFF1D2023),
-                        border = BorderStroke(1.dp, Color(0xFF00E5FF)),
+                        color = IntercomTokens.CockpitSurfaceElevated,
+                        border = BorderStroke(1.5.dp, IntercomTokens.SignalSatelliteCyan),
                         onClick = onCycleZoom
                     ) {
                         Column(modifier = Modifier.padding(8.dp)) {
-                            Text("RADAR ZOOM", fontSize = 8.sp, color = Color(0xFF7A8B9E), fontWeight = FontWeight.Bold)
+                            Text(
+                                text = "RADAR ZOOM",
+                                fontSize = 8.sp,
+                                color = Color(0xFF7A8B9E),
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace
+                            )
                             Text(
                                 text = trailMapSnapshot.activeRangeZoom.label,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Black,
-                                color = Color(0xFF00E5FF)
+                                fontFamily = FontFamily.Monospace,
+                                color = IntercomTokens.SignalSatelliteCyan
                             )
                         }
                     }
@@ -184,8 +225,10 @@ fun OfflineTrailCockpitSheet(
                             checked = trailMapSnapshot.isOverlayEnabled,
                             onCheckedChange = onToggleOverlay,
                             colors = SwitchDefaults.colors(
-                                checkedThumbColor = Color(0xFF00E5FF),
-                                checkedTrackColor = Color(0xFF00E5FF).copy(alpha = 0.4f)
+                                checkedThumbColor = IntercomTokens.SignalSatelliteCyan,
+                                checkedTrackColor = IntercomTokens.SignalSatelliteCyan.copy(alpha = 0.4f),
+                                uncheckedThumbColor = Color(0xFF7A8B9E),
+                                uncheckedTrackColor = IntercomTokens.CockpitSurfaceElevated
                             )
                         )
                     }
@@ -196,11 +239,16 @@ fun OfflineTrailCockpitSheet(
                             shape = RoundedCornerShape(6.dp),
                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                             colors = ButtonDefaults.filledTonalButtonColors(
-                                containerColor = Color(0xFF1D2023),
-                                contentColor = Color(0xFF00E5FF)
+                                containerColor = IntercomTokens.CockpitSurfaceElevated,
+                                contentColor = IntercomTokens.SignalSatelliteCyan
                             )
                         ) {
-                            Text("Load Alpine Trail", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            Text(
+                                text = "Load Alpine Trail",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace
+                            )
                         }
                     }
                 }
@@ -213,6 +261,7 @@ fun OfflineTrailCockpitSheet(
                     fontSize = 9.sp,
                     fontWeight = FontWeight.Black,
                     letterSpacing = 0.5.sp,
+                    fontFamily = FontFamily.Monospace,
                     color = Color(0xFF7A8B9E)
                 )
 
@@ -261,14 +310,14 @@ fun OfflineTrailCockpitSheet(
                             }
 
                             Surface(
-                                shape = RoundedCornerShape(6.dp),
-                                color = Color(0xFF1D2023),
-                                border = BorderStroke(1.dp, Color(0xFF2B3848))
+                                shape = RoundedCornerShape(8.dp),
+                                color = IntercomTokens.CockpitSurfaceElevated,
+                                border = BorderStroke(1.dp, IntercomTokens.NeobrutalBorderIdle)
                             ) {
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                                        .padding(horizontal = 10.dp, vertical = 8.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
@@ -276,7 +325,7 @@ fun OfflineTrailCockpitSheet(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
-                                        Text(text = icon, fontSize = 14.sp)
+                                        Text(text = icon, fontSize = 16.sp)
                                         Column {
                                             Text(
                                                 text = wp.name,
@@ -297,15 +346,17 @@ fun OfflineTrailCockpitSheet(
                                     Column(horizontalAlignment = Alignment.End) {
                                         Text(
                                             text = distText,
-                                            fontSize = 11.sp,
+                                            fontSize = 12.sp,
                                             fontWeight = FontWeight.Black,
-                                            color = Color(0xFF00E5FF)
+                                            fontFamily = FontFamily.Monospace,
+                                            color = IntercomTokens.SignalSatelliteCyan
                                         )
                                         Text(
                                             text = if (proj.isVisibleOnRadar) "ON RADAR" else "OUT OF RANGE",
                                             fontSize = 7.sp,
                                             fontWeight = FontWeight.Bold,
-                                            color = if (proj.isVisibleOnRadar) Color(0xFF00E676) else Color(0xFF7A8B9E)
+                                            fontFamily = FontFamily.Monospace,
+                                            color = if (proj.isVisibleOnRadar) IntercomTokens.SignalCodedPhyEmerald else Color(0xFF7A8B9E)
                                         )
                                     }
                                 }
