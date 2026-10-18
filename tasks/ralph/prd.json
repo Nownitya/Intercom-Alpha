@@ -59,7 +59,7 @@
         "TactileDiagnosticsSheet displays real-time FEC mode, recovery stats, and PLC activations",
         "Adheres strictly to Rule 1 (100% Native SwiftUI on iOS) and Rule 2 (KMP shared logic)"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-3404",
