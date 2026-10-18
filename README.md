@@ -8,8 +8,8 @@
 [![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20Desktop%20%7C%20Web%20%7C%20Server-blue.svg?style=flat-square)](https://kotlinlang.org/docs/multiplatform.html)
 [![Android](https://img.shields.io/badge/Android-API%2033+-green.svg?style=flat-square&logo=android)](https://developer.android.com)
 [![iOS](https://img.shields.io/badge/iOS-16.0+%20(100%25%20Native%20SwiftUI)-black.svg?style=flat-square&logo=apple)](https://developer.apple.com/swiftui/)
-[![Release](https://img.shields.io/badge/Release-v3.0.0--alpha1-emerald.svg?style=flat-square)](https://github.com/Nownitya/Intercom-Alpha/releases)
-[![Tests](https://img.shields.io/badge/Tests-451%20Passed%20(100%25)-brightgreen.svg?style=flat-square)](#-verification--quality-gates)
+[![Release](https://img.shields.io/badge/Release-v3.0.0--alpha2-emerald.svg?style=flat-square)](https://github.com/Nownitya/Intercom-Alpha/releases)
+[![Tests](https://img.shields.io/badge/Tests-475%20Passed%20(100%25)-brightgreen.svg?style=flat-square)](#-verification--quality-gates)
 [![Crypto](https://img.shields.io/badge/AEAD-RFC%208439%20ChaCha20--Poly1305-orange.svg?style=flat-square)](https://datatracker.ietf.org/doc/html/rfc8439)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square)](./LICENSE)
 
@@ -21,15 +21,17 @@
 
 ---
 
-## ⚡ Core Capabilities (v2.12.0)
+## ⚡ Core Capabilities (v3.0.0-alpha2)
 
+* **🛡️ Forward Error Correction & Waveform PLC (Sprint 34)**: Galois Field $GF(2^8)$ Reed-Solomon dual erasure FEC and multi-peer isolated pitch-synchronous waveform packet loss concealment (PLC) recovering up to 25% burst packet drop with zero audio dropouts.
+* **📶 Dynamic Adaptive Mesh Bitrate Tuning (Sprint 33)**: Real-time EWMA RSSI and PDR link quality scoring ($Q_{link}$) dynamically modulating audio bitrates between 16 kbps and 48 kbps with asymmetric hysteresis to eliminate fading audio distortion.
+* **🎛️ Zero-Scroll Tactical Cockpit & Tactile Overlays (Sprints 31-32)**: Single-viewport cockpit HUD featuring oversized 160dp tactile PTT actuator, glove-friendly spatial radar card, and claymorphic/neobrutalist diagnostics overlays.
 * **📡 Zero-Infrastructure Decentralized Mesh**: Peer-to-peer Bluetooth Low Energy (BLE) flooding relay with managed Time-To-Live ($\text{TTL}=3$). No central hub, no cellular towers, and zero single point of failure.
 * **🔀 Automated Multi-Path Failover & Stream Hedging (Sprint 25)**: Pure KMP link quality arbiter scoring RSSI, packet loss, and jitter ($Q_{link}$). Automatically hedges voice frames over BLE Mesh and Cellular WebSocket SFU relays during RF disconnects with zero dropped words.
 * **🎚️ Airtime QoS Priority Traffic Shaping (Sprint 24)**: Token-bucket rate limiting and strict priority queueing (`Priority 0: EMERGENCY` instant preemption, `Priority 1: VOICE`, `Priority 2: CONTROL`, `Priority 3: TELEMETRY`).
 * **🔐 End-to-End RFC 8439 Encryption**: Pure Kotlin multiplatform implementation of ChaCha20-Poly1305 AEAD and SHA-256 key derivation running identically across all targets with zero Java/C dependencies.
 * **🔄 Sliding-Window Storm Suppression**: High-throughput `PacketDeduplicator` utilizing a 5,000ms sliding-window cache to eliminate cyclic forwarding storms.
 * **📱 100% Native SwiftUI on iOS**: Strict architectural boundary—Compose Multiplatform is never targeted to iOS. The iOS client communicates with shared KMP logic via a reactive, memory-safe `IntercomBridge.kt` with cancellation handles.
-* **🏍️ Glove-Friendly Cockpit HUD**: Jetpack Compose and native SwiftUI tactical dashboards featuring glove-friendly touch targets, OLED true-black theme (`#0A0D10`), and real-time avionics telemetry.
 * **🎧 Bluetooth SCO Headset Integration**: Native audio routing to motorcycle helmet communicators (Cardo, Sena) with hardware button triggers.
 * **🗺️ Tactical Vector Terrain & OTA Route Sharing**: Offline map tile overlays, dynamic convoy geofencing, breadcrumb tracking, and chunked over-the-air BLE GPX/GeoJSON sharing.
 * **🚨 Crash Impact Detection & eCall SOS**: Multi-axis IMU collision shock detection (>6.5g) triggering automated high-priority emergency SOS voice broadcasts.
