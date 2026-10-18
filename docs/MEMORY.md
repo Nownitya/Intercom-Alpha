@@ -146,7 +146,13 @@
   - Re-architected both Android (Material 3 Expressive) and iOS (100% Native SwiftUI iOS 18+ HIG) to fit entirely within a single zero-scroll viewport.
   - Secondary diagnostics and convoy telemetry tucked cleanly into gesture-driven sheets (`ModalBottomSheet` on Android, HIG `.insetGrouped` sheet on iOS).
   - Oversized 160dp tactile master PTT actuator, skeuomorphic rotary channel selector with detent haptics, mil-spec guarded SOS flip-cover, and 84dp glove-friendly spatial radar zoom button with liquid glass HUD overlays.
-  - Monospaced tabular telemetry readouts ensuring zero layout jitter during high-frequency vector, GPS, and RSSI updates.
+### 2.16 Tactile Sub-Screens & Secondary Overlays Architecture (`OfflineTrailCockpitSheet.kt`, `TrailFileManagerSheet.kt`, `TactileDiagnosticsSheet.kt`, `MessageHistoryDialog.kt`)
+- **Challenge**: Legacy secondary screens and dialogs suffered from plain material styling, tiny touch targets inaccessible with winter/motorcycle gloves, lack of link quality diagnostics, and jittery layout shifts during frequent telemetry updates.
+- **Solution**:
+  - Refactored Android and iOS secondary overlays with `IntercomTokens` / `TacticalTokens`: frosted liquid glass chassis, claymorphic elevation profiles, and neobrutalist high-contrast borders.
+  - Implemented 84dp glove-friendly touch targets across route recording, waypoint drops, trail GPX management, and canned hazard chips.
+  - Formatted all elevation, GPS coordinates, $Q_{link}$ scores, RSSI link margins, RF duty-cycle, and battery metrics using monospaced tabular numerals (`FontFamily.Monospace` / `.monospacedDigit()`) ensuring zero jitter during real-time mesh streaming.
+  - Wired real-time RF diagnostics sheet into the zero-scroll cockpit header with instantaneous link-quality breakdown.
 
 ---
 
