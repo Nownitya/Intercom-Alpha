@@ -54,7 +54,7 @@
         "Tactile haptic clicks wired into sheet button actions",
         "Clean compilation on iOS simulator target"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-3204",
