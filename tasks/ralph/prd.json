@@ -69,7 +69,7 @@
         "Verifies elevation profile calculation and straggler vertical distance warnings",
         "100% passing tests in ./gradlew test"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }

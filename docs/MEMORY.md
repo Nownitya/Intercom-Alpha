@@ -38,6 +38,13 @@
   * Employs deterministic $(M \times N)$ matrix block interleaving: consecutive frames are dispersed across disjoint BLE packets so radio burst dropouts cause isolated single erasures (e.g. $[f_0, \mathbf{miss}, f_2, f_3, \mathbf{miss}, f_5]$), enabling 100% FEC/PLC reconstruction.
   * Zero-latency emergency SOS bypass: emergency frames flush the aggregation buffer and skip interleaver matrix holding for instantaneous propagation.
 
+### 1.6 Pure KMP Offline Vector Map Tile Parsing & Real-Time Convoy Elevation Profiling (`OfflineVectorTileEngine.kt`, `ConvoyElevationEngine.kt`, `TrailElevationHudOverlay.kt`)
+* **Problem**: Off-grid alpine convoys lack cellular network access to stream topographic contour tiles and altitude profiles. Using native C/JNI vector map renderers or Google Maps SDK introduces heavy binary bloat, vendor lock-in, and cross-platform compilation incompatibilities.
+* **Solution**:
+  * Pure KMP Web Mercator and MVT tile decoder (`OfflineVectorTileEngine.kt`) with zig-zag integer decoding, multi-layer feature parser, and an `ArrayDeque`-backed LRU eviction cache executing spatial bounding box queries in < 15ms.
+  * Real-time convoy elevation engine (`ConvoyElevationEngine.kt`) calculating moving slope grade percentage, steep alpine caution (> 8%) and extreme warnings (> 12% grade), vertical altitude separation ($\Delta h$) between convoy lead and tail/sweep riders, and upcoming mountain pass summits along planned route polylines.
+  * High-contrast tactile OLED cockpit HUD overlay (`TrailElevationHudOverlay.kt`) with glove-friendly 64dp zoom buttons (1km / 5km / 15km), color-coded rider pins along the altitude profile curve, and reactive bridge streaming (`IntercomBridge.kt`) for 100% native iOS SwiftUI.
+
 ---
 
 ## 2. Hard-Won Gotchas & Critical Traps Avoided
@@ -47,3 +54,7 @@
 3. **Bluetooth SCO Headset Sampling Rate:** Many motorcycle helmet headsets only support 8kHz or 16kHz mono sampling over Bluetooth SCO (HFP profile). Never attempt to open a 44.1kHz or 48kHz SCO stream; always resample in the DSP layer.
 4. **Galois Field Allocation Trap in FEC:** Creating dynamic arrays inside Galois Field polynomial division causes massive allocation churn. Use systematic interleaved XOR block parity for fast, zero-allocation packet reconstruction.
 5. **Matrix Block Interleaver Partial-Block Flushes:** When flushing incomplete interleaver blocks (e.g. 4 frames in a $3 \times 3$ block), columns have unequal sizes. Always include `totalPacketsInBlock` and `totalFramesInBlock` in the envelope to allow receivers to differentiate between unpadded matrix slots and dropped radio packets.
+6. **Web Mercator Boundary Inset in Spatial Tile Queries:** When computing intersecting tile coordinates for a bounding box, tile boundaries align precisely with adjacent tile boundaries. Applying an epsilon inset (`1e-7`) ensures the query strictly bounds the intended tile area without false adjacent tile hits.
+7. **Pure KMP String Formatting on Native Targets:** `String.format` is JVM-only and breaks native compilation on iOS Simulator (`compileKotlinIosSimulatorArm64`). Use standard Kotlin string templates with integer rounding (`((val * 10.0).roundToInt() / 10.0).toString()`).
+8. **Zero-Dependency LRU Cache in Multiplatform:** Java's `LinkedHashMap` access-order constructor is not available in KMP `commonMain`. Using `mutableMapOf<K, V>()` paired with an `ArrayDeque<K>()` gives clean, zero-dependency, 100% multiplatform LRU caching.
+
