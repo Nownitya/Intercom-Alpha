@@ -505,6 +505,42 @@ class MeshPacketFecEngine(
             )
         }
 
+        // Case 1b: Single erasure reconstruction using Parity 2 (Galois GF(2^8)) when Parity 1 is erased
+        if (missingDataIndices.size == 1 && (k + 1) in tracker.envelopes) {
+            val missingIdx = missingDataIndices[0]
+            val p2 = tracker.envelopes.getValue(k + 1).payload
+            val alpha = gfExp[missingIdx]
+            val recovered = ByteArray(maxLen)
+
+            for (byteIdx in 0 until maxLen) {
+                var acc = p2[byteIdx].toInt() and 0xFF
+                for (i in 0 until k) {
+                    if (i != missingIdx) {
+                        val d = tracker.envelopes[i]?.payload
+                        val bVal = if (d != null && byteIdx < d.size) d[byteIdx].toInt() and 0xFF else 0
+                        acc = acc xor gfMul(bVal, gfExp[i])
+                    }
+                }
+                recovered[byteIdx] = gfDiv(acc, alpha).toByte()
+            }
+
+            val ordered = (0 until k).map { idx ->
+                if (idx == missingIdx) {
+                    val originalSize = inferOriginalSize(tracker, missingIdx, maxLen)
+                    recovered.copyOf(originalSize)
+                } else {
+                    val env = tracker.envelopes.getValue(idx)
+                    env.payload.copyOf(env.originalSize)
+                }
+            }
+
+            return FecDecodeResult.Ready(
+                blockId = tracker.blockId,
+                dataPackets = ordered,
+                recoveredIndices = listOf(missingIdx)
+            )
+        }
+
         // Case 2: Double erasure reconstruction using Parity 1 and Parity 2 (Galois Field GF(2^8))
         if (missingDataIndices.size == 2 && k in tracker.envelopes && (k + 1) in tracker.envelopes) {
             val m1 = missingDataIndices[0]
