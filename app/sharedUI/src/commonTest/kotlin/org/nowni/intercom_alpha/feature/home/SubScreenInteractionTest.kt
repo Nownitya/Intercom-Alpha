@@ -205,5 +205,37 @@ class SubScreenInteractionTest {
         testScheduler.advanceUntilIdle()
         assertEquals(org.nowni.intercom_alpha.audio.FecRatio.DISABLED, viewModel.uiState.value.fecTelemetry.activeRatio)
     }
+
+    @Test
+    fun testBleMtuControlsAndTelemetryLifecycle() = runTest(testDispatcher) {
+        testScheduler.advanceUntilIdle()
+
+        // 1. Initial default MTU state (247 bytes)
+        assertEquals(247, viewModel.uiState.value.bleMtuTelemetry.negotiatedMtu)
+        assertEquals(0L, viewModel.uiState.value.bleMtuTelemetry.totalFramesIngested)
+
+        // 2. Set negotiated MTU to 185
+        viewModel.onAction(HomeUiAction.SetNegotiatedMtu(185))
+        testScheduler.advanceUntilIdle()
+        assertEquals(185, viewModel.uiState.value.bleMtuTelemetry.negotiatedMtu)
+
+        // 3. Update telemetry from hardware bridge
+        val updatedTelemetry = org.nowni.intercom_alpha.mesh.BleMtuTelemetry(
+            negotiatedMtu = 185,
+            effectivePayloadCapacity = 182,
+            totalFramesIngested = 42L,
+            totalPacketsEmitted = 14L,
+            averageFramesPerPacket = 3.0,
+            packingEfficiencyPct = 91.5,
+            rfPacketReductionPct = 66.7
+        )
+        hardwareBridge.updateBleMtuTelemetry(updatedTelemetry)
+        testScheduler.advanceUntilIdle()
+
+        assertEquals(185, viewModel.uiState.value.bleMtuTelemetry.negotiatedMtu)
+        assertEquals(42L, viewModel.uiState.value.bleMtuTelemetry.totalFramesIngested)
+        assertEquals(14L, viewModel.uiState.value.bleMtuTelemetry.totalPacketsEmitted)
+        assertEquals(66.7, viewModel.uiState.value.bleMtuTelemetry.rfPacketReductionPct)
+    }
 }
 

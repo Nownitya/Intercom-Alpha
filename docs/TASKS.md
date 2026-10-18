@@ -521,49 +521,57 @@
 - [x] #task [ICA-3404] Execute Multi-Node 25% Burst Loss Simulation Test & Multiplatform Certification ➕ 2026-10-18 ⏳ 2026-10-23 📅 2026-10-27 🔼 ✅ 2026-10-18
 ---
 
-### 🚀 Sprint 35: Autonomous Fleet Mesh Congestion Control & Adaptive PHY (Phase 30) — [ACTIVE SPRINT]
-- **Sprint Goal**: Implement autonomous BLE mesh channel congestion mitigation and adaptive PHY rate switching (LE 1M $\leftrightarrow$ LE 2M $\leftrightarrow$ LE Coded S8). In high-density convoys (>12 nodes), dynamically throttle background BLE advertising intervals, suppress redundant mesh rebroadcasts, and shift long-range mountain riders automatically to LE Coded PHY (500m+ range) without dropped voice frames.
-- **Sprint Branch**: `sprint/sprint-35-congestion-and-adaptive-phy`
-- **Target Release**: `v3.0.0-beta1` Candidate
+### 🚀 Sprint 35: Ultra-Low Latency BLE MTU Frame Packing & Interleaving (Phase 30) — [ACTIVE SPRINT]
+- **Sprint Goal**: Pack multiple compressed voice frames into single optimal 247-byte negotiated BLE ATT MTU payloads with matrix block interleaving, reducing RF packet overhead by > 50%, cutting collisions, and lowering mouth-to-ear latency.
+- **Sprint Branch**: `sprint/sprint-35-ble-mtu-packing`
+- **Target Release**: `v3.0.0-alpha3`
 - **Status**: ⏳ Active (0/4 Stories Passed)
 
 | Task ID | Item | Target Files | Status |
 | :--- | :--- | :--- | :--- |
-| **ICA-3501** | Dynamic BLE Advertising Interval Throttler & Flooding Redundancy Governor | `MeshCongestionController.kt`, `MeshCongestionControllerTest.kt` | ⏳ Ready |
-| **ICA-3502** | Adaptive Multi-PHY Switcher Engine (LE 1M, LE 2M, LE Coded S8) | `AdaptivePhyManager.kt`, `AdaptivePhyManagerTest.kt` | ⏳ Ready |
-| **ICA-3503** | Hardware Bridge Multi-PHY Binding & Tactical Cockpit RF Pill Telemetry | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `MainCockpitScreen.kt` | ⏳ Ready |
-| **ICA-3504** | 24-Node High-Density RF Congestion Simulation & Range Benchmark Test | `CongestionSimulationTest.kt` | ⏳ Ready |
+| **ICA-3501** | Multiplatform BLE ATT MTU Frame Aggregator & Sub-Packet Framer | `BleMtuAggregator.kt`, `BleMtuAggregatorTest.kt` | 🟡 In Progress |
+| **ICA-3502** | Time-Diversity Block Interleaver & Playout De-jittering Unpacker | `BleFrameInterleaver.kt`, `BleFrameInterleaverTest.kt` | ⏳ Ready |
+| **ICA-3503** | Transport Dynamic MTU Negotiation & Cockpit Packing Telemetry Wiring | `AudioEngine.kt`, `IntercomHardwareBridge.kt`, `IntercomBridge.kt` | ⏳ Ready |
+| **ICA-3504** | 16-Node High-Throughput MTU Packing & Burst Loss Simulation Test | `BleMtuPackingSimulationTest.kt` | ⏳ Ready |
 
 #### 📋 Tasks Plugin Checklist (Sprint 35)
-- [ ] #task [ICA-3501] Implement Dynamic BLE Advertising Interval Throttler & Flooding Governor 🛫 2026-10-18 ⏳ 2026-10-20 📅 2026-10-24 🔺
-- [ ] #task [ICA-3502] Implement Adaptive Multi-PHY Switcher Engine (LE 1M, LE 2M, LE Coded S8) 🛫 2026-10-18 ⏳ 2026-10-21 📅 2026-10-25 🔺
-- [ ] #task [ICA-3503] Wire Hardware Bridge Multi-PHY Binding & Tactical Cockpit RF Pill Telemetry 🛫 2026-10-18 ⏳ 2026-10-22 📅 2026-10-26 🔺
-- [ ] #task [ICA-3504] Execute 24-Node High-Density RF Congestion Simulation & Range Benchmark Test 🛫 2026-10-18 ⏳ 2026-10-23 📅 2026-10-27 ⏫
+- [ ] #task [ICA-3501] Implement Multiplatform BLE ATT MTU Frame Aggregator & Sub-Packet Framer 🛫 2026-10-18 ⏳ 2026-10-20 📅 2026-10-24 🔺
+- [ ] #task [ICA-3502] Implement Time-Diversity Block Interleaver & Playout De-jittering Unpacker 🛫 2026-10-18 ⏳ 2026-10-21 📅 2026-10-25 🔺
+- [ ] #task [ICA-3503] Wire Transport Dynamic MTU Negotiation & Cockpit Packing Telemetry 🛫 2026-10-18 ⏳ 2026-10-22 📅 2026-10-26 🔺
+- [ ] #task [ICA-3504] Execute 16-Node High-Throughput MTU Packing & Burst Loss Simulation Test 🛫 2026-10-18 ⏳ 2026-10-23 📅 2026-10-27 ⏫
 
 ---
 
 ### 🔮 Planned Forward Sprints
 
-#### Sprint 36: High-Definition Offline Vector Topographic & Trail Elevation Profile HUD (Phase 31)
+#### Sprint 36: Autonomous Fleet Mesh Congestion Control & Adaptive PHY (Phase 31)
+- **Target Release:** `v3.0.0-beta1` Candidate
+- **Stories:**
+  - `ICA-3601`: Dynamic BLE Advertising Interval Throttler & Flooding Redundancy Governor.
+  - `ICA-3602`: Adaptive Multi-PHY Switcher Engine (LE 1M, LE 2M, LE Coded S8).
+  - `ICA-3603`: Hardware Bridge Multi-PHY Binding & Tactical Cockpit RF Pill Telemetry.
+  - `ICA-3604`: 24-Node High-Density RF Congestion Simulation & Range Benchmark Test.
+
+#### Sprint 37: High-Definition Offline Vector Topographic & Trail Elevation Profile HUD (Phase 32)
 - **Target Release:** `v3.0.0-beta1` Official Release
 - **Stories:**
-  - `ICA-3601`: Native KMP vector map tile decoder for offline MapLibre tiles.
-  - `ICA-3602`: Head-Up Display (HUD) real-time elevation profile overlay with convoy member elevation markers.
-  - `ICA-3603`: Turn-by-turn auditory trail cues mixed smoothly into intercom headset voice stream.
-  - `ICA-3604`: Offline vector map cache manager with SD card / internal storage quota governor.
+  - `ICA-3701`: Native KMP vector map tile decoder for offline MapLibre tiles.
+  - `ICA-3702`: Head-Up Display (HUD) real-time elevation profile overlay with convoy member elevation markers.
+  - `ICA-3703`: Turn-by-turn auditory trail cues mixed smoothly into intercom headset voice stream.
+  - `ICA-3704`: Offline vector map cache manager with SD card / internal storage quota governor.
 
-#### Sprint 37: Multi-Squad Basecamp Master Dispatch Console & Fleet Telemetry (Phase 32)
+#### Sprint 38: Multi-Squad Basecamp Master Dispatch Console & Fleet Telemetry (Phase 33)
 - **Target Release:** `v3.0.0-rc1` (Release Candidate 1)
 - **Stories:**
-  - `ICA-3701`: Standalone Desktop/Web Basecamp Console connecting via stationary BLE/USB repeater node.
-  - `ICA-3702`: Multi-squad real-time tracking radar with fleet-wide battery health and telemetry aggregation.
-  - `ICA-3703`: Centralized all-call emergency broadcast override and audio logging blackbox exporter.
-  - `ICA-3704`: Field deployment simulation harness with 3 remote squads and 1 basecamp master node.
+  - `ICA-3801`: Standalone Desktop/Web Basecamp Console connecting via stationary BLE/USB repeater node.
+  - `ICA-3802`: Multi-squad real-time tracking radar with fleet-wide battery health and telemetry aggregation.
+  - `ICA-3803`: Centralized all-call emergency broadcast override and audio logging blackbox exporter.
+  - `ICA-3804`: Field deployment simulation harness with 3 remote squads and 1 basecamp master node.
 
-#### Sprint 38: End-to-End Field Soak Benchmark, Battery Profiling & v3.0.0 GA (Phase 33)
+#### Sprint 39: End-to-End Field Soak Benchmark, Battery Profiling & v3.0.0 GA (Phase 34)
 - **Target Release:** `v3.0.0` Production General Availability (GA)
 - **Stories:**
-  - `ICA-3801`: 12-hour continuous multiplatform field expedition soak test across mixed Android/iOS convoy.
-  - `ICA-3802`: Full battery profiling audit ensuring < 7.5% consumption per hour under continuous background relay.
-  - `ICA-3803`: Release signing, ProGuard / R8 minification, native binary symbol stripping, and Play Store / TestFlight bundle generation.
-  - `ICA-3804`: Production release documentation sign-off, public API documentation, and v3.0.0 release tagging.
+  - `ICA-3901`: 12-hour continuous multiplatform field expedition soak test across mixed Android/iOS convoy.
+  - `ICA-3902`: Full battery profiling audit ensuring < 7.5% consumption per hour under continuous background relay.
+  - `ICA-3903`: Release signing, ProGuard / R8 minification, native binary symbol stripping, and Play Store / TestFlight bundle generation.
+  - `ICA-3904`: Production release documentation sign-off, public API documentation, and v3.0.0 release tagging.

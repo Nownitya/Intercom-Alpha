@@ -1,24 +1,24 @@
-# Current Status: Sprint 35 (Phase 30: Autonomous Fleet Mesh Congestion Control & Adaptive PHY)
+# Current Status: Sprint 35 (Phase 30: Ultra-Low Latency BLE MTU Frame Packing & Interleaving)
 
 > **Active Sprint Reference:** [TASKS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/TASKS.md) & [prd.json](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/tasks/ralph/prd.json)  
-> **Sprint Branch:** `sprint/sprint-35-congestion-and-adaptive-phy`  
+> **Sprint Branch:** `sprint/sprint-35-ble-mtu-packing`  
 > **Sprint Governance Rules:** [SPRINT-RULES.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/SPRINT-RULES.md)  
 > **Engineering Contract:** [AGENTS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/AGENTS.md)  
 > **Knowledge Base:** [MEMORY.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/MEMORY.md)  
 
 ---
 
-## 🚀 Active Sprint: Sprint 35 (Phase 30: Autonomous Fleet Mesh Congestion Control & Adaptive PHY)
-**Goal:** Implement autonomous BLE mesh channel congestion mitigation and adaptive PHY rate switching (LE 1M $\leftrightarrow$ LE 2M $\leftrightarrow$ LE Coded S8). In high-density convoys (>12 nodes), dynamically throttle background BLE advertising intervals, suppress redundant mesh rebroadcasts, and shift long-range mountain riders automatically to LE Coded PHY (500m+ range) without dropped voice frames.
-- **Sprint Branch:** `sprint/sprint-35-congestion-and-adaptive-phy`  
-- **Target Release:** `v3.0.0-beta1` Candidate  
+## ⚡ Active Sprint: Sprint 35 (Phase 30: Ultra-Low Latency BLE MTU Frame Packing & Interleaving)
+**Goal:** Pack multiple compressed voice frames into single optimal 247-byte negotiated BLE ATT MTU payloads with matrix block interleaving, reducing RF packet overhead by > 50%, cutting collisions, and lowering mouth-to-ear latency.
+- **Sprint Branch:** `sprint/sprint-35-ble-mtu-packing`  
+- **Target Release:** `v3.0.0-alpha3`  
 
 | Task ID | Item | Owner | Target Files | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **ICA-3501** | Dynamic BLE Advertising Interval Throttler & Flooding Redundancy Governor | Ralph | `MeshCongestionController.kt`, `MeshCongestionControllerTest.kt` | ⏳ Ready |
-| **ICA-3502** | Adaptive Multi-PHY Switcher Engine (LE 1M, LE 2M, LE Coded S8) | Ralph | `AdaptivePhyManager.kt`, `AdaptivePhyManagerTest.kt` | ⏳ Ready |
-| **ICA-3503** | Hardware Bridge Multi-PHY Binding & Tactical Cockpit RF Pill Telemetry | Ralph | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `MainCockpitScreen.kt` | ⏳ Ready |
-| **ICA-3504** | 24-Node High-Density RF Congestion Simulation & Range Benchmark Test | Ralph | `CongestionSimulationTest.kt` | ⏳ Ready |
+| **ICA-3501** | Multiplatform BLE ATT MTU Frame Aggregator & Sub-Packet Framer | Ralph | `BleMtuAggregator.kt`, `BleMtuAggregatorTest.kt` | ✅ Passed |
+| **ICA-3502** | Time-Diversity Block Interleaver & Playout De-jittering Unpacker | Ralph | `BleFrameInterleaver.kt`, `BleFrameInterleaverTest.kt` | ✅ Passed |
+| **ICA-3503** | Transport Dynamic MTU Negotiation & Cockpit Packing Telemetry Wiring | Ralph | `AudioEngine.kt`, `IntercomHardwareBridge.kt`, `IntercomBridge.kt` | ✅ Passed |
+| **ICA-3504** | 16-Node High-Throughput MTU Packing & Burst Loss Simulation Test | Ralph | `BleMtuPackingSimulationTest.kt` | ✅ Passed |
 
 ---
 

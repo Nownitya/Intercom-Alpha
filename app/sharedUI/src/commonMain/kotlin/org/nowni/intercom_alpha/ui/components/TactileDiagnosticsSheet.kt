@@ -40,7 +40,8 @@ fun TactileDiagnosticsSheet(
     onPinBitrate: ((org.nowni.intercom_alpha.common.AudioProfile?) -> Unit)? = null,
     fecTelemetry: org.nowni.intercom_alpha.audio.FecTelemetry? = null,
     plcTelemetry: org.nowni.intercom_alpha.audio.PlcTelemetry? = null,
-    onSetFecRatio: ((org.nowni.intercom_alpha.audio.FecRatio) -> Unit)? = null
+    onSetFecRatio: ((org.nowni.intercom_alpha.audio.FecRatio) -> Unit)? = null,
+    bleMtuTelemetry: org.nowni.intercom_alpha.mesh.BleMtuTelemetry? = null
 ) {
     val qScore = linkHealth?.averageScore ?: (failoverMetrics.averageDeliveryRatio * 100).toInt()
     val qGrade = linkHealth?.overallGrade ?: org.nowni.intercom_alpha.mesh.LinkQualityGrade.fromScore(qScore)
@@ -241,6 +242,34 @@ fun TactileDiagnosticsSheet(
                                             color = if (plc.activeConcealingPeers > 0) IntercomTokens.SignalAmber else IntercomTokens.SignalCodedPhyEmerald
                                         )
                                     }
+                                }
+                            }
+                        }
+                    }
+
+                    // 1b. BLE ATT MTU Frame Packing & Diversity (Sprint 35)
+                    bleMtuTelemetry?.let { mtu ->
+                        item {
+                            TelemetryCard(title = "BLE ATT MTU FRAME PACKING & DIVERSITY") {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    MetricCell(
+                                        label = "NEGOTIATED MTU",
+                                        value = "${mtu.negotiatedMtu} B",
+                                        color = IntercomTokens.SignalSatelliteCyan
+                                    )
+                                    MetricCell(
+                                        label = "PACKING RATIO",
+                                        value = "${(mtu.averageFramesPerPacket * 10).toInt() / 10.0}x",
+                                        color = IntercomTokens.SignalCodedPhyEmerald
+                                    )
+                                    MetricCell(
+                                        label = "RF OVERHEAD SAVED",
+                                        value = "${mtu.rfPacketReductionPct.toInt()}%",
+                                        color = IntercomTokens.SignalCodedPhyEmerald
+                                    )
                                 }
                             }
                         }

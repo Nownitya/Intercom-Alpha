@@ -209,6 +209,7 @@ fun MainCockpitScreen(
                 fecTelemetry = uiState.fecTelemetry,
                 plcTelemetry = uiState.plcTelemetry,
                 onSetFecRatio = { onAction(HomeUiAction.SetFecRatio(it)) },
+                bleMtuTelemetry = uiState.bleMtuTelemetry,
                 onDismiss = { onAction(HomeUiAction.ToggleDiagnosticsSheet(false)) }
             )
         }

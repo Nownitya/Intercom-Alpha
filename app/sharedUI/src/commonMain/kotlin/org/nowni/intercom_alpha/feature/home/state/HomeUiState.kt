@@ -141,7 +141,18 @@ data class HomeUiState(
         totalBlocksRecovered = 0L,
         totalBlocksUnrecoverable = 0L
     ),
-    val plcTelemetry: org.nowni.intercom_alpha.audio.PlcTelemetry = org.nowni.intercom_alpha.audio.PlcTelemetry()
+    val plcTelemetry: org.nowni.intercom_alpha.audio.PlcTelemetry = org.nowni.intercom_alpha.audio.PlcTelemetry(),
+
+    // Sprint 35 Ultra-Low Latency BLE ATT MTU Frame Packing (ICA-3503)
+    val bleMtuTelemetry: org.nowni.intercom_alpha.mesh.BleMtuTelemetry = org.nowni.intercom_alpha.mesh.BleMtuTelemetry(
+        negotiatedMtu = 247,
+        effectivePayloadCapacity = 240,
+        totalFramesIngested = 0L,
+        totalPacketsEmitted = 0L,
+        averageFramesPerPacket = 0.0,
+        packingEfficiencyPct = 0.0,
+        rfPacketReductionPct = 0.0
+    )
 )
 
 sealed interface HomeUiAction {
@@ -218,6 +229,9 @@ sealed interface HomeUiAction {
 
     // Sprint 34 Forward Error Correction Actions (ICA-3403)
     data class SetFecRatio(val ratio: org.nowni.intercom_alpha.audio.FecRatio) : HomeUiAction
+
+    // Sprint 35 BLE ATT MTU Actions (ICA-3503)
+    data class SetNegotiatedMtu(val mtu: Int) : HomeUiAction
 }
 
 sealed interface HomeUiEvent {
