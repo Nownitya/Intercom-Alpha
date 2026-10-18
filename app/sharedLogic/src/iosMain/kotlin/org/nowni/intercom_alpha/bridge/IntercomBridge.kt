@@ -1344,6 +1344,27 @@ class IntercomBridge(
         mtuAggregator.setNegotiatedMtu(mtu)
         _bleMtuTelemetry.value = mtuAggregator.getTelemetry()
     }
+
+    // --- Swift-Friendly Convoy Elevation Profile & Incline Observers (Sprint 36 / ICA-3603) ---
+
+    val elevationEngine: org.nowni.intercom_alpha.geo.ConvoyElevationEngine =
+        org.nowni.intercom_alpha.geo.ConvoyElevationEngine(localPeerId = localPeerId, localCallsign = localPeerName)
+
+    val elevationProfile: StateFlow<org.nowni.intercom_alpha.geo.ConvoyElevationProfile> =
+        elevationEngine.elevationProfile
+
+    fun observeElevationProfile(onProfile: (org.nowni.intercom_alpha.geo.ConvoyElevationProfile) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            elevationProfile.collect { profile ->
+                onProfile(profile)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun setPlannedRoute(points: List<org.nowni.intercom_alpha.map.GeoPoint>) {
+        elevationEngine.setPlannedRoute(points)
+    }
 }
 
 

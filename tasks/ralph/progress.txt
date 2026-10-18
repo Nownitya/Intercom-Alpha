@@ -2801,5 +2801,91 @@
   - `ICA-3504: 16-Node High-Throughput MTU Packing & Burst Loss Simulation Test` [PASSED]
 - **Milestone DoD Status**: 100% Definition of Done criteria passed cleanly across all platforms with 0 regressions, 0 OCR findings, and full multiplatform compilation.
 
+---
+
+## 🚀 Sprint 36: Offline Vector Topographic & Trail Elevation Profile HUD (Phase 31)
+
+### [2026-10-18] - ICA-3601: Pure KMP Offline Vector Map Tile Parser & Spatial Bounding Box Cacher
+- **Branch**: `feature/ICA-3601-offline-vector-tile-engine`
+- **Objective**: Implement OfflineVectorTileEngine in commonMain providing pure Kotlin MVT tile decoding, Web Mercator projection, spatial bounding box caching, and sub-15ms spatial querying.
+- **Implementation**:
+  - Created `OfflineVectorTileEngine.kt` in `commonMain`:
+    - `BoundingBox`: min/max lat/lon in WGS-84 with point containment and intersection algorithms.
+    - `TileCoord`: Web Mercator tile coordinates $(z, x, y)$ with forward/inverse bounding box projections and intersecting tile calculations.
+    - `MvtTileDecoder`: Pure KMP vector tile decoder with zig-zag integer encoding/decoding and multi-layer feature extraction (points, linestrings, polygons).
+    - `OfflineVectorTileEngine`: In-memory tile storage with pure KMP LRU eviction cache (`ArrayDeque`), sub-15ms spatial bounding box queries, layer filtering, and query telemetry.
+  - Created `OfflineVectorTileEngineTest.kt` in `commonTest`:
+    - 6 comprehensive unit tests validating bounding box math, Web Mercator coordinate projections, zig-zag encoding symmetry, MVT tile decoding, LRU eviction bounds, and spatial query caching.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly.
+  - `./gradlew :app:androidApp:assembleDebug`: Passed cleanly in 2m 53s.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-36-vector-trail-elevation-hud`).
+
+### [2026-10-18] - ICA-3602: Real-Time Convoy Elevation Profile & Altitude Incline Math Engine
+- **Branch**: `feature/ICA-3602-convoy-elevation-engine`
+- **Objective**: Implement ConvoyElevationEngine in commonMain to compute real-time route slope grade percentage, steep alpine descent/climb warnings (> 12% grade), vertical altitude separation between convoy members, and summit peaks.
+- **Implementation**:
+  - Created `ConvoyElevationEngine.kt` in `commonMain`:
+    - Pure KMP slope grade percentage calculation with moving window smoothing over Haversine distance intervals.
+    - Steep caution (> 8%) and extreme alpine climb/descent warning detection (> 12% grade) with pure KMP formatting.
+    - Convoy vertical altitude separation ($\Delta h$) tracking between lead and tail/sweep riders.
+    - Upcoming mountain pass summit detection along planned route polylines.
+  - Created `ConvoyElevationEngineTest.kt` in `commonTest`:
+    - 5 comprehensive unit tests covering initial state, alpine climb/descent warnings, convoy vertical altitude separation, and planned route summit detection.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly in 1m 9s.
+  - `./gradlew :app:androidApp:assembleDebug`: Passed cleanly in 1m 19s.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-36-vector-trail-elevation-hud`).
+
+### [2026-10-18] - ICA-3603: Tactile Trail Elevation HUD Overlay & Cockpit Sheet Presentation
+- **Branch**: `feature/ICA-3603-trail-elevation-hud`
+- **Objective**: Create `TrailElevationHudOverlay.kt` in `sharedUI`, wire into `MainCockpitScreen.kt`, and provide reactive bridge telemetry integration via `IntercomBridge.kt` with `CancellationHandle` for iOS SwiftUI.
+- **Implementation**:
+  - Created `TrailElevationHudOverlay.kt`:
+    - OLED high-contrast dark background with glove-friendly 64dp zoom toggles (1km / 5km / 15km).
+    - Elevation profile line chart with gradient fill and real-time color-coded rider pins along the curve.
+    - Telemetry cards for slope grade % and lead/tail spread meters ($\Delta h$).
+    - Dynamic alpine warning banner for steep climbs/descents (> 8% caution, > 12% extreme).
+  - Wired `IntercomHardwareBridge.kt` and `AndroidPlatformBridge.kt` with `elevationProfileSnapshot` and `updateElevationProfile`.
+  - Wired `IntercomBridge.kt` (iOS) with `elevationEngine`, `elevationProfile`, `observeElevationProfile`, and `setPlannedRoute` with `CancellationHandle`.
+  - Updated `HomeUiState.kt` and `HomeViewModel.kt` with `elevationProfile`, `showElevationSheet`, and `ToggleElevationSheet`.
+  - Added ELEV navigation tab and sheet presentation in `MainCockpitScreen.kt`.
+  - Added `testTrailElevationHudOverlayLifecycle` in `SubScreenInteractionTest.kt`.
+- **Verification**:
+  - `./gradlew :app:sharedUI:jvmTest :app:sharedLogic:jvmTest :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly.
+  - `./gradlew :app:androidApp:assembleDebug`: Passed cleanly in 1m 33s.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-36-vector-trail-elevation-hud`).
+
+### [2026-10-18] - ICA-3604: Alpine Mountain Pass Multi-Node Elevation & Trail Sync Simulation Test
+- **Branch**: `feature/ICA-3604-alpine-elevation-simulation`
+- **Objective**: Implement `AlpineElevationSimulationTest.kt` simulating 12 convoy nodes traversing a 2,500m high-altitude mountain pass with 1,200m vertical elevation gain.
+- **Implementation**:
+  - Implemented `AlpineElevationSimulationTest.kt`:
+    - Simulated 12 nodes climbing from valley (1,300m) to summit (2,500m) and descending to 1,600m.
+    - Verified real-time grade calculations, steep climb (> 12% grade) and descent (< -12% grade) `EXTREME_ALPINE_WARNING` triggers.
+    - Verified lead vs tail/sweep rider vertical altitude separation ($\Delta h \approx 800$m) alert tracking.
+    - Verified upcoming mountain pass summit detection along route polylines.
+    - Verified offline MVT vector tile caching, sub-15ms bounding box querying, and multi-hop route synchronization across convoy relay nodes.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: 120 actionable tasks passed cleanly (100% test pass rate).
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-36-vector-trail-elevation-hud`).
+
+---
+
+## 🏆 Sprint 36 Closed & Verified (100% DoD)
+- **Target Release**: `v3.0.0-beta1`
+- **Stories Completed**:
+  - `ICA-3601: Pure KMP Offline Vector Map Tile Parser & Spatial Bounding Box Cacher` [PASSED]
+  - `ICA-3602: Real-Time Convoy Elevation Profile & Altitude Incline Math Engine` [PASSED]
+  - `ICA-3603: Tactile Trail Elevation HUD Overlay & Cockpit Sheet Presentation` [PASSED]
+  - `ICA-3604: Alpine Mountain Pass Multi-Node Elevation & Trail Sync Simulation Test` [PASSED]
+- **Milestone DoD Status**: 100% Definition of Done criteria passed cleanly across all platforms with 0 regressions, 0 OCR findings, and full multiplatform compilation.
+
+
+
 
 

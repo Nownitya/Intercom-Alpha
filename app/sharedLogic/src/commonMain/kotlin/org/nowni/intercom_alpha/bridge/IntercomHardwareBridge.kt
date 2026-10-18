@@ -87,6 +87,7 @@ interface IntercomHardwareBridge {
     val fecTelemetrySnapshot: StateFlow<org.nowni.intercom_alpha.audio.FecTelemetry>
     val plcTelemetrySnapshot: StateFlow<org.nowni.intercom_alpha.audio.PlcTelemetry>
     val bleMtuSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.BleMtuTelemetry>
+    val elevationProfileSnapshot: StateFlow<org.nowni.intercom_alpha.geo.ConvoyElevationProfile>
 
     fun setPttActive(active: Boolean)
     fun setRepeaterModeActive(active: Boolean)
@@ -116,6 +117,7 @@ interface IntercomHardwareBridge {
     fun updateFecTelemetry(telemetry: org.nowni.intercom_alpha.audio.FecTelemetry)
     fun updatePlcTelemetry(telemetry: org.nowni.intercom_alpha.audio.PlcTelemetry)
     fun updateBleMtuTelemetry(telemetry: org.nowni.intercom_alpha.mesh.BleMtuTelemetry)
+    fun updateElevationProfile(profile: org.nowni.intercom_alpha.geo.ConvoyElevationProfile)
     fun setNegotiatedMtu(mtu: Int) {}
     fun setFecRatio(ratio: org.nowni.intercom_alpha.audio.FecRatio) {}
     fun pinAudioBitrateProfile(profile: org.nowni.intercom_alpha.common.AudioProfile?) {}
@@ -358,6 +360,8 @@ open class NoOpIntercomHardwareBridge(
         )
     )
     override val bleMtuSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.BleMtuTelemetry> = _bleMtuSnapshot.asStateFlow()
+    protected val _elevationProfileSnapshot = MutableStateFlow(org.nowni.intercom_alpha.geo.ConvoyElevationProfile())
+    override val elevationProfileSnapshot: StateFlow<org.nowni.intercom_alpha.geo.ConvoyElevationProfile> = _elevationProfileSnapshot.asStateFlow()
 
     override fun setPttActive(active: Boolean) {
         _isTransmitting.value = active
@@ -536,6 +540,10 @@ open class NoOpIntercomHardwareBridge(
 
     override fun updateBleMtuTelemetry(telemetry: org.nowni.intercom_alpha.mesh.BleMtuTelemetry) {
         _bleMtuSnapshot.value = telemetry
+    }
+
+    override fun updateElevationProfile(profile: org.nowni.intercom_alpha.geo.ConvoyElevationProfile) {
+        _elevationProfileSnapshot.value = profile
     }
 
     override fun setNegotiatedMtu(mtu: Int) {

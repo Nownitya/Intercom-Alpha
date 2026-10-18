@@ -243,6 +243,13 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         _bleMtuSnapshot.value = _bleMtuSnapshot.value.copy(negotiatedMtu = mtu)
     }
 
+    private val _elevationProfileSnapshot = MutableStateFlow(org.nowni.intercom_alpha.geo.ConvoyElevationProfile())
+    override val elevationProfileSnapshot: StateFlow<org.nowni.intercom_alpha.geo.ConvoyElevationProfile> = _elevationProfileSnapshot.asStateFlow()
+
+    override fun updateElevationProfile(profile: org.nowni.intercom_alpha.geo.ConvoyElevationProfile) {
+        _elevationProfileSnapshot.value = profile
+    }
+
     var channelManager: ChannelManager? = null
         private set
     var directedRouter: DirectedMeshRouter? = null
