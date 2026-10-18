@@ -1,29 +1,29 @@
-# Current Status: Sprint 33 (Phase 29: Dynamic Adaptive Mesh Bitrate Tuning)
+# Current Status: Sprint 34 (Phase 29: FEC & Packet Loss Concealment Hardening)
 
 > **Active Sprint Reference:** [TASKS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/TASKS.md) & [prd.json](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/tasks/ralph/prd.json)  
-> **Sprint Branch:** `sprint/sprint-33-adaptive-mesh-bitrate`  
+> **Sprint Branch:** `sprint/sprint-34-fec-and-plc`  
 > **Sprint Governance Rules:** [SPRINT-RULES.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/SPRINT-RULES.md)  
 > **Engineering Contract:** [AGENTS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/AGENTS.md)  
 > **Knowledge Base:** [MEMORY.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/MEMORY.md)  
 
 ---
 
-## ⚡ Sprint 33: Dynamic Adaptive Mesh Bitrate Tuning (Phase 29) — ✅ 100% Complete
-**Goal:** Implement closed-loop dynamic audio codec bitrate adaptation and frame sizing over the BLE mesh. Fuses EWMA RSSI link margin, moving PDR, jitter variance, and ETX into composite $Q_{link}$ scores, automatically scaling audio encoding between 16 kbps and 48 kbps with asymmetric hysteresis to eliminate audio dropouts during fading.  
-- **Sprint Branch:** `sprint/sprint-33-adaptive-mesh-bitrate`  
+## ⚡ Active Sprint: Sprint 34 (Phase 29: FEC & Packet Loss Concealment Hardening)
+**Goal:** Implement robust forward error correction (FEC) and pitch-synchronous waveform packet loss concealment (PLC) over the BLE mesh. Reconstruct lost voice frames up to 25% packet drop without retransmissions, smoothly concealing unrecoverable dropouts with natural acoustic decay.
+- **Sprint Branch:** `sprint/sprint-34-fec-and-plc`  
 - **Target Release:** `v3.0.0-alpha2`  
-- **Outcome:** 100% Definition of Done achieved across all 4 stories (`ICA-3301` through `ICA-3304`). All verification gates passed cleanly.
 
 | Task ID | Item | Owner | Target Files | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **ICA-3301** | Real-Time Mesh Link Quality Scoring & EWMA Loss Estimator | Ralph | `MeshLinkQualityScorer.kt`, `MeshLinkQualityScorerTest.kt` | ✅ Passed |
-| **ICA-3302** | Dynamic Adaptive Bitrate & Frame Sizing Controller | Ralph | `AdaptiveBitrateEngine.kt`, `AdaptiveBitrateEngineTest.kt` | ✅ Passed |
-| **ICA-3303** | Audio Pipeline Dynamic Frame Multiplexing & Cockpit Telemetry Wiring | Ralph | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `TactileDiagnosticsSheet.kt` | ✅ Passed |
-| **ICA-3304** | Multi-Node Dynamic Bitrate Simulation Test & Multiplatform Certification | Ralph | `AdaptiveBitrateSimulationTest.kt` | ✅ Passed |
+| **ICA-3401** | Multiplatform Block Erasure FEC Encoder & Interleaved Block Decoder | Ralph | `MeshPacketFecEngine.kt`, `MeshPacketFecEngineTest.kt` | 🟡 Active |
+| **ICA-3402** | Predictive Packet Loss Concealment (PLC) & Waveform Interpolator | Ralph | `AudioLossConcealment.kt`, `AudioLossConcealmentTest.kt` | ⏳ Pending |
+| **ICA-3403** | Closed-Loop FEC Redundancy Governor & Cockpit Telemetry Wiring | Ralph | `AudioEngine.kt`, `IntercomHardwareBridge.kt`, `IntercomBridge.kt` | ⏳ Pending |
+| **ICA-3404** | Multi-Node 25% Burst Loss Simulation Test & Multiplatform Certification | Ralph | `FecLossConcealmentSimulationTest.kt` | ⏳ Pending |
 
 ---
 
 ## 📜 Historical Sprint Archive
+- ✅ **Sprint 33: Dynamic Adaptive Mesh Bitrate Tuning**: Completed 2026-10-18 (100% DoD, v3.0.0-alpha2 Milestone).
 - ✅ **Sprint 32: Tactile Sub-Screens & Secondary Overlays Polish**: Completed 2026-10-18 (100% DoD, v3.0.0-alpha1 Milestone).
 - ✅ **Sprint 31: Zero-Scroll Tactical Cockpit Redesign**: Completed 2026-10-18 (100% DoD, v3.0.0-alpha1 Milestone).
 - ✅ **Sprint 30: Dedicated UI/UX Design System Foundations**: Completed 2026-10-17 (100% DoD, v3.0.0-alpha1 Milestone).

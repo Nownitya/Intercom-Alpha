@@ -1,80 +1,81 @@
 {
   "project": "Intercom-Alpha",
-  "branchName": "sprint/sprint-33-adaptive-mesh-bitrate",
-  "phase": "Phase 29: RF & Media Hardening (Dynamic Adaptive Mesh Bitrate Tuning)",
-  "sprint": "Sprint 33",
-  "updatedAt": "2026-10-18T13:46:00Z",
+  "branchName": "sprint/sprint-34-fec-and-plc",
+  "phase": "Phase 29: RF & Media Hardening (Forward Error Correction & Packet Loss Concealment)",
+  "sprint": "Sprint 34",
+  "updatedAt": "2026-10-18T14:35:00Z",
   "stories": [
     {
-      "id": "ICA-3301",
+      "id": "ICA-3401",
       "priority": 1,
-      "title": "Real-Time Mesh Link Quality Scoring & EWMA Loss Estimator",
-      "description": "Implement MeshLinkQualityScorer.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/ calculating a composite link quality score Q_link in [0, 100] by fusing EWMA RSSI link margin, moving Packet Delivery Ratio (PDR), jitter gradient, and ETX with pure KMP math.",
+      "title": "Multiplatform Block Erasure FEC Encoder & Interleaved Block Decoder",
+      "description": "Implement MeshPacketFecEngine.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/ providing pure Kotlin block erasure forward error correction (configurable (N, K) parity framing) with zero Java dependencies (Rule 3).",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/MeshLinkQualityScorer.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/MeshLinkQualityScorerTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/MeshPacketFecEngine.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/MeshPacketFecEngineTest.kt"
       ],
       "acceptanceCriteria": [
-        "Calculates composite Q_link score (0-100) combining smoothed RSSI margin, PDR, jitter, and ETX",
-        "Provides fine-grained LinkQualityGrade (EXCELLENT, GOOD, FAIR, POOR, CRITICAL)",
-        "Zero Java or C dependencies (Rule 3)",
+        "Generates parity FEC packets for block of K voice packets with zero Java or C dependencies (Rule 3)",
+        "Reconstructs any single or multi-packet erasure within block when received count >= K",
+        "Supports dynamic FEC ratios (DISABLED, RATIO_4_1, RATIO_3_1, RATIO_2_1)",
         "100% test coverage in commonTest"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-3302",
+      "id": "ICA-3402",
       "priority": 2,
-      "title": "Dynamic Adaptive Bitrate & Frame Sizing Controller",
-      "description": "Implement AdaptiveBitrateEngine.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/ to dynamically map composite Q_link into codec bitrates (16 kbps to 48 kbps) and frame consolidation sizes (20ms to 60ms) with fast step-down (<200ms) and conservative hysteresis step-up (3 cycles).",
+      "title": "Predictive Packet Loss Concealment (PLC) & Waveform Interpolator",
+      "description": "Implement AudioLossConcealment.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/ to synthetically reconstruct lost PCM audio frames when FEC erasure bounds are exceeded, using pitch-synchronous waveform replication and progressive attenuation decay.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/AdaptiveBitrateEngine.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/AdaptiveBitrateEngineTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/AudioLossConcealment.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/AudioLossConcealmentTest.kt"
       ],
       "acceptanceCriteria": [
-        "Closed-loop adaptation shifting AudioProfile and frame size based on Q_link and RF interference",
-        "Immediate rapid step-down on link degradation (<200ms)",
-        "Configurable hysteresis step-up (default 3 cycles) to prevent bitrate oscillation/flapping",
-        "Manual profile override and lock capability",
+        "Synthesizes missing PCM audio frames smoothly from preceding frame history",
+        "Applies 2.5 dB attenuation decay per consecutive lost frame up to 3 frames, then smoothly mutes to prevent robotic/metallic artifacts",
+        "Smooth cross-fading when real voice frame reception resumes",
         "Comprehensive unit tests in commonTest"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-3303",
+      "id": "ICA-3403",
       "priority": 3,
-      "title": "Audio Pipeline Dynamic Frame Multiplexing & Cockpit Telemetry Wiring",
-      "description": "Integrate AdaptiveBitrateEngine and MeshLinkQualityScorer into AudioPipelineSession.kt, IntercomHardwareBridge.kt, and IntercomBridge.kt (iOS Swift interop). Update HomeUiState, TactileDiagnosticsSheet.kt, and TactileAvionicsHeader to display live negotiated bitrate and Q_link score.",
+      "title": "Closed-Loop FEC Redundancy Governor & Cockpit Telemetry Wiring",
+      "description": "Integrate MeshPacketFecEngine and AudioLossConcealment into AudioPipelineSession.kt, AudioEngine.kt, IntercomHardwareBridge.kt, and IntercomBridge.kt (iOS Swift). Bind FEC ratio dynamically to composite Q_link link health. Expose live FEC recovery and PLC concealment telemetry in TactileDiagnosticsSheet.kt.",
       "targetFiles": [
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/AudioEngine.kt",
         "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomHardwareBridge.kt",
         "app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomBridge.kt",
+        "app/androidApp/src/main/kotlin/org/nowni/intercom_alpha/bridge/AndroidPlatformBridge.kt",
         "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/state/HomeUiState.kt",
         "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/HomeViewModel.kt",
         "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/TactileDiagnosticsSheet.kt"
       ],
       "acceptanceCriteria": [
-        "Audio pipeline dynamically encodes using the active negotiated bitrate profile",
-        "Hardware bridge and iOS IntercomBridge stream live negotiated bitrate and Q_link to UI",
-        "TactileDiagnosticsSheet displays real-time calculated Q_link and negotiated bitrate",
-        "Adheres to Rule 1 (100% Native SwiftUI on iOS) and Rule 2 (KMP shared logic)"
+        "Audio pipeline automatically encodes and appends FEC parity packets based on link health governor",
+        "Hardware bridges and iOS IntercomBridge stream live FEC recovered and PLC synthesized frame counts",
+        "TactileDiagnosticsSheet displays real-time FEC mode, recovery stats, and PLC activations",
+        "Adheres strictly to Rule 1 (100% Native SwiftUI on iOS) and Rule 2 (KMP shared logic)"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-3304",
+      "id": "ICA-3404",
       "priority": 4,
-      "title": "Multi-Node Dynamic Bitrate Simulation Test & Multiplatform Certification",
-      "description": "Implement AdaptiveBitrateSimulationTest.kt in commonTest simulating 8-node RF fading and congestion, verifying rapid bitrate step-down, cluster-wide worst-link protection, and execute full multiplatform verification gate.",
+      "title": "Multi-Node 25% Burst Loss Simulation Test & Multiplatform Certification",
+      "description": "Implement FecLossConcealmentSimulationTest.kt in commonTest simulating 25% random and burst dropouts across an 8-node convoy, certifying audio delivery continuity, and execute full multiplatform verification gates.",
       "targetFiles": [
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/simulation/AdaptiveBitrateSimulationTest.kt"
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/simulation/FecLossConcealmentSimulationTest.kt"
       ],
       "acceptanceCriteria": [
-        "Simulation test verifies dynamic downshift during simulated RF dropouts and recovery",
+        "Simulation test verifies complete voice frame reconstruction or concealment under 25% packet drop",
         "100% test pass across all multiplatform test tasks (Rule 6)",
-        "Clean Android assemble and iOS simulator compilation (Rule 6)",
+        "Clean Android debug assemble and iOS simulator compilation (Rule 6)",
         "OpenCodeReview gate passes with 0 findings (Rule 8)"
       ],
-      "passes": true
+      "passes": false
     }
   ]
 }
