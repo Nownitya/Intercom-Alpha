@@ -54,7 +54,7 @@
         "Wired reactively via IntercomBridge to iOS Native SwiftUI with CancellationHandle",
         "Compiles cleanly across Android and iOS targets"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-3604",

@@ -2839,5 +2839,26 @@
   - OpenCodeReview: 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-36-vector-trail-elevation-hud`).
 
+### [2026-10-18] - ICA-3603: Tactile Trail Elevation HUD Overlay & Cockpit Sheet Presentation
+- **Branch**: `feature/ICA-3603-trail-elevation-hud`
+- **Objective**: Create `TrailElevationHudOverlay.kt` in `sharedUI`, wire into `MainCockpitScreen.kt`, and provide reactive bridge telemetry integration via `IntercomBridge.kt` with `CancellationHandle` for iOS SwiftUI.
+- **Implementation**:
+  - Created `TrailElevationHudOverlay.kt`:
+    - OLED high-contrast dark background with glove-friendly 64dp zoom toggles (1km / 5km / 15km).
+    - Elevation profile line chart with gradient fill and real-time color-coded rider pins along the curve.
+    - Telemetry cards for slope grade % and lead/tail spread meters ($\Delta h$).
+    - Dynamic alpine warning banner for steep climbs/descents (> 8% caution, > 12% extreme).
+  - Wired `IntercomHardwareBridge.kt` and `AndroidPlatformBridge.kt` with `elevationProfileSnapshot` and `updateElevationProfile`.
+  - Wired `IntercomBridge.kt` (iOS) with `elevationEngine`, `elevationProfile`, `observeElevationProfile`, and `setPlannedRoute` with `CancellationHandle`.
+  - Updated `HomeUiState.kt` and `HomeViewModel.kt` with `elevationProfile`, `showElevationSheet`, and `ToggleElevationSheet`.
+  - Added ELEV navigation tab and sheet presentation in `MainCockpitScreen.kt`.
+  - Added `testTrailElevationHudOverlayLifecycle` in `SubScreenInteractionTest.kt`.
+- **Verification**:
+  - `./gradlew :app:sharedUI:jvmTest :app:sharedLogic:jvmTest :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly.
+  - `./gradlew :app:androidApp:assembleDebug`: Passed cleanly in 1m 33s.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-36-vector-trail-elevation-hud`).
+
+
 
 
