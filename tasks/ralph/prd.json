@@ -1,81 +1,79 @@
 {
   "project": "Intercom-Alpha",
-  "branchName": "sprint/sprint-34-fec-and-plc",
-  "phase": "Phase 29: RF & Media Hardening (Forward Error Correction & Packet Loss Concealment)",
-  "sprint": "Sprint 34",
-  "updatedAt": "2026-10-18T14:35:00Z",
+  "branchName": "sprint/sprint-35-congestion-and-adaptive-phy",
+  "phase": "Phase 30: Fleet Mesh Congestion Control & Adaptive PHY Switching",
+  "sprint": "Sprint 35",
+  "updatedAt": "2026-10-18T16:15:00Z",
   "stories": [
     {
-      "id": "ICA-3401",
+      "id": "ICA-3501",
       "priority": 1,
-      "title": "Multiplatform Block Erasure FEC Encoder & Interleaved Block Decoder",
-      "description": "Implement MeshPacketFecEngine.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/ providing pure Kotlin block erasure forward error correction (configurable (N, K) parity framing) with zero Java dependencies (Rule 3).",
+      "title": "Dynamic BLE Advertising Interval Throttler & Flooding Redundancy Governor",
+      "description": "Implement MeshCongestionController.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/ providing pure Kotlin mesh congestion estimation, adaptive advertisement throttling (20ms\u2013250ms), and probabilistic rebroadcast suppression under high node density with zero Java dependencies (Rules 2 & 3).",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/MeshPacketFecEngine.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/MeshPacketFecEngineTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/MeshCongestionController.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/MeshCongestionControllerTest.kt"
       ],
       "acceptanceCriteria": [
-        "Generates parity FEC packets for block of K voice packets with zero Java or C dependencies (Rule 3)",
-        "Reconstructs any single or multi-packet erasure within block when received count >= K",
-        "Supports dynamic FEC ratios (DISABLED, RATIO_4_1, RATIO_3_1, RATIO_2_1)",
+        "Computes local channel density metric based on unique node beacons heard per 5-second epoch",
+        "Dynamically scales advertising interval from 20ms (sparse) up to 250ms (dense > 12 nodes)",
+        "Applies probabilistic relay suppression for non-critical telemetry frames to eliminate broadcast storms",
         "100% test coverage in commonTest"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-3402",
+      "id": "ICA-3502",
       "priority": 2,
-      "title": "Predictive Packet Loss Concealment (PLC) & Waveform Interpolator",
-      "description": "Implement AudioLossConcealment.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/ to synthetically reconstruct lost PCM audio frames when FEC erasure bounds are exceeded, using pitch-synchronous waveform replication and progressive attenuation decay.",
+      "title": "Adaptive Multi-PHY Switcher Engine (LE 1M, LE 2M, LE Coded S8)",
+      "description": "Implement AdaptivePhyManager.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/ to negotiate and select optimal Bluetooth 5.0 PHY layers based on moving RSSI and link distance. Transitions between LE 2M (high throughput, close range), LE 1M (standard), and LE Coded S8 (long-range canyon mode).",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/AudioLossConcealment.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/AudioLossConcealmentTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/AdaptivePhyManager.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/AdaptivePhyManagerTest.kt"
       ],
       "acceptanceCriteria": [
-        "Synthesizes missing PCM audio frames smoothly from preceding frame history",
-        "Applies 2.5 dB attenuation decay per consecutive lost frame up to 3 frames, then smoothly mutes to prevent robotic/metallic artifacts",
-        "Smooth cross-fading when real voice frame reception resumes",
+        "Negotiates LE 2M when peer RSSI > -65 dBm for high-speed burst throughput",
+        "Switches to LE Coded S8 when peer RSSI < -85 dBm to extend link reach up to 500m+",
+        "Implements 4-second hysteresis to prevent PHY oscillation during cornering",
         "Comprehensive unit tests in commonTest"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-3403",
+      "id": "ICA-3503",
       "priority": 3,
-      "title": "Closed-Loop FEC Redundancy Governor & Cockpit Telemetry Wiring",
-      "description": "Integrate MeshPacketFecEngine and AudioLossConcealment into AudioPipelineSession.kt, AudioEngine.kt, IntercomHardwareBridge.kt, and IntercomBridge.kt (iOS Swift). Bind FEC ratio dynamically to composite Q_link link health. Expose live FEC recovery and PLC concealment telemetry in TactileDiagnosticsSheet.kt.",
+      "title": "Hardware Bridge Multi-PHY Binding & Tactical Cockpit RF Pill Telemetry",
+      "description": "Integrate MeshCongestionController and AdaptivePhyManager into IntercomHardwareBridge.kt, AndroidPlatformBridge.kt, and IntercomBridge.kt (iOS Swift). Expose active PHY mode (1M / 2M / CODED) and channel airtime utilization percentage to MainCockpitScreen.kt and TactileDiagnosticsSheet.kt.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/AudioEngine.kt",
         "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomHardwareBridge.kt",
+        "app/sharedLogic/src/androidMain/kotlin/org/nowni/intercom_alpha/bridge/AndroidPlatformBridge.kt",
         "app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomBridge.kt",
-        "app/androidApp/src/main/kotlin/org/nowni/intercom_alpha/bridge/AndroidPlatformBridge.kt",
-        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/state/HomeUiState.kt",
-        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/HomeViewModel.kt",
-        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/TactileDiagnosticsSheet.kt"
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/MainCockpitScreen.kt",
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/TactileDiagnosticsSheet.kt"
       ],
       "acceptanceCriteria": [
-        "Audio pipeline automatically encodes and appends FEC parity packets based on link health governor",
-        "Hardware bridges and iOS IntercomBridge stream live FEC recovered and PLC synthesized frame counts",
-        "TactileDiagnosticsSheet displays real-time FEC mode, recovery stats, and PLC activations",
-        "Adheres strictly to Rule 1 (100% Native SwiftUI on iOS) and Rule 2 (KMP shared logic)"
+        "Exposes reactive ActivePhyState with typed CancellationHandle to iOS Swift bridge",
+        "Displays RF PHY pill (2M / 1M / CODED) in Tactical Cockpit HUD with color coding",
+        "Exposes live channel airtime contention percentage in Diagnostics Sheet",
+        "Compiles without warnings across Android and iOS targets"
       ],
-      "passes": true
+      "passes": false
     },
     {
-      "id": "ICA-3404",
+      "id": "ICA-3504",
       "priority": 4,
-      "title": "Multi-Node 25% Burst Loss Simulation Test & Multiplatform Certification",
-      "description": "Implement FecLossConcealmentSimulationTest.kt in commonTest simulating 25% random and burst dropouts across an 8-node convoy, certifying audio delivery continuity, and execute full multiplatform verification gates.",
+      "title": "24-Node High-Density RF Congestion Simulation & Range Benchmark Test",
+      "description": "Create CongestionSimulationTest.kt validating a 24-node convoy operating in tight cluster and high-speed highway stretch. Simulates high-density RF collision, verifies dynamic advertisement throttling, zero dropped Emergency SOS broadcasts, and automatic fallback to LE Coded S8.",
       "targetFiles": [
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/simulation/FecLossConcealmentSimulationTest.kt"
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/CongestionSimulationTest.kt"
       ],
       "acceptanceCriteria": [
-        "Simulation test verifies complete voice frame reconstruction or concealment under 25% packet drop",
-        "100% test pass across all multiplatform test tasks (Rule 6)",
-        "Clean Android debug assemble and iOS simulator compilation (Rule 6)",
-        "OpenCodeReview gate passes with 0 findings (Rule 8)"
+        "Simulates 24 nodes broadcasting simultaneous voice and telemetry frames",
+        "Verifies total channel collision reduction > 40% when CongestionController is enabled",
+        "100% Emergency SOS packet delivery rate within 250ms under heavy congestion",
+        "All tests pass cleanly in ./gradlew test"
       ],
-      "passes": true
+      "passes": false
     }
   ]
 }

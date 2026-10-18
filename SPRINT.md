@@ -1,24 +1,24 @@
-# Current Status: Sprint 34 (Phase 29: FEC & Packet Loss Concealment Hardening)
+# Current Status: Sprint 35 (Phase 30: Autonomous Fleet Mesh Congestion Control & Adaptive PHY)
 
 > **Active Sprint Reference:** [TASKS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/TASKS.md) & [prd.json](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/tasks/ralph/prd.json)  
-> **Sprint Branch:** `sprint/sprint-34-fec-and-plc`  
+> **Sprint Branch:** `sprint/sprint-35-congestion-and-adaptive-phy`  
 > **Sprint Governance Rules:** [SPRINT-RULES.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/SPRINT-RULES.md)  
 > **Engineering Contract:** [AGENTS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/AGENTS.md)  
 > **Knowledge Base:** [MEMORY.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/MEMORY.md)  
 
 ---
 
-## ⚡ Active Sprint: Sprint 34 (Phase 29: FEC & Packet Loss Concealment Hardening)
-**Goal:** Implement robust forward error correction (FEC) and pitch-synchronous waveform packet loss concealment (PLC) over the BLE mesh. Reconstruct lost voice frames up to 25% packet drop without retransmissions, smoothly concealing unrecoverable dropouts with natural acoustic decay.
-- **Sprint Branch:** `sprint/sprint-34-fec-and-plc`  
-- **Target Release:** `v3.0.0-alpha2`  
+## 🚀 Active Sprint: Sprint 35 (Phase 30: Autonomous Fleet Mesh Congestion Control & Adaptive PHY)
+**Goal:** Implement autonomous BLE mesh channel congestion mitigation and adaptive PHY rate switching (LE 1M $\leftrightarrow$ LE 2M $\leftrightarrow$ LE Coded S8). In high-density convoys (>12 nodes), dynamically throttle background BLE advertising intervals, suppress redundant mesh rebroadcasts, and shift long-range mountain riders automatically to LE Coded PHY (500m+ range) without dropped voice frames.
+- **Sprint Branch:** `sprint/sprint-35-congestion-and-adaptive-phy`  
+- **Target Release:** `v3.0.0-beta1` Candidate  
 
 | Task ID | Item | Owner | Target Files | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **ICA-3401** | Multiplatform Block Erasure FEC Encoder & Interleaved Block Decoder | Ralph | `MeshPacketFecEngine.kt`, `MeshPacketFecEngineTest.kt` | ✅ Passed |
-| **ICA-3402** | Predictive Packet Loss Concealment (PLC) & Waveform Interpolator | Ralph | `AudioLossConcealment.kt`, `AudioLossConcealmentTest.kt` | ✅ Passed |
-| **ICA-3403** | Closed-Loop FEC Redundancy Governor & Cockpit Telemetry Wiring | Ralph | `AudioEngine.kt`, `IntercomHardwareBridge.kt`, `IntercomBridge.kt` | ✅ Passed |
-| **ICA-3404** | Multi-Node 25% Burst Loss Simulation Test & Multiplatform Certification | Ralph | `FecLossConcealmentSimulationTest.kt` | ✅ Passed |
+| **ICA-3501** | Dynamic BLE Advertising Interval Throttler & Flooding Redundancy Governor | Ralph | `MeshCongestionController.kt`, `MeshCongestionControllerTest.kt` | ⏳ Ready |
+| **ICA-3502** | Adaptive Multi-PHY Switcher Engine (LE 1M, LE 2M, LE Coded S8) | Ralph | `AdaptivePhyManager.kt`, `AdaptivePhyManagerTest.kt` | ⏳ Ready |
+| **ICA-3503** | Hardware Bridge Multi-PHY Binding & Tactical Cockpit RF Pill Telemetry | Ralph | `IntercomHardwareBridge.kt`, `IntercomBridge.kt`, `MainCockpitScreen.kt` | ⏳ Ready |
+| **ICA-3504** | 24-Node High-Density RF Congestion Simulation & Range Benchmark Test | Ralph | `CongestionSimulationTest.kt` | ⏳ Ready |
 
 ---
 
@@ -33,27 +33,3 @@
 - ✅ **Sprint 27: Satellite Communicator Lifeline & Alpine RF Long-Range Gateway**: Completed 2026-10-10 (100% DoD, v2.14.0 Released).
 - ✅ **Sprint 26: Long-Haul Fleet Hardening & Low-Bandwidth Visual Telemetry**: Completed 2026-10-10 (100% DoD, v2.13.0 Released).
 - ✅ **Sprint 25: Automated Multi-Path Mesh Failover & Hybrid Cellular/SFU Relay Handover**: Completed 2026-10-10 (100% DoD, v2.12.0 Released).
-- ✅ **Sprint 24: Mesh Airtime QoS Traffic Shaping & Airtime Contention Mitigator**: Completed 2026-10-09 (100% DoD, v2.11.0 Released).
-- ✅ **Sprint 23: Multi-Group Inter-Convoy Gateway & Cross-Mesh Federation**: Completed 2026-10-09 (100% DoD, v2.10.0 Released).
-- ✅ **Sprint 22: Dynamic Mesh Directed Routing, AODV-Lite Route Optimization & RF Collision Reduction**: Completed 2026-10-08 (100% DoD, v2.9.0 Released).
-- ✅ **Sprint 21: Autonomous Crash Impact Detection, eCall SOS & Offline Voice Command HUD**: Completed 2026-10-07 (100% DoD, v2.8.0 Released).
-- ✅ **Sprint 20: Tactical Convoy Geofencing, Autonomous Power Governor & Multi-Node Stress Benchmark Suite**: Completed 2026-10-07 (100% DoD, v2.7.0 Released).
-- ✅ **Sprint 19: Over-The-Air BLE Mesh GPX/GeoJSON Trail Sharing & Storage Manager**: Completed 2026-10-07 (100% DoD, v2.6.0 Released).
-- ✅ **Sprint 18: Offline Vector Terrain & Trail Map Overlay**: Completed 2026-10-07 (100% DoD, v2.5.0 Released).
-- ✅ **Sprint 17: Basecamp Stationary Repeater UI & Low-Power Cockpit Mode**: Completed 2026-10-06 (100% DoD, v2.4.0 Released).
-- ✅ **Sprint 16: Mesh Repeater, Audio DSP & Convoy Simulation**: Completed 2026-10-06 (100% DoD, Merged to `develop`).
-- ✅ **Sprint 15: Zero-Scroll Tactical Cockpit HUD & Hardware Telemetry Integration**: Completed 2026-10-06 (100% DoD, v2.2.0 Released).
-- ✅ **Sprint 14: Advanced Convoy Mesh, Forward-Secret Key Ratchet & Live Activity**: Completed 2026-10-04 (100% DoD, v2.1.0 Released).
-- ✅ **Sprint 13: v2.0 Production Release & Hardening (v2.0.0 Release Tag)**: Completed 2026-10-04 (100% DoD).
-- ✅ **Sprint 12: Multiplatform Cockpit UI & Bridge Integration**: Completed 2026-10-01 (100% DoD).
-- ✅ **Sprint 11: Convoy Situational Awareness, GPS Mesh Telemetry & Blackbox Voice Cache**: Completed 2026-10-01 (100% DoD).
-- ✅ **Sprint 10: Multi-Channel Intercom, Priority Emergency & Audio Spatialization**: Completed 2026-09-30 (100% DoD).
-- ✅ **Sprint 09: Cellular Fallback & Cloud Relay Bridge**: Completed 2026-09-30 (100% DoD).
-- ✅ **Sprint 08: Real-World Field Testing & Hardening (v1.0.0 Release)**: Completed 2026-09-29.
-- ✅ **Sprint 07: Audio Codec Optimization, Jitter Buffering & PLC**: Completed 2026-09-27.
-- ✅ **Sprint 06: Background Services & OS Power Management**: Completed 2026-09-27.
-- ✅ **Sprint 05: Mesh Flooding Relay, Deduplication & Encryption**: Completed 2026-09-27.
-- ✅ **Sprint 04: Swift ↔ KMP Bridge & QR Code Onboarding**: Completed 2026-09-27.
-- ✅ **Sprint 03: iOS Native Audio, CoreBluetooth Mesh & Cross-Platform GATT**: Completed 2026-09-26.
-- ✅ **Sprint 02: Android Platform Engine & Compose UI**: Completed 2026-09-25.
-- ✅ **Sprint 01: Core Networking & Signaling Protocol**: Completed 2026-09-20.
