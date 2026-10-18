@@ -429,6 +429,23 @@ class HomeViewModel(
                 _uiState.update { it.copy(qosSnapshot = snapshot) }
             }
         }
+
+        // 13. Synchronize FEC, PLC, and BLE MTU Snapshots (ICA-3403 / ICA-3503)
+        viewModelScope.launch {
+            hardwareBridge.fecTelemetrySnapshot.collect { snapshot ->
+                _uiState.update { it.copy(fecTelemetry = snapshot) }
+            }
+        }
+        viewModelScope.launch {
+            hardwareBridge.plcTelemetrySnapshot.collect { snapshot ->
+                _uiState.update { it.copy(plcTelemetry = snapshot) }
+            }
+        }
+        viewModelScope.launch {
+            hardwareBridge.bleMtuSnapshot.collect { snapshot ->
+                _uiState.update { it.copy(bleMtuTelemetry = snapshot) }
+            }
+        }
     }
 
     fun onAction(action: HomeUiAction) {
@@ -769,6 +786,10 @@ class HomeViewModel(
                     fecEngine.setFecRatio(action.ratio)
                     hardwareBridge.setFecRatio(action.ratio)
                 }
+            }
+
+            is HomeUiAction.SetNegotiatedMtu -> {
+                hardwareBridge.setNegotiatedMtu(action.mtu)
             }
         }
     }
