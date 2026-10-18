@@ -1,5 +1,6 @@
 package org.nowni.intercom_alpha.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -17,7 +19,15 @@ import androidx.compose.ui.window.Dialog
 import org.nowni.intercom_alpha.text.DeliveryStatus
 import org.nowni.intercom_alpha.text.MeshTextMessage
 import org.nowni.intercom_alpha.text.MessageCategory
+import org.nowni.intercom_alpha.ui.theme.IntercomTokens
+import org.nowni.intercom_alpha.ui.theme.claymorphic
+import org.nowni.intercom_alpha.ui.theme.neobrutalistBorder
 
+/**
+ * Tactical Convoy Text & Hazard Transcript Dialog.
+ * Displays real-time BLE mesh messages with high-contrast neobrutalist bubbles,
+ * monospace tabular timestamps, and glove-friendly hazard chips.
+ */
 @Composable
 fun MessageHistoryDialog(
     messages: List<MeshTextMessage>,
@@ -27,14 +37,19 @@ fun MessageHistoryDialog(
     var inputText by remember { mutableStateOf("") }
 
     Dialog(onDismissRequest = onDismiss) {
-        Card(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.85f),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            )
+                .fillMaxHeight(0.85f)
+                .claymorphic(
+                    surfaceColor = IntercomTokens.CockpitChassis,
+                    shape = RoundedCornerShape(IntercomTokens.CardCornerRadius)
+                )
+                .neobrutalistBorder(
+                    color = IntercomTokens.NeobrutalBorderIdle,
+                    thickness = IntercomTokens.NeobrutalBorderThickness,
+                    shape = RoundedCornerShape(IntercomTokens.CardCornerRadius)
+                )
         ) {
             Column(
                 modifier = Modifier
@@ -47,17 +62,36 @@ fun MessageHistoryDialog(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "Convoy Mesh Messages",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Column {
+                        Text(
+                            text = "CONVOY MESH MESSAGES",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Black,
+                            fontFamily = FontFamily.Monospace,
+                            letterSpacing = 0.5.sp,
+                            color = IntercomTokens.SignalSatelliteCyan
+                        )
+                        Text(
+                            text = "Off-Grid BLE Mesh Text Channel",
+                            fontSize = 10.sp,
+                            color = Color(0xFF7A8B9E)
+                        )
+                    }
+
                     TextButton(onClick = onDismiss) {
-                        Text("Close", fontWeight = FontWeight.Bold)
+                        Text(
+                            text = "CLOSE",
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace,
+                            color = IntercomTokens.SignalSatelliteCyan
+                        )
                     }
                 }
 
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 10.dp),
+                    color = IntercomTokens.CockpitSurfaceElevated
+                )
 
                 // Messages list
                 if (messages.isEmpty()) {
@@ -68,9 +102,11 @@ fun MessageHistoryDialog(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "No messages exchanged yet.\nUse quick hazards or type below.",
+                            text = "No messages exchanged yet.\nUse quick hazard buttons or type below.",
                             fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = Color(0xFF7A8B9E),
+                            fontFamily = FontFamily.Monospace,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                             lineHeight = 18.sp
                         )
                     }
@@ -88,7 +124,7 @@ fun MessageHistoryDialog(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 // Text input row
                 Row(
@@ -99,9 +135,22 @@ fun MessageHistoryDialog(
                     OutlinedTextField(
                         value = inputText,
                         onValueChange = { inputText = it },
-                        placeholder = { Text("Mesh message...", fontSize = 12.sp) },
+                        placeholder = {
+                            Text(
+                                text = "Tactical mesh message...",
+                                fontSize = 12.sp,
+                                fontFamily = FontFamily.Monospace,
+                                color = Color(0xFF7A8B9E)
+                            )
+                        },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = IntercomTokens.SignalSatelliteCyan,
+                            unfocusedBorderColor = IntercomTokens.NeobrutalBorderIdle,
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
+                        ),
                         shape = RoundedCornerShape(8.dp)
                     )
 
@@ -113,10 +162,21 @@ fun MessageHistoryDialog(
                             }
                         },
                         enabled = inputText.isNotBlank(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = IntercomTokens.SignalSatelliteCyan,
+                            contentColor = IntercomTokens.CockpitObsidian,
+                            disabledContainerColor = IntercomTokens.CockpitSurfaceElevated,
+                            disabledContentColor = Color(0xFF7A8B9E)
+                        ),
                         shape = RoundedCornerShape(8.dp),
                         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp)
                     ) {
-                        Text("Send", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        Text(
+                            text = "SEND",
+                            fontWeight = FontWeight.Black,
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 12.sp
+                        )
                     }
                 }
             }
@@ -127,16 +187,23 @@ fun MessageHistoryDialog(
 @Composable
 private fun MessageItem(message: MeshTextMessage) {
     val isHazard = message.category == MessageCategory.CANNED_HAZARD
-    val containerColor = when {
-        isHazard -> Color(0xFFFFEBEE)
-        message.isRead -> MaterialTheme.colorScheme.surfaceVariant
-        else -> MaterialTheme.colorScheme.primaryContainer
+    val bubbleBackground = if (isHazard) {
+        IntercomTokens.SignalHotMicOrange.copy(alpha = 0.15f)
+    } else {
+        IntercomTokens.CockpitSurfaceElevated
+    }
+
+    val borderColor = if (isHazard) {
+        IntercomTokens.SignalHotMicOrange
+    } else {
+        IntercomTokens.NeobrutalBorderIdle
     }
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
-        color = containerColor
+        color = bubbleBackground,
+        border = BorderStroke(1.dp, borderColor)
     ) {
         Column(modifier = Modifier.padding(10.dp)) {
             Row(
@@ -144,22 +211,38 @@ private fun MessageItem(message: MeshTextMessage) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = message.senderName,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isHazard) Color(0xFFC62828) else MaterialTheme.colorScheme.onSurface
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    if (isHazard) {
+                        Text(text = "⚠️", fontSize = 12.sp)
+                    }
+                    Text(
+                        text = message.senderName,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace,
+                        color = if (isHazard) IntercomTokens.SignalHotMicOrange else IntercomTokens.SignalSatelliteCyan
+                    )
+                }
+
                 Text(
                     text = when (message.status) {
-                        DeliveryStatus.ACKNOWLEDGED -> "✓✓ Ack"
-                        DeliveryStatus.DELIVERED -> "✓ Delivered"
-                        DeliveryStatus.SENT -> "Sent"
-                        DeliveryStatus.FAILED -> "Failed"
-                        DeliveryStatus.PENDING -> "Pending"
+                        DeliveryStatus.ACKNOWLEDGED -> "✓✓ ACK"
+                        DeliveryStatus.DELIVERED -> "✓ DELIV"
+                        DeliveryStatus.SENT -> "SENT"
+                        DeliveryStatus.FAILED -> "FAILED"
+                        DeliveryStatus.PENDING -> "PEND"
                     },
-                    fontSize = 10.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    fontSize = 9.sp,
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    color = when (message.status) {
+                        DeliveryStatus.ACKNOWLEDGED -> IntercomTokens.SignalCodedPhyEmerald
+                        DeliveryStatus.FAILED -> IntercomTokens.SignalEmergencyCrimson
+                        else -> Color(0xFF7A8B9E)
+                    }
                 )
             }
 
@@ -168,8 +251,9 @@ private fun MessageItem(message: MeshTextMessage) {
             Text(
                 text = message.content,
                 fontSize = 13.sp,
-                fontWeight = if (isHazard) FontWeight.Bold else FontWeight.Normal,
-                color = if (isHazard) Color(0xFFB71C1C) else MaterialTheme.colorScheme.onSurface
+                fontWeight = if (isHazard) FontWeight.Black else FontWeight.Normal,
+                fontFamily = FontFamily.Monospace,
+                color = Color.White
             )
         }
     }

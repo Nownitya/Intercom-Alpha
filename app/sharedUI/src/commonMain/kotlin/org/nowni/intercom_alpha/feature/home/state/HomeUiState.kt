@@ -101,7 +101,10 @@ data class HomeUiState(
 
     // Sprint 25 Automated Multi-Path Mesh Failover & Handover HUD (ICA-2503)
     val failoverSnapshot: org.nowni.intercom_alpha.mesh.failover.FailoverMetrics = org.nowni.intercom_alpha.mesh.failover.FailoverMetrics(),
-    val showFailoverSheet: Boolean = false
+    val showFailoverSheet: Boolean = false,
+
+    // Sprint 32 Tactile Sub-Screens & Overlays (ICA-3202)
+    val showDiagnosticsSheet: Boolean = false
 )
 
 sealed interface HomeUiAction {
@@ -168,6 +171,9 @@ sealed interface HomeUiAction {
     // Sprint 25 Automated Multi-Path Failover Actions (ICA-2503)
     data class ToggleFailoverSheet(val show: Boolean) : HomeUiAction
     data class SetFailoverModeOverride(val mode: org.nowni.intercom_alpha.mesh.failover.FailoverMode?) : HomeUiAction
+
+    // Sprint 32 Tactile Diagnostics Action (ICA-3202)
+    data class ToggleDiagnosticsSheet(val show: Boolean) : HomeUiAction
 }
 
 sealed interface HomeUiEvent {
