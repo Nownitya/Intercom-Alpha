@@ -58,7 +58,7 @@
         "TactileDiagnosticsSheet displays real-time calculated Q_link and negotiated bitrate",
         "Adheres to Rule 1 (100% Native SwiftUI on iOS) and Rule 2 (KMP shared logic)"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-3304",
