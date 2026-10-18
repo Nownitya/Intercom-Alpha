@@ -74,7 +74,7 @@
         "Clean Android assemble and iOS simulator compilation (Rule 6)",
         "OpenCodeReview gate passes with 0 findings (Rule 8)"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }

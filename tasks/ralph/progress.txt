@@ -2605,4 +2605,67 @@
   - `ICA-3204: Multiplatform Sub-Screen E2E Interaction Test & Certification` [PASSED]
 - **Milestone DoD Status**: 100% Definition of Done criteria passed cleanly across all platforms with 0 regressions, 0 OCR findings, and full multiplatform compilation.
 
+---
+
+### [2026-10-18] - ICA-3301: Real-Time Mesh Link Quality Scoring & EWMA Loss Estimator
+- **Branch**: `feature/ICA-3301-link-quality-scorer`
+- **Objective**: Implement `MeshLinkQualityScorer.kt` in `commonMain` calculating composite $Q_{link} \in [0, 100]$ combining EWMA RSSI link margin (35%), PDR (40%), RFC 3550 jitter (15%), and ETX (10%) with severe packet loss capping.
+- **Implementation**:
+  - Created `MeshLinkQualityScorer.kt` with thread-safe `Mutex`, `PeerTracker`, and reactive `StateFlow<ClusterLinkHealth>`.
+  - Implemented `MeshLinkQualityScorerTest.kt` in `commonTest` with comprehensive coverage of link margin attenuation, sequence gap loss, jitter variance, and multi-peer cluster aggregation.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: Passed cleanly in 39s.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-33-adaptive-mesh-bitrate`).
+
+### [2026-10-18] - ICA-3302: Dynamic Adaptive Bitrate & Frame Sizing Controller
+- **Branch**: `feature/ICA-3302-adaptive-bitrate-engine`
+- **Objective**: Implement `AdaptiveBitrateEngine.kt` mapping $Q_{link}$ into dynamic `AudioProfile` bitrates (16 kbps to 48 kbps) and frame sizes (20ms to 60ms) with rapid downshift (<200ms) and conservative hysteresis step-up (3 cycles).
+- **Implementation**:
+  - Implemented `AdaptiveBitrateEngine.kt` with cluster policies (`WORST_LINK`, `CLUSTER_AVERAGE`), manual pin overrides, and reactive `BitrateEngineTelemetry`.
+  - Implemented `AdaptiveBitrateEngineTest.kt` in `commonTest` verifying rapid step-downs, hysteresis anti-flapping dampening, and profile pinning.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: Passed cleanly in 51s.
+  - iOS Simulator Compilation: Passed cleanly.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-33-adaptive-mesh-bitrate`).
+
+### [2026-10-18] - ICA-3303: Audio Pipeline Dynamic Frame Multiplexing & Cockpit Telemetry Wiring
+- **Branch**: `feature/ICA-3303-audio-pipeline-telemetry`
+- **Objective**: Wire adaptive bitrate engine and link quality telemetry into `AudioPipelineSession`, `IntercomHardwareBridge`, `IntercomBridge.kt` (iOS Swift interop), `HomeViewModel`, and cockpit UI.
+- **Implementation**:
+  - Updated `AudioPipelineSession` and `AudioEngine` to support dynamic encoding profile switches.
+  - Updated `IntercomHardwareBridge` and `AndroidPlatformBridge` with reactive `linkQualitySnapshot` and `adaptiveBitrateSnapshot`.
+  - Extended `IntercomBridge.kt` (`iosMain`) with `observeLinkQualityHealth`, `observeAdaptiveBitrateTelemetry`, `pinAudioBitrateProfile`, and `setClusterPolicy`.
+  - Added live telemetry display in `HomeUiState`, `HomeViewModel`, `TactileDiagnosticsSheet.kt`, and `MainCockpitScreen.kt`.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-33-adaptive-mesh-bitrate`).
+
+### [2026-10-18] - ICA-3304: Multi-Node Dynamic Bitrate Simulation Test & Multiplatform Certification
+- **Branch**: `feature/ICA-3304-simulation-and-certification`
+- **Objective**: Implement 8-node convoy dynamic RF simulation test verifying end-to-end bitrate adaptation and execute full multiplatform certification gates.
+- **Implementation**:
+  - Implemented `AdaptiveBitrateSimulationTest.kt` in `commonTest` covering:
+    - Stage 1: Pristine highway transmission and decoding across 8 nodes at 48 kbps HIGH.
+    - Stage 2: Deep canyon fading immediate rapid step-down (<200ms) to 16 kbps ULTRA_LOW.
+    - Stage 3: Canyon exit with 3-cycle asymmetric hysteresis recovery safely stepping back to 48 kbps HIGH.
+    - Stage 4: Single/dual straggler degradation with `WORST_LINK` downshifting to protect stragglers vs `CLUSTER_AVERAGE` maintaining 32 kbps MEDIUM.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: 125 actionable tasks passed cleanly (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`, Rule 8).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-33-adaptive-mesh-bitrate`).
+
+---
+
+## 🏆 Sprint 33: Dynamic Adaptive Mesh Bitrate Tuning (Phase 29) — 100% Complete
+- **All 4 Sprint 33 stories PASSED**:
+  - `ICA-3301: Real-Time Mesh Link Quality Scoring & EWMA Loss Estimator` [PASSED]
+  - `ICA-3302: Dynamic Adaptive Bitrate & Frame Sizing Controller` [PASSED]
+  - `ICA-3303: Audio Pipeline Dynamic Frame Multiplexing & Cockpit Telemetry Wiring` [PASSED]
+  - `ICA-3304: Multi-Node Dynamic Bitrate Simulation Test & Multiplatform Certification` [PASSED]
+- **Milestone DoD Status**: 100% Definition of Done criteria passed cleanly across all platforms with 0 regressions, 0 OCR findings, and full multiplatform compilation.
+
+
 
