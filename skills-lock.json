@@ -7,6 +7,12 @@
       "skillPath": "skills/taste-skill/SKILL.md",
       "computedHash": "53590ee9325bee34d7888bf0d81bd3941a108b1e7850df46802d93104e3f2b90"
     },
+    "gstack": {
+      "source": "garrytan/gstack",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "1d7b83bdd482b647ff58549df70541fbc2f2db0280049c5d524223388b8ff90a"
+    },
     "impeccable": {
       "source": "pbakaus/impeccable",
       "sourceType": "github",
