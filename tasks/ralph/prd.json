@@ -20,7 +20,7 @@
         "Maintains zero latency degradation for emergency SOS frames",
         "100% test coverage in commonTest"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-3702",

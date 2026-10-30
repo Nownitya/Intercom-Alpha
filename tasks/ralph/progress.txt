@@ -2889,3 +2889,22 @@
 
 
 
+
+
+### [2026-10-31] - ICA-3701: Dynamic BLE Advertising Interval Throttler & Flooding Redundancy Governor
+- **Branch**: `feature/ICA-3701-mesh-congestion-governor`
+- **Objective**: Implement `MeshCongestionGovernor.kt` in `commonMain` dynamically adjusting BLE advertising intervals (20ms to 250ms) and probabilistic flooding suppression based on local node density and channel utilization.
+- **Implementation**:
+  - Implemented `MeshCongestionGovernor.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/`:
+    - Measures channel utilization via sliding-window airtime tracking and accepts diagnostic updates from external scorers.
+    - Tracks active neighbor node density with sliding 10s retention window.
+    - Dynamically throttles BLE advertising intervals from 20ms up to 250ms when channel utilization exceeds 70%.
+    - Enforces probabilistic flooding relay dampening for non-emergency packets in dense clusters (> 8 nodes) and high CBR.
+    - Guaranteed 100% bypass with zero latency degradation for emergency SOS frames (`CRASH_ALERT`, `GEOFENCE_ALARM`, `EMERGENCY_CRITICAL`).
+  - Created `MeshCongestionGovernorTest.kt` in `commonTest`:
+    - 12 comprehensive unit test suites validating baseline metrics, advertising throttling above 70%, node density scaling, probabilistic dampening, emergency bypass, neighbor retention pruning, airtime accumulation, and reset behavior.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly.
+  - `./gradlew :app:androidApp:assembleDebug`: Passed cleanly in 3m 50s.
+  - OpenCodeReview (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-37-fleet-congestion-control`).
