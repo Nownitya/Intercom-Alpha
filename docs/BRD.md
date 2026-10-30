@@ -1,6 +1,6 @@
 # Business Requirements Document (BRD) — Intercom-Alpha
 
-> **Document Version:** 3.0.0  
+> **Document Version:** 3.0.0-beta1  
 > **Status:** Approved Engineering & Business Strategy  
 > **Product Name:** Intercom-Alpha  
 > **Category:** Off-Grid Mesh Voice Communication & Fleet Telemetry Platform  
@@ -24,14 +24,18 @@
 | **Pre-Ride Onboarding Speed** | **< 3 seconds** via camera QR scan | Eliminates pre-ride frustration and rider churn |
 | **Expedition Battery Endurance** | **> 12 hours** continuous operation (< 7.5%/hr) | Reliable all-day expedition confidence |
 | **Mesh Audio Continuity** | **Zero dropped words** up to 25% packet drop | High safety and intelligibility in high-speed wind |
-| **Cellular Handover Seamlessness** | **< 50ms transition jitter** | Prevents group confusion when convoys split at highway junctions |
+| **RF Airtime Efficiency** | **> 50% packet reduction** via ATT MTU packing | Multi-peer scalability without radio congestion |
+| **Offline Alpine Navigation** | **< 15ms spatial queries** with zero cellular | Mission confidence in remote backcountry passes |
+| **Cellular Handover Seamlessness**| **< 50ms transition jitter** | Prevents group confusion when convoys split at highway junctions |
 | **Crash Safety Response** | **< 1.0s emergency dispatch** | Lifesaving response time in remote motorcycle accidents |
+| **Test Verification Gate** | **506 passing multiplatform tests** (100%) | Enterprise-grade reliability across Android, iOS & JVM |
 
 ---
 
 ## 2. Stakeholder Matrix & Impact Analysis
 
-* **Motorcycle Convoy Leaders:** Demand zero-friction pairing and instant visibility over group separation; high willingness to recommend app to club members.
+* **Motorcycle Convoy Leaders:** Demand zero-friction pairing, offline topographic contour visibility, and real-time altitude separation over trail passes.
 * **Casual Weekend Riders:** Price-sensitive; want to talk to friends without buying a $400 helmet gadget.
 * **Commercial Tour Operators (B2B):** Require real-time convoy tracking, multi-group radio channel partitioning, and rugged stationary basecamp repeaters.
 * **Search & Rescue (SAR) Units:** Require peer-to-peer off-grid reliability, zero single points of failure, and satellite gateway lifeline compatibility.
+

@@ -1,8 +1,8 @@
 # Multiplatform Testing Strategy & Quality Assurance — Intercom-Alpha
 
-> **Document Version:** 3.0.0-alpha2  
+> **Document Version:** 3.0.0-beta1  
 > **Status:** Active QA Master Plan  
-> **Test Suite Size:** 475 Passing Unit Tests  
+> **Test Suite Size:** 506 Passing Unit Tests (100% clean)  
 > **Repository:** `Intercom-Alpha`  
 
 ---
@@ -25,7 +25,7 @@
 
 ### 2.1 Pure Multiplatform Unit Tests
 ```bash
-# Runs 475+ automated unit tests across commonMain algorithms
+# Runs 506 automated unit tests across commonMain algorithms
 ./gradlew test
 ```
 
@@ -40,7 +40,12 @@
 ```
 
 ### 2.4 High-Density Simulation Benchmarks
-* `FecLossConcealmentSimulationTest.kt`: 25% burst loss audio continuity.
-* `AdaptiveBitrateSimulationTest.kt`: Dynamic 16–48 kbps RF fading adaptation.
+* `AlpineElevationSimulationTest.kt`: 12-node convoy 2,500m pass ascent, slope grade % calculation (>8% caution, >12% extreme), lead/sweep vertical delta $\Delta h$.
+* `OfflineVectorTileEngineTest.kt`: Sub-15ms spatial query under 64-tile in-memory LRU cache with MVT decoding.
+* `ConvoyElevationEngineTest.kt`: Pure KMP slope % math, haversine distance filtering, and summit alerts.
+* `AttMtuAggregatorTest.kt`: Dynamic 2–4 frame aggregation into 247-byte ATT payloads (>50% RF reduction).
+* `MatrixBlockInterleaverTest.kt`: Time-diversity $(M \times N)$ block interleaving against burst packet drops.
+* `FecLossConcealmentSimulationTest.kt`: 25% burst loss audio continuity and zero dropped emergency packets.
+* `AdaptiveBitrateSimulationTest.kt`: Dynamic 16–48 kbps RF fading adaptation based on $Q_{link}$.
 * `MultiGroupFederationSimulationHarness.kt`: 32-node dual-squad inter-convoy gateway.
 * `ExpeditionSoakSimulationHarness.kt`: 8-hour continuous soak test with zero leaks.

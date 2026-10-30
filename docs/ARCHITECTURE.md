@@ -1,6 +1,6 @@
 # System Architecture — Intercom-Alpha
 
-> **Document Version:** 3.0.0-alpha2  
+> **Document Version:** 3.0.0-beta1  
 > **Status:** Active Golden Reference  
 > **Repository:** `Intercom-Alpha`  
 > **Architectural Pillars:** Pure KMP Engine | 100% Native SwiftUI on iOS | Compose on Android | Closed-Loop Resilient DSP  
@@ -18,7 +18,8 @@ Intercom-Alpha separates shared business and protocol algorithms from platform p
 |   |         iOS Platform               |   |       Android Platform       |   |
 |   |   :app:iosApp                      |   |   :app:sharedUI              |   |
 |   |   - 100% Native SwiftUI            |   |   - Compose Multiplatform    |   |
-|   |   - Tactical Cockpit HUD           |   |   - Zero-Scroll Tactile HUD  |   |
+|   |   - Tactical Cockpit HUD & ELEV    |   |   - Zero-Scroll Tactile HUD  |   |
+|   |   - Native Canvas Elevation Graph  |   |   - Dedicated ELEV Tab & HUD |   |
 |   |   - No Shared Compose UI (Rule 1)  |   |   - Glove-Friendly 64dp Hits |   |
 |   +-----------------+------------------+   +--------------+---------------+   |
 +---------------------|-------------------------------------|-------------------+
@@ -30,13 +31,19 @@ Intercom-Alpha separates shared business and protocol algorithms from platform p
 |   |   Audio DSP Subsystem  | |  Resilience & Coding  | | Transport Arbiter  | |
 |   |   - Energy VOX Detector| |  - Block Erasure FEC  | | - Q_link Scorer    | |
 |   |   - Dual-Thresh Noise  | |  - Pitch-Sync PLC     | | - Multi-Path Hedge | |
-|   |   - Jitter Buffer RFC35| |  - Adaptive Bitrate   | | - Dynamic Failover | |
+|   |   - Jitter Buffer RFC35| |  - Matrix Interleaver | | - Dynamic Failover | |
 |   +------------------------+ +-----------------------+ +--------------------+ |
 |   +------------------------+ +-----------------------+ +--------------------+ |
-|   |   Mesh Protocol & Dedu | |  Pure Kotlin Crypto   | | Airtime QoS Shaper | |
+|   |   Mesh Protocol & Dedu | |  Pure Kotlin Crypto   | | Airtime & Concession| |
 |   |   - Multi-Hop TTL=3    | |  - RFC 8439 ChaCha20  | | - Token-Bucket 4-Tr| |
 |   |   - Sliding-Window Dedu| |  - Poly1305 (26-limb) | | - Strict Preemption| |
-|   |   - AODV-Lite Directed | |  - HKDF-SHA256 Ratchet| | - WFQ Secondary    | |
+|   |   - ATT MTU Aggregator | |  - HKDF-SHA256 Ratchet| | - Congestion Gov   | |
+|   +------------------------+ +-----------------------+ +--------------------+ |
+|   +------------------------+ +-----------------------+ +--------------------+ |
+|   | Offline Vector Engine  | | Convoy Elevation Math | | Multi-PHY Arbiter  | |
+|   | - Sub-15ms Spatial Qry | | - Slope Grade % Math  | | - LE 1M / LE 2M    | |
+|   | - 64-Tile LRU Cache    | | - Caution >8%, Ext>12%| | - LE Coded S8 Long | |
+|   | - MVT Protobuf Parsing | | - Lead/Sweep Delta-h  | | - Dynamic Switching| |
 |   +------------------------+ +-----------------------+ +--------------------+ |
 +-------------------------------------------------------------------------------+
                                         |
@@ -71,3 +78,6 @@ Intercom-Alpha separates shared business and protocol algorithms from platform p
 | **ADR-015** | Dynamic Adaptive Bitrate Scaling | Accepted | EWMA $Q_{link}$ scoring dynamically adjusting codec bitrates (16–48 kbps). |
 | **ADR-016** | Pure KMP Block Erasure FEC & PLC | Accepted | Multiplatform systematic FEC and pitch-synchronous waveform PLC. |
 | **ADR-017** | Zero-Scroll Tactical Cockpit Design | Accepted | High-contrast OLED dark-mode HUD with 64dp+ glove-friendly touch targets. |
+| **ADR-018** | BLE ATT MTU Packing & Interleaving | Accepted | Dynamic multi-frame aggregation (>50% RF reduction) and time-diversity block interleaving. |
+| **ADR-019** | Offline Vector Tile & Elevation Profiling | Accepted | Pure KMP Mapbox vector tile parser (<15ms query) and real-time convoy elevation HUD. |
+| **ADR-020** | Mesh Congestion Governor & Adaptive PHY | Accepted | Channel airtime occupancy throttling and autonomous LE 1M/2M/Coded S8 rate adaptation. |

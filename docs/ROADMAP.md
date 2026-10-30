@@ -1,9 +1,9 @@
 # Master Engineering Roadmap & Milestones — Intercom-Alpha
 
 > **Status:** Active / Tracked  
-> **Current Version:** `v3.0.0-alpha2` (Verified & Released)  
-> **Active Sprint:** Sprint 35 (Phase 30: Fleet Mesh Congestion Control & Adaptive PHY)  
-> **Milestones:** Phase 1 to Phase 29 (Sprints 01–34) Completed | Phase 30 Active | Phases 31–33 Planned to v3.0.0 GA  
+> **Current Version:** `v3.0.0-beta1` (Verified & Released)  
+> **Active Sprint:** Sprint 37 (Phase 32: Autonomous Fleet Mesh Congestion Control & Adaptive PHY)  
+> **Milestones:** Phase 1 to Phase 31 (Sprints 01–36) Completed | Phase 32 Active | Phases 33–34 Planned to v3.0.0 GA  
 
 Master Project Hub: [[Intercom-Alpha|Master Project Hub]] • Kanban Board: [[Kanban|Agile Kanban]]
 
@@ -63,39 +63,44 @@ Master Project Hub: [[Intercom-Alpha|Master Project Hub]] • Kanban Board: [[Ka
 * [x] Closed-loop FEC redundancy governor bound to real-time link quality.
 * [x] Verified zero dropped emergency frames and continuous speech playout under 25% burst packet loss.
 
+### Milestone v3.0.0-alpha3: Ultra-Low Latency BLE ATT MTU Frame Packing & Interleaving (Phase 30, Sprint 35)
+* [x] ATT MTU Frame Aggregator packing 2–4 voice frames into 247-byte payloads (>50% RF packet reduction).
+* [x] Pure KMP Matrix Block Interleaver ($(M \times N)$ time dispersion converting radio burst drops into single erasures).
+* [x] Adaptive frame assembly engine bound to negotiated BLE ATT MTU sizes (64–512 bytes).
+* [x] High-density multi-node audio packet relay benchmark under severe packet collision scenarios.
+
+### Milestone v3.0.0-beta1: Offline Vector Topographic & Trail Elevation Profile HUD (Phase 31, Sprint 36)
+* [x] `OfflineVectorTileEngine`: Sub-15ms spatial query, in-memory LRU bounding-box caching, Mapbox Vector Tile (MVT) parsing.
+* [x] `ConvoyElevationEngine`: Real-time moving slope grade calculation, steep descent/ascent warnings (>8% Caution, >12% Extreme), lead/tail vertical delta ($\Delta h$).
+* [x] `TrailElevationHudOverlay` & Cockpit UI integration: Dedicated ELEV tab in Tactical Cockpit HUD, high-contrast OLED elevation profile with convoy rider pins and 64dp zoom controls.
+* [x] Multiplatform bridge exposure via `IntercomBridge.kt` for native SwiftUI HUD consumption.
+* [x] 12-node alpine elevation pass simulation test (`AlpineElevationSimulationTest`) with 100% test pass (506 tests).
+
 ---
 
 ## 🚀 Forward Roadmap to v3.0.0 Production GA
 
-### 📍 Phase 30: Autonomous Fleet Mesh Congestion Control & Adaptive PHY (Sprint 35) — [ACTIVE SPRINT]
-* **Target Release:** `v3.0.0-beta1` Candidate  
-* **Sprint Branch:** `sprint/sprint-35-congestion-and-adaptive-phy`  
+### 📍 Phase 32: Autonomous Fleet Mesh Congestion Control & Adaptive PHY (Sprint 37) — [ACTIVE SPRINT]
+* **Target Release:** `v3.0.0-beta2`
+* **Sprint Branch:** `sprint/sprint-37-fleet-congestion-control`
 * **Goals:**
-  * `ICA-3501`: Dynamic BLE advertising interval throttler (20ms–250ms) and probabilistic rebroadcast suppressor.
-  * `ICA-3502`: Adaptive Multi-PHY switcher engine negotiating LE 1M, LE 2M, and LE Coded S8 (500m+ canyon reach).
-  * `ICA-3503`: Hardware bridge multi-PHY binding and Tactical Cockpit RF pill telemetry.
-  * `ICA-3504`: 24-node high-density RF congestion simulation and range benchmark test suite.
+  * `ICA-3701`: Mesh Congestion Governor & Dynamic Broadcast Backoff (channel airtime measurement, adaptive backoff).
+  * `ICA-3702`: Adaptive Multi-PHY Switching Manager (LE 1M, LE 2M, LE Coded S8 rate negotiation based on SNR/RSSI/BER).
+  * `ICA-3703`: Cockpit RF & PHY Telemetry Indicators & Multiplatform Bridge Bindings.
+  * `ICA-3704`: 32-Node High-Density RF Congestion & Alpine Range Simulation Test Suite.
 
-### 📍 Phase 31: High-Definition Offline Vector Topographic & Trail Elevation Profile HUD (Sprint 36)
-* **Target Release:** `v3.0.0-beta1` Official Release  
-* **Goals:**
-  * `ICA-3601`: Native KMP vector map tile decoder for offline MapLibre tiles.
-  * `ICA-3602`: Head-Up Display (HUD) real-time elevation profile overlay with convoy member elevation markers.
-  * `ICA-3603`: Turn-by-turn auditory trail cues mixed smoothly into intercom headset voice stream.
-  * `ICA-3604`: Offline vector map cache manager with SD card / internal storage quota governor.
-
-### 📍 Phase 32: Multi-Squad Basecamp Master Dispatch Console & Fleet Telemetry (Sprint 37)
+### 📍 Phase 33: Multi-Squad Basecamp Master Dispatch Console & Fleet Telemetry (Sprint 38)
 * **Target Release:** `v3.0.0-rc1` (Release Candidate 1)  
 * **Goals:**
-  * `ICA-3701`: Standalone Desktop/Web Basecamp Console connecting via stationary BLE/USB repeater node.
-  * `ICA-3702`: Multi-squad real-time tracking radar with fleet-wide battery health and telemetry aggregation.
-  * `ICA-3703`: Centralized all-call emergency broadcast override and audio logging blackbox exporter.
-  * `ICA-3704`: Field deployment simulation harness with 3 remote squads and 1 basecamp master node.
+  * `ICA-3801`: Standalone Desktop/Web Basecamp Console connecting via stationary BLE/USB repeater node.
+  * `ICA-3802`: Multi-squad real-time tracking radar with fleet-wide battery health and telemetry aggregation.
+  * `ICA-3803`: Centralized all-call emergency broadcast override and audio logging blackbox exporter.
+  * `ICA-3804`: Field deployment simulation harness with 3 remote squads and 1 basecamp master node.
 
-### 📍 Phase 33: End-to-End Field Soak Benchmark, Battery Profiling & v3.0.0 GA (Sprint 38)
+### 📍 Phase 34: End-to-End Field Soak Benchmark, Battery Profiling & v3.0.0 GA (Sprint 39)
 * **Target Release:** `v3.0.0` Production General Availability (GA)  
 * **Goals:**
-  * `ICA-3801`: 12-hour continuous multiplatform field expedition soak test across mixed Android/iOS convoy.
-  * `ICA-3802`: Full battery profiling audit ensuring $< 7.5\%$ consumption per hour under continuous background relay.
-  * `ICA-3803`: Release signing, ProGuard / R8 minification, native binary symbol stripping, and Play Store / TestFlight bundle generation.
-  * `ICA-3804`: Production release documentation sign-off, public API documentation, and v3.0.0 release tagging.
+  * `ICA-3901`: 12-hour continuous multiplatform field expedition soak test across mixed Android/iOS convoy.
+  * `ICA-3902`: Full battery profiling audit ensuring $< 7.5\%$ consumption per hour under continuous background relay.
+  * `ICA-3903`: Release signing, ProGuard / R8 minification, native binary symbol stripping, and Play Store / TestFlight bundle generation.
+  * `ICA-3904`: Production release documentation sign-off, public API documentation, and v3.0.0 release tagging.

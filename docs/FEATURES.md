@@ -1,12 +1,12 @@
 # Master Feature Catalog & Specification Matrix — Intercom-Alpha
 
-> **Document Version:** 3.0.0-alpha2  
-> **Status:** Active Catalog (Sprints 01–34 Complete, Sprints 35–38 Planned)  
+> **Document Version:** 3.0.0-beta1  
+> **Status:** Active Catalog (Sprints 01–36 Complete, Sprints 37–39 Planned)  
 > **Repository:** `Intercom-Alpha`  
 
 ---
 
-## 1. Completed & Verified Features (Through Sprint 34)
+## 1. Completed & Verified Features (Through Sprint 36)
 
 | Feature ID | Category | Feature Name | Target Release | DoD Verification Test Suite |
 | :--- | :--- | :--- | :--- | :--- |
@@ -34,3 +34,10 @@
 | **FEAT-22** | Telemetry| GPS Delta Telemetry Beacon & Off-Grid Radar | v2.0.0 | `TelemetryBeaconTest.kt` |
 | **FEAT-23** | Telemetry| OTA BLE Mesh GPX/GeoJSON Trail Sharing | v2.6.0 | `TrailStorageTest.kt` |
 | **FEAT-24** | Power | Foreground Service + Partial WakeLock (4h limit)| v1.0.0 | `BackgroundContinuityTest.kt` |
+| **FEAT-25** | Mesh | BLE ATT MTU Frame Aggregator (247B MTU) | v3.0.0-alpha3 | `AttMtuAggregatorTest.kt` |
+| **FEAT-26** | Mesh | Time-Diversity Matrix Block Interleaver | v3.0.0-alpha3 | `MatrixBlockInterleaverTest.kt` |
+| **FEAT-27** | Geo | Pure KMP Offline Vector Topographic Tile Engine (<15ms) | v3.0.0-beta1 | `OfflineVectorTileEngineTest.kt` |
+| **FEAT-28** | Geo | Real-Time Convoy Elevation & Incline Engine (Slope %, Δh)| v3.0.0-beta1 | `ConvoyElevationEngineTest.kt` |
+| **FEAT-29** | UI/UX | Tactile Trail Elevation Profile HUD & Cockpit ELEV Tab | v3.0.0-beta1 | `AlpineElevationSimulationTest.kt` |
+| **FEAT-30** | Mesh | Autonomous Fleet Mesh Congestion Governor & Backoff | v3.0.0-beta2 | `MeshCongestionGovernorTest.kt` |
+| **FEAT-31** | Mesh | Adaptive Multi-PHY Switcher (LE 1M, LE 2M, LE Coded S8) | v3.0.0-beta2 | `AdaptivePhyManagerTest.kt` |

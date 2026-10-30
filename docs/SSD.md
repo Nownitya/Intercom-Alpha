@@ -1,6 +1,6 @@
 # System Structure Document (SSD) — Intercom-Alpha
 
-> **Document Version:** 3.0.0  
+> **Document Version:** 3.0.0-beta1  
 > **Status:** Active System Blueprint  
 > **Scope:** Architectural Subsystems, Concurrency Models, Data Flow & State Machines  
 > **Repository:** `Intercom-Alpha`  
@@ -38,8 +38,8 @@ Intercom-Alpha is organized into a modular, decoupled hierarchy enforcing strict
 
 ### Module Boundary Invariants
 1. **Rule 1 (No Shared UI on iOS):** `:app:sharedUI` is strictly excluded from iOS build targets. iOS presentation is 100% Native SwiftUI in `:app:iosApp`.
-2. **Rule 2 (Shared Logic in KMP):** All packet routing, DSP algorithms, failover logic, and encryption reside in `:app:sharedLogic/src/commonMain`.
-3. **Rule 3 (Pure Multiplatform Cryptography):** Cryptography has zero `java.security.*` or native C dependencies.
+2. **Rule 2 (Shared Logic in KMP):** All packet routing, DSP algorithms, failover logic, offline vector tile decoders, elevation engines, and encryption reside in `:app:sharedLogic/src/commonMain`.
+3. **Rule 3 (Pure Multiplatform Cryptography):** Cryptography has zero `java.security.*` or native C dependencies (RFC 8439 pure Kotlin).
 
 ---
 
@@ -62,10 +62,19 @@ Intercom-Alpha is organized into a modular, decoupled hierarchy enforcing strict
 [Block Erasure FEC Engine] ----------> [Generate Parity Frames (4:1, 3:1, 2:1)]
                 |
                 v
+[Time-Diversity Matrix Block Interleaver] (M x N dispersion against burst loss)
+                |
+                v
+[ATT MTU Frame Aggregator] (Pack 2–4 frames up to 247 bytes)
+                |
+                v
 [Pure Kotlin ChaCha20-Poly1305 Encryptor] (Key Epoch + Monotonic Seq Nonce)
                 |
                 v
-[Airtime QoS Token-Bucket Shaper] (Priority 1: Voice / Priority 0: SOS)
+[Airtime QoS Token-Bucket Shaper] (Priority 0: SOS / Priority 1: Voice)
+                |
+                v
+[Mesh Congestion Governor & Dynamic Backoff] (Channel Airtime Throttling)
                 |
                 v
 [BLE GATT Flooding Transport (TTL=3)] & [Optional Cellular SFU Stream Hedging]
@@ -81,6 +90,12 @@ Intercom-Alpha is organized into a modular, decoupled hierarchy enforcing strict
                 v
 [Pure Kotlin ChaCha20-Poly1305 Decrypt & MAC Verify] ---- (Bad MAC) --> [Discard]
                 | (Verified Frame)
+                v
+[ATT MTU Frame De-Aggregator] (Unpack multiple frames from single payload)
+                |
+                v
+[Matrix De-Interleaver] (Reconstruct original temporal sequence)
+                |
                 v
 [Adaptive Jitter Buffer (RFC 3550)] (Dynamic 40ms–150ms Delay)
                 |
@@ -98,6 +113,33 @@ Intercom-Alpha is organized into a modular, decoupled hierarchy enforcing strict
                             |
                             v
        [AudioTrack (Android) / AVAudioEngine (iOS) Playout]
+```
+
+### 2.3 Offline Vector Topographic & Trail Elevation Profile Subsystem
+```
+[Local Tile Storage (.mvt / SD Card)]
+                |
+                v
+[OfflineVectorTileEngine (commonMain)] <--- [Convoy GPS Bounding Box]
+                | (LRU Cache: 64 tiles, <15ms spatial query)
+                v
+[MVT Protobuf & Zig-Zag Coordinate Parser]
+                | (Decoded Contours & Trail Lines)
+                v
+[ConvoyElevationEngine] <--- [GPS Fixes: Lat, Lon, Altitude, Accuracy]
+                |
+                +---> [Grade % Math: (delta_alt / delta_dist) * 100]
+                |        |
+                |        +---> [> 8%: Caution (Orange) / > 12%: Extreme (Red)]
+                |
+                +---> [Convoy Lead/Sweep Delta-h Math & Summit Detection]
+                |
+                v
+[IntercomBridge / KMP Flow]
+        |                                       |
+        v                                       v
+[Jetpack Compose Cockpit ELEV Tab]      [100% Native SwiftUI Cockpit HUD]
+(Android / Desktop)                     (iOS Native Canvas)
 ```
 
 ---
@@ -126,5 +168,24 @@ Intercom-Alpha is organized into a modular, decoupled hierarchy enforcing strict
                              v
                        +-------------------+
                        |    RECOVERING     |  (Hysteresis validation period)
+                       +-------------------+
+```
+
+### 3.2 Adaptive Multi-PHY & Congestion State Machine
+```
+                       +-------------------+
+                       |      PHY_LE_2M    |  (High Throughput: RSSI >= -65 dBm, BER < 1%)
+                       +-------------------+
+                             |       ^
+         (RSSI < -70 dBm)    |       |  (RSSI >= -60 dBm, Stable 10s)
+                             v       |
+                       +-------------------+
+                       |      PHY_LE_1M    |  (Standard Range: -70 dBm <= RSSI <= -85 dBm)
+                       +-------------------+
+                             |       ^
+         (RSSI < -85 dBm)    |       |  (RSSI >= -75 dBm, Stable 10s)
+                             v       |
+                       +-------------------+
+                       |   PHY_LE_CODED    |  (Long Range S8: RSSI < -85 dBm, Canyon Reach)
                        +-------------------+
 ```

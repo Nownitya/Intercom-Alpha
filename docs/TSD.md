@@ -1,6 +1,6 @@
 # Technical Specification Document (TSD) — Intercom-Alpha
 
-> **Document Version:** 3.0.0-alpha2  
+> **Document Version:** 3.0.0-beta1  
 > **Status:** Detailed Engineering Protocol & Mathematical Specification  
 > **Scope:** Packet Framing, Wire Protocols, Mathematical Models, and BLE GATT Service Layout  
 > **Repository:** `Intercom-Alpha`  
@@ -43,6 +43,10 @@ All over-the-air communication over BLE GATT characteristics and WebSocket cellu
 | `0x06` | `SNAPSHOT_CHUNK` | Priority 3 | 0.5 fps thumbnail visual snapshot data chunk |
 | `0x07` | `TRAIL_GPX_CHUNK` | Priority 3 | Segmented offline route vector chunk |
 | `0x08` | `REKEY_EPOCH` | Priority 2 | Forward-secret group rekeying announcement |
+| `0x09` | `ATT_AGGREGATE` | Priority 1 | Multi-frame packed payload for high-MTU BLE links |
+| `0x0A` | `VECTOR_TILE_REQ` | Priority 3 | Bounding box spatial vector contour request |
+| `0x0B` | `ELEVATION_PROFILE`| Priority 3 | Elevation profile & slope grade % telemetry |
+| `0x0C` | `CONGESTION_STATE` | Priority 2 | Local channel airtime %, neighbor density & backoff |
 
 ---
 
@@ -77,6 +81,33 @@ When consecutive packets are lost and cannot be recovered via FEC:
 3. **Progressive Attenuation Decay:** Synthesize replacement frame $s(n)$ by replicating pitch period with attenuation factor $eta = 10^{-2.5 / 20} pprox 0.75$:
    $$s(n) = eta^k \cdot x(n - 	au^*)$$
    Where $k \in \{1, 2, 3\}$ is the consecutive lost frame index. After $k > 3$, output is muted to zero.
+
+### 2.4 Time-Diversity Matrix Block Interleaver
+To convert burst packet drops from physical radio fades into isolated single-packet erasures:
+1. Arrange an $M \times N$ matrix where $M$ is block depth (number of FEC groups) and $N$ is block span (packets per group).
+2. Write audio and parity frames into matrix row-wise.
+3. Transmit packets column-wise over BLE transport.
+4. An RF fade dropping up to $M$ contiguous packets manifests as at most one missing packet per FEC group, guaranteeing $100\%$ mathematical reconstruction by the receiver's FEC decoder.
+
+### 2.5 Convoy Elevation & Incline Mathematical Engine
+1. **Haversine Distance ($d$):**
+   $$a = \sin^2\left(\frac{\Delta \phi}{2}\right) + \cos(\phi_1)\cos(\phi_2)\sin^2\left(\frac{\Delta \lambda}{2}\right)$$
+   $$d = 2 \cdot R \cdot \text{atan2}\left(\sqrt{a}, \sqrt{1 - a}\right)$$
+2. **Slope Grade Percentage ($G$):**
+   $$G = \left(\frac{\Delta h}{d}\right) \times 100$$
+   * $G > 8\% \implies$ Caution (Orange)
+   * $G > 12\% \implies$ Extreme (Red flashing warning)
+3. **Lead/Sweep Vertical Delta ($\Delta h_{convoy}$):**
+   $$\Delta h_{convoy} = |h_{lead} - h_{sweep}|$$
+
+### 2.6 Mesh Channel Airtime & Adaptive Congestion Control
+1. **Channel Occupancy Metric ($U_{air}$):**
+   $$U_{air} = \frac{\sum T_{tx\_packet}}{T_{window}} \times 100\%$$
+2. **Dynamic Backoff Scheduler:**
+   $$T_{backoff} = T_{min} + \text{rand}(0, 2^{\min(k, 6)} - 1) \cdot T_{slot}$$
+3. **Probabilistic Flooding Suppression:**
+   When local neighbor density $N_{local} > 8$:
+   $$P_{\text{rebroadcast}} = \min\left(1.0, \frac{K_{redundancy}}{C_{\text{received}}}\right)$$
 
 ---
 

@@ -1,8 +1,8 @@
 # Market Requirements Document (MRD) — Intercom-Alpha
 
-> **Document Version:** 3.0.0-alpha2  
+> **Document Version:** 3.0.0-beta1  
 > **Status:** Approved / Active Market Strategy  
-> **Target Release:** v3.0.0 Production Suite  
+> **Target Release:** v3.0.0 Production Suite (Milestone v3.0.0-beta1 Verified)  
 > **Domain:** Off-Grid Outdoor Communications, Motorcycle Mesh Intercom, Backcountry Fleet Telemetry  
 > **Target Audience:** Adventure Motorcyclists, MTB Pelotons, Overlanding Convoys, Alpine SAR Teams  
 
@@ -28,13 +28,15 @@ Group voice communication across high-velocity outdoor recreational environments
 
 ## 2. Competitive Landscape & Teardown
 
-| Capability / Dimension | **Intercom-Alpha** | Cardo Packtalk Edge (DMC) | Sena 50S / 60S (Mesh 3.0) | Zello PTT Mobile | Garmin inReach Messenger |
+| Capability / Dimension | **Intercom-Alpha (v3.0.0-beta1)** | Cardo Packtalk Edge (DMC) | Sena 50S / 60S (Mesh 3.0) | Zello PTT Mobile | Garmin inReach Messenger |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Hardware Barrier** | **$0** (Uses existing smartphone) | **$389.95** per rider | **$359.00** per rider | $0 (App only) | **$299.99** + $15/mo sub |
 | **Interoperability** | **100% Cross-Platform** (iOS + Android) | Closed Cardo DMC ecosystem | Closed Sena Mesh ecosystem | Cross-platform | Closed Iridium ecosystem |
 | **Off-Grid Radio Mesh** | **Yes** (BLE Mesh + Wi-Fi Direct) | Yes (Proprietary 2.4 GHz) | Yes (Proprietary 2.4 GHz) | **No** (Cellular/Wi-Fi only) | No (Satellite text only) |
 | **Cellular Failover** | **Automated Zero-Drop Hedging** | No | No | N/A (Fails off-grid) | Satellite failover (text only) |
 | **Audio Intelligibility** | **Pure KMP ADPCM/Opus + FEC + PLC** | High (JBL custom DSP) | High (Harman Kardon DSP) | Moderate (Opus VoIP) | N/A (No real-time voice) |
+| **RF Packet Reduction** | **BLE ATT MTU Packing (>50% drop)** | Fixed single-frame packets | Fixed single-frame packets | N/A (IP UDP) | N/A |
+| **Offline Vector & Elevation** | **Pure KMP MVT + Alpine HUD (<15ms)**| No (Audio only) | No (Audio only) | No map support | Basic 2D track only |
 | **Onboarding Time** | **< 3s** (Offline Camera QR Scan) | 30s–60s complex pairing | 30s–60s button presses | Account login required | Complex satellite pairing |
 | **Visual Telemetry HUD** | **Tactile Zero-Scroll Cockpit HUD** | No (LED light pill / Audio) | Tiny 1-inch LCD screen | Basic chat list | Minimal monochrome screen |
 | **Life-Safety eCall SOS** | **Automated Accel Impact + Voice** | Crash detection (Selected) | None | None | Manual SOS button trigger |
