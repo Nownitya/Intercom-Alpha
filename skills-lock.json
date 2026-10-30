@@ -7,6 +7,12 @@
       "skillPath": ".agents/skills/impeccable/SKILL.md",
       "computedHash": "a50f941ad06621638cd19f15d8f3d46729ae166de7985b8c87bf65cf3b834b60"
     },
+    "improve-codebase-architecture": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/improve-codebase-architecture/SKILL.md",
+      "computedHash": "11cfd9568d71445df710d5a9332c674ad773de0c9d5fc22d3ffa175bdd7d988b"
+    },
     "ios-design": {
       "source": "uizze.sh",
       "sourceUrl": "https://uizze.sh/",

@@ -1,46 +1,37 @@
 package org.nowni.intercom_alpha.feature.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.nowni.intercom_alpha.feature.home.state.HomeUiAction
 import org.nowni.intercom_alpha.feature.home.state.HomeUiState
-import org.nowni.intercom_alpha.ui.components.ExpressivePttActuator
-import org.nowni.intercom_alpha.ui.components.TactileRadarCard
-import org.nowni.intercom_alpha.ui.components.MessageHistoryDialog
-import org.nowni.intercom_alpha.ui.components.OfflineTrailCockpitSheet
-import org.nowni.intercom_alpha.ui.components.TrailFileManagerSheet
-import org.nowni.intercom_alpha.ui.components.TactileDiagnosticsSheet
+import org.nowni.intercom_alpha.text.CannedMessageCode
+import org.nowni.intercom_alpha.ui.components.*
 import org.nowni.intercom_alpha.ui.theme.IntercomTokens
-import org.nowni.intercom_alpha.ui.theme.IntercomTacticalTypography
-import org.nowni.intercom_alpha.ui.theme.claymorphic
-import org.nowni.intercom_alpha.ui.theme.neobrutalistBorder
+import org.nowni.intercom_alpha.ui.theme.LocalTacticalColors
 
-/**
- * Unified Main Cockpit Screen — S01.
- *
- * One screen, one job. Three regions:
- *   1. Status Strip — group, channel, battery, link quality
- *   2. Spatial Radar — 126dp canvas, rider blips, inline zoom
- *   3. PTT Actuator — 160dp primary action, claymorphic + skeuomorphic
- *   4. Bottom Navigation — Peers, Messages, SOS (3 tabs only)
- *
- * Designed for single-thumb motorcycle operation with heavy gloves.
- * No decorative filler. No redundant data. 84dp minimum touch targets.
- */
+enum class TacticalNavTab {
+    VOICE,
+    RADAR,
+    ELEVATION,
+    CONVOY
+}
+
 @Composable
 fun MainCockpitScreen(
     uiState: HomeUiState,
@@ -48,218 +39,472 @@ fun MainCockpitScreen(
     onNavigateToRepeater: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    val colors = LocalTacticalColors.current
+    var activeTab by remember { mutableStateOf(TacticalNavTab.VOICE) }
+
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(IntercomTokens.CockpitObsidian)
+            .background(colors.chassisBackground)
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // ================= 1. STATUS STRIP =================
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = uiState.groupName.uppercase(),
-                    style = TextStyle(
-                        fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.Black,
-                        fontSize = 13.sp,
-                        letterSpacing = 0.5.sp
-                    ),
-                    color = Color.White
-                )
+            // 1. Top Avionics Status Bar
+            CockpitHeader(
+                groupName = uiState.groupName,
+                peerCount = maxOf(uiState.peers.size, 1),
+                activeChannelId = uiState.channelState.activeChannelId,
+                phyMode = "2M",
+                batteryPercentage = if (uiState.accessoryState.batteryPercent >= 0) uiState.accessoryState.batteryPercent else 85,
+                isCloudConnected = uiState.isCloudBridgeConnected,
+                onOpenRoster = { activeTab = TacticalNavTab.CONVOY },
+                onOpenDiagnostics = {}
+            )
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(7.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFF00E5FF))
-                    )
-                    Text(
-                        text = "CH 04",
-                        style = TextStyle(
-                            fontFamily = FontFamily.Monospace,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 11.sp,
-                            letterSpacing = 0.5.sp
-                        ),
-                        color = Color(0xFF00E5FF)
-                    )
-                    Text(
-                        text = "🔋 ${uiState.batteryPercentage()}%",
-                        style = TextStyle(
-                            fontFamily = FontFamily.Monospace,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 11.sp,
-                            letterSpacing = 0.5.sp
-                        ),
-                        color = Color(0xFF8B949E)
-                    )
+            // 2. Main Tab Body (Anti-slop: strict tab views)
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+            ) {
+                when (activeTab) {
+                    TacticalNavTab.VOICE -> VoiceCockpitTab(uiState, onAction)
+                    TacticalNavTab.RADAR -> RadarTab(uiState, onAction)
+                    TacticalNavTab.ELEVATION -> ElevationTab(uiState)
+                    TacticalNavTab.CONVOY -> ConvoyTab(uiState, onAction)
                 }
             }
 
-            HorizontalDivider(
-                modifier = Modifier.fillMaxWidth(),
-                color = Color(0x33FFFFFF)
-            )
-
-            // ================= 2. SPATIAL RADAR =================
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(130.dp)
-                    .padding(horizontal = 16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                TactileRadarCard(
-                    radarSnapshot = uiState.radarSnapshot,
-                    convoySnapshot = uiState.convoySnapshot,
-                    trailMapSnapshot = uiState.trailMapSnapshot,
-                    onCycleZoom = { onAction(HomeUiAction.CycleRadarZoom) },
-                    modifier = Modifier.size(126.dp)
-                )
-            }
-
-            // ================= 3. PTT ACTUATOR (PRIMARY) =================
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 32.dp, vertical = 24.dp)
-                    .align(Alignment.CenterHorizontally),
-                contentAlignment = Alignment.Center
-            ) {
-                ExpressivePttActuator(
-                    isTransmitting = uiState.isTransmitting,
-                    onPressStart = { onAction(HomeUiAction.StartTransmitting) },
-                    onPressEnd = { onAction(HomeUiAction.StopTransmitting) },
-                    modifier = Modifier.size(160.dp),
-                    channelLabel = "CH 04",
-                    subtitle = "HOLD TO TALK"
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // ================= 4. BOTTOM NAVIGATION =================
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                CockpitNavTab(
-                    icon = "📋",
-                    label = "PEERS",
-                    count = uiState.peers.size,
-                    isSelected = false,
-                    onClick = { onAction(HomeUiAction.ToggleMessagesDialog(true)) }
-                )
-                CockpitNavTab(
-                    icon = "💬",
-                    label = "MSGS",
-                    count = uiState.unreadTextCount,
-                    isSelected = false,
-                    onClick = { onAction(HomeUiAction.ToggleMessagesDialog(true)) }
-                )
-                CockpitNavTab(
-                    icon = "⚡",
-                    label = "DIAG",
-                    isSelected = uiState.showDiagnosticsSheet,
-                    onClick = { onAction(HomeUiAction.ToggleDiagnosticsSheet(true)) }
-                )
-                CockpitNavTab(
-                    icon = "⛰️",
-                    label = "ELEV",
-                    isSelected = uiState.showElevationSheet,
-                    onClick = { onAction(HomeUiAction.ToggleElevationSheet(true)) }
-                )
-                CockpitNavTab(
-                    icon = "🆘",
-                    label = "SOS",
-                    isSelected = false,
-                    isEmergency = true,
-                    onClick = { onAction(HomeUiAction.TriggerSos) }
-                )
-            }
-        }
-
-        // ================= OVERLAYS & SHEETS =================
-        if (uiState.showMessagesDialog) {
-            MessageHistoryDialog(
-                messages = uiState.messages,
-                onSendCustomText = { onAction(HomeUiAction.SendCustomText(it)) },
-                onDismiss = { onAction(HomeUiAction.ToggleMessagesDialog(false)) }
-            )
-        }
-
-        if (uiState.showDiagnosticsSheet) {
-            TactileDiagnosticsSheet(
-                failoverMetrics = uiState.failoverSnapshot,
-                powerState = uiState.powerGovernorState,
-                routingSnapshot = uiState.routingSnapshot,
-                peers = uiState.peers,
-                linkHealth = uiState.linkQualityHealth,
-                bitrateTelemetry = uiState.bitrateTelemetry,
-                onPinBitrate = { onAction(HomeUiAction.PinAudioProfile(it)) },
-                fecTelemetry = uiState.fecTelemetry,
-                plcTelemetry = uiState.plcTelemetry,
-                onSetFecRatio = { onAction(HomeUiAction.SetFecRatio(it)) },
-                bleMtuTelemetry = uiState.bleMtuTelemetry,
-                onDismiss = { onAction(HomeUiAction.ToggleDiagnosticsSheet(false)) }
-            )
-        }
-
-        if (uiState.showElevationSheet) {
-            TrailElevationHudOverlay(
-                elevationProfile = uiState.elevationProfile,
-                onDismiss = { onAction(HomeUiAction.ToggleElevationSheet(false)) }
-            )
-        }
-
-        if (uiState.showTrailSheet) {
-            OfflineTrailCockpitSheet(
-                trailMapSnapshot = uiState.trailMapSnapshot,
-                onCycleZoom = { onAction(HomeUiAction.CycleRadarZoom) },
-                onToggleOverlay = { onAction(HomeUiAction.ToggleTrailOverlay(it)) },
-                onLoadSampleTrail = { onAction(HomeUiAction.LoadSampleTrail) },
-                onOpenTrailManager = { onAction(HomeUiAction.ToggleTrailManagerSheet(true)) },
-                onDismiss = { onAction(HomeUiAction.ToggleTrailSheet(false)) }
-            )
-        }
-
-        if (uiState.showTrailManagerSheet) {
-            TrailFileManagerSheet(
-                storedTrails = uiState.storedTrails,
-                activeTransfers = uiState.activeTransfers,
-                activeTrailId = uiState.trailMapSnapshot.activeTrail?.id,
-                onSelectTrail = { onAction(HomeUiAction.SelectStoredTrail(it)) },
-                onBeamTrail = { onAction(HomeUiAction.BeamActiveTrail(it)) },
-                onCancelTransfer = { onAction(HomeUiAction.CancelTransfer(it)) },
-                onImportTrail = { name, text, format ->
-                    onAction(HomeUiAction.ImportTrailText(text, name, format))
-                },
-                onDeleteTrail = { onAction(HomeUiAction.DeleteStoredTrail(it)) },
-                onDismiss = { onAction(HomeUiAction.ToggleTrailManagerSheet(false)) }
+            // 3. Bottom Dock Navigation Bar
+            TacticalDockBar(
+                selectedTab = activeTab,
+                onSelectTab = { activeTab = it },
+                unreadCount = uiState.unreadTextCount
             )
         }
     }
 }
 
-/**
- * Helper: returns battery percentage from UI state.
- * Falls back to 87% when power governor state is not yet available.
- */
-private fun HomeUiState.batteryPercentage(): Int {
-    return powerGovernorState.batteryPercent
+@Composable
+private fun VoiceCockpitTab(
+    uiState: HomeUiState,
+    onAction: (HomeUiAction) -> Unit
+) {
+    val colors = LocalTacticalColors.current
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        // Emergency SOS Actuator
+        GuardedSosButton(
+            isEmergencyActive = uiState.isEmergencyActive,
+            onTriggerEmergency = { onAction(HomeUiAction.TriggerSos) },
+            onCancelEmergency = { onAction(HomeUiAction.ClearEmergency) }
+        )
+
+        // Dual VU Acoustic Visualizer
+        DualVuMeter(
+            localRmsLevel = uiState.inputLevel,
+            remoteRmsLevel = if (uiState.isTransmitting) 0.0f else uiState.inputLevel,
+            remoteSpeakerName = if (uiState.isTransmitting) null else uiState.peers.firstOrNull()?.name,
+            isVoiceActive = uiState.inputLevel > 0.05f
+        )
+
+        // Channel Selector Strip (16 Channels)
+        ChannelSelectorStrip(
+            activeChannelId = uiState.channelState.activeChannelId,
+            monitoredChannelIds = uiState.channelState.monitoredChannelIds,
+            onSelectChannel = { onAction(HomeUiAction.SelectChannel(it)) },
+            onToggleDualWatch = { onAction(HomeUiAction.ToggleDualWatch(it)) }
+        )
+
+        // Quick Convoy Hazard Buttons (Anti-slop: 1-tap giant pills)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            HazardQuickPill(
+                title = "HAZARD",
+                color = colors.signalWarning,
+                onClick = { onAction(HomeUiAction.SendCannedHazard(CannedMessageCode.HAZARD_ROAD)) },
+                modifier = Modifier.weight(1f)
+            )
+            HazardQuickPill(
+                title = "FUEL LOW",
+                color = colors.signalActive,
+                onClick = { onAction(HomeUiAction.SendCannedHazard(CannedMessageCode.FUEL_LOW)) },
+                modifier = Modifier.weight(1f)
+            )
+            HazardQuickPill(
+                title = "STOP NOW",
+                color = colors.signalEmergency,
+                onClick = { onAction(HomeUiAction.SendCannedHazard(CannedMessageCode.STOP_IMMEDIATE)) },
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        // Master Glove-Friendly PTT Actuator
+        PttActuatorShelf(
+            isTransmitting = uiState.isTransmitting,
+            isVoxLocked = uiState.isVoxLocked,
+            activeChannelId = uiState.channelState.activeChannelId,
+            onStartTransmit = { onAction(HomeUiAction.StartTransmitting) },
+            onStopTransmit = { onAction(HomeUiAction.StopTransmitting) },
+            onToggleVoxLock = { onAction(HomeUiAction.ToggleVoxLock) },
+            modifier = Modifier.padding(bottom = 6.dp)
+        )
+    }
+}
+
+@Composable
+private fun RadarTab(
+    uiState: HomeUiState,
+    onAction: (HomeUiAction) -> Unit
+) {
+    val colors = LocalTacticalColors.current
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "PROXIMITY RADAR",
+                color = colors.textPrimary,
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Black,
+                fontSize = 14.sp
+            )
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(50))
+                    .background(IntercomTokens.SignalAmberMuted)
+                    .clickable { onAction(HomeUiAction.CycleRadarZoom) }
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
+            ) {
+                Text(
+                    text = "60m",
+                    color = colors.signalActive,
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 11.sp
+                )
+            }
+        }
+
+        // Radar Scope Card
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(IntercomTokens.ShapeCard)
+                .background(colors.surfaceCard)
+                .border(1.dp, colors.surfaceBorder, IntercomTokens.ShapeCard),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Text(
+                    text = "${uiState.radarSnapshot.targets.size} TARGETS IN RANGE",
+                    color = colors.signalActive,
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 12.sp
+                )
+                Text(
+                    text = "HEADING: UP • 360° MESH POLAR",
+                    color = colors.textMuted,
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 10.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ElevationTab(uiState: HomeUiState) {
+    val colors = LocalTacticalColors.current
+    val grade = uiState.elevationProfile.currentGradePercentage
+    val deltaH = uiState.elevationProfile.leadTailVerticalSeparationMeters
+    val altitude = uiState.elevationProfile.localAltitudeMeters
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(
+            text = "TRAIL ELEVATION",
+            color = colors.textPrimary,
+            fontFamily = FontFamily.Monospace,
+            fontWeight = FontWeight.Black,
+            fontSize = 14.sp
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            ElevationCard(title = "GRADE", value = "${String.format("%.1f", grade)}%", color = if (grade > 8) colors.signalWarning else colors.signalSuccess, modifier = Modifier.weight(1f))
+            ElevationCard(title = "LEAD/TAIL ΔH", value = "${deltaH.toInt()}m", color = colors.signalActive, modifier = Modifier.weight(1f))
+            ElevationCard(title = "ALTITUDE", value = "${altitude.toInt()}m", color = colors.textPrimary, modifier = Modifier.weight(1f))
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(IntercomTokens.ShapeCard)
+                .background(colors.surfaceCard)
+                .border(1.dp, colors.surfaceBorder, IntercomTokens.ShapeCard),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "ALPINE CONTOUR PROFILE (15 KM)",
+                color = colors.textMuted,
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+                fontSize = 12.sp
+            )
+        }
+    }
+}
+
+@Composable
+private fun ElevationCard(
+    title: String,
+    value: String,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    val colors = LocalTacticalColors.current
+    Column(
+        modifier = modifier
+            .clip(IntercomTokens.ShapeCard)
+            .background(colors.surfaceCard)
+            .border(1.dp, colors.surfaceBorder, IntercomTokens.ShapeCard)
+            .padding(10.dp)
+    ) {
+        Text(text = title, color = colors.textMuted, fontFamily = FontFamily.Monospace, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+        Text(text = value, color = color, fontFamily = FontFamily.Monospace, fontSize = 16.sp, fontWeight = FontWeight.Black)
+    }
+}
+
+@Composable
+private fun ConvoyTab(
+    uiState: HomeUiState,
+    onAction: (HomeUiAction) -> Unit
+) {
+    val colors = LocalTacticalColors.current
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "CONVOY FLEET",
+                color = colors.textPrimary,
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Black,
+                fontSize = 14.sp
+            )
+            Text(
+                text = "${uiState.peers.size} ONLINE",
+                color = colors.signalSuccess,
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+                fontSize = 11.sp
+            )
+        }
+
+        // Action Buttons: Share / Join
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(42.dp)
+                    .clip(RoundedCornerShape(50))
+                    .background(IntercomTokens.SignalAmberMuted)
+                    .border(1.dp, colors.signalActive.copy(alpha = 0.4f), RoundedCornerShape(50))
+                    .clickable { onAction(HomeUiAction.ToggleShareDialog(true)) },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "SHARE INVITE",
+                    color = colors.signalActive,
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 11.sp
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(42.dp)
+                    .clip(RoundedCornerShape(50))
+                    .background(colors.surfaceCard)
+                    .border(1.dp, colors.surfaceBorder, RoundedCornerShape(50))
+                    .clickable { onAction(HomeUiAction.ToggleJoinDialog(true)) },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "SCAN QR",
+                    color = colors.textPrimary,
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 11.sp
+                )
+            }
+        }
+
+        // Peer Roster List
+        if (uiState.peers.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        text = "NO PEERS CONNECTED",
+                        color = colors.textMuted,
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp
+                    )
+                    Text(
+                        text = "Share invite QR code to pair riders.",
+                        color = colors.textSecondary,
+                        fontSize = 11.sp
+                    )
+                }
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(uiState.peers) { peer ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(IntercomTokens.ShapeCard)
+                            .background(colors.surfaceCard)
+                            .border(1.dp, colors.surfaceBorder, IntercomTokens.ShapeCard)
+                            .padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(text = peer.name, color = colors.textPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                            Text(text = "${peer.rssi} dBm", color = colors.textMuted, fontFamily = FontFamily.Monospace, fontSize = 10.sp)
+                        }
+                        Text(
+                            text = if (peer.isConnected) "ONLINE" else "LOST",
+                            color = if (peer.isConnected) colors.signalSuccess else colors.textMuted,
+                            fontFamily = FontFamily.Monospace,
+                            fontWeight = FontWeight.Black,
+                            fontSize = 10.sp
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun HazardQuickPill(
+    title: String,
+    color: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val colors = LocalTacticalColors.current
+
+    Box(
+        modifier = modifier
+            .height(38.dp)
+            .clip(RoundedCornerShape(50))
+            .background(colors.surfaceCard)
+            .border(1.dp, colors.surfaceBorder, RoundedCornerShape(50))
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = title,
+            color = color,
+            fontFamily = FontFamily.Monospace,
+            fontWeight = FontWeight.Black,
+            fontSize = 10.sp
+        )
+    }
+}
+
+@Composable
+private fun TacticalDockBar(
+    selectedTab: TacticalNavTab,
+    onSelectTab: (TacticalNavTab) -> Unit,
+    unreadCount: Int
+) {
+    val colors = LocalTacticalColors.current
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .background(colors.surfaceCard)
+            .border(1.dp, colors.surfaceBorder),
+        horizontalArrangement = Arrangement.SpaceAround,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        TacticalNavTab.entries.forEach { tab ->
+            val isSelected = tab == selectedTab
+            val color = if (isSelected) colors.signalActive else colors.textMuted
+
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(50))
+                    .clickable { onSelectTab(tab) }
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = tab.name,
+                    color = color,
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold,
+                    fontSize = 11.sp
+                )
+            }
+        }
+    }
 }
