@@ -81,3 +81,4 @@ Intercom-Alpha separates shared business and protocol algorithms from platform p
 | **ADR-018** | BLE ATT MTU Packing & Interleaving | Accepted | Dynamic multi-frame aggregation (>50% RF reduction) and time-diversity block interleaving. |
 | **ADR-019** | Offline Vector Tile & Elevation Profiling | Accepted | Pure KMP Mapbox vector tile parser (<15ms query) and real-time convoy elevation HUD. |
 | **ADR-020** | Mesh Congestion Governor & Adaptive PHY | Accepted | Channel airtime occupancy throttling and autonomous LE 1M/2M/Coded S8 rate adaptation. |
+| **ADR-021** | Context-Adaptive UI Profiles & Customization | Accepted | Zero-gimmick simple UI with activity presets (Motorbike, Bicycle, Hiking, Car, Minimal) and user-configurable widgets. |
