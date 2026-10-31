@@ -38,7 +38,7 @@ public struct ConvoyView: View {
                 // Quick Action Bar: Host QR / Join Scan
                 HStack(spacing: 10) {
                     Button(action: {
-                        TactileHaptics.shared.channelDetentClick()
+                        TacticalHaptics.selection()
                         onHostQr()
                     }) {
                         HStack(spacing: 6) {
@@ -57,7 +57,7 @@ public struct ConvoyView: View {
                     .buttonStyle(.plain)
 
                     Button(action: {
-                        TactileHaptics.shared.channelDetentClick()
+                        TacticalHaptics.selection()
                         onJoinQr()
                     }) {
                         HStack(spacing: 6) {
@@ -144,4 +144,3 @@ private struct PeerRosterRow: View {
         .tacticalCard()
     }
 }
-

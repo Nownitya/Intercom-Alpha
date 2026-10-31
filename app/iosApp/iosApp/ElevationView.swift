@@ -2,8 +2,13 @@ import SwiftUI
 
 public struct ElevationView: View {
     @ObservedObject var vm: IntercomViewModel
+    @ObservedObject var prefs = UiPreferencesManager.shared
     @State private var selectedZoomIndex: Int = 1
     private let zoomScales: [String] = ["1 KM", "5 KM", "15 KM"]
+
+    public init(vm: IntercomViewModel) {
+        self.vm = vm
+    }
 
     public var body: some View {
         ZStack {
@@ -23,7 +28,7 @@ public struct ElevationView: View {
                         ForEach(0..<zoomScales.count, id: \.self) { idx in
                             let isSel = idx == selectedZoomIndex
                             Button(action: {
-                                TactileHaptics.shared.channelDetentClick()
+                                TacticalHaptics.selection()
                                 selectedZoomIndex = idx
                             }) {
                                 Text(zoomScales[idx])
@@ -41,7 +46,7 @@ public struct ElevationView: View {
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
 
-                // Telemetry Stats Row
+                // Telemetry Stats Row (Text-First, Battery Friendly)
                 let grade = vm.elevationProfileSnapshot?.runningGradePercent ?? 4.2
                 let deltaH = vm.elevationProfileSnapshot?.leadToTailAltitudeDeltaMeters ?? 45.0
                 let altitude = vm.convoySnapshot?.localRider?.altitudeMeters ?? 1840.0
@@ -91,7 +96,7 @@ public struct ElevationView: View {
                 }
                 .padding(.horizontal, 16)
 
-                // Elevation Profile Graph Canvas
+                // Elevation Profile Graph Canvas (Static, zero GPU animation loop)
                 ZStack {
                     TacticalTheme.surfaceCard
                         .clipShape(RoundedRectangle(cornerRadius: TacticalTheme.cardRadius, style: .continuous))
@@ -104,7 +109,7 @@ public struct ElevationView: View {
                         let w = geo.size.width
                         let h = geo.size.height
 
-                        // Simulated/Sample Profile Path
+                        // Static Elevation Curve Path
                         Path { path in
                             path.move(to: CGPoint(x: 0, y: h * 0.75))
                             path.addCurve(
@@ -157,4 +162,3 @@ public struct ElevationView: View {
         return TacticalTheme.signalConnected
     }
 }
-

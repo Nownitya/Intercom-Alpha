@@ -44,5 +44,21 @@ public final class TacticalHaptics {
     public func successAck() {
         notificationFeedback.notificationOccurred(.success)
     }
-}
 
+    // Static Convience Callers
+    public static func selection() {
+        shared.channelDetentClick()
+    }
+
+    public static func pttStart() {
+        shared.pttPressStart()
+    }
+
+    public static func pttEnd() {
+        shared.pttPressEnd()
+    }
+
+    public static func emergency() {
+        shared.emergencyAlert()
+    }
+}

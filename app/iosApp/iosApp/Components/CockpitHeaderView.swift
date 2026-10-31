@@ -9,6 +9,7 @@ public struct CockpitHeaderView: View {
     let isCloudConnected: Bool
     let onOpenRoster: () -> Void
     let onOpenDiagnostics: () -> Void
+    let onOpenSettings: () -> Void
 
     public init(
         groupName: String,
@@ -18,7 +19,8 @@ public struct CockpitHeaderView: View {
         batteryPercentage: Int = 85,
         isCloudConnected: Bool = false,
         onOpenRoster: @escaping () -> Void = {},
-        onOpenDiagnostics: @escaping () -> Void = {}
+        onOpenDiagnostics: @escaping () -> Void = {},
+        onOpenSettings: @escaping () -> Void = {}
     ) {
         self.groupName = groupName
         self.peerCount = peerCount
@@ -28,17 +30,23 @@ public struct CockpitHeaderView: View {
         self.isCloudConnected = isCloudConnected
         self.onOpenRoster = onOpenRoster
         self.onOpenDiagnostics = onOpenDiagnostics
+        self.onOpenSettings = onOpenSettings
     }
 
     public var body: some View {
         HStack(spacing: 8) {
-            // Node count pill
-            Button(action: onOpenRoster) {
-                HStack(spacing: 5) {
+            // Profile & Node count pill
+            Button(action: onOpenSettings) {
+                HStack(spacing: 6) {
+                    Image(systemName: UiPreferencesManager.shared.profile.iconName)
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(TacticalTheme.accent)
+
                     Circle()
                         .fill(TacticalTheme.signalConnected)
-                        .frame(width: 7, height: 7)
-                    Text("\(peerCount) NODES")
+                        .frame(width: 6, height: 6)
+
+                    Text("\(peerCount)N")
                         .font(.system(size: 11, weight: .bold, design: .monospaced))
                         .foregroundColor(TacticalTheme.textPrimary)
                 }
@@ -67,39 +75,50 @@ public struct CockpitHeaderView: View {
             Spacer()
 
             // Diagnostics & Battery Pill
-            Button(action: onOpenDiagnostics) {
-                HStack(spacing: 6) {
-                    // PHY mode badge (2M / 1M / S8)
-                    Text(phyMode)
-                        .font(.system(size: 10, weight: .black, design: .monospaced))
-                        .foregroundColor(TacticalTheme.signalConnected)
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 2)
-                        .background(TacticalTheme.signalConnected.opacity(0.15))
-                        .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+            HStack(spacing: 6) {
+                Button(action: onOpenDiagnostics) {
+                    HStack(spacing: 4) {
+                        Text(phyMode)
+                            .font(.system(size: 10, weight: .black, design: .monospaced))
+                            .foregroundColor(TacticalTheme.signalConnected)
+                            .padding(.horizontal, 4)
+                            .padding(.vertical, 2)
+                            .background(TacticalTheme.signalConnected.opacity(0.15))
+                            .clipShape(RoundedRectangle(cornerRadius: 3, style: .continuous))
 
-                    // Cloud or Mesh indicator
-                    Image(systemName: isCloudConnected ? "cloud.fill" : "antenna.radiowaves.left.and.right")
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundColor(isCloudConnected ? .cyan : TacticalTheme.textSecondary)
+                        Image(systemName: isCloudConnected ? "cloud.fill" : "antenna.radiowaves.left.and.right")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(isCloudConnected ? .cyan : TacticalTheme.textSecondary)
 
-                    // Battery percentage
-                    HStack(spacing: 3) {
-                        Image(systemName: batteryIcon(for: batteryPercentage))
-                            .font(.system(size: 11))
-                            .foregroundColor(batteryColor(for: batteryPercentage))
-                        Text("\(batteryPercentage)%")
-                            .font(.system(size: 11, weight: .bold, design: .monospaced))
-                            .foregroundColor(TacticalTheme.textPrimary)
+                        HStack(spacing: 2) {
+                            Image(systemName: batteryIcon(for: batteryPercentage))
+                                .font(.system(size: 10))
+                                .foregroundColor(batteryColor(for: batteryPercentage))
+                            Text("\(batteryPercentage)%")
+                                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                .foregroundColor(TacticalTheme.textPrimary)
+                        }
                     }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 6)
+                    .background(TacticalTheme.surfaceCard)
+                    .clipShape(Capsule())
+                    .overlay(Capsule().stroke(TacticalTheme.surfaceBorder, lineWidth: 1))
                 }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(TacticalTheme.surfaceCard)
-                .clipShape(Capsule())
-                .overlay(Capsule().stroke(TacticalTheme.surfaceBorder, lineWidth: 1))
+                .buttonStyle(.plain)
+
+                // Quick Settings Gear
+                Button(action: onOpenSettings) {
+                    Image(systemName: "gearshape.fill")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(TacticalTheme.textSecondary)
+                        .padding(7)
+                        .background(TacticalTheme.surfaceCard)
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(TacticalTheme.surfaceBorder, lineWidth: 1))
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
         }
     }
 
@@ -118,4 +137,3 @@ public struct CockpitHeaderView: View {
         return TacticalTheme.textPrimary
     }
 }
-

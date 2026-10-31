@@ -15,6 +15,8 @@ import org.nowni.intercom_alpha.telemetry.ConvoyTelemetrySnapshot
 import org.nowni.intercom_alpha.telemetry.MotionState
 import org.nowni.intercom_alpha.text.CannedMessageCode
 import org.nowni.intercom_alpha.text.MeshTextMessage
+import org.nowni.intercom_alpha.ui.theme.ActivityProfile
+import org.nowni.intercom_alpha.ui.theme.TacticalThemePreset
 
 data class HomeUiState(
     val isTransmitting: Boolean = false,
@@ -28,6 +30,16 @@ data class HomeUiState(
     val showShareDialog: Boolean = false,
     val showJoinDialog: Boolean = false,
     val errorMessage: String? = null,
+
+    // ADR-0021 UI Profile & Customization State
+    val activityProfile: ActivityProfile = ActivityProfile.MOTORBIKE,
+    val themePreset: TacticalThemePreset = TacticalThemePreset.TACTICAL_AMBER,
+    val lowPowerMode: Boolean = true,
+    val showVuMeter: Boolean = false,
+    val showRadar: Boolean = true,
+    val showElevation: Boolean = true,
+    val showConvoyMap: Boolean = true,
+    val showRfDiagnostics: Boolean = false,
 
     // v2.0 Cockpit Subsystem State
     val channelState: ChannelState = ChannelState(),

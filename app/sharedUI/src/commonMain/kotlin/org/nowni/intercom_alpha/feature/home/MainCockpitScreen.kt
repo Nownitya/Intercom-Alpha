@@ -77,12 +77,14 @@ fun MainCockpitScreen(
                 }
             }
 
-            // 3. Bottom Dock Navigation Bar
-            TacticalDockBar(
-                selectedTab = activeTab,
-                onSelectTab = { activeTab = it },
-                unreadCount = uiState.unreadTextCount
-            )
+            // 3. Bottom Dock Navigation Bar (Hidden in Minimal Profile)
+            if (uiState.activityProfile != org.nowni.intercom_alpha.ui.theme.ActivityProfile.MINIMAL) {
+                TacticalDockBar(
+                    selectedTab = activeTab,
+                    onSelectTab = { activeTab = it },
+                    unreadCount = uiState.unreadTextCount
+                )
+            }
         }
     }
 }
@@ -107,13 +109,25 @@ private fun VoiceCockpitTab(
             onCancelEmergency = { onAction(HomeUiAction.ClearEmergency) }
         )
 
-        // Dual VU Acoustic Visualizer
-        DualVuMeter(
-            localRmsLevel = uiState.inputLevel,
-            remoteRmsLevel = if (uiState.isTransmitting) 0.0f else uiState.inputLevel,
+        // Live Speaker Status Hero Card (ADR-0021)
+        LiveSpeakerCard(
+            isTransmitting = uiState.isTransmitting,
             remoteSpeakerName = if (uiState.isTransmitting) null else uiState.peers.firstOrNull()?.name,
-            isVoiceActive = uiState.inputLevel > 0.05f
+            activeChannelId = uiState.channelState.activeChannelId,
+            peerCount = maxOf(uiState.peers.size, 1),
+            showDiscreteLed = uiState.showVuMeter,
+            audioLevel = uiState.inputLevel
         )
+
+        // Optional Dual VU Acoustic Visualizer (if enabled and not low-power)
+        if (uiState.showVuMeter && !uiState.lowPowerMode) {
+            DualVuMeter(
+                localRmsLevel = uiState.inputLevel,
+                remoteRmsLevel = if (uiState.isTransmitting) 0.0f else uiState.inputLevel,
+                remoteSpeakerName = if (uiState.isTransmitting) null else uiState.peers.firstOrNull()?.name,
+                isVoiceActive = uiState.inputLevel > 0.05f
+            )
+        }
 
         // Channel Selector Strip (16 Channels)
         ChannelSelectorStrip(

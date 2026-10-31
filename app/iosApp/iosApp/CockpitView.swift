@@ -2,6 +2,9 @@ import SwiftUI
 
 public struct CockpitView: View {
     @ObservedObject var vm: IntercomViewModel
+    @ObservedObject var prefs = UiPreferencesManager.shared
+    @State private var showSettings: Bool = false
+
     let onOpenRoster: () -> Void
     let onOpenDiagnostics: () -> Void
 
@@ -29,7 +32,8 @@ public struct CockpitView: View {
                     batteryPercentage: vm.accessoryState?.batteryLevel?.intValue ?? 85,
                     isCloudConnected: vm.failoverSnapshot?.isCloudConnected ?? false,
                     onOpenRoster: onOpenRoster,
-                    onOpenDiagnostics: onOpenDiagnostics
+                    onOpenDiagnostics: onOpenDiagnostics,
+                    onOpenSettings: { showSettings = true }
                 )
                 .padding(.horizontal, 16)
                 .padding(.top, 4)
@@ -42,17 +46,30 @@ public struct CockpitView: View {
                 )
                 .padding(.horizontal, 16)
 
-                // Dual VU Acoustic Level Visualizer
-                DualVuMeterView(
-                    localRmsLevel: vm.inputLevel,
-                    remoteRmsLevel: vm.isTransmitting ? 0.0 : vm.inputLevel,
+                // Live Speaker Hero Card (ADR-0021)
+                LiveSpeakerCard(
+                    isTransmitting: vm.isTransmitting,
                     remoteSpeakerName: vm.isTransmitting ? nil : (vm.peers.first?.name),
-                    isVoiceActive: vm.inputLevel > 0.05,
-                    voxThreshold: 0.35
+                    activeChannelId: vm.activeChannelId,
+                    peerCount: max(vm.peers.count, 1),
+                    showDiscreteLed: prefs.showVuMeter,
+                    audioLevel: vm.inputLevel
                 )
                 .padding(.horizontal, 16)
 
-                // Sub-Channel 1-16 Quick Strip
+                // Optional Dual VU Acoustic Level Visualizer (if enabled and not in low power mode)
+                if prefs.showVuMeter && !prefs.lowPowerMode {
+                    DualVuMeterView(
+                        localRmsLevel: vm.inputLevel,
+                        remoteRmsLevel: vm.isTransmitting ? 0.0 : vm.inputLevel,
+                        remoteSpeakerName: vm.isTransmitting ? nil : (vm.peers.first?.name),
+                        isVoiceActive: vm.inputLevel > 0.05,
+                        voxThreshold: 0.35
+                    )
+                    .padding(.horizontal, 16)
+                }
+
+                // Sub-Channel 1-8 Quick Strip
                 ChannelSelectorStrip(
                     activeChannelId: vm.activeChannelId,
                     monitoredChannelIds: vm.monitoredChannelIds,
@@ -61,23 +78,23 @@ public struct CockpitView: View {
                 )
                 .padding(.horizontal, 16)
 
-                // Quick Convoy Hazard Buttons (Anti-slop: 1-tap giant pills)
+                // Quick Convoy Hazard Buttons (Anti-slop: 100% SF Symbols, zero emoji)
                 HStack(spacing: 8) {
                     HazardQuickButton(title: "HAZARD", icon: "exclamationmark.triangle.fill", color: TacticalTheme.signalWarning) {
-                        vm.sendCustomText("⚠️ ROAD HAZARD AHEAD")
+                        vm.sendCustomText("ROAD HAZARD AHEAD")
                     }
                     HazardQuickButton(title: "FUEL LOW", icon: "fuelpump.fill", color: TacticalTheme.accent) {
-                        vm.sendCustomText("⛽ NEED FUEL STOP")
+                        vm.sendCustomText("NEED FUEL STOP")
                     }
                     HazardQuickButton(title: "STOP NOW", icon: "hand.raised.fill", color: TacticalTheme.signalEmergency) {
-                        vm.sendCustomText("🛑 CONVOY STOP IMMEDIATE")
+                        vm.sendCustomText("CONVOY STOP IMMEDIATE")
                     }
                 }
                 .padding(.horizontal, 16)
 
                 Spacer()
 
-                // Master PTT Actuator Shelf (Bottom Primary Action Zone)
+                // Master PTT Actuator Shelf (Bottom Primary Action Zone - 84pt Height)
                 PttActuatorShelf(
                     isTransmitting: vm.isTransmitting,
                     isVoxLocked: vm.isVoxLocked,
@@ -90,6 +107,9 @@ public struct CockpitView: View {
                 .padding(.bottom, 8)
             }
         }
+        .sheet(isPresented: $showSettings) {
+            SettingsSheetView()
+        }
     }
 }
 
@@ -101,10 +121,10 @@ private struct HazardQuickButton: View {
 
     var body: some View {
         Button(action: {
-            TactileHaptics.shared.channelDetentClick()
+            TacticalHaptics.selection()
             action()
         }) {
-            HStack(spacing: 4) {
+            HStack(spacing: 5) {
                 Image(systemName: icon)
                     .font(.system(size: 11, weight: .bold))
                 Text(title)
@@ -120,4 +140,3 @@ private struct HazardQuickButton: View {
         .buttonStyle(.plain)
     }
 }
-

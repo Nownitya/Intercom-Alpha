@@ -3,6 +3,7 @@ import SharedLogic
 
 public struct ContentView: View {
     @StateObject private var vm = IntercomViewModel()
+    @ObservedObject private var prefs = UiPreferencesManager.shared
 
     @State private var selectedTab: TabDestination = .cockpit
     @State private var showQrShare: Bool = false
@@ -21,44 +22,60 @@ public struct ContentView: View {
         ZStack {
             TacticalTheme.background.ignoresSafeArea()
 
-            TabView(selection: $selectedTab) {
-                // Tab 1: Tactical Cockpit HUD
+            if prefs.profile == .minimal {
+                // Minimal Profile: Single Screen, zero extra tabs (ADR-0021)
                 CockpitView(
                     vm: vm,
-                    onOpenRoster: { selectedTab = .convoy },
+                    onOpenRoster: {},
                     onOpenDiagnostics: {}
                 )
-                .tabItem {
-                    Label("Intercom", systemImage: "antenna.radiowaves.left.and.right")
-                }
-                .tag(TabDestination.cockpit)
-
-                // Tab 2: Proximity Radar
-                RadarView(vm: vm)
+            } else {
+                // Adaptive Multi-Tab View
+                TabView(selection: $selectedTab) {
+                    // Tab 1: Tactical Cockpit HUD (Core Invariant)
+                    CockpitView(
+                        vm: vm,
+                        onOpenRoster: { selectedTab = .convoy },
+                        onOpenDiagnostics: {}
+                    )
                     .tabItem {
-                        Label("Radar", systemImage: "scope")
+                        Label("Intercom", systemImage: "antenna.radiowaves.left.and.right")
                     }
-                    .tag(TabDestination.radar)
+                    .tag(TabDestination.cockpit)
 
-                // Tab 3: Alpine Trail Elevation
-                ElevationView(vm: vm)
-                    .tabItem {
-                        Label("Elevation", systemImage: "chart.line.uptrend.xyaxis")
+                    // Tab 2: Proximity Radar (Conditionally enabled)
+                    if prefs.showRadar {
+                        RadarView(vm: vm)
+                            .tabItem {
+                                Label("Radar", systemImage: "scope")
+                            }
+                            .tag(TabDestination.radar)
                     }
-                    .tag(TabDestination.elevation)
 
-                // Tab 4: Convoy Roster & Pairing
-                ConvoyView(
-                    vm: vm,
-                    onHostQr: { showQrShare = true },
-                    onJoinQr: { showQrScanner = true }
-                )
-                .tabItem {
-                    Label("Convoy", systemImage: "person.2.fill")
+                    // Tab 3: Alpine Trail Elevation (Conditionally enabled)
+                    if prefs.showElevation {
+                        ElevationView(vm: vm)
+                            .tabItem {
+                                Label("Elevation", systemImage: "chart.line.uptrend.xyaxis")
+                            }
+                            .tag(TabDestination.elevation)
+                    }
+
+                    // Tab 4: Convoy Roster & Pairing (Conditionally enabled)
+                    if prefs.showConvoyMap {
+                        ConvoyView(
+                            vm: vm,
+                            onHostQr: { showQrShare = true },
+                            onJoinQr: { showQrScanner = true }
+                        )
+                        .tabItem {
+                            Label("Convoy", systemImage: "person.2.fill")
+                        }
+                        .tag(TabDestination.convoy)
+                    }
                 }
-                .tag(TabDestination.convoy)
+                .accentColor(TacticalTheme.accent)
             }
-            .accentColor(TacticalTheme.accent)
 
             // Crash Impact Emergency Countdown Overlay (Sprint 21 / ICA-2103)
             if vm.showCrashCountdownCard {
