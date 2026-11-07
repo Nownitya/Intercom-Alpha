@@ -695,5 +695,46 @@ class HomeViewModelTest {
         advanceUntilIdle()
         assertFalse(viewModel.uiState.value.showFailoverSheet)
     }
+
+    @Test
+    fun testPhySwitcherAndMeshCongestionSnapshotFlows() = runTest(testDispatcher) {
+        // Initial defaults
+        assertEquals("1M", viewModel.uiState.value.phySwitcherSnapshot.shortPillLabel)
+        assertEquals(0.0f, viewModel.uiState.value.meshCongestionSnapshot.channelUtilization)
+        assertFalse(viewModel.uiState.value.meshCongestionSnapshot.isThrottled)
+
+        // 1. Simulate PHY switch to LE_2M
+        val mockPhySnapshot = org.nowni.intercom_alpha.mesh.PhySwitcherSnapshot(
+            activePhy = org.nowni.intercom_alpha.mesh.phy.BlePhyMode.LE_2M,
+            activePhyName = "LE_2M",
+            shortPillLabel = "2M",
+            totalPhySwitches = 1L
+        )
+        hardwareBridge.simulatePhySwitcherSnapshot(mockPhySnapshot)
+        advanceUntilIdle()
+
+        assertEquals("2M", viewModel.uiState.value.phySwitcherSnapshot.shortPillLabel)
+        assertEquals(org.nowni.intercom_alpha.mesh.phy.BlePhyMode.LE_2M, viewModel.uiState.value.phySwitcherSnapshot.activePhy)
+        assertEquals(1L, viewModel.uiState.value.phySwitcherSnapshot.totalPhySwitches)
+
+        // 2. Simulate high RF channel congestion (> 70% and throttled)
+        val mockCongestionSnapshot = org.nowni.intercom_alpha.mesh.MeshCongestionSnapshot(
+            channelUtilization = 0.78f,
+            activeNodeCount = 12,
+            currentAdvIntervalMs = 210L,
+            currentRelayProbability = 0.45f,
+            isThrottled = true,
+            isHighDensity = true
+        )
+        hardwareBridge.simulateMeshCongestionSnapshot(mockCongestionSnapshot)
+        advanceUntilIdle()
+
+        val updatedCongestion = viewModel.uiState.value.meshCongestionSnapshot
+        assertEquals(0.78f, updatedCongestion.channelUtilization)
+        assertEquals(12, updatedCongestion.activeNodeCount)
+        assertEquals(210L, updatedCongestion.currentAdvIntervalMs)
+        assertTrue(updatedCongestion.isThrottled)
+        assertTrue(updatedCongestion.isHighDensity)
+    }
 }
 

@@ -88,6 +88,8 @@ interface IntercomHardwareBridge {
     val plcTelemetrySnapshot: StateFlow<org.nowni.intercom_alpha.audio.PlcTelemetry>
     val bleMtuSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.BleMtuTelemetry>
     val elevationProfileSnapshot: StateFlow<org.nowni.intercom_alpha.geo.ConvoyElevationProfile>
+    val phySwitcherSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.PhySwitcherSnapshot>
+    val meshCongestionSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.MeshCongestionSnapshot>
 
     fun setPttActive(active: Boolean)
     fun setRepeaterModeActive(active: Boolean)
@@ -118,6 +120,8 @@ interface IntercomHardwareBridge {
     fun updatePlcTelemetry(telemetry: org.nowni.intercom_alpha.audio.PlcTelemetry)
     fun updateBleMtuTelemetry(telemetry: org.nowni.intercom_alpha.mesh.BleMtuTelemetry)
     fun updateElevationProfile(profile: org.nowni.intercom_alpha.geo.ConvoyElevationProfile)
+    fun updatePhySwitcherSnapshot(snapshot: org.nowni.intercom_alpha.mesh.PhySwitcherSnapshot)
+    fun updateMeshCongestionSnapshot(snapshot: org.nowni.intercom_alpha.mesh.MeshCongestionSnapshot)
     fun setNegotiatedMtu(mtu: Int) {}
     fun setFecRatio(ratio: org.nowni.intercom_alpha.audio.FecRatio) {}
     fun pinAudioBitrateProfile(profile: org.nowni.intercom_alpha.common.AudioProfile?) {}
@@ -165,7 +169,9 @@ interface IntercomHardwareBridge {
         wearableProtocol: org.nowni.intercom_alpha.mesh.wearable.WearableCompanionProtocol? = null,
         spectralSuppressor: org.nowni.intercom_alpha.audio.SpectralNoiseSuppressor? = null,
         wakeWordEngine: org.nowni.intercom_alpha.audio.AcousticWakeWordEngine? = null,
-        congestionGovernor: org.nowni.intercom_alpha.mesh.qos.AirtimeCongestionGovernor? = null
+        congestionGovernor: org.nowni.intercom_alpha.mesh.qos.AirtimeCongestionGovernor? = null,
+        phySwitcher: org.nowni.intercom_alpha.mesh.AdaptivePhySwitcher? = null,
+        meshCongestionGovernor: org.nowni.intercom_alpha.mesh.MeshCongestionGovernor? = null
     ) {}
 }
 
@@ -362,6 +368,10 @@ open class NoOpIntercomHardwareBridge(
     override val bleMtuSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.BleMtuTelemetry> = _bleMtuSnapshot.asStateFlow()
     protected val _elevationProfileSnapshot = MutableStateFlow(org.nowni.intercom_alpha.geo.ConvoyElevationProfile())
     override val elevationProfileSnapshot: StateFlow<org.nowni.intercom_alpha.geo.ConvoyElevationProfile> = _elevationProfileSnapshot.asStateFlow()
+    protected val _phySwitcherSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.PhySwitcherSnapshot())
+    override val phySwitcherSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.PhySwitcherSnapshot> = _phySwitcherSnapshot.asStateFlow()
+    protected val _meshCongestionSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.MeshCongestionSnapshot())
+    override val meshCongestionSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.MeshCongestionSnapshot> = _meshCongestionSnapshot.asStateFlow()
 
     override fun setPttActive(active: Boolean) {
         _isTransmitting.value = active
@@ -544,6 +554,22 @@ open class NoOpIntercomHardwareBridge(
 
     override fun updateElevationProfile(profile: org.nowni.intercom_alpha.geo.ConvoyElevationProfile) {
         _elevationProfileSnapshot.value = profile
+    }
+
+    override fun updatePhySwitcherSnapshot(snapshot: org.nowni.intercom_alpha.mesh.PhySwitcherSnapshot) {
+        _phySwitcherSnapshot.value = snapshot
+    }
+
+    fun simulatePhySwitcherSnapshot(snapshot: org.nowni.intercom_alpha.mesh.PhySwitcherSnapshot) {
+        _phySwitcherSnapshot.value = snapshot
+    }
+
+    override fun updateMeshCongestionSnapshot(snapshot: org.nowni.intercom_alpha.mesh.MeshCongestionSnapshot) {
+        _meshCongestionSnapshot.value = snapshot
+    }
+
+    fun simulateMeshCongestionSnapshot(snapshot: org.nowni.intercom_alpha.mesh.MeshCongestionSnapshot) {
+        _meshCongestionSnapshot.value = snapshot
     }
 
     override fun setNegotiatedMtu(mtu: Int) {

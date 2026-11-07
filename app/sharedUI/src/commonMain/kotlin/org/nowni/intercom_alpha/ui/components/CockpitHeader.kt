@@ -23,7 +23,9 @@ fun CockpitHeader(
     groupName: String,
     peerCount: Int,
     activeChannelId: Int,
-    phyMode: String = "2M",
+    phyMode: String = "1M",
+    channelUtilization: Float = 0.0f,
+    isCongested: Boolean = false,
     batteryPercentage: Int = 85,
     isCloudConnected: Boolean = false,
     onOpenRoster: () -> Unit = {},
@@ -31,6 +33,13 @@ fun CockpitHeader(
     modifier: Modifier = Modifier
 ) {
     val colors = LocalTacticalColors.current
+
+    val phyColor = when (phyMode.uppercase()) {
+        "2M", "LE_2M" -> colors.signalSuccess
+        "1M", "LE_1M" -> colors.signalActive
+        "S8", "CODED_S8", "S2", "CODED_S2" -> colors.signalWarning
+        else -> colors.signalActive
+    }
 
     Row(
         modifier = modifier
@@ -83,7 +92,7 @@ fun CockpitHeader(
             )
         }
 
-        // Diagnostics & Battery Pill
+        // Diagnostics, RF PHY & Battery Pill
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(50))
@@ -94,16 +103,43 @@ fun CockpitHeader(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            // PHY mode tag
+            // Channel Congestion Warning Badge (if RF saturation > 70% or throttled)
+            if (isCongested || channelUtilization >= 0.70f) {
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(colors.signalEmergency.copy(alpha = 0.2f))
+                        .border(1.dp, colors.signalEmergency.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
+                        .padding(horizontal = 4.dp, vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(3.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(5.dp)
+                            .clip(CircleShape)
+                            .background(colors.signalEmergency)
+                    )
+                    Text(
+                        text = "CBR ${(channelUtilization * 100).toInt()}%",
+                        color = colors.signalEmergency,
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 9.sp
+                    )
+                }
+            }
+
+            // Tactile RF PHY mode pill (2M / 1M / S8)
             Text(
-                text = phyMode,
-                color = colors.signalSuccess,
+                text = phyMode.removePrefix("LE_").removePrefix("CODED_"),
+                color = phyColor,
                 fontFamily = FontFamily.Monospace,
                 fontWeight = FontWeight.Black,
                 fontSize = 10.sp,
                 modifier = Modifier
                     .clip(RoundedCornerShape(4.dp))
-                    .background(colors.signalSuccess.copy(alpha = 0.15f))
+                    .background(phyColor.copy(alpha = 0.15f))
                     .padding(horizontal = 5.dp, vertical = 2.dp)
             )
 

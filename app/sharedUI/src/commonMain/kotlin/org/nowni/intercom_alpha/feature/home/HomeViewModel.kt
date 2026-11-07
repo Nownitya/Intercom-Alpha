@@ -451,6 +451,16 @@ class HomeViewModel(
                 _uiState.update { it.copy(elevationProfile = snapshot) }
             }
         }
+        viewModelScope.launch {
+            hardwareBridge.phySwitcherSnapshot.collect { snapshot ->
+                _uiState.update { it.copy(phySwitcherSnapshot = snapshot) }
+            }
+        }
+        viewModelScope.launch {
+            hardwareBridge.meshCongestionSnapshot.collect { snapshot ->
+                _uiState.update { it.copy(meshCongestionSnapshot = snapshot) }
+            }
+        }
     }
 
     fun onAction(action: HomeUiAction) {
