@@ -2929,3 +2929,32 @@
   - OpenCodeReview: 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-37-fleet-congestion-control`).
 
+### [2026-11-07] - ICA-3703: Hardware Bridge Multi-PHY Binding & Tactical Cockpit RF Pill Telemetry
+- **Branch**: `feature/ICA-3703-multi-phy-bridge-cockpit`
+- **Objective**: Wire AdaptivePhySwitcher and MeshCongestionGovernor into IntercomHardwareBridge, AndroidPlatformBridge, and IntercomBridge (iOS). Update MainCockpitScreen with tactile RF PHY pills (2M / 1M / S8) and channel congestion indicators.
+- **Implementation**:
+  - Wired `IntercomHardwareBridge.kt`:
+    - Added `phySwitcherSnapshot` and `meshCongestionSnapshot` state flows to `IntercomHardwareBridge` interface.
+    - Updated `NoOpIntercomHardwareBridge` with simulation test hooks (`simulatePhySwitcherSnapshot`, `simulateMeshCongestionSnapshot`).
+    - Added `phySwitcher` and `meshCongestionGovernor` optional references to `attachSubsystems(...)`.
+  - Wired `AndroidPlatformBridge.kt`:
+    - Backed `phySwitcherSnapshot` and `meshCongestionSnapshot` with reactive state flows.
+    - Wired `attachSubsystems` to collect `phySwitcher.switchEvents` and `meshCongestionGovernor.metrics`.
+  - Wired `IntercomBridge.kt` (iOS):
+    - Instantiated `AdaptivePhySwitcher` and `MeshCongestionGovernor`.
+    - Exposed reactive observation closures returning `CancellationHandle`: `observePhySwitcherSnapshot`, `observeMeshCongestionSnapshot`, `evaluatePeerPhy`, and `recordMeshAirtime`.
+  - Updated `HomeUiState.kt` and `HomeViewModel.kt`:
+    - Added `phySwitcherSnapshot` and `meshCongestionSnapshot` to `HomeUiState`.
+    - Collected bridge snapshot updates into `HomeUiState` in `HomeViewModel.init`.
+  - Updated `CockpitHeader.kt` & `MainCockpitScreen.kt`:
+    - Rendered high-contrast tactical RF PHY pill (`2M` in green, `1M` in amber/active, `S8` in warning/amber).
+    - Rendered high-contrast channel congestion badge (`CBR X%`) when channel utilization exceeds 70% or advertising throttling is engaged.
+  - Added unit test `testPhySwitcherAndMeshCongestionSnapshotFlows` in `HomeViewModelTest.kt`.
+- **Verification**:
+  - `./gradlew :app:sharedUI:jvmTest`: 50 tests passed cleanly (100% pass).
+  - `./gradlew :app:sharedLogic:jvmTest :app:sharedLogic:compileKotlinIosSimulatorArm64`: 476 tests passed cleanly.
+  - `./gradlew :app:androidApp:assembleDebug`: Built cleanly in 1m 17s.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-37-fleet-congestion-control`).
+
+

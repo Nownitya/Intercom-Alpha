@@ -64,5 +64,7 @@
 7. **Pure KMP String Formatting on Native Targets:** `String.format` is JVM-only and breaks native compilation on iOS Simulator (`compileKotlinIosSimulatorArm64`). Use standard Kotlin string templates with integer rounding (`((val * 10.0).roundToInt() / 10.0).toString()`).
 8. **Zero-Dependency LRU Cache in Multiplatform:** Java's `LinkedHashMap` access-order constructor is not available in KMP `commonMain`. Using `mutableMapOf<K, V>()` paired with an `ArrayDeque<K>()` gives clean, zero-dependency, 100% multiplatform LRU caching.
 9. **Initial Cooldown Bypass for Newly Discovered Peers:** When initializing peer trackers with `lastSwitchTimestampMs = 0L`, check `lastSwitchTimestampMs > 0L` before applying cooldown gating. Otherwise, initial negotiation samples on newly registered peers are falsely blocked by the cooldown timer.
+10. **Tactile Cockpit Header Pill Text Clipping:** When rendering short RF PHY labels (`2M`, `1M`, `S8`) in tight avionics headers, always strip protocol prefixes (`removePrefix("LE_").removePrefix("CODED_")`) to maintain compact touch-friendly dimensions and avoid layout overflow on 320dp small display clusters.
+
 
 

@@ -56,7 +56,7 @@
         "Renders glove-friendly high-contrast RF status badge in cockpit header",
         "Compiles cleanly on Android and iOS targets"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-3704",
