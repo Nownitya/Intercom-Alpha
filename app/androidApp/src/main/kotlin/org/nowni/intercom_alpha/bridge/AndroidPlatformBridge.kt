@@ -250,6 +250,25 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         _elevationProfileSnapshot.value = profile
     }
 
+    private val _phySwitcherSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.PhySwitcherSnapshot())
+    override val phySwitcherSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.PhySwitcherSnapshot> = _phySwitcherSnapshot.asStateFlow()
+
+    override fun updatePhySwitcherSnapshot(snapshot: org.nowni.intercom_alpha.mesh.PhySwitcherSnapshot) {
+        _phySwitcherSnapshot.value = snapshot
+    }
+
+    private val _meshCongestionSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.MeshCongestionSnapshot())
+    override val meshCongestionSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.MeshCongestionSnapshot> = _meshCongestionSnapshot.asStateFlow()
+
+    override fun updateMeshCongestionSnapshot(snapshot: org.nowni.intercom_alpha.mesh.MeshCongestionSnapshot) {
+        _meshCongestionSnapshot.value = snapshot
+    }
+
+    var phySwitcher: org.nowni.intercom_alpha.mesh.AdaptivePhySwitcher? = null
+        private set
+    var meshCongestionGovernor: org.nowni.intercom_alpha.mesh.MeshCongestionGovernor? = null
+        private set
+
     var channelManager: ChannelManager? = null
         private set
     var directedRouter: DirectedMeshRouter? = null
@@ -327,7 +346,9 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         wearableProtocol: org.nowni.intercom_alpha.mesh.wearable.WearableCompanionProtocol?,
         spectralSuppressor: org.nowni.intercom_alpha.audio.SpectralNoiseSuppressor?,
         wakeWordEngine: org.nowni.intercom_alpha.audio.AcousticWakeWordEngine?,
-        congestionGovernor: org.nowni.intercom_alpha.mesh.qos.AirtimeCongestionGovernor?
+        congestionGovernor: org.nowni.intercom_alpha.mesh.qos.AirtimeCongestionGovernor?,
+        phySwitcher: org.nowni.intercom_alpha.mesh.AdaptivePhySwitcher?,
+        meshCongestionGovernor: org.nowni.intercom_alpha.mesh.MeshCongestionGovernor?
     ) {
         this.channelManager = channelManager
         this.blackboxRecorder = blackboxRecorder
@@ -352,6 +373,8 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         this.spectralSuppressor = spectralSuppressor
         this.wakeWordEngine = wakeWordEngine
         this.congestionGovernor = congestionGovernor
+        this.phySwitcher = phySwitcher
+        this.meshCongestionGovernor = meshCongestionGovernor
 
         failoverArbiter?.let { arbiter ->
             scope.launch {
@@ -556,6 +579,23 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
             scope.launch {
                 governor.metrics.collect { metrics ->
                     _airtimeCongestionSnapshot.value = metrics
+                }
+            }
+        }
+
+        phySwitcher?.let { switcher ->
+            scope.launch {
+                _phySwitcherSnapshot.value = switcher.getSnapshot()
+                switcher.switchEvents.collect { _ ->
+                    _phySwitcherSnapshot.value = switcher.getSnapshot()
+                }
+            }
+        }
+
+        meshCongestionGovernor?.let { governor ->
+            scope.launch {
+                governor.metrics.collect { metrics ->
+                    _meshCongestionSnapshot.value = metrics
                 }
             }
         }

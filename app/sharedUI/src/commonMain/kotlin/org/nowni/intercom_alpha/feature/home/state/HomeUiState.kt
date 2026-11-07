@@ -168,7 +168,11 @@ data class HomeUiState(
 
     // Sprint 36 Offline Vector Topographic & Trail Elevation Profile HUD (ICA-3603)
     val elevationProfile: org.nowni.intercom_alpha.geo.ConvoyElevationProfile = org.nowni.intercom_alpha.geo.ConvoyElevationProfile(),
-    val showElevationSheet: Boolean = false
+    val showElevationSheet: Boolean = false,
+
+    // Sprint 37 Autonomous Fleet Mesh Congestion Control & Adaptive PHY (ICA-3703)
+    val phySwitcherSnapshot: org.nowni.intercom_alpha.mesh.PhySwitcherSnapshot = org.nowni.intercom_alpha.mesh.PhySwitcherSnapshot(),
+    val meshCongestionSnapshot: org.nowni.intercom_alpha.mesh.MeshCongestionSnapshot = org.nowni.intercom_alpha.mesh.MeshCongestionSnapshot()
 )
 
 sealed interface HomeUiAction {

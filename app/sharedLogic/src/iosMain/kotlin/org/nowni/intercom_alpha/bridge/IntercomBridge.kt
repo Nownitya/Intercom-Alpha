@@ -1365,6 +1365,77 @@ class IntercomBridge(
     fun setPlannedRoute(points: List<org.nowni.intercom_alpha.map.GeoPoint>) {
         elevationEngine.setPlannedRoute(points)
     }
+
+    // --- Swift-Friendly Adaptive Multi-PHY Switcher & Congestion Governor Observers & Controls (Sprint 37 / ICA-3703) ---
+
+    val phySwitcher: org.nowni.intercom_alpha.mesh.AdaptivePhySwitcher =
+        org.nowni.intercom_alpha.mesh.AdaptivePhySwitcher()
+
+    val meshCongestionGovernor: org.nowni.intercom_alpha.mesh.MeshCongestionGovernor =
+        org.nowni.intercom_alpha.mesh.MeshCongestionGovernor()
+
+    private val _phySwitcherSnapshot = MutableStateFlow(phySwitcher.getSnapshot())
+    val phySwitcherSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.PhySwitcherSnapshot> = _phySwitcherSnapshot.asStateFlow()
+
+    val meshCongestionSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.MeshCongestionSnapshot> =
+        meshCongestionGovernor.metrics
+
+    init {
+        scope.launch {
+            phySwitcher.switchEvents.collect { _ ->
+                _phySwitcherSnapshot.value = phySwitcher.getSnapshot()
+            }
+        }
+    }
+
+    fun observePhySwitcherSnapshot(onSnapshot: (org.nowni.intercom_alpha.mesh.PhySwitcherSnapshot) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            phySwitcherSnapshot.collect { snapshot ->
+                onSnapshot(snapshot)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun observeMeshCongestionSnapshot(onSnapshot: (org.nowni.intercom_alpha.mesh.MeshCongestionSnapshot) -> Unit): CancellationHandle {
+        val job = scope.launch(Dispatchers.Main) {
+            meshCongestionSnapshot.collect { snapshot ->
+                onSnapshot(snapshot)
+            }
+        }
+        return CancellationHandle { job.cancel() }
+    }
+
+    fun evaluatePeerPhy(
+        peerId: String,
+        linkQualityScore: Int,
+        rssiDbm: Int,
+        packetLossRatio: Double,
+        onSwitched: (Boolean) -> Unit = {}
+    ) {
+        scope.launch {
+            val switched = phySwitcher.evaluatePeerLink(
+                peerId = peerId,
+                linkQualityScore = linkQualityScore,
+                rssiDbm = rssiDbm,
+                packetLossRatio = packetLossRatio,
+                timestampMs = currentTimeMillis()
+            )
+            _phySwitcherSnapshot.value = phySwitcher.getSnapshot()
+            withContext(Dispatchers.Main) {
+                onSwitched(switched)
+            }
+        }
+    }
+
+    fun recordMeshAirtime(durationMicros: Long, sourceNodeId: String = "") {
+        scope.launch {
+            meshCongestionGovernor.recordAirtimeUsage(durationMicros, currentTimeMillis())
+            if (sourceNodeId.isNotBlank()) {
+                meshCongestionGovernor.recordNeighborPresence(sourceNodeId, 0, currentTimeMillis())
+            }
+        }
+    }
 }
 
 
