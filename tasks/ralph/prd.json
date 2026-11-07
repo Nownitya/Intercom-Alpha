@@ -37,7 +37,7 @@
         "Provides hysteresis dampening to prevent rapid PHY flapping",
         "Full unit tests in commonTest"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "ICA-3703",

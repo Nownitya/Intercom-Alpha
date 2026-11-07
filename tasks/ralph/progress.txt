@@ -2908,3 +2908,24 @@
   - `./gradlew :app:androidApp:assembleDebug`: Passed cleanly in 3m 50s.
   - OpenCodeReview (`ocr delegate rule`): 0 findings (`APPROVED`).
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-37-fleet-congestion-control`).
+
+### [2026-11-07] - ICA-3702: Adaptive Multi-PHY Switcher Engine (LE 1M, LE 2M, LE Coded S8)
+- **Branch**: `feature/ICA-3702-adaptive-phy-switcher`
+- **Objective**: Implement `AdaptivePhySwitcher.kt` in `commonMain` dynamically negotiating Bluetooth 5.0 PHY modes (LE 2M for high throughput at close range, LE Coded S8 for 4x long range through mountain passes).
+- **Implementation**:
+  - Implemented `AdaptivePhySwitcher.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/`:
+    - Evaluates link quality score ($Q_{link}$), RSSI, and packet loss ratio per peer.
+    - Upgrades to `LE_2M` when $Q_{link} > 85$, $\text{RSSI} > -65\text{ dBm}$, and packet loss $\le 5\%$.
+    - Steps down to `CODED_S8` when $\text{RSSI} < -85\text{ dBm}$, packet loss $> 15\%$, or $Q_{link} < 40$.
+    - Standard baseline mode is `LE_1M`.
+    - Asymmetric hysteresis dampening: requires sustained samples for upgrades (`samplesRequiredForUpgrade = 2`), rapid step-down for link protection (`samplesRequiredForDowngrade = 1`), and a cooldown timer (default 3,000ms) to prevent rapid ping-pong flapping.
+    - Aggregated active cluster PHY adopts the lowest bitrate among peers to guarantee reach for edge nodes in broadcast.
+    - Point-in-time `PhySwitcherSnapshot` with tactile pill labels (`2M`, `1M`, `S2`, `S8`) ready for cockpit telemetry.
+  - Implemented `AdaptivePhySwitcherTest.kt` in `commonTest`:
+    - 8 comprehensive unit tests validating initial state, LE_2M upgrade, low RSSI CODED_S8 step-down, high packet drop CODED_S8 step-down, hysteresis dampening against flapping, asymmetric downgrade vs upgrade, diagnostics snapshot emission, and engine reset.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest :app:sharedLogic:compileKotlinIosSimulatorArm64`: 476 tests passed cleanly.
+  - `./gradlew :app:androidApp:assembleDebug`: Built cleanly in 1m 12s.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-37-fleet-congestion-control`).
+

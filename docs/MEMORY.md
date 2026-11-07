@@ -45,6 +45,12 @@
   * Real-time convoy elevation engine (`ConvoyElevationEngine.kt`) calculating moving slope grade percentage, steep alpine caution (> 8%) and extreme warnings (> 12% grade), vertical altitude separation ($\Delta h$) between convoy lead and tail/sweep riders, and upcoming mountain pass summits along planned route polylines.
   * High-contrast tactile OLED cockpit HUD overlay (`TrailElevationHudOverlay.kt`) with glove-friendly 64dp zoom buttons (1km / 5km / 15km), color-coded rider pins along the altitude profile curve, and reactive bridge streaming (`IntercomBridge.kt`) for 100% native iOS SwiftUI.
 
+### 1.7 Adaptive Multi-PHY Switching with Asymmetric Hysteresis (`AdaptivePhySwitcher.kt`)
+* **Problem**: Fluctuating RF signal strength when riders round hairpin turns causes rapid ping-pong flapping between LE 2M and LE Coded S8, generating excessive link layer PHY negotiation traffic and audio dropouts.
+* **Solution**:
+  * Implemented asymmetric hysteresis: upgrades to LE 2M require multiple consecutive high-quality samples ($Q_{link} > 85$, $\text{RSSI} > -65\text{ dBm}$) and a cooldown timer (3,000ms), whereas step-down to LE Coded S8 occurs on single degraded samples ($\text{RSSI} < -85\text{ dBm}$ or packet loss $> 15\%$) to preempt voice collapse.
+  * Aggregated active cluster PHY selects the minimum bitrate among connected peers to protect edge riders during broadcast flooding.
+
 ---
 
 ## 2. Hard-Won Gotchas & Critical Traps Avoided
@@ -57,4 +63,6 @@
 6. **Web Mercator Boundary Inset in Spatial Tile Queries:** When computing intersecting tile coordinates for a bounding box, tile boundaries align precisely with adjacent tile boundaries. Applying an epsilon inset (`1e-7`) ensures the query strictly bounds the intended tile area without false adjacent tile hits.
 7. **Pure KMP String Formatting on Native Targets:** `String.format` is JVM-only and breaks native compilation on iOS Simulator (`compileKotlinIosSimulatorArm64`). Use standard Kotlin string templates with integer rounding (`((val * 10.0).roundToInt() / 10.0).toString()`).
 8. **Zero-Dependency LRU Cache in Multiplatform:** Java's `LinkedHashMap` access-order constructor is not available in KMP `commonMain`. Using `mutableMapOf<K, V>()` paired with an `ArrayDeque<K>()` gives clean, zero-dependency, 100% multiplatform LRU caching.
+9. **Initial Cooldown Bypass for Newly Discovered Peers:** When initializing peer trackers with `lastSwitchTimestampMs = 0L`, check `lastSwitchTimestampMs > 0L` before applying cooldown gating. Otherwise, initial negotiation samples on newly registered peers are falsely blocked by the cooldown timer.
+
 
