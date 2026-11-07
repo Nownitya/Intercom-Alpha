@@ -24,6 +24,7 @@ import org.nowni.intercom_alpha.text.CannedMessageCode
 import org.nowni.intercom_alpha.ui.components.*
 import org.nowni.intercom_alpha.ui.theme.IntercomTokens
 import org.nowni.intercom_alpha.ui.theme.LocalTacticalColors
+import kotlin.math.roundToInt
 
 enum class TacticalNavTab {
     VOICE,
@@ -277,7 +278,8 @@ private fun ElevationTab(uiState: HomeUiState) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            ElevationCard(title = "GRADE", value = "${String.format("%.1f", grade)}%", color = if (grade > 8) colors.signalWarning else colors.signalSuccess, modifier = Modifier.weight(1f))
+            val formattedGrade = ((grade * 10.0).roundToInt() / 10.0).toString()
+            ElevationCard(title = "GRADE", value = "$formattedGrade%", color = if (grade > 8) colors.signalWarning else colors.signalSuccess, modifier = Modifier.weight(1f))
             ElevationCard(title = "LEAD/TAIL ΔH", value = "${deltaH.toInt()}m", color = colors.signalActive, modifier = Modifier.weight(1f))
             ElevationCard(title = "ALTITUDE", value = "${altitude.toInt()}m", color = colors.textPrimary, modifier = Modifier.weight(1f))
         }
