@@ -71,7 +71,7 @@
         "Verifies channel utilization throttling and automated PHY switching",
         "100% passing tests in ./gradlew test"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }

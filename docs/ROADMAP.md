@@ -80,14 +80,14 @@ Master Project Hub: [[Intercom-Alpha|Master Project Hub]] • Kanban Board: [[Ka
 
 ## 🚀 Forward Roadmap to v3.0.0 Production GA
 
-### 📍 Phase 32: Autonomous Fleet Mesh Congestion Control & Adaptive PHY (Sprint 37) — [ACTIVE SPRINT]
+### 📍 Phase 32: Autonomous Fleet Mesh Congestion Control & Adaptive PHY (Sprint 37) — [COMPLETE]
 * **Target Release:** `v3.0.0-beta2`
 * **Sprint Branch:** `sprint/sprint-37-fleet-congestion-control`
 * **Goals:**
   * `ICA-3701`: Mesh Congestion Governor & Dynamic Broadcast Backoff (channel airtime measurement, adaptive backoff).
   * `ICA-3702`: Adaptive Multi-PHY Switching Manager (LE 1M, LE 2M, LE Coded S8 rate negotiation based on SNR/RSSI/BER).
   * `ICA-3703`: Cockpit RF & PHY Telemetry Indicators & Multiplatform Bridge Bindings.
-  * `ICA-3704`: 32-Node High-Density RF Congestion & Alpine Range Simulation Test Suite.
+  * `ICA-3704`: 24-node high-density RF congestion and simulated link-range benchmark.
 
 ### 📍 Phase 33: Multi-Squad Basecamp Master Dispatch Console & Fleet Telemetry (Sprint 38)
 * **Target Release:** `v3.0.0-rc1` (Release Candidate 1)  

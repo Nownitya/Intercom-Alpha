@@ -2958,3 +2958,9 @@
 - **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-37-fleet-congestion-control`).
 
 
+
+### [2026-11-23] - ICA-3704: 24-node fleet congestion simulation
+- Implemented deterministic mixed-traffic congestion and PHY policy checks in commonTest. Airtime recovery and neighbor expiry are asserted separately.
+- Verified 478 shared JVM tests (including both new scenarios), Gradle test, Android debug assembly, and shared Kotlin iOS simulator compilation.
+- Refreshed Graphify in the feature worktree and ran offline OpenCodeReview delegation for the one changed test file. Host-agent review found no actionable issues.
+- Merged feature commit 5a92b0e into Sprint 37. Physical RF range and actual radio PHY application remain field-verification items.

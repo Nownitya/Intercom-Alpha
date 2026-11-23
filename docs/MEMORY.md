@@ -9,6 +9,14 @@
 
 ## 1. Proven Architectural Solutions & Design Patterns
 
+### Sprint 37 congestion verification
+
+The 24-node common test exercises voice, telemetry and control traffic in one
+synthetic airtime window. When airtime expires, advertising can remain backed
+off while neighbor density stays high. Assert recovery in two stages: airtime
+expiry and neighbor expiry. The simulated PHY sweep verifies policy choices
+from link inputs. Physical BLE range and applied radio PHY require device tests.
+
 ### 1.1 Pure Kotlin RFC 8439 ChaCha20-Poly1305 AEAD (`PacketCipher.kt`)
 * **Problem**: Standard platform crypto (`javax.crypto`, BoringSSL, Apple CryptoKit) breaks multiplatform compilation on iOS Simulator, Wasm, and JVM targets.
 * **Solution**: Implemented ChaCha20 and Poly1305 in 100% pure Kotlin in `commonMain`:

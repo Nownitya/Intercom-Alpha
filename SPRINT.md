@@ -1,4 +1,4 @@
-# Current Status: Sprint 37 (Phase 32: Autonomous Fleet Mesh Congestion Control & Adaptive PHY)
+# Sprint 37 Closeout (Phase 32: Autonomous Fleet Mesh Congestion Control & Adaptive PHY)
 
 > **Active Sprint Reference:** [TASKS.md](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/docs/TASKS.md) & [prd.json](file:///d:/Codes/Antigravity/Project4/Intercom-Alpha/tasks/ralph/prd.json)  
 > **Sprint Branch:** `sprint/sprint-37-fleet-congestion-control`  
@@ -9,17 +9,19 @@
 
 ---
 
-## 🚀 Active Sprint: Sprint 37 (Phase 32: Autonomous Fleet Mesh Congestion Control & Adaptive PHY)
+## Sprint 37 story status
 **Goal:** Implement autonomous fleet-wide BLE mesh congestion control, dynamic advertising interval modulation, and Bluetooth 5.0 adaptive multi-PHY switching (LE 2M / LE 1M / LE Coded S8) to ensure crystal-clear voice communication and robust relay stability across large motorcycle convoys and dense tactical field squads.
 - **Sprint Branch:** `sprint/sprint-37-fleet-congestion-control`  
 - **Target Release:** `v3.0.0-beta2`  
 
 | Task ID | Item | Owner | Target Files | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **ICA-3701** | Dynamic BLE Advertising Interval Throttler & Flooding Redundancy Governor | Ralph | `MeshCongestionGovernor.kt`, `MeshCongestionGovernorTest.kt` | ⏳ Ready |
-| **ICA-3702** | Adaptive Multi-PHY Switcher Engine (LE 1M, LE 2M, LE Coded S8) | Ralph | `AdaptivePhySwitcher.kt`, `AdaptivePhySwitcherTest.kt` | ⏳ Ready |
-| **ICA-3703** | Hardware Bridge Multi-PHY Binding & Tactical Cockpit RF Pill Telemetry | Ralph | `IntercomHardwareBridge.kt`, `AndroidPlatformBridge.kt`, `IntercomBridge.kt`, `MainCockpitScreen.kt` | ⏳ Ready |
-| **ICA-3704** | 24-Node High-Density RF Congestion Simulation & Range Benchmark Test | Ralph | `FleetMeshCongestionSimulationTest.kt` | ⏳ Ready |
+| **ICA-3701** | Dynamic BLE Advertising Interval Throttler & Flooding Redundancy Governor | Ralph | `MeshCongestionGovernor.kt`, `MeshCongestionGovernorTest.kt` | Complete |
+| **ICA-3702** | Adaptive Multi-PHY Switcher Engine (LE 1M, LE 2M, LE Coded S8) | Ralph | `AdaptivePhySwitcher.kt`, `AdaptivePhySwitcherTest.kt` | Complete |
+| **ICA-3703** | Hardware Bridge Multi-PHY Binding & Tactical Cockpit RF Pill Telemetry | Ralph | `IntercomHardwareBridge.kt`, `AndroidPlatformBridge.kt`, `IntercomBridge.kt`, `MainCockpitScreen.kt` | Complete |
+| **ICA-3704** | 24-Node High-Density RF Congestion Simulation & Range Benchmark Test | Ralph | `FleetMeshCongestionSimulationTest.kt` | Complete |
+
+The simulation verifies congestion and PHY selection policy. Physical BLE range and applied radio behavior remain device-verification items.
 
 ---
 
