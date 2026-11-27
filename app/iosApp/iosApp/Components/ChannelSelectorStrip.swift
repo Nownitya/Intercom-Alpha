@@ -26,7 +26,7 @@ public struct ChannelSelectorStrip: View {
                     let isDualWatch = monitoredChannelIds.contains(channelId)
 
                     Button(action: {
-                        TactileHaptics.shared.channelDetentClick()
+                        TacticalHaptics.shared.channelDetentClick()
                         onSelectChannel(channelId)
                     }) {
                         HStack(spacing: 4) {
@@ -55,7 +55,7 @@ public struct ChannelSelectorStrip: View {
                     .buttonStyle(.plain)
                     .contextMenu {
                         Button(action: {
-                            TactileHaptics.shared.channelDetentClick()
+                            TacticalHaptics.shared.channelDetentClick()
                             onToggleDualWatch(channelId)
                         }) {
                             Label(
@@ -70,4 +70,3 @@ public struct ChannelSelectorStrip: View {
         }
     }
 }
-

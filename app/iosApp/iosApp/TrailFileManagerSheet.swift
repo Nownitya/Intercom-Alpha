@@ -87,7 +87,7 @@ struct TrailFileManagerSheet: View {
             Spacer()
 
             Button(action: {
-                TactileHaptics.shared.channelDetentClick()
+                TacticalHaptics.shared.channelDetentClick()
                 dismiss()
             }) {
                 Image(systemName: "xmark.circle.fill")
@@ -123,7 +123,7 @@ struct TrailFileManagerSheet: View {
             HStack(spacing: 8) {
                 // 1-Tap Beam to Convoy
                 Button(action: {
-                    TactileHaptics.shared.pttReleaseThump()
+                    TacticalHaptics.shared.pttPressEnd()
                     vm.beamActiveTrail(format: selectedFormat)
                 }) {
                     HStack(spacing: 6) {
@@ -141,7 +141,7 @@ struct TrailFileManagerSheet: View {
 
                 // Import Text Button
                 Button(action: {
-                    TactileHaptics.shared.channelDetentClick()
+                    TacticalHaptics.shared.channelDetentClick()
                     showImportModal = true
                 }) {
                     HStack(spacing: 4) {
@@ -170,7 +170,7 @@ struct TrailFileManagerSheet: View {
     private func formatButton(title: String, type: FileTransferType) -> some View {
         let isSelected = selectedFormat == type
         return Button(action: {
-            TactileHaptics.shared.channelDetentClick()
+            TacticalHaptics.shared.channelDetentClick()
             selectedFormat = type
         }) {
             Text(title)
@@ -237,7 +237,7 @@ struct TrailFileManagerSheet: View {
                     .foregroundColor(isOutgoing ? TacticalTokens.signalAmber : TacticalTokens.signalSatelliteCyan)
 
                 Button(action: {
-                    TactileHaptics.shared.channelDetentClick()
+                    TacticalHaptics.shared.channelDetentClick()
                     vm.cancelTransfer(transferId: transfer.transferId)
                 }) {
                     Image(systemName: "xmark.circle")
@@ -306,7 +306,7 @@ struct TrailFileManagerSheet: View {
         return HStack(spacing: 10) {
             // Radio/Active Indicator
             Button(action: {
-                TactileHaptics.shared.channelDetentClick()
+                TacticalHaptics.shared.channelDetentClick()
                 vm.selectStoredTrail(trail: trail)
             }) {
                 Image(systemName: isActive ? "checkmark.circle.fill" : "circle")
@@ -341,7 +341,7 @@ struct TrailFileManagerSheet: View {
 
             // Beam Action Button
             Button(action: {
-                TactileHaptics.shared.pttReleaseThump()
+                TacticalHaptics.shared.pttPressEnd()
                 vm.beamTrail(trail: trail, format: selectedFormat)
             }) {
                 Image(systemName: "antenna.radiowaves.left.and.right")
@@ -354,7 +354,7 @@ struct TrailFileManagerSheet: View {
 
             // Delete Action Button
             Button(action: {
-                TactileHaptics.shared.channelDetentClick()
+                TacticalHaptics.shared.channelDetentClick()
                 vm.deleteStoredTrail(trailId: trail.id)
             }) {
                 Image(systemName: "trash")
@@ -392,7 +392,7 @@ struct TrailFileManagerSheet: View {
 
     private var quickSampleButton: some View {
         Button(action: {
-            TactileHaptics.shared.channelDetentClick()
+            TacticalHaptics.shared.channelDetentClick()
             vm.loadSampleAlpineTrail()
         }) {
             HStack(spacing: 8) {
@@ -432,7 +432,7 @@ struct TrailFileManagerSheet: View {
                     }
                     Spacer()
                     Button("Cancel") {
-                        TactileHaptics.shared.channelDetentClick()
+                        TacticalHaptics.shared.channelDetentClick()
                         showImportModal = false
                     }
                     .font(.system(size: 11, weight: .bold))
@@ -450,7 +450,7 @@ struct TrailFileManagerSheet: View {
 
                     HStack(spacing: 4) {
                         Button(action: {
-                            TactileHaptics.shared.channelDetentClick()
+                            TacticalHaptics.shared.channelDetentClick()
                             importFormat = .gpx
                         }) {
                             Text("GPX")
@@ -462,7 +462,7 @@ struct TrailFileManagerSheet: View {
                                 .cornerRadius(5)
                         }
                         Button(action: {
-                            TactileHaptics.shared.channelDetentClick()
+                            TacticalHaptics.shared.channelDetentClick()
                             importFormat = .geojson
                         }) {
                             Text("GEOJSON")
@@ -488,7 +488,7 @@ struct TrailFileManagerSheet: View {
                 // Import Button
                 Button(action: {
                     guard !importText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-                    TactileHaptics.shared.pttReleaseThump()
+                    TacticalHaptics.shared.pttPressEnd()
                     let name = importName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Imported Trail" : importName
                     vm.importTrailText(text: importText, fileName: name, format: importFormat)
                     showImportModal = false

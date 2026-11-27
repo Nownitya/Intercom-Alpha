@@ -53,7 +53,7 @@ public struct GuardedSosButton: View {
                 HStack {
                     if isGuardOpen {
                         Button(action: {
-                            TactileHaptics.shared.emergencyAlert()
+                            TacticalHaptics.shared.emergencyAlert()
                             onTriggerEmergency()
                             isGuardOpen = false
                         }) {
@@ -83,7 +83,7 @@ public struct GuardedSosButton: View {
                         }
                     } else {
                         Button(action: {
-                            TactileHaptics.shared.channelDetentClick()
+                            TacticalHaptics.shared.channelDetentClick()
                             isGuardOpen = true
                         }) {
                             HStack(spacing: 6) {
@@ -111,4 +111,3 @@ public struct GuardedSosButton: View {
         }
     }
 }
-

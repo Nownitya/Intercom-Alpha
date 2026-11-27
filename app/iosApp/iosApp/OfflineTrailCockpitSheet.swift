@@ -38,7 +38,7 @@ struct OfflineTrailCockpitSheet: View {
                     Spacer()
 
                     Button(action: {
-                        TactileHaptics.shared.channelDetentClick()
+                        TacticalHaptics.shared.channelDetentClick()
                         vm.showTrailManagerSheet = true
                     }) {
                         HStack(spacing: 4) {
@@ -59,7 +59,7 @@ struct OfflineTrailCockpitSheet: View {
                     }
 
                     Button(action: {
-                        TactileHaptics.shared.channelDetentClick()
+                        TacticalHaptics.shared.channelDetentClick()
                         dismiss()
                     }) {
                         Image(systemName: "xmark.circle.fill")
@@ -86,7 +86,7 @@ struct OfflineTrailCockpitSheet: View {
 
                         // 5. Offline Demo Action
                         Button(action: {
-                            TactileHaptics.shared.channelDetentClick()
+                            TacticalHaptics.shared.channelDetentClick()
                             vm.loadSampleAlpineTrail()
                         }) {
                             HStack(spacing: 8) {
@@ -181,7 +181,7 @@ struct OfflineTrailCockpitSheet: View {
                 Toggle("", isOn: Binding(
                     get: { isOverlayEnabled },
                     set: { enabled in
-                        TactileHaptics.shared.channelDetentClick()
+                        TacticalHaptics.shared.channelDetentClick()
                         vm.setTrailOverlayEnabled(enabled)
                     }
                 ))
@@ -208,7 +208,7 @@ struct OfflineTrailCockpitSheet: View {
 
     private func zoomButton(label: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: {
-            TactileHaptics.shared.channelDetentClick()
+            TacticalHaptics.shared.channelDetentClick()
             action()
         }) {
             Text(label)

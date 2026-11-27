@@ -30,6 +30,7 @@ final class IntercomViewModel: ObservableObject {
     // --- Radar & Convoy GPS Telemetry ---
     @Published var radarSnapshot: RadarSnapshot? = nil
     @Published var convoySnapshot: ConvoyTelemetrySnapshot? = nil
+    @Published private(set) var elevationProfileSnapshot: ConvoyElevationProfile?
 
     // --- Mesh Text & Canned Hazards ---
     @Published var messages: [MeshTextMessage] = []
@@ -531,6 +532,13 @@ final class IntercomViewModel: ObservableObject {
             }
         }
         cancellables.append(convoySub)
+
+        let elevationSub = bridge.observeElevationProfile { [weak self] snapshot in
+            Task { @MainActor in
+                self?.elevationProfileSnapshot = snapshot
+            }
+        }
+        cancellables.append(elevationSub)
 
         let msgSub = bridge.observeMessages { [weak self] msgs in
             Task { @MainActor in
