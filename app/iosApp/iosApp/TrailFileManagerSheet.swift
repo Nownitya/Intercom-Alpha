@@ -154,7 +154,7 @@ struct TrailFileManagerSheet: View {
                     .padding(.horizontal, 12)
                     .padding(.vertical, 11)
                     .background(Color.cyan.opacity(0.12))
-                    .neobrutalistOutline(
+                    .tacticalOutline(
                         color: Color.cyan.opacity(0.35),
                         lineWidth: 1,
                         cornerRadius: 8
@@ -164,7 +164,7 @@ struct TrailFileManagerSheet: View {
         }
         .padding(12)
         .tacticalCard()
-        .neobrutalistOutline(color: Color.cyan.opacity(0.3), lineWidth: 1, cornerRadius: 10)
+        .tacticalOutline(color: Color.cyan.opacity(0.3), lineWidth: 1, cornerRadius: 10)
     }
 
     private func formatButton(title: String, type: FileTransferType) -> some View {
@@ -200,7 +200,7 @@ struct TrailFileManagerSheet: View {
         }
         .padding(12)
         .tacticalCard()
-        .neobrutalistOutline(color: TacticalTheme.signalWarning.opacity(0.35), lineWidth: 1, cornerRadius: 10)
+        .tacticalOutline(color: TacticalTheme.signalWarning.opacity(0.35), lineWidth: 1, cornerRadius: 10)
     }
 
     private func transferRow(transfer: FileTransferProgress) -> some View {
@@ -295,7 +295,7 @@ struct TrailFileManagerSheet: View {
         }
         .padding(12)
         .tacticalCard()
-        .neobrutalistOutline(color: TacticalTheme.surfaceBorder, lineWidth: 1, cornerRadius: 10)
+        .tacticalOutline(color: TacticalTheme.surfaceBorder, lineWidth: 1, cornerRadius: 10)
     }
 
     private func storedTrailRow(trail: TrailPolyline) -> some View {
@@ -405,7 +405,7 @@ struct TrailFileManagerSheet: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
             .background(Color.cyan.opacity(0.12))
-            .neobrutalistOutline(
+            .tacticalOutline(
                 color: Color.cyan.opacity(0.35),
                 lineWidth: 1,
                 cornerRadius: 8

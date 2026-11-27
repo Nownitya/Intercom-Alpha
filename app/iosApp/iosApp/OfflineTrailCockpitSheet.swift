@@ -51,7 +51,7 @@ struct OfflineTrailCockpitSheet: View {
                         .padding(.horizontal, 8)
                         .padding(.vertical, 5)
                         .background(TacticalTheme.signalConnected.opacity(0.15))
-                        .neobrutalistOutline(
+                        .tacticalOutline(
                             color: TacticalTheme.signalConnected.opacity(0.35),
                             lineWidth: 1,
                             cornerRadius: 6
@@ -99,7 +99,7 @@ struct OfflineTrailCockpitSheet: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
                             .background(Color.cyan.opacity(0.12))
-                            .neobrutalistOutline(
+                            .tacticalOutline(
                                 color: Color.cyan.opacity(0.35),
                                 lineWidth: 1,
                                 cornerRadius: 8
@@ -149,7 +149,7 @@ struct OfflineTrailCockpitSheet: View {
         }
         .padding(12)
         .tacticalCard()
-        .neobrutalistOutline(color: TacticalTheme.surfaceBorder, lineWidth: 1, cornerRadius: 10)
+        .tacticalOutline(color: TacticalTheme.surfaceBorder, lineWidth: 1, cornerRadius: 10)
     }
 
     private func metricTile(title: String, value: String, color: Color) -> some View {
@@ -203,7 +203,7 @@ struct OfflineTrailCockpitSheet: View {
         }
         .padding(12)
         .tacticalCard()
-        .neobrutalistOutline(color: TacticalTheme.surfaceBorder, lineWidth: 1, cornerRadius: 10)
+        .tacticalOutline(color: TacticalTheme.surfaceBorder, lineWidth: 1, cornerRadius: 10)
     }
 
     private func zoomButton(label: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
@@ -260,7 +260,7 @@ struct OfflineTrailCockpitSheet: View {
         }
         .padding(12)
         .tacticalCard()
-        .neobrutalistOutline(color: TacticalTheme.surfaceBorder, lineWidth: 1, cornerRadius: 10)
+        .tacticalOutline(color: TacticalTheme.surfaceBorder, lineWidth: 1, cornerRadius: 10)
     }
 
     private var waypointRosterCard: some View {
@@ -295,7 +295,7 @@ struct OfflineTrailCockpitSheet: View {
         }
         .padding(12)
         .tacticalCard()
-        .neobrutalistOutline(color: TacticalTheme.surfaceBorder, lineWidth: 1, cornerRadius: 10)
+        .tacticalOutline(color: TacticalTheme.surfaceBorder, lineWidth: 1, cornerRadius: 10)
     }
 
     private func waypointRow(pw: ProjectedWaypoint) -> some View {

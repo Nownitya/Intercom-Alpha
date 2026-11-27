@@ -105,7 +105,11 @@ final class IntercomViewModel: ObservableObject {
     }
 
     deinit {
-        endLiveActivity()
+        if let activity = activeActivity {
+            Task {
+                await activity.end(nil, dismissalPolicy: .immediate)
+            }
+        }
         cancellables.forEach { $0.cancel() }
         bridge.stop()
     }
@@ -256,10 +260,10 @@ final class IntercomViewModel: ObservableObject {
             bridge.triggerManualCrashSos()
         case .nextChannel:
             let next = (activeChannelId >= 8) ? 1 : activeChannelId + 1
-            selectChannel(next)
+            selectChannel(id: next)
         case .prevChannel:
             let prev = (activeChannelId <= 1) ? 8 : activeChannelId - 1
-            selectChannel(prev)
+            selectChannel(id: prev)
         case .muteToggle:
             if isTransmitting {
                 stopPtt()
@@ -358,7 +362,7 @@ final class IntercomViewModel: ObservableObject {
 
     func beamActiveTrail(format: FileTransferType = .gpx) {
         if let activeTrail = trailMapSnapshot?.activeTrail {
-            let waypoints = trailMapSnapshot?.waypoints ?? []
+            let waypoints = trailMapSnapshot?.projectedWaypoints.map(\.waypoint) ?? []
             bridge.sendTrailOverMesh(trail: activeTrail, waypoints: waypoints, format: format)
         } else if let first = storedTrails.first {
             bridge.sendTrailOverMesh(trail: first, waypoints: [], format: format)
@@ -366,7 +370,7 @@ final class IntercomViewModel: ObservableObject {
     }
 
     func beamTrail(trail: TrailPolyline, format: FileTransferType = .gpx) {
-        let waypoints = trailMapSnapshot?.waypoints ?? []
+        let waypoints = trailMapSnapshot?.projectedWaypoints.map(\.waypoint) ?? []
         bridge.sendTrailOverMesh(trail: trail, waypoints: waypoints, format: format)
     }
 
