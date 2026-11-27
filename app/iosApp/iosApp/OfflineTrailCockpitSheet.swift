@@ -15,7 +15,7 @@ struct OfflineTrailCockpitSheet: View {
 
     var body: some View {
         ZStack {
-            TacticalTokens.cockpitObsidian
+            TacticalTheme.background
                 .ignoresSafeArea()
 
             VStack(spacing: 12) {
@@ -24,7 +24,7 @@ struct OfflineTrailCockpitSheet: View {
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(spacing: 6) {
                             Circle()
-                                .fill(TacticalTokens.signalSatelliteCyan)
+                                .fill(Color.cyan)
                                 .frame(width: 8, height: 8)
                             Text("OFFLINE TRAIL COCKPIT")
                                 .font(.system(size: 13, weight: .black, design: .monospaced))
@@ -32,7 +32,7 @@ struct OfflineTrailCockpitSheet: View {
                         }
                         Text(vm.trailMapSnapshot?.activeTrail?.name ?? "Alpine Ridge Pass // Offline Vector Map")
                             .font(.system(size: 10, weight: .semibold, design: .monospaced))
-                            .foregroundColor(TacticalTokens.signalSatelliteCyan.opacity(0.85))
+                            .foregroundColor(Color.cyan.opacity(0.85))
                     }
 
                     Spacer()
@@ -47,12 +47,12 @@ struct OfflineTrailCockpitSheet: View {
                             Text("OTA ROUTES")
                                 .font(.system(size: 9, weight: .black, design: .monospaced))
                         }
-                        .foregroundColor(TacticalTokens.signalCodedPhyEmerald)
+                        .foregroundColor(TacticalTheme.signalConnected)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 5)
-                        .background(TacticalTokens.signalCodedPhyEmerald.opacity(0.15))
+                        .background(TacticalTheme.signalConnected.opacity(0.15))
                         .neobrutalistOutline(
-                            color: TacticalTokens.signalCodedPhyEmerald.opacity(0.35),
+                            color: TacticalTheme.signalConnected.opacity(0.35),
                             lineWidth: 1,
                             cornerRadius: 6
                         )
@@ -95,12 +95,12 @@ struct OfflineTrailCockpitSheet: View {
                                 Text("RELOAD SAMPLE ALPINE TRAIL & TOPO")
                                     .font(.system(size: 11, weight: .black, design: .monospaced))
                             }
-                            .foregroundColor(TacticalTokens.signalSatelliteCyan)
+                            .foregroundColor(Color.cyan)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
-                            .background(TacticalTokens.signalSatelliteCyan.opacity(0.12))
+                            .background(Color.cyan.opacity(0.12))
                             .neobrutalistOutline(
-                                color: TacticalTokens.signalSatelliteCyan.opacity(0.35),
+                                color: Color.cyan.opacity(0.35),
                                 lineWidth: 1,
                                 cornerRadius: 8
                             )
@@ -133,23 +133,23 @@ struct OfflineTrailCockpitSheet: View {
                 Spacer()
                 Text("OFFLINE GPS ACTIVE")
                     .font(.system(size: 9, weight: .bold, design: .monospaced))
-                    .foregroundColor(TacticalTokens.signalCodedPhyEmerald)
+                    .foregroundColor(TacticalTheme.signalConnected)
             }
 
             HStack(spacing: 8) {
-                metricTile(title: "CURRENT ALT", value: "\(currentAlt)m", color: TacticalTokens.signalSatelliteCyan)
+                metricTile(title: "CURRENT ALT", value: "\(currentAlt)m", color: Color.cyan)
                 metricTile(
                     title: "LEAD DELTA",
                     value: leadDelta >= 0 ? "+\(leadDelta)m" : "\(leadDelta)m",
-                    color: leadDelta >= 0 ? TacticalTokens.signalCodedPhyEmerald : TacticalTokens.signalHotMicOrange
+                    color: leadDelta >= 0 ? TacticalTheme.signalConnected : TacticalTheme.signalHotMic
                 )
                 metricTile(title: "DISTANCE", value: "\(trailDistKm)km", color: .white)
-                metricTile(title: "ASCENT", value: "+\(ascentM)m", color: TacticalTokens.signalAmber)
+                metricTile(title: "ASCENT", value: "+\(ascentM)m", color: TacticalTheme.signalWarning)
             }
         }
         .padding(12)
-        .claymorphicDepth(surfaceColor: TacticalTokens.cockpitElevated, cornerRadius: 10)
-        .neobrutalistOutline(color: TacticalTokens.neobrutalBorderIdle, lineWidth: 1, cornerRadius: 10)
+        .tacticalCard()
+        .neobrutalistOutline(color: TacticalTheme.surfaceBorder, lineWidth: 1, cornerRadius: 10)
     }
 
     private func metricTile(title: String, value: String, color: Color) -> some View {
@@ -202,8 +202,8 @@ struct OfflineTrailCockpitSheet: View {
             }
         }
         .padding(12)
-        .claymorphicDepth(surfaceColor: TacticalTokens.cockpitElevated, cornerRadius: 10)
-        .neobrutalistOutline(color: TacticalTokens.neobrutalBorderIdle, lineWidth: 1, cornerRadius: 10)
+        .tacticalCard()
+        .neobrutalistOutline(color: TacticalTheme.surfaceBorder, lineWidth: 1, cornerRadius: 10)
     }
 
     private func zoomButton(label: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
@@ -216,7 +216,7 @@ struct OfflineTrailCockpitSheet: View {
                 .foregroundColor(isSelected ? .black : .white)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 8)
-                .background(isSelected ? TacticalTokens.signalSatelliteCyan : Color.white.opacity(0.1))
+                .background(isSelected ? Color.cyan : Color.white.opacity(0.1))
                 .cornerRadius(6)
         }
     }
@@ -230,11 +230,11 @@ struct OfflineTrailCockpitSheet: View {
         return HStack(spacing: 12) {
             ZStack {
                 Circle()
-                    .fill(TacticalTokens.signalAmber.opacity(0.15))
+                    .fill(TacticalTheme.signalWarning.opacity(0.15))
                     .frame(width: 36, height: 36)
                 Image(systemName: "flag.fill")
                     .font(.system(size: 14))
-                    .foregroundColor(TacticalTokens.signalAmber)
+                    .foregroundColor(TacticalTheme.signalWarning)
             }
 
             VStack(alignment: .leading, spacing: 2) {
@@ -252,15 +252,15 @@ struct OfflineTrailCockpitSheet: View {
             VStack(alignment: .trailing, spacing: 2) {
                 Text(distStr)
                     .font(.system(size: 13, weight: .black, design: .monospaced))
-                    .foregroundColor(TacticalTokens.signalSatelliteCyan)
+                    .foregroundColor(Color.cyan)
                 Text(nearestWp?.type.name ?? "CHECKPOINT")
                     .font(.system(size: 7, weight: .bold, design: .monospaced))
                     .foregroundColor(.gray)
             }
         }
         .padding(12)
-        .claymorphicDepth(surfaceColor: TacticalTokens.cockpitElevated, cornerRadius: 10)
-        .neobrutalistOutline(color: TacticalTokens.neobrutalBorderIdle, lineWidth: 1, cornerRadius: 10)
+        .tacticalCard()
+        .neobrutalistOutline(color: TacticalTheme.surfaceBorder, lineWidth: 1, cornerRadius: 10)
     }
 
     private var waypointRosterCard: some View {
@@ -294,8 +294,8 @@ struct OfflineTrailCockpitSheet: View {
             }
         }
         .padding(12)
-        .claymorphicDepth(surfaceColor: TacticalTokens.cockpitElevated, cornerRadius: 10)
-        .neobrutalistOutline(color: TacticalTokens.neobrutalBorderIdle, lineWidth: 1, cornerRadius: 10)
+        .tacticalCard()
+        .neobrutalistOutline(color: TacticalTheme.surfaceBorder, lineWidth: 1, cornerRadius: 10)
     }
 
     private func waypointRow(pw: ProjectedWaypoint) -> some View {
@@ -324,10 +324,10 @@ struct OfflineTrailCockpitSheet: View {
             VStack(alignment: .trailing, spacing: 1) {
                 Text(distStr)
                     .font(.system(size: 11, weight: .black, design: .monospaced))
-                    .foregroundColor(TacticalTokens.signalSatelliteCyan)
+                    .foregroundColor(Color.cyan)
                 Text(proj.isVisibleOnRadar ? "ON RADAR" : "OUT OF RANGE")
                     .font(.system(size: 7, weight: .bold, design: .monospaced))
-                    .foregroundColor(proj.isVisibleOnRadar ? TacticalTokens.signalCodedPhyEmerald : .gray)
+                    .foregroundColor(proj.isVisibleOnRadar ? TacticalTheme.signalConnected : .gray)
             }
         }
         .padding(.vertical, 4)

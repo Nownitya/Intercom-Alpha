@@ -9,7 +9,7 @@ import SharedLogic
 /// - Live transmission progress bars displaying chunk sequence and Adler-32 integrity states.
 /// - Offline storage library manager for GPX 1.1 and RFC 7946 GeoJSON routes.
 /// - Raw text import dialog for rapid offline route pasting.
-/// - Styled with ADR-014 Tactical Design Tokens (TacticalTokens, claymorphic depth, neobrutalist outlines).
+/// - Uses the shared SwiftUI tactical theme and card styles.
 struct TrailFileManagerSheet: View {
     @ObservedObject var vm: IntercomViewModel
     @Environment(\.dismiss) private var dismiss
@@ -22,7 +22,7 @@ struct TrailFileManagerSheet: View {
 
     var body: some View {
         ZStack {
-            TacticalTokens.cockpitObsidian
+            TacticalTheme.background
                 .ignoresSafeArea()
 
             VStack(spacing: 12) {
@@ -64,7 +64,7 @@ struct TrailFileManagerSheet: View {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
                     Circle()
-                        .fill(TacticalTokens.signalSatelliteCyan)
+                        .fill(Color.cyan)
                         .frame(width: 8, height: 8)
                     Text("TRAIL FILE MANAGER")
                         .font(.system(size: 13, weight: .black, design: .monospaced))
@@ -72,16 +72,16 @@ struct TrailFileManagerSheet: View {
 
                     Text("OFF-GRID OTA")
                         .font(.system(size: 8, weight: .black, design: .monospaced))
-                        .foregroundColor(TacticalTokens.signalCodedPhyEmerald)
+                        .foregroundColor(TacticalTheme.signalConnected)
                         .padding(.horizontal, 5)
                         .padding(.vertical, 2)
-                        .background(TacticalTokens.signalCodedPhyEmerald.opacity(0.15))
+                        .background(TacticalTheme.signalConnected.opacity(0.15))
                         .cornerRadius(4)
                 }
 
                 Text("BLE Mesh Chunked GPX/GeoJSON Exchange")
                     .font(.system(size: 10, weight: .semibold, design: .monospaced))
-                    .foregroundColor(TacticalTokens.signalSatelliteCyan.opacity(0.85))
+                    .foregroundColor(Color.cyan.opacity(0.85))
             }
 
             Spacer()
@@ -135,7 +135,7 @@ struct TrailFileManagerSheet: View {
                     .foregroundColor(.black)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 11)
-                    .background(TacticalTokens.signalSatelliteCyan)
+                    .background(Color.cyan)
                     .cornerRadius(8)
                 }
 
@@ -150,12 +150,12 @@ struct TrailFileManagerSheet: View {
                         Text("IMPORT")
                             .font(.system(size: 10, weight: .black, design: .monospaced))
                     }
-                    .foregroundColor(TacticalTokens.signalSatelliteCyan)
+                    .foregroundColor(Color.cyan)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 11)
-                    .background(TacticalTokens.signalSatelliteCyan.opacity(0.12))
+                    .background(Color.cyan.opacity(0.12))
                     .neobrutalistOutline(
-                        color: TacticalTokens.signalSatelliteCyan.opacity(0.35),
+                        color: Color.cyan.opacity(0.35),
                         lineWidth: 1,
                         cornerRadius: 8
                     )
@@ -163,8 +163,8 @@ struct TrailFileManagerSheet: View {
             }
         }
         .padding(12)
-        .claymorphicDepth(surfaceColor: TacticalTokens.cockpitElevated, cornerRadius: 10)
-        .neobrutalistOutline(color: TacticalTokens.signalSatelliteCyan.opacity(0.3), lineWidth: 1, cornerRadius: 10)
+        .tacticalCard()
+        .neobrutalistOutline(color: Color.cyan.opacity(0.3), lineWidth: 1, cornerRadius: 10)
     }
 
     private func formatButton(title: String, type: FileTransferType) -> some View {
@@ -178,7 +178,7 @@ struct TrailFileManagerSheet: View {
                 .foregroundColor(isSelected ? .black : .white)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 5)
-                .background(isSelected ? TacticalTokens.signalSatelliteCyan : Color.white.opacity(0.1))
+                .background(isSelected ? Color.cyan : Color.white.opacity(0.1))
                 .cornerRadius(5)
         }
     }
@@ -188,7 +188,7 @@ struct TrailFileManagerSheet: View {
             HStack {
                 Text("LIVE OTA TRANSFERS (\(vm.activeTransfers.count))")
                     .font(.system(size: 10, weight: .black, design: .monospaced))
-                    .foregroundColor(TacticalTokens.signalAmber)
+                    .foregroundColor(TacticalTheme.signalWarning)
                 Spacer()
             }
 
@@ -199,8 +199,8 @@ struct TrailFileManagerSheet: View {
             }
         }
         .padding(12)
-        .claymorphicDepth(surfaceColor: TacticalTokens.cockpitElevated, cornerRadius: 10)
-        .neobrutalistOutline(color: TacticalTokens.signalAmber.opacity(0.35), lineWidth: 1, cornerRadius: 10)
+        .tacticalCard()
+        .neobrutalistOutline(color: TacticalTheme.signalWarning.opacity(0.35), lineWidth: 1, cornerRadius: 10)
     }
 
     private func transferRow(transfer: FileTransferProgress) -> some View {
@@ -210,7 +210,7 @@ struct TrailFileManagerSheet: View {
         return VStack(spacing: 6) {
             HStack {
                 Image(systemName: isOutgoing ? "arrow.up.circle.fill" : "arrow.down.circle.fill")
-                    .foregroundColor(isOutgoing ? TacticalTokens.signalAmber : TacticalTokens.signalSatelliteCyan)
+                    .foregroundColor(isOutgoing ? TacticalTheme.signalWarning : Color.cyan)
                     .font(.system(size: 14))
 
                 VStack(alignment: .leading, spacing: 1) {
@@ -234,7 +234,7 @@ struct TrailFileManagerSheet: View {
 
                 Text("\(percent)%")
                     .font(.system(size: 13, weight: .black, design: .monospaced))
-                    .foregroundColor(isOutgoing ? TacticalTokens.signalAmber : TacticalTokens.signalSatelliteCyan)
+                    .foregroundColor(isOutgoing ? TacticalTheme.signalWarning : Color.cyan)
 
                 Button(action: {
                     TacticalHaptics.shared.channelDetentClick()
@@ -242,7 +242,7 @@ struct TrailFileManagerSheet: View {
                 }) {
                     Image(systemName: "xmark.circle")
                         .font(.system(size: 14))
-                        .foregroundColor(TacticalTokens.signalEmergencyCrimson)
+                        .foregroundColor(TacticalTheme.signalEmergency)
                 }
             }
 
@@ -254,7 +254,7 @@ struct TrailFileManagerSheet: View {
                         .frame(height: 6)
 
                     RoundedRectangle(cornerRadius: 3)
-                        .fill(isOutgoing ? TacticalTokens.signalAmber : TacticalTokens.signalSatelliteCyan)
+                        .fill(isOutgoing ? TacticalTheme.signalWarning : Color.cyan)
                         .frame(width: max(0, min(geo.size.width * CGFloat(transfer.progressPercent), geo.size.width)), height: 6)
                 }
             }
@@ -294,8 +294,8 @@ struct TrailFileManagerSheet: View {
             }
         }
         .padding(12)
-        .claymorphicDepth(surfaceColor: TacticalTokens.cockpitElevated, cornerRadius: 10)
-        .neobrutalistOutline(color: TacticalTokens.neobrutalBorderIdle, lineWidth: 1, cornerRadius: 10)
+        .tacticalCard()
+        .neobrutalistOutline(color: TacticalTheme.surfaceBorder, lineWidth: 1, cornerRadius: 10)
     }
 
     private func storedTrailRow(trail: TrailPolyline) -> some View {
@@ -310,7 +310,7 @@ struct TrailFileManagerSheet: View {
                 vm.selectStoredTrail(trail: trail)
             }) {
                 Image(systemName: isActive ? "checkmark.circle.fill" : "circle")
-                    .foregroundColor(isActive ? TacticalTokens.signalSatelliteCyan : .gray)
+                    .foregroundColor(isActive ? Color.cyan : .gray)
                     .font(.system(size: 16))
             }
 
@@ -346,9 +346,9 @@ struct TrailFileManagerSheet: View {
             }) {
                 Image(systemName: "antenna.radiowaves.left.and.right")
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(TacticalTokens.signalSatelliteCyan)
+                    .foregroundColor(Color.cyan)
                     .padding(6)
-                    .background(TacticalTokens.signalSatelliteCyan.opacity(0.15))
+                    .background(Color.cyan.opacity(0.15))
                     .clipShape(Circle())
             }
 
@@ -359,14 +359,14 @@ struct TrailFileManagerSheet: View {
             }) {
                 Image(systemName: "trash")
                     .font(.system(size: 12))
-                    .foregroundColor(TacticalTokens.signalEmergencyCrimson.opacity(0.85))
+                    .foregroundColor(TacticalTheme.signalEmergency.opacity(0.85))
                     .padding(6)
             }
         }
         .padding(9)
-        .background(isActive ? TacticalTokens.signalSatelliteCyan.opacity(0.08) : Color.black.opacity(0.2))
+        .background(isActive ? Color.cyan.opacity(0.08) : Color.black.opacity(0.2))
         .cornerRadius(8)
-        .overlay(RoundedRectangle(cornerRadius: 8).stroke(isActive ? TacticalTokens.signalSatelliteCyan.opacity(0.4) : Color.clear, lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(isActive ? Color.cyan.opacity(0.4) : Color.clear, lineWidth: 1))
     }
 
     private func difficultyBadge(for diff: TrailDifficulty) -> some View {
@@ -382,10 +382,10 @@ struct TrailFileManagerSheet: View {
 
     private func difficultyDisplay(for diff: TrailDifficulty) -> (String, Color) {
         switch diff {
-        case .easy: return ("EASY", TacticalTokens.signalCodedPhyEmerald)
-        case .moderate: return ("MODERATE", TacticalTokens.signalSatelliteCyan)
-        case .difficult: return ("HARD", TacticalTokens.signalAmber)
-        case .extremeTechnical: return ("EXPERT", TacticalTokens.signalHotMicOrange)
+        case .easy: return ("EASY", TacticalTheme.signalConnected)
+        case .moderate: return ("MODERATE", Color.cyan)
+        case .difficult: return ("HARD", TacticalTheme.signalWarning)
+        case .extremeTechnical: return ("EXPERT", TacticalTheme.signalHotMic)
         default: return ("TRAIL", .gray)
         }
     }
@@ -401,12 +401,12 @@ struct TrailFileManagerSheet: View {
                 Text("RELOAD SAMPLE ALPINE TRAIL & TOPO")
                     .font(.system(size: 11, weight: .black, design: .monospaced))
             }
-            .foregroundColor(TacticalTokens.signalSatelliteCyan)
+            .foregroundColor(Color.cyan)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
-            .background(TacticalTokens.signalSatelliteCyan.opacity(0.12))
+            .background(Color.cyan.opacity(0.12))
             .neobrutalistOutline(
-                color: TacticalTokens.signalSatelliteCyan.opacity(0.35),
+                color: Color.cyan.opacity(0.35),
                 lineWidth: 1,
                 cornerRadius: 8
             )
@@ -417,7 +417,7 @@ struct TrailFileManagerSheet: View {
 
     private var importRouteModal: some View {
         ZStack {
-            TacticalTokens.cockpitObsidian
+            TacticalTheme.background
                 .ignoresSafeArea()
 
             VStack(spacing: 14) {
@@ -458,7 +458,7 @@ struct TrailFileManagerSheet: View {
                                 .foregroundColor(importFormat == .gpx ? .black : .white)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 6)
-                                .background(importFormat == .gpx ? TacticalTokens.signalSatelliteCyan : Color.white.opacity(0.1))
+                                .background(importFormat == .gpx ? Color.cyan : Color.white.opacity(0.1))
                                 .cornerRadius(5)
                         }
                         Button(action: {
@@ -470,7 +470,7 @@ struct TrailFileManagerSheet: View {
                                 .foregroundColor(importFormat == .geojson ? .black : .white)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 6)
-                                .background(importFormat == .geojson ? TacticalTokens.signalSatelliteCyan : Color.white.opacity(0.1))
+                                .background(importFormat == .geojson ? Color.cyan : Color.white.opacity(0.1))
                                 .cornerRadius(5)
                         }
                     }
@@ -504,7 +504,7 @@ struct TrailFileManagerSheet: View {
                     .foregroundColor(.black)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
-                    .background(TacticalTokens.signalSatelliteCyan)
+                    .background(Color.cyan)
                     .cornerRadius(8)
                 }
             }
