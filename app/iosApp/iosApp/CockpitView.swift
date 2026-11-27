@@ -8,7 +8,7 @@ public struct CockpitView: View {
     let onOpenRoster: () -> Void
     let onOpenDiagnostics: () -> Void
 
-    public init(
+    init(
         vm: IntercomViewModel,
         onOpenRoster: @escaping () -> Void = {},
         onOpenDiagnostics: @escaping () -> Void = {}

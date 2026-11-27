@@ -6,7 +6,7 @@ public struct ElevationView: View {
     @State private var selectedZoomIndex: Int = 1
     private let zoomScales: [String] = ["1 KM", "5 KM", "15 KM"]
 
-    public init(vm: IntercomViewModel) {
+    init(vm: IntercomViewModel) {
         self.vm = vm
     }
 

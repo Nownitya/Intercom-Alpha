@@ -15,7 +15,7 @@ public struct RadarView: View {
         case polarScope = "Scope"
     }
 
-    public init(vm: IntercomViewModel) {
+    init(vm: IntercomViewModel) {
         self.vm = vm
     }
 

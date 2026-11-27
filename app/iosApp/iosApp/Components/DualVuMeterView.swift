@@ -11,7 +11,7 @@ public struct DualVuMeterView: View {
         localRmsLevel: Float = 0.0,
         remoteRmsLevel: Float = 0.0,
         remoteSpeakerName: String? = nil,
-        isVoiceActive: Boolean = false,
+        isVoiceActive: Bool = false,
         voxThreshold: Float = 0.35
     ) {
         self.localRmsLevel = localRmsLevel
@@ -120,4 +120,3 @@ private struct VuProgressBar: View {
         return activeColor
     }
 }
-
