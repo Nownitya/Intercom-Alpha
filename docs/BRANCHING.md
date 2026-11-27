@@ -1,56 +1,28 @@
 # Multi-Tier Branching Strategy & Git Workflow — Intercom-Alpha
 
-> **Document Version:** 3.0.0-beta1  
-> **Status:** Active / Non-Negotiable Governance  
-> **Default Branch:** `main` (Protected Golden Trunk)  
-> **Integration Branch:** `develop` (Nightly CI Trunk)  
+> **Default branch:** `main`
+> **Integration branch:** `develop`
 
----
+## Branching topology
 
-## 1. Branching Topology
+| Branch | Starts from | Integrates into | Scope |
+| --- | --- | --- | --- |
+| `feature/ICA-NNNN-slug` | Active sprint | Same sprint | One Ralph story with its tests and review evidence. |
+| `sprint/sprint-NN-slug` | `develop` | `develop` | Verified story increments. Close the sprint only after its phase exit conditions pass. |
+| `release/vX.Y` | Verified `develop` commit | `main` | Release stabilization, fixes, packaging and documentation. Forward release fixes to `develop`. |
+| `hotfix/vX.Y.Z` | Affected release tag or maintenance branch | `main` or the supported release line | Focused repair. Forward the fix to `develop` and any affected active release branch. |
+| `docs/slug` | `main` or `develop`, depending on audience | Same branch via PR | Content-only changes. Use `develop` for live engineering plans and `main` for release-facing docs or links to those plans. |
 
-Intercom-Alpha utilizes an **Enterprise 4-Tier GitFlow** tailored for Kotlin Multiplatform, native iOS (SwiftUI), Android (Jetpack Compose), and the autonomous Ralph agent cycle.
+## Integration and release rules
 
-```text
-TIER 1: PRODUCTION      main  ------------------------------------------------------------- (v3.0.0-beta1)
-(Protected / Golden)                                                            ^
-                                                                                | Merge PR
-TIER 2: RELEASE PREP    release/v3.0 -------------------------------------------+
-(QA / TestFlight / APK)                                                ^
-                                                                       | Release Cut
-TIER 3: INTEGRATION     develop ---------------------------------------+
-(Nightly builds / CI)                                         ^
-                                                              | Sprint PR
-TIER 3: SPRINT / EPIC   sprint/sprint-37-fleet-congestion ----+
-                                                              ^
-                                                              | Merge
-TIER 4: FEATURE/STORY   feature/ICA-3701-congestion-governor -+
-(Atomic Story Branches) feature/ICA-3702-adaptive-phy-manager -+
-                        feature/ICA-3703-cockpit-rf-telemetry -+
-                        feature/ICA-3704-congestion-simulation +
+- Use reviewed PRs for `main` and `develop`. Keep force pushes and direct pushes off both branches. Enable GitHub enforcement explicitly and record which rules are active. Repository visibility and enforcement are separate settings.
+- `main` holds released app source and approved standalone documentation. A docs-only PR needs link and content review. Workflow files, build configuration, generated runtime code and app sources follow the relevant code gates.
+- Tag the exact reviewed app release commit with an annotated version tag. Use prerelease tags for candidates. Keep published tags fixed. Record the commit, artifact checksum, signing and distribution channel.
+- Keep one canonical live sprint plan. Prefer linking to it from the default branch when two copies would go out of sync.
+- Keep the current Gradle, platform build, Graphify and OpenCodeReview requirements. Report actual results. A successful Linux run does not establish a native iOS app build. Run Xcode and iOS simulator verification on macOS.
+- For protocol or membership changes, include compatibility, downgrade, privacy and mixed-device recovery evidence. For store publishing, separate signing and publishing access from PR jobs and obtain owner authorization. Prepare rollout halt or replacement-build instructions.
+- Record sprint outcomes, verification, and review under [SPRINT-RULES.md](../SPRINT-RULES.md). See the [branching and council review](reports/2026-11-28-Branching-and-Council-Review.md) for rationale.
 
-EMERGENCY LANE          hotfix/v3.0.1-ble-patch ---- (Off main -> Back to main & develop)
-```
+## Transition
 
----
-
-## 2. The 4 Architectural Tiers
-
-### Tier 1: Golden Production (`main`)
-* **Role:** Single Source of Truth for production-grade, audited code.
-* **Direct Commits:** **STRICTLY PROHIBITED**.
-* **Merges:** Only via approved Pull Requests from `release/vX.Y` or `hotfix/vX.Y.Z`.
-* **Tagging:** Every commit on `main` MUST have an annotated semantic version tag (e.g. `v3.0.0-beta1`).
-
-### Tier 2: Release Preparation (`release/vX.Y`)
-* **Role:** Staging release candidates for TestFlight and Android Play Store internal testing.
-* **Permitted Changes:** Bug fixes, documentation updates, version bumps. Zero new feature code.
-
-### Tier 3: Integration Trunk (`develop`)
-* **Role:** Integration branch for all completed and verified sprint epics.
-* **Quality Gate:** Nightly CI builds and full unit test execution (506 tests passing).
-
-### Tier 4: Sprint Epics & Feature Branches
-* **Sprint Epic (`sprint/sprint-XX-<name>`):** Created from `develop`. Aggregates all stories for an active sprint.
-* **Feature Story (`feature/ICA-XXXX-<name>`):** Created from the sprint branch. Focuses strictly on a single user story with 100% test coverage.
-* **Verification Before Merge:** `./gradlew test` (506 tests), `./gradlew :app:androidApp:assembleDebug`, `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`, OpenCodeReview pre-commit clean gate.
+Adopt new GitHub required checks only after their workflows run reliably on the applicable PR path. Existing hotfixes keep their recorded review and release path. This policy does not alter assigned sprint IDs or release sequencing.

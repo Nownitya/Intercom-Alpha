@@ -59,7 +59,7 @@ ocr delegate preview --format json
 
 ## 🔀 Branching & PR Guidelines
 
-* Branch from `main`: `git checkout -b feature/your-feature-name`
+* Use the [branching policy](docs/BRANCHING.md). Create story branches from the active sprint and target that sprint in the PR. Use the documentation lane for standalone content updates.
 * Keep pull requests focused on a single atomic capability or bug fix.
 * Fill out the checklist in `.github/pull_request_template.md`.
 * Ensure commits follow conventional commit format: `feat: [Story ID] - [Story Title]` or `fix: [Story ID] - [Description]`.
