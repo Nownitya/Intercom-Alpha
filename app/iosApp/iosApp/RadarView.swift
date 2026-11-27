@@ -1,4 +1,5 @@
 import SwiftUI
+import SharedLogic
 
 // MARK: - Proximity Radar & Buddy Vector View (ADR-0021)
 // Supports both a battery-saving Text-First Vector List and a Polar Scope.
@@ -77,7 +78,8 @@ public struct RadarView: View {
             if let targets = vm.radarSnapshot?.targets, !targets.isEmpty {
                 ScrollView {
                     VStack(spacing: 8) {
-                        ForEach(targets, id: \.peerId) { target in
+                        ForEach(targets, id: \RadarTarget.peerId) { target in
+                            let bearing = relativeBearing(for: target)
                             HStack(spacing: 12) {
                                 // Direction Arrow Pill
                                 ZStack {
@@ -85,7 +87,7 @@ public struct RadarView: View {
                                         .fill(TacticalTheme.surfaceBorder)
                                         .frame(width: 36, height: 36)
 
-                                    Image(systemName: bearingArrowIcon(for: target.relativeBearingDegrees))
+                                    Image(systemName: bearing.map { bearingArrowIcon(for: $0) } ?? "location.slash")
                                         .font(.system(size: 16, weight: .bold))
                                         .foregroundColor(TacticalTheme.accent)
                                 }
@@ -95,7 +97,7 @@ public struct RadarView: View {
                                         .font(.system(size: 14, weight: .bold, design: .monospaced))
                                         .foregroundColor(TacticalTheme.textPrimary)
 
-                                    Text(bearingDescription(for: target.relativeBearingDegrees))
+                                    Text(bearing.map { bearingDescription(for: $0) } ?? "Bearing unavailable")
                                         .font(.system(size: 11, weight: .medium))
                                         .foregroundColor(TacticalTheme.textSecondary)
                                 }
@@ -185,25 +187,34 @@ public struct RadarView: View {
 
                 // Remote Convoy Riders
                 if let targets = vm.radarSnapshot?.targets, !targets.isEmpty {
-                    ForEach(targets, id: \.peerId) { target in
-                        let normalizedDistance = min(CGFloat(target.estimatedDistanceMeters / currentMaxDistance), 1.0)
-                        let radius = (size / 2) * normalizedDistance
-                        let angleRad = CGFloat(target.relativeBearingDegrees - 90.0) * .pi / 180.0
-                        let x = center.x + radius * cos(angleRad)
-                        let y = center.y + radius * sin(angleRad)
-
-                        RadarBlipView(
-                            name: target.peerId,
-                            distanceMeters: target.estimatedDistanceMeters,
-                            rssi: target.rssi
-                        )
-                        .position(x: x, y: y)
+                    ForEach(targets, id: \RadarTarget.peerId) { target in
+                        if let bearing = relativeBearing(for: target) {
+                            let fraction = min(CGFloat(target.estimatedDistanceMeters / currentMaxDistance), 1)
+                            let radius = size / 2 * fraction
+                            let angle = CGFloat(bearing - 90) * CGFloat.pi / 180
+                            RadarBlipView(
+                                name: target.peerId,
+                                distanceMeters: target.estimatedDistanceMeters,
+                                rssi: Int(target.rssi)
+                            )
+                            .position(
+                                x: center.x + radius * cos(angle),
+                                y: center.y + radius * sin(angle)
+                            )
+                        }
                     }
                 }
             }
         }
         .frame(maxHeight: .infinity)
         .padding(.horizontal, 16)
+    }
+
+    private func relativeBearing(for target: RadarTarget) -> Double? {
+        guard let rider = vm.convoySnapshot?.riders.first(where: { $0.peerId == target.peerId }) else {
+            return nil
+        }
+        return (rider.relativeBearingDegrees + 360).truncatingRemainder(dividingBy: 360)
     }
 
     private func cycleZoom() {
