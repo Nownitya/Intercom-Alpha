@@ -1,9 +1,11 @@
 # Master Engineering Roadmap & Milestones — Intercom-Alpha
 
+[Proposed rider sprints and release sequencing](reports/2026-11-27-Rider-Intercom-Council-Plan.md)
+
 > **Status:** Active / Tracked  
 > **Current Version:** `v3.0.0-beta1` (Verified & Released)  
-> **Active Sprint:** Sprint 37 (Phase 32: Autonomous Fleet Mesh Congestion Control & Adaptive PHY)  
-> **Milestones:** Phase 1 to Phase 31 (Sprints 01–36) Completed | Phase 32 Active | Phases 33–34 Planned to v3.0.0 GA  
+> **Current planning:** Sprint 38 → ICA-3801 — Basecamp Console
+> **Delivery:** Sprints 01–37 complete locally through the Sprint 37 closeout. Sprint 39 is planned.
 
 Master Project Hub: [[Intercom-Alpha|Master Project Hub]] • Kanban Board: [[Kanban|Agile Kanban]]
 
@@ -78,29 +80,14 @@ Master Project Hub: [[Intercom-Alpha|Master Project Hub]] • Kanban Board: [[Ka
 
 ---
 
-## 🚀 Forward Roadmap to v3.0.0 Production GA
+## Sprint sequence to v3.0.0
 
-### 📍 Phase 32: Autonomous Fleet Mesh Congestion Control & Adaptive PHY (Sprint 37) — [COMPLETE]
-* **Target Release:** `v3.0.0-beta2`
-* **Sprint Branch:** `sprint/sprint-37-fleet-congestion-control`
-* **Goals:**
-  * `ICA-3701`: Mesh Congestion Governor & Dynamic Broadcast Backoff (channel airtime measurement, adaptive backoff).
-  * `ICA-3702`: Adaptive Multi-PHY Switching Manager (LE 1M, LE 2M, LE Coded S8 rate negotiation based on SNR/RSSI/BER).
-  * `ICA-3703`: Cockpit RF & PHY Telemetry Indicators & Multiplatform Bridge Bindings.
-  * `ICA-3704`: 24-node high-density RF congestion and simulated link-range benchmark.
+Sprint phases are numbered locally within each sprint. GSD references identify the corresponding roadmap workstream.
 
-### 📍 Phase 33: Multi-Squad Basecamp Master Dispatch Console & Fleet Telemetry (Sprint 38)
-* **Target Release:** `v3.0.0-rc1` (Release Candidate 1)  
-* **Goals:**
-  * `ICA-3801`: Standalone Desktop/Web Basecamp Console connecting via stationary BLE/USB repeater node.
-  * `ICA-3802`: Multi-squad real-time tracking radar with fleet-wide battery health and telemetry aggregation.
-  * `ICA-3803`: Centralized all-call emergency broadcast override and audio logging blackbox exporter.
-  * `ICA-3804`: Field deployment simulation harness with 3 remote squads and 1 basecamp master node.
+| Sprint | Status | Target | GSD reference | Internal phases |
+| --- | --- | --- | --- | --- |
+| [Sprint 37 — Fleet mesh congestion control and adaptive PHY](TASKS.md#sprint-37) | Complete | `v3.0.0-beta2` | GSD Phase 32 | `ICA-3701` → `ICA-3702` → `ICA-3703` → `ICA-3704` |
+| [Sprint 38 — Basecamp dispatch and fleet telemetry](TASKS.md#sprint-38) | Planning | `v3.0.0-rc1` | GSD Phase 33 | `ICA-3801` → `ICA-3802` → `ICA-3803` → `ICA-3804` |
+| [Sprint 39 — Field verification and production release](TASKS.md#sprint-39) | Planned | `v3.0.0` | GSD Phase 34 | `ICA-3901` → `ICA-3902` → `ICA-3903` → `ICA-3904` |
 
-### 📍 Phase 34: End-to-End Field Soak Benchmark, Battery Profiling & v3.0.0 GA (Sprint 39)
-* **Target Release:** `v3.0.0` Production General Availability (GA)  
-* **Goals:**
-  * `ICA-3901`: 12-hour continuous multiplatform field expedition soak test across mixed Android/iOS convoy.
-  * `ICA-3902`: Full battery profiling audit ensuring $< 7.5\%$ consumption per hour under continuous background relay.
-  * `ICA-3903`: Release signing, ProGuard / R8 minification, native binary symbol stripping, and Play Store / TestFlight bundle generation.
-  * `ICA-3904`: Production release documentation sign-off, public API documentation, and v3.0.0 release tagging.
+The Sprint 38 design review is the current planning step. Sprint 37 remains the latest completed implementation sprint.

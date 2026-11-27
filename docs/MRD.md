@@ -8,6 +8,12 @@
 
 ---
 
+## Rider market and validation
+
+The initial audience is small motorcycle groups in India using a mix of Android phones and iPhones. The job is to start a group before the ride and keep talking through compatible headsets when mobile data drops. NearVox is the reference for setup and hands-free recovery, MeshIt is a direct offline competitor, and Sena WAVE and Cardo provide comparisons for group controls and connectivity recovery. Validate India installation and headset/device coverage directly. Wider Asia availability and market demand remain hypotheses.
+
+[Market research](reports/2026-11-27-Intercom-Market-Research.md)
+
 ## 1. Executive Summary & Market Sizing
 
 ### 1.1 Market Problem & Opportunity

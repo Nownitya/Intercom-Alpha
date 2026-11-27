@@ -8,10 +8,22 @@
 
 ---
 
+## Rider release requirements
+
+| Requirement | Priority | Acceptance |
+| --- | --- | --- |
+| Private offline group voice | P0 | Android and iPhone riders start or join, confirm the audio route, speak simultaneously without a talk button, mute and leave with mobile data off and screens locked. |
+| Hybrid local connectivity | P0 | Prove BLE direct voice, then ordinary rider relay, alternate paths and split/rejoin. Extend with Wi-Fi only where measured device behavior supports it. |
+| Group continuity and administration | P0 | Allow multiple admins. When the last admin intentionally leaves, promote the earliest eligible remaining member from the recorded admission order. Temporary disconnects preserve roles. Pause disputed admissions during a split while usable local voice continues. |
+| Safe audio recovery | P0 | Preserve intentional mute after reconnect, stop local transmission when leaving, prevent unexpected speaker output on headset loss, and present honest recovery status. |
+| Optional modes | Follow-on | PTT and VOX, internet relay, fleet and terrain features receive their own acceptance evidence. |
+
+[Phase plan](ICA-4001-PLAN.md) · [Council plan](reports/2026-11-27-Rider-Intercom-Council-Plan.md)
+
 ## 1. Product Vision & Value Pillars
 
 ### 1.1 Vision Statement
-**Intercom-Alpha** transforms standard consumer smartphones (Android and iOS) into an enterprise-grade, decentralized, off-grid communication platform. It delivers crystal-clear, ultra-low-latency voice over Bluetooth Low Energy (BLE) Mesh with zero internet, zero accounts, and zero monthly subscriptions, fortified by automated hybrid cellular SFU failover, forward error correction, high-definition offline vector topographic mapping, real-time convoy elevation profile HUD, and a zero-scroll tactile cockpit designed for high-speed operation.
+**Intercom-Alpha** helps riders on Android and iPhone start one private group conversation before departure and keep speaking naturally when mobile data is unavailable and a local route exists. Hybrid local connectivity is the engineering direction.
 
 ### 1.2 Core Product Pillars
 1. **Zero-Setup Offline Onboarding:** Join a convoy in under 2 seconds via camera scan of an offline `INTERCOM:v1:` QR code containing group credentials and cryptographic session keys.
@@ -25,6 +37,8 @@
 ---
 
 ## 2. User Journeys & Operational Workflows
+
+The tactical cockpit and PTT flows in this section describe the existing product. For the proposed hands-free rider flow, use [ICA-4001](ICA-4001-PLAN.md).
 
 ```
 [Pre-Ride Staging]
@@ -62,7 +76,7 @@ Emergency voice beacon & GPS coordinates broadcast to all convoy members
 | ID | Requirement Category | Priority | Release Milestone | Status |
 | :--- | :--- | :--- | :--- | :--- |
 | **FR-AUD-01** | Low-latency audio capture via Android `AudioRecord` and iOS `AVAudioEngine` input tap | P0 | v1.0.0 | Verified |
-| **FR-AUD-02** | Configurable Push-To-Talk (PTT) via screen UI and external Bluetooth media buttons (`KEY_HEADSETHOOK`) | P0 | v1.0.0 | Verified |
+| **FR-AUD-02** | Configurable Push-To-Talk (PTT) via screen UI and external Bluetooth media buttons (`KEY_HEADSETHOOK`) | Optional | v1.0.0 | Verified |
 | **FR-AUD-03** | Hands-free Voice Activity Detection (VOX) with adjustable energy threshold (-20 dBFS to -60 dBFS) | P0 | v1.0.0 | Verified |
 | **FR-AUD-04** | Dual-threshold adaptive noise gate (-35 dBFS attack, -42 dBFS release) to suppress helmet wind roar | P0 | v1.0.0 | Verified |
 | **FR-AUD-05** | Multi-rate 4-bit IMA ADPCM and Opus audio codec fitting frames within single BLE GATT MTUs | P0 | v1.0.0 | Verified |
@@ -96,4 +110,3 @@ Emergency voice beacon & GPS coordinates broadcast to all convoy members
 * **NFR-MEM-01 (Memory Footprint):** App heap memory footprint shall not exceed **85 MB** under 32-node simulated mesh load; zero memory leaks or unmanaged coroutine leaks permitted.
 * **NFR-REL-01 (Continuous Playout):** Audio stream playout shall maintain intelligibility under up to **25% random burst packet loss** without audible distortion.
 * **NFR-GEO-01 (Offline Map Performance):** Spatial vector bounding box queries shall execute in **< 15ms** from in-memory cache without cellular or internet connectivity.
-

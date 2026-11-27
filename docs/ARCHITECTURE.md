@@ -7,6 +7,12 @@
 
 ---
 
+## Rider hybrid topology direction
+
+The target is one shared rider session across platform adapters. BLE GATT exists on both mobile platforms and Apple Multipeer Connectivity exists on iOS. Ordinary voice currently uses point-to-neighbor audio packets, while relay envelopes and repeater components provide forwarding building blocks. Prove hands-free direct BLE and ordinary mixed-device relay before testing a shared Wi-Fi adapter and concurrent BLE/Wi-Fi bridging. Keep temporary reachability and route selection separate from committed membership, admin succession, and credential changes. Retain KMP common logic, native SwiftUI and the existing core/server fallback architecture.
+
+[Transport inventory and field cases](reports/2026-11-27-Intercom-Transport-Comparison.md)
+
 ## 1. High-Level Architectural Blueprint
 
 Intercom-Alpha separates shared business and protocol algorithms from platform presentation layers, ensuring optimal performance, zero native memory leaks, and seamless cross-platform audio parity.

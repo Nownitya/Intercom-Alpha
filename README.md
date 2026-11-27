@@ -1,108 +1,68 @@
-<div align="center">
+# Intercom-Alpha
 
-# 🏍️ Intercom-Alpha
+[Rider plan](docs/reports/2026-11-27-Rider-Intercom-Council-Plan.md) and [native design brief](docs/ICA-4001-PLAN.md)
 
-**Off-Grid BLE Mesh Multiplatform Voice Intercom**
+Intercom-Alpha is an offline-first voice intercom for riders using Android and iPhone. The goal is to start or join one private group before departure and talk naturally over phone-compatible headsets, with screens locked and mobile data off whenever a local route is available.
 
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.1.0-purple.svg?style=flat-square&logo=kotlin)](https://kotlinlang.org)
-[![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20Desktop%20%7C%20Web%20%7C%20Server-blue.svg?style=flat-square)](https://kotlinlang.org/docs/multiplatform.html)
-[![Android](https://img.shields.io/badge/Android-API%2033+-green.svg?style=flat-square&logo=android)](https://developer.android.com)
-[![iOS](https://img.shields.io/badge/iOS-16.0+%20(100%25%20Native%20SwiftUI)-black.svg?style=flat-square&logo=apple)](https://developer.apple.com/swiftui/)
-[![Release](https://img.shields.io/badge/Release-v3.0.0--beta1-emerald.svg?style=flat-square)](https://github.com/Nownitya/Intercom-Alpha/releases)
-[![Tests](https://img.shields.io/badge/Tests-506%20Passed%20(100%25)-brightgreen.svg?style=flat-square)](#-verification--quality-gates)
-[![Crypto](https://img.shields.io/badge/AEAD-RFC%208439%20ChaCha20--Poly1305-orange.svg?style=flat-square)](https://datatracker.ietf.org/doc/html/rfc8439)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square)](./LICENSE)
+[GitHub releases](https://github.com/Nownitya/Intercom-Alpha/releases) · [Architecture](docs/ARCHITECTURE.md) · [Contributing](CONTRIBUTING.md) · [Apache 2.0](LICENSE)
 
-*Zero-infrastructure, peer-to-peer voice communication for motorcyclists, outdoor expeditions, search-and-rescue, and tactical field teams when cellular and internet connectivity are unavailable.*
+## What the app does
 
-[Feature Specifications (FEATURES)](./docs/FEATURES.md) • [Product Requirements (PRD)](./docs/PRD.md) • [Technical Architecture (TRD)](./docs/TRD.md) • [Business Requirements (BRD)](./docs/BRD.md) • [System Architecture](./docs/ARCHITECTURE.md) • [Roadmap](./docs/TASKS.md)
+- **Group voice.** The current mobile clients offer QR group setup and push-to-talk controls. Continuous hands-free conversation is the rider-first direction. PTT is a secondary mode.
+- **Local connectivity.** Both mobile platforms have BLE GATT transport. iOS also has an Apple-only Multipeer Connectivity path. The planned hybrid topology combines direct links, rider-to-rider relaying and compatible local Wi-Fi where device tests support it.
+- **Ride tools.** The codebase includes convoy telemetry, offline trail tools, a stationary repeater and guarded SOS. Availability and device verification vary by platform.
 
-</div>
+## Project status
 
----
+Android uses Compose and iOS uses native SwiftUI. Kotlin Multiplatform shares session, packet and audio logic. The repository also includes desktop and web clients and Ktor relay components.
 
-## ⚡ Core Capabilities (v3.0.0-beta1)
+The first rider milestone is two-way hands-free Android–iPhone audio, with both phones locked and mobile data disabled. The proposed progression covers three-phone relaying, alternate-route recovery, and mixed-device field trials with 10 and 20 riders. Automatic admin succession, mixed-platform Wi-Fi voice and live multi-hop at those group sizes still need implementation or field verification. Basecamp work is tracked separately.
 
-* **🗺️ Offline Vector Topographic & Trail Elevation Profile HUD (Sprint 36)**: Zero-dependency pure KMP MVT vector tile parser and sub-15ms spatial bounding box LRU cache. Real-time convoy elevation profile engine detecting steep alpine cautions (> 8%) and extreme warnings (> 12% grade), vertical altitude separation ($\Delta h$) alerts, upcoming mountain pass summits, and high-contrast OLED tactile HUD overlay.
-* **📦 Ultra-Low Latency BLE MTU Frame Packing & Interleaving (Sprint 35)**: Dynamically aggregates multiple 20ms voice frames into negotiated 247-byte ATT MTU payloads, slashing radio packet transmission overhead by > 50% (~66.7%). Deterministic $(M \times N)$ matrix block interleaving disperses burst dropouts into isolated single erasures, enabling 100% FEC/PLC reconstruction under heavy RF congestion.
-* **🛡️ Forward Error Correction & Waveform PLC (Sprint 34)**: Galois Field $GF(2^8)$ Reed-Solomon dual erasure FEC and multi-peer isolated pitch-synchronous waveform packet loss concealment (PLC) recovering up to 25% burst packet drop with zero audio dropouts.
-* **📶 Dynamic Adaptive Mesh Bitrate Tuning (Sprint 33)**: Real-time EWMA RSSI and PDR link quality scoring ($Q_{link}$) dynamically modulating audio bitrates between 16 kbps and 48 kbps with asymmetric hysteresis to eliminate fading audio distortion.
-* **🎛️ Zero-Scroll Tactical Cockpit & Tactile Overlays (Sprints 31-32)**: Single-viewport cockpit HUD featuring oversized 160dp tactile PTT actuator, glove-friendly spatial radar card, and claymorphic/neobrutalist diagnostics overlays.
-* **📡 Zero-Infrastructure Decentralized Mesh**: Peer-to-peer Bluetooth Low Energy (BLE) flooding relay with managed Time-To-Live ($\text{TTL}=3$). No central hub, no cellular towers, and zero single point of failure.
-* **🔀 Automated Multi-Path Failover & Stream Hedging (Sprint 25)**: Pure KMP link quality arbiter scoring RSSI, packet loss, and jitter ($Q_{link}$). Automatically hedges voice frames over BLE Mesh and Cellular WebSocket SFU relays during RF disconnects with zero dropped words.
-* **🎚️ Airtime QoS Priority Traffic Shaping (Sprint 24)**: Token-bucket rate limiting and strict priority queueing (`Priority 0: EMERGENCY` instant preemption, `Priority 1: VOICE`, `Priority 2: CONTROL`, `Priority 3: TELEMETRY`).
-* **🔐 End-to-End RFC 8439 Encryption**: Pure Kotlin multiplatform implementation of ChaCha20-Poly1305 AEAD and SHA-256 key derivation running identically across all targets with zero Java/C dependencies.
-* **🔄 Sliding-Window Storm Suppression**: High-throughput `PacketDeduplicator` utilizing a 5,000ms sliding-window cache to eliminate cyclic forwarding storms.
-* **📱 100% Native SwiftUI on iOS**: Strict architectural boundary—Compose Multiplatform is never targeted to iOS. The iOS client communicates with shared KMP logic via a reactive, memory-safe `IntercomBridge.kt` with cancellation handles.
-* **🎧 Bluetooth SCO Headset Integration**: Native audio routing to motorcycle helmet communicators (Cardo, Sena) with hardware button triggers.
-* **🗺️ Tactical Vector Terrain & OTA Route Sharing**: Offline map tile overlays, dynamic convoy geofencing, breadcrumb tracking, and chunked over-the-air BLE GPX/GeoJSON sharing.
-* **🚨 Crash Impact Detection & eCall SOS**: Multi-axis IMU collision shock detection (>6.5g) triggering automated high-priority emergency SOS voice broadcasts.
+See the [sprint tracker](SPRINT.md) for current branch work and [GitHub releases](https://github.com/Nownitya/Intercom-Alpha/releases) for published builds.
 
----
+## Build from source
 
-## 🏛️ System Architecture
+Use **JDK 21** and the repository's Gradle wrapper. For Android, install Android Studio and the SDK configured in [the version catalog](gradle/libs.versions.toml). For iOS, use macOS with Xcode and an iOS simulator that meets the deployment target in the Xcode project.
 
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│                        PHYSICAL HARDWARE LAYER                         │
-│             Helmet Headset / Bluetooth SCO / Hardware Buttons          │
-└───────────────────┬────────────────────────────────┬───────────────────┘
-                    │                                │
-┌───────────────────▼──────────────┐   ┌─────────────▼───────────────────┐
-│          Android Client          │   │            iOS Client           │
-│     (Jetpack Compose Cockpit)    │   │      (100% Native SwiftUI)      │
-└───────────────────┬──────────────┘   └─────────────┬───────────────────┘
-                    │                                │ (IntercomBridge.kt)
-┌───────────────────▼────────────────────────────────▼───────────────────┐
-│                    KMP SHARED LOGIC (:app:sharedLogic)                 │
-│  ┌───────────────────────┐  ┌────────────────┐  ┌───────────────────┐  │
-│  │ MultiPathFailover     │  │ Airtime QoS    │  │ Audio DSP Engine  │  │
-│  │ Link Quality Arbiter  │  │ Traffic Shaper │  │ Jitter / PLC / VOX│  │
-│  └───────────┬───────────┘  └───────┬────────┘  └─────────┬─────────┘  │
-│              │                      │                     │            │
-│  ┌───────────▼──────────────────────▼─────────────────────▼─────────┐  │
-│  │ Pure Kotlin RFC 8439 AEAD Cipher (ChaCha20-Poly1305 & KeyRatchet) │  │
-│  └──────────────────────────────────┬────────────────────────────────┘  │
-│                                     │                                  │
-│  ┌──────────────────────────────────▼────────────────────────────────┐  │
-│  │ Sliding-Window Loop Suppressor (PacketDeduplicator - TTL 5,000ms) │  │
-│  └──────────────────────────────────┬────────────────────────────────┘  │
-└─────────────────────────────────────┼──────────────────────────────────┘
-                                      │
-┌─────────────────────────────────────▼──────────────────────────────────┐
-│                         TRANSPORT & NETWORKING                         │
-│  ┌──────────────────────────────────┐  ┌────────────────────────────┐  │
-│  │ Off-Grid BLE GATT Mesh Flooding  │  │ Cloud WebSocket SFU Relay  │  │
-│  │ (TTL=3 Decentralized P2P Mesh)   │  │ (Ktor Hybrid Failover Hub) │  │
-│  └──────────────────────────────────┘  └────────────────────────────┘  │
-└────────────────────────────────────────────────────────────────────────┘
-```
+### Android
 
----
+Open the repository root in Android Studio and run the `androidApp` configuration on a phone or emulator. To build a debug APK from the terminal:
 
-## 🚀 Quick Start
-
-### Android Debug Build
-```bash
+```sh
 ./gradlew :app:androidApp:assembleDebug
 ```
 
-### iOS Simulator Framework Compilation
-```bash
-./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64
-```
+On Windows PowerShell, use `.\gradlew.bat :app:androidApp:assembleDebug`. Use physical phones to evaluate BLE voice, range, and headset behavior.
 
-### Full Multiplatform Test Suite
-```bash
+### iOS
+
+Open [the iOS Xcode project](app/iosApp/iosApp.xcodeproj/project.pbxproj), select the `iosApp` scheme, and run it on a simulator or a configured device. Xcode's build phase invokes Gradle to build and embed the shared Kotlin framework.
+
+### Tests
+
+```sh
 ./gradlew test
 ```
 
----
+On a Mac, run the shared iOS compilation check separately:
 
-## 🧪 Verification & Quality Gates
+```sh
+./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64
+```
 
-Intercom-Alpha enforces strict automated gating on every turn:
-1. **Multiplatform Test Suite**: 327 tests passing across shared logic, DSP, ciphers, and multi-node simulations.
-2. **Platform Builds**: Android debug APK and iOS ARM64 simulator builds assemble with zero warnings.
-3. **OpenCodeReview (OCR)**: Working copy pre-commit preview requires 0 critical, high, or medium findings.
-4. **Graphify AST Knowledge Graph**: Automatically synchronized on code and documentation modifications.
+See [the contribution guide](CONTRIBUTING.md) for branch rules and review gates.
+
+## Explore the project
+
+| If you want to… | Start here |
+| --- | --- |
+| Understand the system boundaries and mobile bridges | [System architecture](docs/ARCHITECTURE.md) |
+| See the app journeys, engineering flows, and planned improvements | [Visual project atlas](docs/diagrams/README.md) |
+| Understand the product goals and capabilities | [Product requirements](docs/PRD.md) and [feature catalog](docs/FEATURES.md) |
+| Follow current work | [Sprint tracker](SPRINT.md) and [Ralph story tracker](tasks/ralph/prd.json) |
+
+## Support and contributions
+
+Open a [GitHub issue](https://github.com/Nownitya/Intercom-Alpha/issues) for bugs and feature requests. For a mobile bug, include the app version, phone models, OS versions, and whether mobile data was enabled, the transport in use, and whether the screens were locked.
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing changes. Report vulnerabilities using [SECURITY.md](SECURITY.md). The project is licensed under [Apache 2.0](LICENSE).

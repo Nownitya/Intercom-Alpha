@@ -20,7 +20,8 @@
         "Maintains zero latency degradation for emergency SOS frames",
         "100% test coverage in commonTest"
       ],
-      "passes": true
+      "passes": true,
+      "sprintPhase": 1
     },
     {
       "id": "ICA-3702",
@@ -37,7 +38,8 @@
         "Provides hysteresis dampening to prevent rapid PHY flapping",
         "Full unit tests in commonTest"
       ],
-      "passes": true
+      "passes": true,
+      "sprintPhase": 2
     },
     {
       "id": "ICA-3703",
@@ -56,7 +58,8 @@
         "Renders glove-friendly high-contrast RF status badge in cockpit header",
         "Compiles cleanly on Android and iOS targets"
       ],
-      "passes": true
+      "passes": true,
+      "sprintPhase": 3
     },
     {
       "id": "ICA-3704",
@@ -71,7 +74,35 @@
         "Verifies channel utilization throttling and automated PHY switching",
         "100% passing tests in ./gradlew test"
       ],
-      "passes": true
+      "passes": true,
+      "sprintPhase": 4
+    }
+  ],
+  "gsdPhase": 32,
+  "phases": [
+    {
+      "number": 1,
+      "id": "ICA-3701",
+      "title": "Congestion policy",
+      "exitCondition": "Governor checks verify backoff and relief under synthetic load."
+    },
+    {
+      "number": 2,
+      "id": "ICA-3702",
+      "title": "Adaptive PHY",
+      "exitCondition": "Policy checks pass. Applied radio PHY remains a device-verification item."
+    },
+    {
+      "number": 3,
+      "id": "ICA-3703",
+      "title": "Bridge and cockpit telemetry",
+      "exitCondition": "Bridge and presentation checks pass."
+    },
+    {
+      "number": 4,
+      "id": "ICA-3704",
+      "title": "Simulation and closeout",
+      "exitCondition": "Gradle gates, Graphify and offline review pass and the change is merged."
     }
   ]
 }

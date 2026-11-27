@@ -1,8 +1,10 @@
 # Master Tasks & Engineering Roadmap — Intercom-Alpha
 
+[Proposed rider sprints, phases and exit conditions](reports/2026-11-27-Rider-Intercom-Council-Plan.md)
+
 > **Document Version:** 3.0
 > **Status:** Active / Tracked  
-> **Current Sprint:** Sprint 36 Closed (`sprint/sprint-36-vector-trail-elevation-hud`) — v3.0.0-beta1 Release  
+> **Current planning:** Sprint 38 → ICA-3801 — Basecamp Console
 > **Obsidian Reference:** `01_Management/Roadmap.md` & `01_Management/Kanban.md`
 
 ---
@@ -563,29 +565,100 @@
 
 ---
 
-### 🔮 Planned Forward Sprints
+## Current and upcoming sprints
 
-#### Sprint 37: Autonomous Fleet Mesh Congestion Control & Adaptive PHY (Phase 32)
-- **Target Release:** `v3.0.0-beta2`
-- **Stories:**
-  - `ICA-3701`: Dynamic BLE Advertising Interval Throttler & Flooding Redundancy Governor.
-  - `ICA-3702`: Adaptive Multi-PHY Switcher Engine (LE 1M, LE 2M, LE Coded S8).
-  - `ICA-3703`: Hardware Bridge Multi-PHY Binding & Tactical Cockpit RF Pill Telemetry.
-  - `ICA-3704`: 24-Node High-Density RF Congestion Simulation & Range Benchmark Test.
+Use **Sprint → Phase → Story**. Each phase has an ICA ID and an exit condition. Tasks sit beneath that ID. See [sprint governance](../SPRINT-RULES.md#sprint-planning-hierarchy).
 
-#### Sprint 38: Multi-Squad Basecamp Master Dispatch Console & Fleet Telemetry (Phase 33)
-- **Target Release:** `v3.0.0-rc1` (Release Candidate 1)
-- **Stories:**
-  - `ICA-3801`: Standalone Desktop/Web Basecamp Console connecting via stationary BLE/USB repeater node.
-  - `ICA-3802`: Multi-squad real-time tracking radar with fleet-wide battery health and telemetry aggregation.
-  - `ICA-3803`: Centralized all-call emergency broadcast override and audio logging blackbox exporter.
-  - `ICA-3804`: Field deployment simulation harness with 3 remote squads and 1 basecamp master node.
+### Sprint 37
 
-#### Sprint 39: End-to-End Field Soak Benchmark, Battery Profiling & v3.0.0 GA (Phase 34)
-- **Target Release:** `v3.0.0` Production General Availability (GA)
-- **Stories:**
-  - `ICA-3901`: 12-hour continuous multiplatform field expedition soak test across mixed Android/iOS convoy.
-  - `ICA-3902`: Full battery profiling audit ensuring < 7.5% consumption per hour under continuous background relay.
-  - `ICA-3903`: Release signing, ProGuard / R8 minification, native binary symbol stripping, and Play Store / TestFlight bundle generation.
-  - `ICA-3904`: Production release documentation sign-off, public API documentation, and v3.0.0 release tagging.
+**Fleet mesh congestion control and adaptive PHY**
 
+Target `v3.0.0-beta2` · GSD reference 32 · Complete
+
+| Phase | Status | Work | Exit condition |
+| --- | --- | --- | --- |
+| `ICA-3701` — Congestion policy | Complete | Add BLE advertising backoff and relay dampening. | Governor checks verify backoff and relief under synthetic load. |
+| `ICA-3702` — Adaptive PHY | Complete | Select PHY from measured link conditions. | Policy checks pass. Applied radio PHY remains a device-verification item. |
+| `ICA-3703` — Bridge and cockpit telemetry | Complete | Expose PHY and congestion snapshots and show them in the cockpit. | Bridge and presentation checks pass. |
+| `ICA-3704` — Simulation and closeout | Complete | Run the 24-node mixed-traffic and simulated link-range benchmark. | Gradle gates, Graphify and offline review pass and the change is merged. |
+
+### Sprint 38
+
+**Basecamp dispatch and fleet telemetry**
+
+Target `v3.0.0-rc1` · GSD reference 33 · Planning
+
+| Phase | Status | Work | Exit condition |
+| --- | --- | --- | --- |
+| `ICA-3801` — Basecamp Console and repeater connection | Design approved | Build the desktop/web console and connect to a phone running Intercom-Alpha in stationary BLE repeater mode. | An operator can connect, inspect forwarding, run a link check and recover from disconnection. |
+| `ICA-3802` — Fleet monitoring | Planned | Add multi-squad tracking, battery health and telemetry. | An operator can monitor multiple squads and identify unavailable telemetry. |
+| `ICA-3803` — Dispatch and incident export | Planned | Add emergency all-call and incident audio export. | An operator can complete dispatch and export with clear outcome feedback. |
+| `ICA-3804` — Verification and closeout | Planned | Simulate three remote squads and one basecamp node. | The deployment simulation and release-candidate gates pass. |
+
+### Sprint 39
+
+**Field verification and production release**
+
+Target `v3.0.0` · GSD reference 34 · Planned
+
+| Phase | Status | Work | Exit condition |
+| --- | --- | --- | --- |
+| `ICA-3901` — Field soak | Planned | Run a 12-hour mixed Android/iOS field soak. | Soak evidence is recorded against the field acceptance criteria. |
+| `ICA-3902` — Battery profiling | Planned | Profile continuous background relay battery use. | Measured consumption meets the under-7.5%-per-hour target. |
+| `ICA-3903` — Release builds | Planned | Verify signing, R8 and native symbol stripping and generate Play Store and TestFlight builds. | Installable signed artifacts pass release checks. |
+| `ICA-3904` — Release sign-off | Planned | Sign off documentation, publish public API docs and tag v3.0.0. | Release evidence and documentation are approved and the tag points at the approved commit. |
+
+## Proposed rider sprints
+
+Sprint numbers, phase IDs and release sequencing remain provisional. See the [council plan](reports/2026-11-27-Rider-Intercom-Council-Plan.md) for Ralph story slices and [ICA-4001](ICA-4001-PLAN.md) for the first phase brief.
+
+### Sprint 40
+
+**Native rider session and mixed-device direct voice**
+
+Target internal device build · GSD reference pending · Proposed
+
+| Phase | Status | Work | Exit condition |
+| --- | --- | --- | --- |
+| ICA-4001 — Rider journey and native design | Proposed | Define Start/Join, audio check, active group, mute, leave and recovery. Reconcile product and design requirements with the audit. | Owner approves original Android and iOS mockups, including degraded and permission-denied states. |
+| ICA-4002 — Shared session and native Leave | Proposed | Define joined/unmuted send state and connect Android UI, notification and iOS Leave to teardown. | Shared and native checks show mute and leaving gate transmission, departure updates the reachable roster, and stale frames do not play. |
+| ICA-4003 — Mixed-phone direct voice | Proposed | Verify authenticated group audio through both native BLE adapters with simultaneous speech. | Android–Android, iPhone–iPhone and Android–iPhone pairs pass voice and microphone checks offline. |
+| ICA-4004 — Locked session and audio recovery | Proposed | Exercise locked-screen reconnect, headset changes, calls and navigation. | Evidence records recovered audio or explicit required action, preserved mute and expected output routing. |
+
+### Sprint 41
+
+**Rider relay, alternate routes and admin continuity**
+
+Target mixed-device mesh build · GSD reference pending · Proposed
+
+| Phase | Status | Work | Exit condition |
+| --- | --- | --- | --- |
+| ICA-4101 — Ordinary rider forwarding | Proposed | Apply authenticated forwarding, expiry, bounded hops and duplicate suppression to ordinary group voice. | Both three-phone mixed-platform chains carry two-way speech with endpoints out of direct reach. |
+| ICA-4102 — Route loss and rejoin | Proposed | Recover across a viable second path and report a split when none remains. | Four-phone test proves route recovery, split/merge and no duplicate playback. |
+| ICA-4103 — Multiple admins and succession | Proposed | Use committed admission order and idempotent membership events. Preserve co-admins and pause disputed authority on a split. | Last-admin leave promotes the earliest eligible member once. A timeout grants no authority. Replay, stale invites and divergent updates pass checks. |
+| ICA-4104 — Real ride roles and security | Proposed | Test creator leaving as ordinary rider, hotspot host or sole relay. Verify intentional leave versus temporary disconnect and credential rotation. | Remaining authorized riders retain voice wherever a path exists. Revoked membership cannot resume or use an obsolete invite. |
+
+### Sprint 42
+
+**Ten-rider field milestone and hybrid transport evaluation**
+
+Target rider field beta · GSD reference pending · Proposed
+
+| Phase | Status | Work | Exit condition |
+| --- | --- | --- | --- |
+| ICA-4201 — Ten-rider BLE baseline | Proposed | Test 4 iPhones + 6 Androids interleaved, grouped and stretched. Rotate the only mixed-device bridge. | Field report records first voice, latency, intelligibility, recovery, battery and manual actions. |
+| ICA-4202 — Shared Wi-Fi comparison | Proposed | Compare local LAN or hotspot with BLE under matching conditions. Exercise both host roles and upstream internet disabled. | Results substantiate whether Wi-Fi improves capacity or recovery on selected phones. |
+| ICA-4203 — Concurrent dual-transport trial | Proposed | Test a phone carrying BLE and Wi-Fi simultaneously. Verify forwarding, path change and packet identity. | A bridge passes two-way live voice and no duplicate audio, or the candidate is explicitly deferred with evidence. |
+| ICA-4204 — India field acceptance | Proposed | Validate installation with India accounts or signed beta builds, representative devices and headsets, wind, obstructions, phone calls, lock-screen behavior and recovery. | Council reviews native usability and field evidence against agreed thresholds and records the supported scope. |
+
+### Sprint 43
+
+**Twenty-rider validation and rider release evidence**
+
+Target release recommendation · GSD reference pending · Proposed
+
+| Phase | Status | Work | Exit condition |
+| --- | --- | --- | --- |
+| ICA-4301 — Twenty-rider controlled and route runs | Proposed | Run a representative mixed convoy and stretched chain with overlapping speech, wind, group split and join/leave. | Publish observed capacity, usable hop count, intelligibility, battery and recovery bounds. |
+| ICA-4302 — Release UX and documentation | Proposed | Resolve field usability gaps and reconcile MRD, BRD, PRD, DESIGN, architecture and public support guidance. | Owner signs off native journey and published claims map to evidence. |
+| ICA-4303 — Rider release verification | Proposed | Link signed release builds and field results to the applicable release gates. | Council records a go/no-go for the measured limits and release artifacts are verified under the approved roadmap. |

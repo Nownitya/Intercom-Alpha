@@ -7,6 +7,12 @@
 
 ---
 
+## Rider intercom design direction
+
+Compose and native SwiftUI share a rider journey with platform-native controls. Start or Join is the entry point. Show the selected audio route before joining voice. During the ride, prioritize reachable riders, microphone state, mute, leave and brief recovery cues. PTT-first cockpit guidance below describes the existing design. The rider design is pending native mockup approval.
+
+[Native rider journey and review states](ICA-4001-PLAN.md)
+
 ## 1. Design Philosophy: Simplicity, Utility & Anti-Slop
 
 The Intercom-Alpha interface is designed around one core axiom: **Mission-critical clarity with zero cognitive distraction and zero unnecessary gimmicks**.

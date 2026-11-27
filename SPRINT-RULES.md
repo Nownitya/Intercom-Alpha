@@ -6,6 +6,25 @@
 
 ---
 
+## Sprint planning hierarchy
+
+- **Sprint** owns a milestone outcome and its delivery status.
+- **Phase** is an independently closeable delivery slice with an observable exit condition. Its ID combines the sprint number with a two-digit phase number (`ICA-3801` means Sprint 38, Phase 01).
+- **Story** is Ralph's atomic unit of implementation, verification, and review. Existing Ralph entries carry the phase ID. Supporting tasks can be checklists under that phase.
+- **GSD phase** remains a roadmap reference. Sprint updates use the format `Sprint 38 → ICA-3801 — Basecamp Console`.
+
+Phase numbering starts at `01` in each sprint. Close Sprint 38 at its milestone, then begin Sprint 39 at `ICA-3901`. If a sprint would exceed `99` phases, split its scope into a follow-on sprint before assigning more IDs.
+
+GSD owns the sprint phases and their exit conditions. Ralph selects stories only
+after the preceding phase's exit condition is met. A UI design phase closes
+after the project owner has seen the mockup and approved the direction.
+
+## Sprint reports
+
+Maintain one [dedicated report](docs/reports/README.md) per sprint. Start with a progress report and update its link in the sprint tracker. At closeout, finalize it as an outcome or closeout report using the [report template](docs/reports/SPRINT-REPORT-TEMPLATE.md).
+
+Record story outcomes, commits, Definition of Done results and verification evidence. Distinguish simulation, build, and device checks. Link supporting milestone or field evidence and record open follow-ups. Update the report index and the Intercom-Alpha hub or Kanban in Obsidian so the canonical report is discoverable.
+
 ## The 10 Non-Negotiable Architectural Laws
 
 ### Rule 1: No Shared UI on iOS (100% Native SwiftUI)

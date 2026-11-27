@@ -2,6 +2,22 @@
 
 Authoritative domain language for the Intercom-Alpha system. All code, UI tokens, and agent communications must strictly adhere to these definitions.
 
+## Rider intercom
+
+- **Creator** starts a group.
+- **Admin** manages membership. A group can have multiple admins.
+- **Admission order** is the agreed sequence of joined members, used to select a successor when the last admin intentionally leaves.
+- **Relay** is a peer forwarding traffic between reachable neighbors.
+- **Hotspot host** supplies a local Wi-Fi network. This role is independent of admin authority.
+- **Partition** occurs when members remain in the same group but no current network path connects some of them.
+
+## Delivery planning
+
+- **Sprint** is the delivery unit for a milestone outcome.
+- **Sprint phase** is an independently closeable group of work whose ICA ID combines the sprint and two-digit phase number.
+- **Story** is the implementation and review unit. Ralph uses the phase's ICA ID for its existing story entry.
+- **GSD phase** is the historical or current roadmap reference for a workstream.
+
 ---
 
 ## 🏔️ Domain Vocabulary

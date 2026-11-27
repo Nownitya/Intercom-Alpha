@@ -65,6 +65,11 @@ Obsidian + MemPalace + Graphify
 
 ## 🔄 3. Ralph Atomic Story Execution Cycle
 
+Plan and report work as **Sprint → Phase → Story**. Phase numbers restart at 1
+inside each sprint. Use GSD phase numbers as roadmap references and keep ICA
+story IDs stable. Follow the sprint's phase exit conditions in
+[`SPRINT-RULES.md`](SPRINT-RULES.md#sprint-planning-hierarchy).
+
 For each story in `tasks/ralph/prd.json`:
 
 1. **Select & Branch**:

@@ -6,6 +6,17 @@
 
 ---
 
+## Rider capability status
+
+| Capability | Evidence |
+| --- | --- |
+| Native clients and BLE GATT | Present in Android and iOS source. Current ordinary voice uses PTT-related transmit state. |
+| Relay, deduplication and adaptive networking | Components and simulation evidence exist. Live multi-hop in the ordinary rider path and physical range remain to be validated. |
+| Hands-free mixed-device voice and hybrid Wi-Fi | Proposed field milestones. |
+| Multiple admins and join-order succession | Product requirements awaiting implementation and device verification. |
+
+[Transport audit](reports/2026-11-27-Intercom-Transport-Comparison.md)
+
 ## 1. Completed & Verified Features (Through Sprint 36)
 
 | Feature ID | Category | Feature Name | Target Release | DoD Verification Test Suite |

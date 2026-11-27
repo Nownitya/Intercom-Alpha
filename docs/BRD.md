@@ -8,6 +8,12 @@
 
 ---
 
+## Rider milestone and business priorities
+
+Prove the value of hands-free group voice on riders' existing phones and compatible headsets, starting with mixed Android/iPhone groups in India. Track time to first intelligible voice, join success, voice continuity, recovery, battery use and rider interventions. Establish thresholds from controlled baselines and route tests before publishing capacity, range or endurance claims. Basecamp, fleet telemetry and commercial operations have separate milestones.
+
+[Council plan](reports/2026-11-27-Rider-Intercom-Council-Plan.md)
+
 ## 1. Business Context & Strategic Alignment
 
 ### 1.1 Commercial Objectives
@@ -38,4 +44,3 @@
 * **Casual Weekend Riders:** Price-sensitive; want to talk to friends without buying a $400 helmet gadget.
 * **Commercial Tour Operators (B2B):** Require real-time convoy tracking, multi-group radio channel partitioning, and rugged stationary basecamp repeaters.
 * **Search & Rescue (SAR) Units:** Require peer-to-peer off-grid reliability, zero single points of failure, and satellite gateway lifeline compatibility.
-
