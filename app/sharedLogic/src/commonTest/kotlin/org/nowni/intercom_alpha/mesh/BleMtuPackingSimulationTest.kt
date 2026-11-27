@@ -89,7 +89,7 @@ class BleMtuPackingSimulationTest {
         // 1 Lead Rider transmitting audio + 15 Follower Riders listening in convoy (16 nodes)
         val transmitter = ConvoyPeer("rider-lead-01", isLeadTransmitter = true)
         val receivers = (2..16).map { idx ->
-            ConvoyPeer("rider-member-%02d".format(idx), isLeadTransmitter = false)
+            ConvoyPeer("rider-member-${idx.toString().padStart(2, '0')}", isLeadTransmitter = false)
         }
 
         val totalVoiceFrames = 3000 // 60 seconds of continuous 20ms voice frames
