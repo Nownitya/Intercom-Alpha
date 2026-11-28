@@ -1,7 +1,7 @@
 ## 📋 Pull Request Summary
 
-* **Story / Task ID**: `ICA-`
-* **Phase / Sprint**: Sprint 
+* **ICA phase / story ID**: `ICA-NNPP` (for example, `ICA-3801` for Sprint 38, Phase 01)
+* **Sprint and phase**: Sprint NN → ICA-NNPP
 * **Type of Change**: `feat` | `fix` | `refactor` | `docs` | `chore`
 
 ---

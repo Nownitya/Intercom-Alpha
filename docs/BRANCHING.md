@@ -15,6 +15,10 @@ main → short-lived work branch → reviewed pull request → main
 
 Sprint → Phase → Story remains the planning and reporting hierarchy. Sprint milestones, ICA IDs, Ralph story status and exit evidence are tracked in [SPRINT-RULES.md](../SPRINT-RULES.md) and [TASKS.md](TASKS.md). A sprint does not require a Git branch.
 
+## Sprint and ICA traceability
+
+Use the current sprint number and a two-digit phase number. For example, ICA-3801 identifies Sprint 38, Phase 01. Keep assigned IDs when the work changes branches or spans multiple PRs. Include the ICA ID in the branch, PR title and commit message for story work. Record the merged PR, commit and verification evidence in the sprint report and Ralph tracker. Use the tag's release notes to link the included ICA work.
+
 ## Releases and maintenance
 
 - Use the same direct PR path for features, fixes, docs, CI and release preparation.
