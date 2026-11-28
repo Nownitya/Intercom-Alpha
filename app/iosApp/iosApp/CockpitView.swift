@@ -8,7 +8,7 @@ public struct CockpitView: View {
     let onOpenRoster: () -> Void
     let onOpenDiagnostics: () -> Void
 
-    public init(
+    init(
         vm: IntercomViewModel,
         onOpenRoster: @escaping () -> Void = {},
         onOpenDiagnostics: @escaping () -> Void = {}
@@ -28,8 +28,8 @@ public struct CockpitView: View {
                     groupName: vm.groupName,
                     peerCount: max(vm.peers.count, 1),
                     activeChannelId: vm.activeChannelId,
-                    phyMode: vm.failoverSnapshot?.activePhy ?? "2M",
-                    batteryPercentage: vm.accessoryState?.batteryLevel?.intValue ?? 85,
+                    phyMode: "—",
+                    batteryPercentage: Int(vm.accessoryState?.batteryPercent ?? -1),
                     isCloudConnected: vm.failoverSnapshot?.isCloudConnected ?? false,
                     onOpenRoster: onOpenRoster,
                     onOpenDiagnostics: onOpenDiagnostics,

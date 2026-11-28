@@ -144,6 +144,13 @@ public struct TacticalChipModifier: ViewModifier {
 }
 
 public extension View {
+    func tacticalOutline(color: Color, lineWidth: CGFloat, cornerRadius: CGFloat) -> some View {
+        overlay(
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                .strokeBorder(color, lineWidth: lineWidth)
+        )
+    }
+
     func tacticalCard() -> some View {
         modifier(TacticalCardModifier())
     }

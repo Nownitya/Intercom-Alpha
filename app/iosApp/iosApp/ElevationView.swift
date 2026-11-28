@@ -6,7 +6,7 @@ public struct ElevationView: View {
     @State private var selectedZoomIndex: Int = 1
     private let zoomScales: [String] = ["1 KM", "5 KM", "15 KM"]
 
-    public init(vm: IntercomViewModel) {
+    init(vm: IntercomViewModel) {
         self.vm = vm
     }
 
@@ -47,9 +47,9 @@ public struct ElevationView: View {
                 .padding(.top, 8)
 
                 // Telemetry Stats Row (Text-First, Battery Friendly)
-                let grade = vm.elevationProfileSnapshot?.runningGradePercent ?? 4.2
-                let deltaH = vm.elevationProfileSnapshot?.leadToTailAltitudeDeltaMeters ?? 45.0
-                let altitude = vm.convoySnapshot?.localRider?.altitudeMeters ?? 1840.0
+                let grade = vm.elevationProfileSnapshot?.currentGradePercentage
+                let deltaH = vm.elevationProfileSnapshot?.leadTailVerticalSeparationMeters
+                let altitude = vm.convoySnapshot?.localCoordinate?.altitudeMeters
 
                 HStack(spacing: 10) {
                     // Grade Card
@@ -58,9 +58,9 @@ public struct ElevationView: View {
                             .font(.system(size: 9, weight: .bold, design: .monospaced))
                             .foregroundColor(TacticalTheme.textMuted)
 
-                        Text(String(format: "%+.1f%%", grade))
+                        Text(grade.map { String(format: "%+.1f%%", $0) } ?? "—")
                             .font(.system(size: 18, weight: .black, design: .monospaced))
-                            .foregroundColor(gradeColor(for: grade))
+                            .foregroundColor(grade.map { gradeColor(for: $0) } ?? TacticalTheme.textMuted)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(10)
@@ -72,7 +72,7 @@ public struct ElevationView: View {
                             .font(.system(size: 9, weight: .bold, design: .monospaced))
                             .foregroundColor(TacticalTheme.textMuted)
 
-                        Text(String(format: "%.0fm", deltaH))
+                        Text(deltaH.map { String(format: "%.0fm", $0) } ?? "—")
                             .font(.system(size: 18, weight: .black, design: .monospaced))
                             .foregroundColor(TacticalTheme.accent)
                     }
@@ -86,7 +86,7 @@ public struct ElevationView: View {
                             .font(.system(size: 9, weight: .bold, design: .monospaced))
                             .foregroundColor(TacticalTheme.textMuted)
 
-                        Text(String(format: "%.0fm", altitude))
+                        Text(altitude.map { String(format: "%.0fm", $0) } ?? "—")
                             .font(.system(size: 18, weight: .black, design: .monospaced))
                             .foregroundColor(TacticalTheme.textPrimary)
                     }

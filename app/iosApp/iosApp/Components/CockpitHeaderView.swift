@@ -94,7 +94,7 @@ public struct CockpitHeaderView: View {
                             Image(systemName: batteryIcon(for: batteryPercentage))
                                 .font(.system(size: 10))
                                 .foregroundColor(batteryColor(for: batteryPercentage))
-                            Text("\(batteryPercentage)%")
+                            Text(batteryPercentage >= 0 ? "\(batteryPercentage)%" : "—")
                                 .font(.system(size: 10, weight: .bold, design: .monospaced))
                                 .foregroundColor(TacticalTheme.textPrimary)
                         }

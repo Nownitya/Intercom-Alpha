@@ -1,11 +1,12 @@
 import SwiftUI
+import SharedLogic
 
 public struct ConvoyView: View {
     @ObservedObject var vm: IntercomViewModel
     let onHostQr: () -> Void
     let onJoinQr: () -> Void
 
-    public init(
+    init(
         vm: IntercomViewModel,
         onHostQr: @escaping () -> Void = {},
         onJoinQr: @escaping () -> Void = {}
@@ -110,7 +111,7 @@ public struct ConvoyView: View {
 }
 
 private struct PeerRosterRow: View {
-    let peer: PeerItem
+    let peer: Peer
 
     var body: some View {
         HStack(spacing: 12) {

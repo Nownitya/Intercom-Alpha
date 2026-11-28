@@ -69,19 +69,19 @@ public struct PttActuatorShelf: View {
                     }
                     .onChanged { _ in
                         if !isTransmitting {
-                            TactileHaptics.shared.pttPressStart()
+                            TacticalHaptics.shared.pttPressStart()
                             onStartTransmit()
                         }
                     }
                     .onEnded { _ in
-                        TactileHaptics.shared.pttPressEnd()
+                        TacticalHaptics.shared.pttPressEnd()
                         onStopTransmit()
                     }
             )
 
             // VOX Open-Mic Toggle Lock
             Button(action: {
-                TactileHaptics.shared.channelDetentClick()
+                TacticalHaptics.shared.channelDetentClick()
                 onToggleVoxLock()
             }) {
                 VStack(spacing: 4) {
@@ -108,4 +108,3 @@ public struct PttActuatorShelf: View {
         }
     }
 }
-
