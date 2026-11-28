@@ -1,28 +1,29 @@
-# Multi-Tier Branching Strategy & Git Workflow — Intercom-Alpha
+# Branching & Git Workflow — Intercom-Alpha
 
-> **Default branch:** `main`
-> **Integration branch:** `develop`
+`main` is the only permanent integration branch and the default destination for all repository changes.
 
-## Branching topology
+```text
+main → short-lived work branch → reviewed pull request → main
+```
 
-| Branch | Starts from | Integrates into | Scope |
-| --- | --- | --- | --- |
-| `feature/ICA-NNNN-slug` | Active sprint | Same sprint | One Ralph story with its tests and review evidence. |
-| `sprint/sprint-NN-slug` | `develop` | `develop` | Verified story increments. Close the sprint only after its phase exit conditions pass. |
-| `release/vX.Y` | Verified `develop` commit | `main` | Release stabilization, fixes, packaging and documentation. Forward release fixes to `develop`. |
-| `hotfix/vX.Y.Z` | Affected release tag or maintenance branch | `main` or the supported release line | Focused repair. Forward the fix to `develop` and any affected active release branch. |
-| `docs/slug` | `main` or `develop`, depending on audience | Same branch via PR | Content-only changes. Use `develop` for live engineering plans and `main` for release-facing docs or links to those plans. |
+## Day-to-day work
 
-## Integration and release rules
+1. Start from current `origin/main`. Create one short-lived branch per story, fix or documentation change. Use the ICA ID when the work has one.
+2. Open the PR directly against `main`. Include the work item and verification evidence. Apply the repository's build, Graphify and OpenCodeReview gates where required.
+3. Merge after review and required Android and iOS checks pass. GitHub auto-merge may complete an approved PR once its gates pass.
+4. Delete the work branch after confirming it merged and its unique work is accounted for. Retain version tags and the history on `main`.
 
-- Use reviewed PRs for `main` and `develop`. Keep force pushes and direct pushes off both branches. Enable GitHub enforcement explicitly and record which rules are active. Repository visibility and enforcement are separate settings.
-- `main` holds released app source and approved standalone documentation. A docs-only PR needs link and content review. Workflow files, build configuration, generated runtime code and app sources follow the relevant code gates.
-- Tag the exact reviewed app release commit with an annotated version tag. Use prerelease tags for candidates. Keep published tags fixed. Record the commit, artifact checksum, signing and distribution channel.
-- Keep one canonical live sprint plan. Prefer linking to it from the default branch when two copies would go out of sync.
-- Keep the current Gradle, platform build, Graphify and OpenCodeReview requirements. Report actual results. A successful Linux run does not establish a native iOS app build. Run Xcode and iOS simulator verification on macOS.
-- For protocol or membership changes, include compatibility, downgrade, privacy and mixed-device recovery evidence. For store publishing, separate signing and publishing access from PR jobs and obtain owner authorization. Prepare rollout halt or replacement-build instructions.
-- Record sprint outcomes, verification, and review under [SPRINT-RULES.md](../SPRINT-RULES.md). See the [branching and council review](reports/2026-11-28-Branching-and-Council-Review.md) for rationale.
+Sprint → Phase → Story remains the planning and reporting hierarchy. Sprint milestones, ICA IDs, Ralph story status and exit evidence are tracked in [SPRINT-RULES.md](../SPRINT-RULES.md) and [TASKS.md](TASKS.md). A sprint does not require a Git branch.
 
-## Transition
+## Sprint and ICA traceability
 
-Adopt new GitHub required checks only after their workflows run reliably on the applicable PR path. Existing hotfixes keep their recorded review and release path. This policy does not alter assigned sprint IDs or release sequencing.
+Use the current sprint number and a two-digit phase number. For example, ICA-3801 identifies Sprint 38, Phase 01. Keep assigned IDs when the work changes branches or spans multiple PRs. Include the ICA ID in the branch, PR title and commit message for story work. Record the merged PR, commit and verification evidence in the sprint report and Ralph tracker. Use the tag's release notes to link the included ICA work.
+
+## Releases and maintenance
+
+- Use the same direct PR path for features, fixes, docs, CI and release preparation.
+- Tag the exact verified commit on `main` for an app release. Maintain signing, artifact checksums and owner approval for publication. A routine PR merge does not publish the app.
+- Existing develop, sprint, release and archive branches are historical. Inventory unique commits, tags and open PRs before retiring any of them. Bring useful work forward on a fresh branch from `main` with a PR.
+- Require PRs and passing CI on `main`. Block force pushes and branch deletion. Record the actual GitHub enforcement separately from this written policy.
+
+For the automated build and release gates, see [CI-CD.md](CI-CD.md).
