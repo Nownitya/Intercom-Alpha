@@ -19,6 +19,8 @@ GSD owns the sprint phases and their exit conditions. Ralph selects stories only
 after the preceding phase's exit condition is met. A UI design phase closes
 after the project owner has seen the mockup and approved the direction.
 
+Track sprints and phases in the planning records. All story branches start at current `origin/main` and target `main` directly. See the [branching policy](docs/BRANCHING.md).
+
 ## Council decisions
 
 The council prioritizes scope and decides routine native UX and transport trade-offs within the approved roadmap. It may withhold a phase exit recommendation when acceptance evidence is incomplete. GSD records the decision, owner, evidence, open risks and the milestone that will revisit it. Ralph implements approved stories. OpenCodeReview independently reviews changes.
