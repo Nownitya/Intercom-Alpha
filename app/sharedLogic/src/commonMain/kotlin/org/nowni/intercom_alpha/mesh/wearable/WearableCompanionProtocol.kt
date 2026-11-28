@@ -40,6 +40,13 @@ class WearableCompanionProtocol(
     private var lastPttTimestampMs: Long = 0L
     private var sequenceCounter: Long = 0L
 
+    fun getSnapshot(): WearableCompanionSnapshot = WearableCompanionSnapshot(
+        deviceType = deviceType,
+        pttState = _pttState.value,
+        distressStatus = _riderDistressStatus.value,
+        vitals = _latestVitals.value
+    )
+
     /**
      * Processes a PTT button interaction with hardware debouncing and haptic dispatch.
      */

@@ -148,6 +148,127 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
     private val _failoverSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.failover.FailoverMetrics())
     override val failoverSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.failover.FailoverMetrics> = _failoverSnapshot.asStateFlow()
 
+    private val _snapshotProgress = MutableStateFlow<org.nowni.intercom_alpha.mesh.visual.SnapshotTransferProgress?>(null)
+    override val snapshotProgress: StateFlow<org.nowni.intercom_alpha.mesh.visual.SnapshotTransferProgress?> = _snapshotProgress.asStateFlow()
+
+    private val _multiRadioState = MutableStateFlow(org.nowni.intercom_alpha.mesh.radio.MultiRadioState())
+    override val multiRadioState: StateFlow<org.nowni.intercom_alpha.mesh.radio.MultiRadioState> = _multiRadioState.asStateFlow()
+
+    private val _rekeyEpochSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.security.RekeyEpochSnapshot())
+    override val rekeyEpochSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.security.RekeyEpochSnapshot> = _rekeyEpochSnapshot.asStateFlow()
+
+    private val _satelliteBridgeStatus = MutableStateFlow(org.nowni.intercom_alpha.mesh.satellite.SatelliteBridgeStatus())
+    override val satelliteBridgeStatus: StateFlow<org.nowni.intercom_alpha.mesh.satellite.SatelliteBridgeStatus> = _satelliteBridgeStatus.asStateFlow()
+
+    private val _phyNegotiationSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.phy.PhyNegotiationSnapshot())
+    override val phyNegotiationSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.phy.PhyNegotiationSnapshot> = _phyNegotiationSnapshot.asStateFlow()
+
+    private val _wearableCompanionSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.wearable.WearableCompanionSnapshot())
+    override val wearableCompanionSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.wearable.WearableCompanionSnapshot> = _wearableCompanionSnapshot.asStateFlow()
+
+    private val _spectralNoiseSnapshot = MutableStateFlow(org.nowni.intercom_alpha.audio.SpectralNoiseSnapshot())
+    override val spectralNoiseSnapshot: StateFlow<org.nowni.intercom_alpha.audio.SpectralNoiseSnapshot> = _spectralNoiseSnapshot.asStateFlow()
+
+    private val _voxStateSnapshot = MutableStateFlow(org.nowni.intercom_alpha.audio.VoxStateSnapshot())
+    override val voxStateSnapshot: StateFlow<org.nowni.intercom_alpha.audio.VoxStateSnapshot> = _voxStateSnapshot.asStateFlow()
+
+    private val _airtimeCongestionSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.qos.AirtimeCongestionSnapshot())
+    override val airtimeCongestionSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.qos.AirtimeCongestionSnapshot> = _airtimeCongestionSnapshot.asStateFlow()
+
+    private val _linkQualitySnapshot = MutableStateFlow(
+        org.nowni.intercom_alpha.mesh.ClusterLinkHealth(
+            peerCount = 0,
+            averageScore = 100,
+            worstScore = 100,
+            bestScore = 100,
+            overallGrade = org.nowni.intercom_alpha.mesh.LinkQualityGrade.EXCELLENT,
+            peerScores = emptyList()
+        )
+    )
+    override val linkQualitySnapshot: StateFlow<org.nowni.intercom_alpha.mesh.ClusterLinkHealth> = _linkQualitySnapshot.asStateFlow()
+
+    private val _adaptiveBitrateSnapshot = MutableStateFlow(
+        org.nowni.intercom_alpha.audio.BitrateEngineTelemetry(
+            activeProfile = org.nowni.intercom_alpha.common.AudioProfile.MEDIUM,
+            effectiveBitrateKbps = 32,
+            effectiveFrameDurationMs = 20,
+            candidateProfile = org.nowni.intercom_alpha.common.AudioProfile.MEDIUM,
+            consecutivePristineCycles = 0,
+            hysteresisThresholdCycles = 3,
+            isPinned = false,
+            clusterPolicy = org.nowni.intercom_alpha.audio.ClusterPolicy.WORST_LINK,
+            governingScore = 100,
+            governingGrade = org.nowni.intercom_alpha.mesh.LinkQualityGrade.EXCELLENT,
+            lastTransitionReason = "Initial baseline",
+            timestampMs = 0L
+        )
+    )
+    override val adaptiveBitrateSnapshot: StateFlow<org.nowni.intercom_alpha.audio.BitrateEngineTelemetry> = _adaptiveBitrateSnapshot.asStateFlow()
+
+    private val _fecTelemetrySnapshot = MutableStateFlow(
+        org.nowni.intercom_alpha.audio.FecTelemetry(
+            activeRatio = org.nowni.intercom_alpha.audio.FecRatio.RATIO_4_1,
+            totalPacketsEncoded = 0L,
+            totalParityGenerated = 0L,
+            totalPacketsReceived = 0L,
+            totalPacketsRecovered = 0L,
+            totalBlocksCompleted = 0L,
+            totalBlocksRecovered = 0L,
+            totalBlocksUnrecoverable = 0L
+        )
+    )
+    override val fecTelemetrySnapshot: StateFlow<org.nowni.intercom_alpha.audio.FecTelemetry> = _fecTelemetrySnapshot.asStateFlow()
+
+    private val _plcTelemetrySnapshot = MutableStateFlow(org.nowni.intercom_alpha.audio.PlcTelemetry())
+    override val plcTelemetrySnapshot: StateFlow<org.nowni.intercom_alpha.audio.PlcTelemetry> = _plcTelemetrySnapshot.asStateFlow()
+
+    private val _bleMtuSnapshot = MutableStateFlow(
+        org.nowni.intercom_alpha.mesh.BleMtuTelemetry(
+            negotiatedMtu = 247,
+            effectivePayloadCapacity = 240,
+            totalFramesIngested = 0L,
+            totalPacketsEmitted = 0L,
+            averageFramesPerPacket = 0.0,
+            packingEfficiencyPct = 0.0,
+            rfPacketReductionPct = 0.0
+        )
+    )
+    override val bleMtuSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.BleMtuTelemetry> = _bleMtuSnapshot.asStateFlow()
+
+    override fun updateBleMtuTelemetry(telemetry: org.nowni.intercom_alpha.mesh.BleMtuTelemetry) {
+        _bleMtuSnapshot.value = telemetry
+    }
+
+    override fun setNegotiatedMtu(mtu: Int) {
+        _bleMtuSnapshot.value = _bleMtuSnapshot.value.copy(negotiatedMtu = mtu)
+    }
+
+    private val _elevationProfileSnapshot = MutableStateFlow(org.nowni.intercom_alpha.geo.ConvoyElevationProfile())
+    override val elevationProfileSnapshot: StateFlow<org.nowni.intercom_alpha.geo.ConvoyElevationProfile> = _elevationProfileSnapshot.asStateFlow()
+
+    override fun updateElevationProfile(profile: org.nowni.intercom_alpha.geo.ConvoyElevationProfile) {
+        _elevationProfileSnapshot.value = profile
+    }
+
+    private val _phySwitcherSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.PhySwitcherSnapshot())
+    override val phySwitcherSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.PhySwitcherSnapshot> = _phySwitcherSnapshot.asStateFlow()
+
+    override fun updatePhySwitcherSnapshot(snapshot: org.nowni.intercom_alpha.mesh.PhySwitcherSnapshot) {
+        _phySwitcherSnapshot.value = snapshot
+    }
+
+    private val _meshCongestionSnapshot = MutableStateFlow(org.nowni.intercom_alpha.mesh.MeshCongestionSnapshot())
+    override val meshCongestionSnapshot: StateFlow<org.nowni.intercom_alpha.mesh.MeshCongestionSnapshot> = _meshCongestionSnapshot.asStateFlow()
+
+    override fun updateMeshCongestionSnapshot(snapshot: org.nowni.intercom_alpha.mesh.MeshCongestionSnapshot) {
+        _meshCongestionSnapshot.value = snapshot
+    }
+
+    var phySwitcher: org.nowni.intercom_alpha.mesh.AdaptivePhySwitcher? = null
+        private set
+    var meshCongestionGovernor: org.nowni.intercom_alpha.mesh.MeshCongestionGovernor? = null
+        private set
+
     var channelManager: ChannelManager? = null
         private set
     var directedRouter: DirectedMeshRouter? = null
@@ -157,6 +278,24 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
     var qosScheduler: org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler? = null
         private set
     var failoverArbiter: org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter? = null
+        private set
+    var snapshotManager: org.nowni.intercom_alpha.mesh.visual.SnapshotTransferManager? = null
+        private set
+    var multiRadioArbiter: org.nowni.intercom_alpha.mesh.radio.MultiRadioArbiter? = null
+        private set
+    var groupRekeyProtocol: org.nowni.intercom_alpha.mesh.security.GroupRekeyProtocol? = null
+        private set
+    var satelliteBridge: org.nowni.intercom_alpha.mesh.satellite.SatelliteGatewayBridge? = null
+        private set
+    var phyArbiter: org.nowni.intercom_alpha.mesh.phy.AdaptivePhyArbiter? = null
+        private set
+    var wearableProtocol: org.nowni.intercom_alpha.mesh.wearable.WearableCompanionProtocol? = null
+        private set
+    var spectralSuppressor: org.nowni.intercom_alpha.audio.SpectralNoiseSuppressor? = null
+        private set
+    var wakeWordEngine: org.nowni.intercom_alpha.audio.AcousticWakeWordEngine? = null
+        private set
+    var congestionGovernor: org.nowni.intercom_alpha.mesh.qos.AirtimeCongestionGovernor? = null
         private set
     var blackboxRecorder: EmergencyBlackboxRecorder? = null
         private set
@@ -198,7 +337,18 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         directedRouter: DirectedMeshRouter?,
         interGroupGateway: org.nowni.intercom_alpha.mesh.federation.InterGroupGateway?,
         qosScheduler: org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler?,
-        failoverArbiter: org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter?
+        failoverArbiter: org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter?,
+        snapshotManager: org.nowni.intercom_alpha.mesh.visual.SnapshotTransferManager?,
+        multiRadioArbiter: org.nowni.intercom_alpha.mesh.radio.MultiRadioArbiter?,
+        groupRekeyProtocol: org.nowni.intercom_alpha.mesh.security.GroupRekeyProtocol?,
+        satelliteBridge: org.nowni.intercom_alpha.mesh.satellite.SatelliteGatewayBridge?,
+        phyArbiter: org.nowni.intercom_alpha.mesh.phy.AdaptivePhyArbiter?,
+        wearableProtocol: org.nowni.intercom_alpha.mesh.wearable.WearableCompanionProtocol?,
+        spectralSuppressor: org.nowni.intercom_alpha.audio.SpectralNoiseSuppressor?,
+        wakeWordEngine: org.nowni.intercom_alpha.audio.AcousticWakeWordEngine?,
+        congestionGovernor: org.nowni.intercom_alpha.mesh.qos.AirtimeCongestionGovernor?,
+        phySwitcher: org.nowni.intercom_alpha.mesh.AdaptivePhySwitcher?,
+        meshCongestionGovernor: org.nowni.intercom_alpha.mesh.MeshCongestionGovernor?
     ) {
         this.channelManager = channelManager
         this.blackboxRecorder = blackboxRecorder
@@ -214,6 +364,17 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
         this.interGroupGateway = interGroupGateway
         this.qosScheduler = qosScheduler
         this.failoverArbiter = failoverArbiter
+        this.snapshotManager = snapshotManager
+        this.multiRadioArbiter = multiRadioArbiter
+        this.groupRekeyProtocol = groupRekeyProtocol
+        this.satelliteBridge = satelliteBridge
+        this.phyArbiter = phyArbiter
+        this.wearableProtocol = wearableProtocol
+        this.spectralSuppressor = spectralSuppressor
+        this.wakeWordEngine = wakeWordEngine
+        this.congestionGovernor = congestionGovernor
+        this.phySwitcher = phySwitcher
+        this.meshCongestionGovernor = meshCongestionGovernor
 
         failoverArbiter?.let { arbiter ->
             scope.launch {
@@ -323,6 +484,119 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
             ftm.onSendAck = { ack, _ ->
                 val bytes = MeshFileTransferEngine.serializeAck(ack)
                 sendControlPacket(MeshPacket.Control(senderId = "android-local", type = ControlType.FILE_ACK, payload = bytes))
+            }
+        }
+
+        snapshotManager?.let { mgr ->
+            scope.launch {
+                mgr.activeTransfers.collect { transfers ->
+                    _snapshotProgress.value = transfers.firstOrNull()
+                }
+            }
+        }
+
+        multiRadioArbiter?.let { arbiter ->
+            scope.launch {
+                arbiter.state.collect { state ->
+                    _multiRadioState.value = state
+                }
+            }
+        }
+
+        groupRekeyProtocol?.let { rekey ->
+            scope.launch {
+                _rekeyEpochSnapshot.value = rekey.getSnapshot()
+                rekey.events.collect { _ ->
+                    _rekeyEpochSnapshot.value = rekey.getSnapshot()
+                }
+            }
+        }
+
+        satelliteBridge?.let { sat ->
+            scope.launch {
+                sat.status.collect { status ->
+                    _satelliteBridgeStatus.value = status
+                }
+            }
+        }
+
+        phyArbiter?.let { phy ->
+            scope.launch {
+                _phyNegotiationSnapshot.value = phy.getSnapshot()
+                phy.negotiationEvents.collect { event ->
+                    _phyNegotiationSnapshot.value = phy.getSnapshot().copy(lastEvent = event)
+                }
+            }
+        }
+
+        wearableProtocol?.let { wearable ->
+            scope.launch {
+                _wearableCompanionSnapshot.value = wearable.getSnapshot()
+                launch {
+                    wearable.pttState.collect {
+                        _wearableCompanionSnapshot.value = wearable.getSnapshot()
+                    }
+                }
+                launch {
+                    wearable.riderDistressStatus.collect {
+                        _wearableCompanionSnapshot.value = wearable.getSnapshot()
+                    }
+                }
+                launch {
+                    wearable.latestVitals.collect {
+                        _wearableCompanionSnapshot.value = wearable.getSnapshot()
+                    }
+                }
+            }
+        }
+
+        spectralSuppressor?.let { suppressor ->
+            scope.launch {
+                _spectralNoiseSnapshot.value = suppressor.getSnapshot()
+                suppressor.latestDiagnostics.collect { _ ->
+                    _spectralNoiseSnapshot.value = suppressor.getSnapshot()
+                }
+            }
+        }
+
+        wakeWordEngine?.let { engine ->
+            scope.launch {
+                _voxStateSnapshot.value = engine.getSnapshot()
+                launch {
+                    engine.voxState.collect {
+                        _voxStateSnapshot.value = engine.getSnapshot()
+                    }
+                }
+                launch {
+                    engine.latestEvent.collect {
+                        _voxStateSnapshot.value = engine.getSnapshot()
+                    }
+                }
+            }
+        }
+
+        congestionGovernor?.let { governor ->
+            scope.launch {
+                governor.metrics.collect { metrics ->
+                    _airtimeCongestionSnapshot.value = metrics
+                }
+            }
+        }
+
+        phySwitcher?.let { switcher ->
+            scope.launch {
+                _phySwitcherSnapshot.value = switcher.getSnapshot()
+                switcher.switchEvents.collect { _ ->
+                    _phySwitcherSnapshot.value = switcher.getSnapshot()
+                }
+            }
+        }
+
+        meshCongestionGovernor?.let { governor ->
+            scope.launch {
+                governor.metrics.collect { metrics ->
+                    _meshCongestionSnapshot.value = metrics
+                }
             }
         }
     }
@@ -476,6 +750,150 @@ class AndroidPlatformBridge private constructor() : IntercomHardwareBridge {
 
     override fun updateFailoverSnapshot(metrics: org.nowni.intercom_alpha.mesh.failover.FailoverMetrics) {
         _failoverSnapshot.value = metrics
+    }
+
+    override fun updateSnapshotProgress(progress: org.nowni.intercom_alpha.mesh.visual.SnapshotTransferProgress?) {
+        _snapshotProgress.value = progress
+    }
+
+    override fun updateMultiRadioState(state: org.nowni.intercom_alpha.mesh.radio.MultiRadioState) {
+        _multiRadioState.value = state
+    }
+
+    override fun updateRekeyEpochSnapshot(snapshot: org.nowni.intercom_alpha.mesh.security.RekeyEpochSnapshot) {
+        _rekeyEpochSnapshot.value = snapshot
+    }
+
+    override fun setPreferredRadioForBulk(radio: org.nowni.intercom_alpha.mesh.radio.RadioType) {
+        _multiRadioState.value = _multiRadioState.value.copy(bulkTransferPreferredRadio = radio)
+    }
+
+    override fun initiateManualRekey(reason: org.nowni.intercom_alpha.mesh.security.RekeyTriggerReason): org.nowni.intercom_alpha.mesh.security.RekeyControlPacket? {
+        val rekey = groupRekeyProtocol ?: return null
+        var result: org.nowni.intercom_alpha.mesh.security.RekeyControlPacket? = null
+        kotlinx.coroutines.runBlocking {
+            result = rekey.initiateRekey(reason)
+        }
+        result?.let { packet ->
+            try {
+                val jsonStr = kotlinx.serialization.json.Json.encodeToString(
+                    org.nowni.intercom_alpha.mesh.security.RekeyControlPacket.serializer(),
+                    packet
+                )
+                sendControlPacket(MeshPacket.Control("android-local", ControlType.EPOCH_ROLLOVER, jsonStr.encodeToByteArray()))
+            } catch (e: Exception) {
+                Log.e(TAG, "Error encoding rekey packet", e)
+            }
+            _rekeyEpochSnapshot.value = rekey.getSnapshot(System.currentTimeMillis())
+        }
+        return result
+    }
+
+    override fun updateSatelliteBridgeStatus(status: org.nowni.intercom_alpha.mesh.satellite.SatelliteBridgeStatus) {
+        _satelliteBridgeStatus.value = status
+    }
+
+    override fun updatePhyNegotiationSnapshot(snapshot: org.nowni.intercom_alpha.mesh.phy.PhyNegotiationSnapshot) {
+        _phyNegotiationSnapshot.value = snapshot
+    }
+
+    override fun updateWearableCompanionSnapshot(snapshot: org.nowni.intercom_alpha.mesh.wearable.WearableCompanionSnapshot) {
+        _wearableCompanionSnapshot.value = snapshot
+    }
+
+    override fun updateSpectralNoiseSnapshot(snapshot: org.nowni.intercom_alpha.audio.SpectralNoiseSnapshot) {
+        _spectralNoiseSnapshot.value = snapshot
+    }
+
+    override fun updateVoxStateSnapshot(snapshot: org.nowni.intercom_alpha.audio.VoxStateSnapshot) {
+        _voxStateSnapshot.value = snapshot
+    }
+
+    override fun updateAirtimeCongestionSnapshot(snapshot: org.nowni.intercom_alpha.mesh.qos.AirtimeCongestionSnapshot) {
+        _airtimeCongestionSnapshot.value = snapshot
+    }
+
+    override fun updateLinkQualitySnapshot(health: org.nowni.intercom_alpha.mesh.ClusterLinkHealth) {
+        _linkQualitySnapshot.value = health
+    }
+
+    override fun updateAdaptiveBitrateSnapshot(telemetry: org.nowni.intercom_alpha.audio.BitrateEngineTelemetry) {
+        _adaptiveBitrateSnapshot.value = telemetry
+    }
+
+    override fun updateFecTelemetry(telemetry: org.nowni.intercom_alpha.audio.FecTelemetry) {
+        _fecTelemetrySnapshot.value = telemetry
+    }
+
+    override fun updatePlcTelemetry(telemetry: org.nowni.intercom_alpha.audio.PlcTelemetry) {
+        _plcTelemetrySnapshot.value = telemetry
+    }
+
+    override fun setFecRatio(ratio: org.nowni.intercom_alpha.audio.FecRatio) {
+        _fecTelemetrySnapshot.value = _fecTelemetrySnapshot.value.copy(activeRatio = ratio)
+    }
+
+    override fun pinAudioBitrateProfile(profile: org.nowni.intercom_alpha.common.AudioProfile?) {
+        val current = _adaptiveBitrateSnapshot.value
+        if (profile != null) {
+            _adaptiveBitrateSnapshot.value = current.copy(
+                activeProfile = profile,
+                effectiveBitrateKbps = profile.bitrateKbps,
+                effectiveFrameDurationMs = profile.frameSizeMs,
+                isPinned = true,
+                lastTransitionReason = "Pinned to ${profile.name}"
+            )
+        } else {
+            _adaptiveBitrateSnapshot.value = current.copy(
+                isPinned = false,
+                lastTransitionReason = "Pin released: resumed auto"
+            )
+        }
+    }
+
+    override fun setClusterPolicy(policy: org.nowni.intercom_alpha.audio.ClusterPolicy) {
+        _adaptiveBitrateSnapshot.value = _adaptiveBitrateSnapshot.value.copy(clusterPolicy = policy)
+    }
+
+    override fun setNoiseSuppressionMode(mode: org.nowni.intercom_alpha.audio.NoiseSuppressionMode) {
+        spectralSuppressor?.setMode(mode)
+        _spectralNoiseSnapshot.value = spectralSuppressor?.getSnapshot() ?: _spectralNoiseSnapshot.value.copy(mode = mode)
+    }
+
+    override fun setVoxSensitivity(energyThresholdDb: Float) {
+        wakeWordEngine?.setSensitivity(energyThresholdDb)
+        _voxStateSnapshot.value = wakeWordEngine?.getSnapshot() ?: _voxStateSnapshot.value.copy(energyDb = energyThresholdDb)
+    }
+
+    override fun triggerSatelliteDistressBeacon(message: String): Boolean {
+        val sat = satelliteBridge ?: return false
+        val coord = _localGpsCoordinate.value
+        val loc = org.nowni.intercom_alpha.mesh.satellite.SatelliteGpsLocation(
+            latitude = coord?.latitude ?: 0.0,
+            longitude = coord?.longitude ?: 0.0,
+            altitudeMeters = coord?.altitudeMeters ?: 0.0
+        )
+        val payload = org.nowni.intercom_alpha.mesh.satellite.SatelliteDispatchPayload(
+            dispatchId = "sat-sos-${System.currentTimeMillis()}",
+            senderRiderId = "android-local",
+            groupId = "fleet-alpha",
+            timestamp = System.currentTimeMillis(),
+            priority = org.nowni.intercom_alpha.mesh.satellite.SatelliteDispatchPriority.EMERGENCY_SOS_MANUAL,
+            location = loc,
+            messageText = message
+        )
+        scope.launch {
+            sat.enqueueEmergencyDispatch(payload)
+        }
+        return true
+    }
+
+    override fun processWearablePttClick(pressed: Boolean) {
+        scope.launch {
+            val state = if (pressed) org.nowni.intercom_alpha.mesh.wearable.PttButtonState.PRESSED else org.nowni.intercom_alpha.mesh.wearable.PttButtonState.RELEASED
+            wearableProtocol?.processPttEvent(state, System.currentTimeMillis())
+            setPttActive(pressed)
+        }
     }
 
     override fun setFailoverModeOverride(mode: org.nowni.intercom_alpha.mesh.failover.FailoverMode?) {

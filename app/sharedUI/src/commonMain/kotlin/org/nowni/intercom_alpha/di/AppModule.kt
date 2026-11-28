@@ -1,5 +1,6 @@
 package org.nowni.intercom_alpha.di
 
+import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 import org.nowni.intercom_alpha.audio.AdaptiveBitrateController
@@ -44,9 +45,39 @@ fun createSharedUiModule(
     }
     single { org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler() }
     single { org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter() }
+    single { org.nowni.intercom_alpha.mesh.MeshLinkQualityScorer() }
+    single { org.nowni.intercom_alpha.audio.AdaptiveBitrateEngine() }
+    single { org.nowni.intercom_alpha.audio.MeshPacketFecEngine() }
+    single { org.nowni.intercom_alpha.audio.AudioLossConcealment() }
     single<IntercomHardwareBridge> { hardwareBridge }
 
-    viewModelOf(::HomeViewModel)
+    viewModel {
+        HomeViewModel(
+            channelManager = get(),
+            proximityRadar = get(),
+            convoyGpsTracker = get(),
+            meshTextManager = get(),
+            priorityManager = get(),
+            blackboxRecorder = get(),
+            bitrateController = get(),
+            helmetAccessoryManager = get(),
+            trailMapManager = get(),
+            fileTransferManager = get(),
+            geofenceEngine = get(),
+            batteryGovernor = get(),
+            crashDetector = get(),
+            voiceCommandRecognizer = get(),
+            directedRouter = get(),
+            interGroupGateway = get(),
+            qosScheduler = get(),
+            failoverArbiter = get(),
+            linkQualityScorer = get(),
+            bitrateEngine = get(),
+            fecEngine = get(),
+            lossConcealment = get(),
+            hardwareBridge = get()
+        )
+    }
     viewModelOf(::RepeaterViewModel)
 }
 

@@ -67,19 +67,78 @@ class AudioPipelineSession(
     val codec: AudioCodec = AudioCodec(defaultProfile = profile),
     val agc: AutomaticGainControl = AutomaticGainControl(sampleRate = sampleRate),
     val drc: DynamicRangeCompressor = DynamicRangeCompressor(sampleRate = sampleRate),
-    val playoutLimiter: DynamicRangeCompressor = DynamicRangeCompressor(sampleRate = sampleRate)
+    val playoutLimiter: DynamicRangeCompressor = DynamicRangeCompressor(sampleRate = sampleRate),
+    val multiPeerPlc: AudioLossConcealment = AudioLossConcealment(sampleRate = sampleRate),
+    val fecEngine: MeshPacketFecEngine = MeshPacketFecEngine(),
+    val mtuAggregator: org.nowni.intercom_alpha.mesh.BleMtuAggregator = org.nowni.intercom_alpha.mesh.BleMtuAggregator(),
+    val frameInterleaver: org.nowni.intercom_alpha.mesh.BleFrameInterleaver = org.nowni.intercom_alpha.mesh.BleFrameInterleaver()
 ) {
+    var activeProfile: AudioProfile = profile
+
+    /**
+     * Packs outgoing voice/control payload into negotiated BLE ATT MTU packet(s).
+     */
+    fun packOutgoingPayload(
+        payload: ByteArray,
+        type: org.nowni.intercom_alpha.mesh.SubFrameType = org.nowni.intercom_alpha.mesh.SubFrameType.VOICE_AUDIO,
+        timestampMs: Long = 0L
+    ): List<org.nowni.intercom_alpha.mesh.PackedMtuPacket> {
+        return mtuAggregator.addFrame(payload, type, timestampMs)
+    }
+
+    /**
+     * Unpacks an over-the-air raw packed BLE ATT MTU packet into individual sub-frames.
+     */
+    fun unpackIncomingPayload(packedBytes: ByteArray): List<org.nowni.intercom_alpha.mesh.SubFrame> {
+        return mtuAggregator.unpack(packedBytes)
+    }
+
+    /**
+     * Updates the current negotiated BLE ATT MTU.
+     */
+    fun setNegotiatedMtu(mtu: Int) {
+        mtuAggregator.setNegotiatedMtu(mtu)
+    }
+
+    /**
+     * Retrieves current BLE ATT MTU packing telemetry.
+     */
+    fun getMtuTelemetry(): org.nowni.intercom_alpha.mesh.BleMtuTelemetry {
+        return mtuAggregator.getTelemetry()
+    }
+
+    /**
+     * Processes encoded voice payload through the FEC engine, generating FEC parity packets when a block completes.
+     */
+    suspend fun encodeOutgoingFec(payload: ByteArray): List<FecEnvelope> {
+        return fecEngine.ingestOutgoingPacket(payload)
+    }
+
+    /**
+     * Ingests incoming wire payload through FEC erasure reconstruction.
+     */
+    suspend fun decodeIncomingFec(envelope: FecEnvelope, timestampMs: Long): FecDecodeResult {
+        return fecEngine.ingestIncomingEnvelope(envelope, timestampMs)
+    }
+
+    /**
+     * Updates active codec profile for outgoing transmission on the fly.
+     */
+    fun updateActiveProfile(newProfile: AudioProfile) {
+        activeProfile = newProfile
+    }
+
     /**
      * Processes raw microphone input. Returns compressed byte packet, or null if gated by VOX/DTX.
      */
-    fun processOutgoingMicrophone(rawPcm: ShortArray): ByteArray? {
+    fun processOutgoingMicrophone(rawPcm: ShortArray, dynamicProfile: AudioProfile = activeProfile): ByteArray? {
         val gated = noiseGate.process(rawPcm)
         if (!noiseGate.isOpen && noiseGate.currentEnvelopeDb < -55.0f) {
             return null // Discontinuous Transmission (DTX) suppresses background silence packets
         }
         val leveled = agc.process(gated)
         val compressed = drc.process(leveled)
-        return codec.encode(compressed, profile)
+        return codec.encode(compressed, dynamicProfile)
     }
 
     /**

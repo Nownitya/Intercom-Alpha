@@ -1,6 +1,6 @@
 # Master Tasks & Engineering Roadmap — Intercom-Alpha
 
-[Proposed rider sprints, phases and exit conditions](https://github.com/Nownitya/Intercom-Alpha/blob/fca96847f3704a31441436cc8f6f046bf5b17ffc/docs/reports/2026-11-27-Rider-Intercom-Council-Plan.md)
+[Proposed rider sprints, phases and exit conditions](reports/2026-11-27-Rider-Intercom-Council-Plan.md)
 
 > **Document Version:** 3.0
 > **Status:** Active / Tracked  
@@ -567,7 +567,7 @@
 
 ## Current and upcoming sprints
 
-Use **Sprint → Phase → Story**. Each phase has an ICA ID and an exit condition. Tasks sit beneath that ID. See [sprint governance](https://github.com/Nownitya/Intercom-Alpha/blob/fca96847f3704a31441436cc8f6f046bf5b17ffc/SPRINT-RULES.md#sprint-planning-hierarchy).
+Use **Sprint → Phase → Story**. Each phase has an ICA ID and an exit condition. Tasks sit beneath that ID. See [sprint governance](../SPRINT-RULES.md#sprint-planning-hierarchy).
 
 ### Sprint 37
 
@@ -610,7 +610,7 @@ Target `v3.0.0` · GSD reference 34 · Planned
 
 ## Proposed rider sprints
 
-Sprint numbers, phase IDs and release sequencing remain provisional. See the [council plan](https://github.com/Nownitya/Intercom-Alpha/blob/fca96847f3704a31441436cc8f6f046bf5b17ffc/docs/reports/2026-11-27-Rider-Intercom-Council-Plan.md) for Ralph story slices and [ICA-4001](https://github.com/Nownitya/Intercom-Alpha/blob/fca96847f3704a31441436cc8f6f046bf5b17ffc/docs/ICA-4001-PLAN.md) for the first phase brief.
+Sprint numbers, phase IDs and release sequencing remain provisional. See the [council plan](reports/2026-11-27-Rider-Intercom-Council-Plan.md) for Ralph story slices and [ICA-4001](ICA-4001-PLAN.md) for the first phase brief.
 
 ### Sprint 40
 

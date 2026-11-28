@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Intercom Alpha · Native design review</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#eeede7;color:#1a201d;font:16px/1.5 system-ui,sans-serif}
+main{max-width:1160px;margin:auto;padding:clamp(18px,5vw,66px)}h1,h2,h3,p{margin:0}h1{font-size:clamp(42px,7vw,88px);line-height:.95;letter-spacing:-.075em}h2{font-size:28px;letter-spacing:-.04em}
+header{border-top:4px solid #1a201d;padding-top:16px;margin-bottom:32px}header p{max-width:55ch;margin-top:16px}
+button,select,summary{font:inherit;cursor:pointer}button,select{min-height:44px}button{color:inherit}button:focus-visible,a:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #e4a93c;outline-offset:3px}
+.controls,.bar,.dock,.actions,.row{display:flex;align-items:center;gap:8px}.controls{flex-wrap:wrap;margin:16px 0}.controls button,.controls select{padding:8px 14px;border:1px solid #7a817b;border-radius:20px;background:transparent}.controls button[aria-pressed=true]{background:#1a201d;color:white}
+.stage{display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:clamp(20px,5vw,64px);align-items:start}
+.device{--accent:#f59e0b;--live:#61d9ac;color:#f7f7f2;background:#000;border:1px solid #444a46;border-radius:28px;min-height:590px;padding:18px;display:flex;flex-direction:column;gap:12px}.device[data-os=ios]{border-radius:40px;padding:21px}.device button{background:#222925;border:1px solid #505a54;border-radius:12px;padding:8px 12px}.device[data-os=ios] button{border-radius:23px}.device .primary{background:var(--accent);color:#181309;border:0;min-height:84px;font-weight:750;font-size:21px;flex:1}.device[data-os=ios] .primary{border-radius:42px}
+.bar,.row{justify-content:space-between}.bar{padding-bottom:12px;border-bottom:1px solid #38413c}.status{font-size:14px;color:var(--live)}.device small{color:#bec9c2}.screen{flex:1}.screen h2{font-size:36px;line-height:1.02;margin:6px 0 10px}.screen hr{border:0;border-top:1px solid #38413c;margin:16px 0}.screen .row{min-height:50px;border-bottom:1px solid #38413c}.screen button{margin-top:8px}.speaker{margin-top:12px;padding:16px 0 10px;border-top:1px solid #38413c}.speaker strong{display:block;font-size:24px}.screen .danger{color:#ffc0bc;border-color:#a34c43}.dock{border-top:1px solid #38413c;padding:6px 0 max(4px,env(safe-area-inset-bottom))}
+.dock button{flex:1;min-height:64px;display:grid;justify-items:center;align-content:center;gap:2px;padding:4px;border:0;background:transparent;color:#bec9c2;font-size:14px}
+.dock-icon{display:grid;place-items:center;width:56px;height:30px;border-radius:20px}
+.dock-icon svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.dock button[aria-current=page]{color:var(--accent);font-weight:700}
+.device[data-os=android] .dock button[aria-current=page] .dock-icon{background:var(--accent);color:#181309}
+.device[data-os=ios] .dock{border:1px solid #515a54;border-radius:34px;background:#1b211edb;padding:0 5px;backdrop-filter:blur(14px)}
+.device[data-os=ios] .dock button[aria-current=page]{background:#ffffff0d}
+
+.notes{display:grid;gap:18px}.notes section{border-top:1px solid #8e948e;padding-top:12px}.notes p{margin:8px 0}.scope{font:600 13px ui-monospace,monospace;letter-spacing:.03em}
+details{padding:14px 0;border-bottom:1px solid #a4aba4}summary{font-weight:700}.council{margin-top:38px}.council ul{padding-left:22px}.checks{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:8px;border-bottom:1px solid #afb4ad;text-align:left}.green{color:#07573d;font-weight:700}.amber{color:#804900;font-weight:700}a{color:#204939}
+dialog{background:#202824;color:#fff;border:1px solid #68716b;border-radius:16px;padding:22px;width:min(360px,calc(100% - 24px))}dialog::backdrop{background:#000a}dialog p{margin:8px 0}dialog button{background:#303c35;color:white;border:1px solid #69736d;border-radius:10px;padding:8px 12px}
+[hidden]{display:none!important}@media(max-width:770px){.stage{grid-template-columns:1fr}.device{width:min(100%,440px);margin:auto}}
+</style>
+<main>
+<header>
+<p class="scope">INTERCOM ALPHA / NATIVE DESIGN REVIEW</p>
+<h1>Ride together.<br>Talk naturally.</h1>
+<p>Try the same ride on Android and iOS. Join once, keep listening when muted, and see what happens when the connection drops.</p>
+</header>
+<div class="controls" aria-label="Preview controls">
+<button data-os="android" aria-pressed="true">Android · Compose</button>
+<button data-os="ios" aria-pressed="false">iOS · SwiftUI</button>
+<label for="profile">Activity profile</label>
+<select id="profile"><option value="motorbike">Motorbike</option><option value="mountain">Mountain Trails</option></select>
+<label for="scenario">Ride scenario</label>
+<select id="scenario"><option value="ready">Before departure</option><option value="connected">On the ride</option><option value="weak">Connection interrupted</option></select>
+</div>
+<div class="stage">
+<article class="device" id="device" data-os="android" aria-label="Interactive handset preview">
+<div class="bar"><span>Intercom Alpha</span><button data-view="settings">Settings</button></div>
+<p class="status" id="link" role="status">Ready to join</p>
+<section class="screen" id="screen" aria-label="Intercom screen"></section>
+<div class="actions" id="rideActions"><button class="primary" id="mic">Join intercom</button><button id="leave" hidden>Leave</button></div>
+<nav class="dock" aria-label="Ride screens">
+<button data-view="intercom" aria-current="page"><span class="dock-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.5"/><path d="M8.5 8.5a5 5 0 0 0 0 7m7-7a5 5 0 0 1 0 7M5.5 5.5a9 9 0 0 0 0 13m13-13a9 9 0 0 1 0 13"/></svg></span>Intercom</button>
+<button data-view="radar"><span class="dock-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><path d="m12 12 6-6"/><circle cx="15" cy="9" r="1"/></svg></span>Radar</button>
+<button data-view="trail" hidden><span class="dock-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m2 19 7-12 4 6 3-4 6 10H2m5-8 2 2 2-2"/></svg></span>Trail</button>
+<button data-view="convoy"><span class="dock-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2m2-14a3 3 0 0 1 0 6m1 2a4 4 0 0 1 3 4v2"/></svg></span>Convoy</button>
+</nav>
+</article>
+<aside class="notes">
+<section><h2 id="platform">Android · Jetpack Compose</h2><p id="platformCopy">Material 3 navigation and sheets, with system back. Request microphone and nearby-device permissions when the rider joins.</p></section>
+<section><h2>What belongs on each screen</h2>
+<details open><summary>Intercom</summary><p>Group, channel, speaking state, connection, mic, and an accessible SOS review. The primary action sits in the thumb zone.</p></details>
+<details><summary>Radar and Trail</summary><p>Radar shows rider distance, direction, and freshness. Motorbike keeps Trail under Radar. Mountain Trails gives offline route and elevation their own tab for the ride.</p></details>
+<details><summary>Convoy and first launch</summary><p>Rider name on this device, create or join with a QR, headset check, and roster. Ride identity is local and works offline.</p></details>
+<details><summary>Settings</summary><p>Audio mode, headset and mic check, display and battery, location sharing, and advanced connection diagnostics. Basecamp Repeater remains an advanced destination.</p></details>
+</section>
+<section><h2>Sources</h2><p><a href="mockup/index.html">Antigravity reference</a> · <a href="PRD.md">Product requirements</a> · <a href="DESIGN.md">Design contract</a> · <a href="https://developer.apple.com/design/human-interface-guidelines/tab-bars">Apple tab bars</a> · <a href="https://developer.android.com/develop/ui/compose/components/navigation-bar">Compose navigation bar</a></p></section>
+</aside>
+</div>
+<section class="council">
+<h2>Review council</h2>
+<p>Named reviewer roles from this session. Green approves the preview direction. Release checks are tracked separately.</p>
+<div class="checks"><table>
+<thead><tr><th scope="col">Reviewer</th><th scope="col">Open intercom</th><th scope="col">Native conventions</th><th scope="col">Antigravity reference</th><th scope="col">Diagnostics in Settings</th></tr></thead>
+<tbody id="votes"></tbody></table></div>
+<h3>Review process</h3>
+<ol>
+<li>Compare the Antigravity mockup, product requirements, and actual Compose and SwiftUI entry points.</li>
+<li>Review the workflow independently for Android, iOS, rider accessibility, and shared architecture.</li>
+<li>Record decisions and build a browser simulation of the approved design direction.</li>
+<li><span class="amber">Release gate · Amber</span> Reconcile the PTT-first design contract and verify simultaneous BLE audio, mute, headset changes, and background recovery on Android and iOS hardware.</li>
+</ol>
+<p>The showcase simulates the app. Microphone access, BLE, QR setup, and emergency broadcasts require native implementation and device testing.</p>
+</section>
+</main>
+<dialog id="dialog" aria-labelledby="dialogTitle">
+<h2 id="dialogTitle"></h2><p id="dialogCopy"></p><form method="dialog"><button>Cancel</button></form>
+</dialog>
+<script>
+const get = id => document.getElementById(id)
+const device = get('device')
+let view = 'intercom'
+let joined = false
+let muted = false
+let scenario = 'ready'
+let profile = 'motorbike'
+const pages = {
+  radar: '<h2>Nearby riders</h2><p>Last position received 8 seconds ago</p><div class="row"><strong>Maya · Lead</strong><span>140 m ahead</span></div><div class="row"><strong>Dev · Sweep</strong><span>320 m back</span></div><button data-view="trail">Trail and elevation</button>',
+  convoy: '<h2>Sunday ride</h2><p>Local rider group</p><div class="row"><strong>Maya</strong><span>Lead</span></div><div class="row"><strong>Dev</strong><span>Sweep</span></div><div class="row"><strong>You</strong><span>Rider</span></div><button data-review="invite">Group invite</button>',
+  trail: '<h2>Trail and elevation</h2><p>Offline route preview</p><div class="row"><strong>Elevation</strong><span>1,840 m</span></div><div class="row"><strong>Grade</strong><span>+4.2%</span></div><button data-view="radar">Back to Radar</button>',
+  settings: '<h2>Settings</h2><div class="row"><strong>Rider profile</strong><span>Local</span></div><div class="row"><strong>Audio</strong><button data-review="audio">Audio modes</button></div><div class="row"><strong>Display and battery</strong><span>Motorbike</span></div><div class="row"><strong>Location sharing</strong><span>Group only</span></div><div class="row"><strong>Connection</strong><button data-review="diagnostics">Diagnostics</button></div>'
+}
+const dialogs = {
+  sos: ['Review SOS', 'A live broadcast requires a separate confirmation. This preview does not send an alert.'],
+  invite: ['Invite a rider', 'The native app displays a QR code that another rider can scan to join the local group.'],
+  audio: ['Audio modes', 'Open mic is the default for this preview. Voice activation and push-to-talk are optional modes in the proposed native settings.'],
+  diagnostics: ['Connection diagnostics', 'The native app can show transport, peer reachability, and packet loss here.']
+}
+function render() {
+  const weak = scenario === 'weak'
+  get('link').textContent = !joined ? 'Ready to join' : weak ? 'Reconnecting · no audio link' : 'Connected · BLE mesh'
+  get('mic').textContent = !joined ? 'Join intercom' : muted ? 'Unmute mic' : 'Mute mic'
+  get('leave').hidden = !joined
+  get('rideActions').hidden = view === 'settings'
+  const voice = !joined ? 'Connect before you start' : weak ? 'Waiting for the group' : 'Maya is speaking'
+  const micState = !joined ? 'Headset ready' : muted ? 'Mic muted · listening stays on' : 'Mic open'
+  get('screen').setAttribute('aria-label', view + ' screen')
+  get('screen').innerHTML = view === 'intercom'
+    ? '<small>Channel 03</small><h2>Sunday ride</h2><div class="speaker" aria-live="polite"><small>' + micState + '</small><strong>' + voice + '</strong></div><button class="danger" data-review="sos">Review SOS</button>'
+    : pages[view]
+  document.querySelectorAll('.dock button').forEach(button => {
+    if (button.dataset.view === 'trail') button.hidden = profile !== 'mountain'
+    const trailInRadar = profile === 'motorbike' && view === 'trail' && button.dataset.view === 'radar'
+    const selected = (button.dataset.view === view && !button.hidden) || trailInRadar
+    if (selected) button.setAttribute('aria-current', 'page')
+    else button.removeAttribute('aria-current')
+  })
+}
+document.querySelectorAll('.controls button').forEach(button => {
+  button.onclick = () => {
+    const ios = button.dataset.os === 'ios'
+    device.dataset.os = button.dataset.os
+    document.querySelectorAll('.controls button').forEach(control => control.setAttribute('aria-pressed', String(control === button)))
+    get('platform').textContent = ios ? 'iOS · Native SwiftUI' : 'Android · Jetpack Compose'
+    get('platformCopy').textContent = ios
+      ? 'Native TabView, SF Symbols and SwiftUI sheets. Keep the intercom alive while tabs change and announce mic state with VoiceOver.'
+      : 'Material 3 navigation and sheets, with system back. Request microphone and nearby-device permissions when the rider joins.'
+  }
+})
+device.onclick = event => {
+  const button = event.target.closest('button')
+  if (!button) return
+  if (button.dataset.view) {
+    view = button.dataset.view
+    render()
+  }
+  if (button.dataset.review) {
+    const [title, copy] = dialogs[button.dataset.review]
+    get('dialogTitle').textContent = title
+    get('dialogCopy').textContent = copy
+    get('dialog').showModal()
+  }
+}
+get('mic').onclick = () => {
+  if (joined) muted = !muted
+  else {
+    joined = true
+    muted = false
+    scenario = 'connected'
+    get('scenario').value = scenario
+  }
+  render()
+}
+get('leave').onclick = () => {
+  joined = false
+  muted = false
+  scenario = 'ready'
+  get('scenario').value = scenario
+  render()
+  get('mic').focus()
+}
+get('profile').onchange = event => {
+  profile = event.target.value
+  if (profile === 'motorbike' && view === 'trail') view = 'radar'
+  render()
+}
+get('scenario').onchange = event => {
+  scenario = event.target.value
+  joined = scenario !== 'ready'
+  muted = false
+  render()
+}
+const reviewers = [
+  ['Priya', 'Android Compose'],
+  ['Elena', 'Native iOS'],
+  ['Sam', 'Rider workflow and accessibility'],
+  ['Noor', 'Requirements and shared architecture'],
+  ['Alex', 'Design synthesis and verification']
+]
+get('votes').innerHTML = reviewers.map(([name, role]) =>
+  '<tr><th scope="row">' + name + ' · ' + role + '</th>' + '<td class="green">Green</td>'.repeat(4) + '</tr>'
+).join('')
+render()
+</script>
+</html>

@@ -279,6 +279,24 @@ class GroupRekeyProtocol(
     }
 
     /**
+     * Obtains a real-time observable snapshot of the active epoch and grace period.
+     */
+    fun getSnapshot(now: Long = timeProvider()): RekeyEpochSnapshot {
+        val buf = _keyBuffer
+        val remainingSec = if (buf.isGracePeriodActive && buf.gracePeriodExpiresAt > now) {
+            ((buf.gracePeriodExpiresAt - now) / 1000L).toInt()
+        } else 0
+        return RekeyEpochSnapshot(
+            currentEpoch = buf.activeEpoch,
+            isGracePeriodActive = buf.isGracePeriodActive,
+            previousEpoch = buf.previousEpoch,
+            gracePeriodRemainingSeconds = remainingSec,
+            lastRekeyTimestampMs = now,
+            lastRekeyReason = RekeyTriggerReason.SCHEDULED_ROTATION
+        )
+    }
+
+    /**
      * Securely wipes all cryptographic keys and resets protocol state.
      */
     suspend fun wipe() = mutex.withLock {
