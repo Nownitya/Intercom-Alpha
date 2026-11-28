@@ -30,7 +30,7 @@ fun Application.module() {
 
     routing {
         get("/") {
-            call.respondText(sayHello("Intercom Alpha Server"))
+            call.respondText("Intercom Alpha Server Active")
         }
 
         get("/api/status") {

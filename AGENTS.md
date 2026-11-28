@@ -56,7 +56,7 @@ Obsidian + MemPalace + Graphify
    - Before committing any story, run OpenCodeReview delegation mode (`ocr delegate preview --format json`).
    - Fix all `critical`, `high`, and `medium` findings before creating the git commit.
 9. **Rule 9: Multi-Tier Branching Strategy (docs/BRANCHING.md)**
-   - `main` is protected and strictly reserved for production release tags (`vX.Y.Z`).
+   - `main` receives reviewed release, hotfix, and standalone documentation PRs. Tag app releases and verify GitHub enforcement separately.
    - `develop` is the primary integration highway.
    - Sprints live on dedicated `sprint/sprint-NN-<name>` branches.
    - Individual Ralph stories execute on atomic `feature/<STORY-ID>-<slug>` branches off the active sprint branch, and merge back to the sprint branch upon completion.
@@ -64,6 +64,11 @@ Obsidian + MemPalace + Graphify
 ---
 
 ## 🔄 3. Ralph Atomic Story Execution Cycle
+
+Plan and report work as **Sprint → Phase → Story**. Phase numbers restart at 1
+inside each sprint. Use GSD phase numbers as roadmap references and keep ICA
+story IDs stable. Follow the sprint's phase exit conditions in
+[`SPRINT-RULES.md`](SPRINT-RULES.md#sprint-planning-hierarchy).
 
 For each story in `tasks/ralph/prd.json`:
 

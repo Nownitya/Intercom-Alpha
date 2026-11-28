@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Intercom Alpha · Mobile mockup</title>
+<style>
+:root { color-scheme:dark; --amber:#f59e0b; --card:#0f172a; --line:#334155; --muted:#b5c1d1; --green:#10b981 }
+* { box-sizing:border-box }
+body { margin:0; background:#080b10; color:#f8fafc; font:16px system-ui,sans-serif }
+button,select { font:inherit; color:inherit; min-height:44px; cursor:pointer }
+button { border:1px solid var(--line); background:var(--card); border-radius:10px; padding:8px 12px }
+:focus-visible { outline:3px solid white; outline-offset:3px }
+.phone { background:#000; width:min(100%,440px); min-height:100svh; margin:auto; padding:16px; padding-bottom:max(16px,env(safe-area-inset-bottom)); display:flex; flex-direction:column; gap:10px }
+@media(min-width:520px) {
+ .phone { margin:20px auto; min-height:min(790px,calc(100svh - 40px)); border:1px solid var(--line); border-radius:28px; padding:22px; box-shadow:0 20px 90px #000 }
+}
+header, .row, nav { display:flex; justify-content:space-between; align-items:center; gap:8px }
+h1,h2,p,figure { margin:0 }
+h1 { font-size:18px; letter-spacing:.02em }
+h2 { font-size:24px; line-height:1.1 }
+small,.label { color:var(--muted); font:600 12px ui-monospace,monospace; letter-spacing:.08em; text-transform:uppercase }
+.telemetry { display:flex; flex-wrap:wrap; gap:6px 13px; padding:8px 0; border-block:1px solid var(--line); font:600 12px ui-monospace,monospace }
+.ready { color:#59e3b1 }
+.card { border:1px solid var(--line); background:var(--card); border-radius:14px; padding:12px; display:grid; gap:8px }
+main { flex:1 }
+section { display:grid; gap:10px }
+[hidden] { display:none!important }
+select { background:#000; border:1px solid var(--line); border-radius:8px; padding:0 8px; font-family:ui-monospace,monospace }
+.leds { display:flex; gap:4px }
+.leds i { width:15px; height:7px; background:var(--line); border-radius:2px }
+.leds i:nth-child(-n+2), .sending .leds i { background:var(--amber) }
+.alerts,.shelf { display:grid; gap:8px; grid-template-columns:repeat(3,1fr) }
+.alerts button { font-size:13px; padding-inline:4px }
+.sos { width:100%; color:#ffb4b4; background:#240f15; border-color:#783341 }
+.shelf { grid-template-columns:1fr auto }
+.shelf:has(#leave[hidden]) { grid-template-columns:1fr }
+#mic { min-height:84px; background:var(--amber); color:#181004; border-color:var(--amber); font-size:23px; font-weight:850 }
+#mic[data-muted="true"] { background:#ffcf75; box-shadow:inset 0 0 0 3px #181004 }
+nav button { flex:1; background:#000 }
+[aria-pressed="true"] { color:var(--amber); border-color:var(--amber) }
+#feedback { min-height:1.2em; color:var(--muted); font-size:13px }
+.radar { position:relative; height:240px; width:min(240px,100%); margin:auto; border-radius:50%; border:1px solid var(--line); background:radial-gradient(circle,transparent 31%,var(--line) 31.5%,transparent 32%,transparent 62%,var(--line) 62.5%,transparent 63%),linear-gradient(transparent 49.5%,var(--line) 50%,transparent 50.5%),linear-gradient(90deg,transparent 49.5%,var(--line) 50%,transparent 50.5%) }
+.dot { position:absolute; width:11px; height:11px; border-radius:50%; background:var(--amber); transform:translate(-50%,-50%) }
+.peer { padding:8px 0; border-bottom:1px solid var(--line) }
+dialog { width:min(380px,calc(100% - 32px)); border:1px solid var(--line); border-radius:14px; background:var(--card); color:inherit; padding:18px }
+dialog::backdrop { background:#000b }
+dialog p { margin:10px 0 }
+input[type=range] { width:100%; height:44px; accent-color:var(--amber) }
+</style>
+<article class="phone">
+<header><h1>Intercom Alpha</h1><small>Motorbike</small></header>
+<div class="telemetry"><span class="ready">● Mesh available</span><span>4 nodes</span><span>Link 92%</span><span>Battery 78%</span></div>
+<main>
+<section id="cockpit" aria-label="Cockpit">
+ <div class="card row"><div><label class="label" for="channel">Active channel</label><h2 id="channelName">Convoy</h2></div><select id="channel" aria-label="Active channel"></select></div>
+ <div class="card" id="speakerCard">
+  <span class="label" id="voiceState">Intercom ready</span>
+  <div class="row"><h2 id="speaker" aria-live="polite">Join when ready</h2><span class="leds" aria-hidden="true"><i></i><i></i><i></i><i></i></span></div>
+ </div>
+ <div class="alerts" aria-label="Quick convoy alerts"><button data-message="Road hazard">Hazard</button><button data-message="Fuel low">Fuel low</button><button data-message="Stop now">Stop now</button></div>
+ <button class="sos" id="guard">SOS · Open guard</button>
+</section>
+<section id="radar" aria-label="Radar" hidden>
+ <div class="card"><div class="row"><h2>Proximity radar</h2><button id="zoom" type="button">500 m</button></div>
+ <figure class="radar" aria-hidden="true"><span class="dot" style="left:50%;top:50%;background:white"></span><span class="dot" id="lead"></span><span class="dot" id="sweep"></span></figure>
+ <div class="row"><span>Lead · 140 m ahead</span><span>Sweep · 320 m back</span></div></div>
+</section>
+<section id="convoy" aria-label="Convoy" hidden>
+ <div class="card"><h2>Convoy roster</h2><div class="peer row"><strong>Maya · Lead</strong><small>140 m ahead</small></div><div class="peer row"><strong>Dev · Sweep</strong><small>320 m back</small></div><div class="peer row"><strong>Rin · Rider</strong><small>60 m back</small></div><div class="peer row"><strong>You</strong><small>Local node</small></div></div>
+</section>
+</main>
+<p id="feedback" role="status">Demo · Simulated mesh</p>
+<div class="shelf"><button id="mic">Join intercom</button><button id="leave" hidden>Leave</button></div>
+<nav aria-label="Main navigation"><button data-view="cockpit" aria-pressed="true">Cockpit</button><button data-view="radar" aria-pressed="false">Radar</button><button data-view="convoy" aria-pressed="false">Convoy</button></nav>
+</article>
+<dialog id="sosDialog" aria-labelledby="sosTitle">
+<h2 id="sosTitle">Guarded SOS</h2>
+<p id="sosCopy" role="status">Slide to the end, then hold for 3 seconds. Keyboard users can move the slider to the end and wait.</p>
+<input id="sosSlider" type="range" min="0" max="100" value="0" aria-label="Slide to confirm simulated SOS">
+<button id="cancelSos">Cancel SOS</button>
+</dialog>
+<script>
+const byId = id => document.getElementById(id)
+const channel = byId('channel')
+const feedback = byId('feedback')
+const mic = byId('mic')
+const leave = byId('leave')
+let joined = false
+let muted = false
+for (let i = 1; i <= 16; i++) {
+  channel.add(new Option('CH ' + String(i).padStart(2, '0'), i))
+}
+channel.value = '3'
+function renderVoice() {
+  const convoyChannel = channel.value === '3'
+  byId('channelName').textContent = convoyChannel ? 'Convoy' : 'Channel ' + channel.value
+  byId('speaker').textContent = !joined ? 'Join when ready' : convoyChannel ? 'Maya · Lead speaking' : 'Channel quiet'
+  byId('voiceState').textContent = !joined ? 'Intercom ready' : muted ? 'Connected · Mic muted' : 'Connected · Mic open'
+  byId('speakerCard').classList.toggle('sending', joined && convoyChannel)
+  mic.textContent = !joined ? 'Join intercom' : muted ? 'Unmute mic' : 'Mute mic'
+  mic.dataset.muted = String(joined && muted)
+  leave.hidden = !joined
+}
+channel.addEventListener('change', renderVoice)
+mic.onclick = () => {
+  if (!joined) {
+    joined = true
+    muted = false
+    feedback.textContent = 'Demo · Joined with mic open'
+    renderVoice()
+    return
+  }
+  muted = !muted
+  feedback.textContent = muted ? 'Demo · Mic muted. You can still hear the group.' : 'Demo · Mic open'
+  renderVoice()
+}
+leave.onclick = () => {
+  joined = false
+  muted = false
+  feedback.textContent = 'Demo · Left intercom'
+  renderVoice()
+  mic.focus()
+}
+renderVoice()
+document.querySelectorAll('[data-message]').forEach(button => {
+  button.onclick = () => feedback.textContent = 'Demo alert · ' + button.dataset.message
+})
+const tabs = document.querySelectorAll('[data-view]')
+tabs.forEach(tab => {
+  tab.onclick = () => {
+    tabs.forEach(button => {
+      const active = button === tab
+      button.setAttribute('aria-pressed', String(active))
+      byId(button.dataset.view).hidden = !active
+    })
+  }
+})
+let range = 500
+function renderRadar() {
+  byId('zoom').textContent = range + ' m'
+  for (const [id, distance] of [['lead', -140], ['sweep', 320]]) {
+    const dot = byId(id)
+    dot.hidden = Math.abs(distance) > range
+    dot.style.left = '50%'
+    dot.style.top = (50 + distance / range * 45) + '%'
+  }
+}
+byId('zoom').onclick = () => {
+  range = range === 500 ? 250 : range === 250 ? 1000 : 500
+  renderRadar()
+}
+renderRadar()
+const dialog = byId('sosDialog')
+const slider = byId('sosSlider')
+const sosCopy = byId('sosCopy')
+const instructions = sosCopy.textContent
+let timer
+let beaconActive = false
+byId('guard').onclick = () => dialog.showModal()
+slider.oninput = () => {
+  clearTimeout(timer)
+  if (slider.value !== '100') {
+    sosCopy.textContent = instructions
+    return
+  }
+  sosCopy.textContent = 'Confirming simulated SOS in 3 seconds…'
+  timer = setTimeout(() => {
+    beaconActive = true
+    slider.hidden = true
+    sosCopy.textContent = 'Demo · Emergency beacon active'
+    feedback.textContent = sosCopy.textContent
+    byId('guard').textContent = 'SOS · Beacon active'
+    byId('cancelSos').focus()
+  }, 3000)
+}
+slider.addEventListener('pointerup', () => {
+  if (beaconActive) return
+  slider.value = '0'
+  slider.oninput()
+})
+slider.addEventListener('pointercancel', () => {
+  if (beaconActive) return
+  slider.value = '0'
+  slider.oninput()
+})
+dialog.addEventListener('close', () => {
+  clearTimeout(timer)
+  if (beaconActive) feedback.textContent = 'Demo · Emergency beacon cleared'
+  beaconActive = false
+  slider.hidden = false
+  slider.value = '0'
+  sosCopy.textContent = instructions
+  byId('guard').textContent = 'SOS · Open guard'
+})
+byId('cancelSos').onclick = () => dialog.close()
+</script>
+</html>

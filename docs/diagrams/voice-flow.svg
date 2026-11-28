@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 810" role="img" aria-labelledby="title description" font-family="system-ui, sans-serif"><title id="title">From group setup to voice playback</title><desc id="description">Follow the intended mobile flow and distinguish screen reachability from packet processing.</desc><defs><marker id="arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7Z" fill="#577168"/></marker></defs>
+<rect x="0" y="0" width="1160" height="810" rx="0" fill="#F3F6F3" stroke="none"/>
+<text x="40" y="45" fill="#286754" font-size="15" font-weight="700">Intercom-Alpha / Engineering flows</text>
+<text x="40" y="88" fill="#162824" font-size="32" font-weight="700">From group setup to voice playback</text>
+<text x="40" y="117" fill="#435951" font-size="16" font-weight="400">Follow the intended mobile flow and distinguish screen reachability from packet processing.</text>
+<path d="M376 224 L412 224" stroke="#577168" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M748 224 L784 224" stroke="#577168" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M784 410 L748 410" stroke="#577168" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M412 410 L376 410" stroke="#577168" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M376 596 L412 596" stroke="#577168" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M748 596 L784 596" stroke="#577168" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M952 304 L952 330" stroke="#577168" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M208 490 L208 516" stroke="#577168" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="40" y="144" width="336" height="160" rx="13" fill="#FFF0D0" stroke="none"/>
+<text x="56" y="169" fill="#8A580A" font-size="12" font-weight="700">Runtime check needed</text>
+<text x="56" y="197" fill="#162824" font-size="19" font-weight="700">Permissions and discovery</text>
+<text x="56" y="223" fill="#435951" font-size="15" font-weight="400">Grant microphone/BLE permission. Observe</text>
+<text x="56" y="240" fill="#435951" font-size="15" font-weight="400">peers over platform BLE; request camera at</text>
+<text x="56" y="257" fill="#435951" font-size="15" font-weight="400">QR entry.</text>
+<rect x="412" y="144" width="336" height="160" rx="13" fill="#F9E2DE" stroke="none"/>
+<text x="428" y="169" fill="#A23930" font-size="12" font-weight="700">Gap</text>
+<text x="428" y="197" fill="#162824" font-size="19" font-weight="700">Create or join</text>
+<text x="428" y="223" fill="#435951" font-size="15" font-weight="400">Host creates a group and shares an invite.</text>
+<text x="428" y="240" fill="#435951" font-size="15" font-weight="400">Guest scans or enters it. Verify Compose</text>
+<text x="428" y="257" fill="#435951" font-size="15" font-weight="400">dialog and iOS profile paths.</text>
+<rect x="784" y="144" width="336" height="160" rx="13" fill="#FFF0D0" stroke="none"/>
+<text x="800" y="169" fill="#8A580A" font-size="12" font-weight="700">Runtime check needed</text>
+<text x="800" y="197" fill="#162824" font-size="19" font-weight="700">Session and channel</text>
+<text x="800" y="223" fill="#435951" font-size="15" font-weight="400">Show joined group, active channel and link</text>
+<text x="800" y="240" fill="#435951" font-size="15" font-weight="400">state. Joining failure returns to the same</text>
+<text x="800" y="257" fill="#435951" font-size="15" font-weight="400">recovery path.</text>
+<rect x="784" y="330" width="336" height="160" rx="13" fill="#DCEDE7" stroke="none"/>
+<text x="800" y="355" fill="#286754" font-size="12" font-weight="700">Present in source</text>
+<text x="800" y="383" fill="#162824" font-size="19" font-weight="700">Capture</text>
+<text x="800" y="409" fill="#435951" font-size="15" font-weight="400">Press Talk. Platform audio capture and</text>
+<text x="800" y="426" fill="#435951" font-size="15" font-weight="400">headset routing supply audio frames.</text>
+<text x="800" y="443" fill="#435951" font-size="15" font-weight="400">Release or interruption stops sending.</text>
+<rect x="412" y="330" width="336" height="160" rx="13" fill="#DCEDE7" stroke="none"/>
+<text x="428" y="355" fill="#286754" font-size="12" font-weight="700">Present in source</text>
+<text x="428" y="383" fill="#162824" font-size="19" font-weight="700">Encode and package</text>
+<text x="428" y="409" fill="#435951" font-size="15" font-weight="400">Shared audio processing and codec prepare</text>
+<text x="428" y="426" fill="#435951" font-size="15" font-weight="400">frames. Packet includes sender/channel</text>
+<text x="428" y="443" fill="#435951" font-size="15" font-weight="400">metadata and uses group protection where</text>
+<text x="428" y="460" fill="#435951" font-size="15" font-weight="400">configured.</text>
+<rect x="40" y="330" width="336" height="160" rx="13" fill="#DCEDE7" stroke="none"/>
+<text x="56" y="355" fill="#286754" font-size="12" font-weight="700">Present in source</text>
+<text x="56" y="383" fill="#162824" font-size="19" font-weight="700">Transport</text>
+<text x="56" y="409" fill="#435951" font-size="15" font-weight="400">Send over local BLE; routing policy and</text>
+<text x="56" y="426" fill="#435951" font-size="15" font-weight="400">available fallback determine whether</text>
+<text x="56" y="443" fill="#435951" font-size="15" font-weight="400">another hop or relay is used.</text>
+<rect x="40" y="516" width="336" height="160" rx="13" fill="#DCEDE7" stroke="none"/>
+<text x="56" y="541" fill="#286754" font-size="12" font-weight="700">Present in source</text>
+<text x="56" y="569" fill="#162824" font-size="19" font-weight="700">Receive and filter</text>
+<text x="56" y="595" fill="#435951" font-size="15" font-weight="400">Parse and authenticate as appropriate.</text>
+<text x="56" y="612" fill="#435951" font-size="15" font-weight="400">Apply deduplication and channel/group</text>
+<text x="56" y="629" fill="#435951" font-size="15" font-weight="400">checks before delivery or forward.</text>
+<rect x="412" y="516" width="336" height="160" rx="13" fill="#DCEDE7" stroke="none"/>
+<text x="428" y="541" fill="#286754" font-size="12" font-weight="700">Present in source</text>
+<text x="428" y="569" fill="#162824" font-size="19" font-weight="700">Decode and play</text>
+<text x="428" y="595" fill="#435951" font-size="15" font-weight="400">Decode received frames and route playback</text>
+<text x="428" y="612" fill="#435951" font-size="15" font-weight="400">through the receiving device. Jitter and</text>
+<text x="428" y="629" fill="#435951" font-size="15" font-weight="400">loss recovery depend on the exercised</text>
+<text x="428" y="646" fill="#435951" font-size="15" font-weight="400">path.</text>
+<rect x="784" y="516" width="336" height="160" rx="13" fill="#FFF0D0" stroke="none"/>
+<text x="800" y="541" fill="#8A580A" font-size="12" font-weight="700">Runtime check needed</text>
+<text x="800" y="569" fill="#162824" font-size="19" font-weight="700">Update app</text>
+<text x="800" y="595" fill="#435951" font-size="15" font-weight="400">Publish connection, channel and</text>
+<text x="800" y="612" fill="#435951" font-size="15" font-weight="400">transmit/playback state. Verify true</text>
+<text x="800" y="629" fill="#435951" font-size="15" font-weight="400">remote speaker identity and route on</text>
+<text x="800" y="646" fill="#435951" font-size="15" font-weight="400">phones.</text>
+<rect x="40" y="704" width="16" height="16" rx="3" fill="#DCEDE7" stroke="#286754"/>
+<text x="65" y="717" fill="#286754" font-size="13" font-weight="700">Present in source</text>
+<rect x="295" y="704" width="16" height="16" rx="3" fill="#FFF0D0" stroke="#8A580A"/>
+<text x="320" y="717" fill="#8A580A" font-size="13" font-weight="700">Runtime check needed</text>
+<rect x="550" y="704" width="16" height="16" rx="3" fill="#F9E2DE" stroke="#A23930"/>
+<text x="575" y="717" fill="#A23930" font-size="13" font-weight="700">Gap</text>
+<rect x="805" y="704" width="16" height="16" rx="3" fill="#E4E9F9" stroke="#375AA1"/>
+<text x="830" y="717" fill="#375AA1" font-size="13" font-weight="700">Proposed</text>
+<a href="https://github.com/Nownitya/Intercom-Alpha/blob/sprint/sprint-37-fleet-congestion-control/docs/SSD.md"><text x="40" y="750" fill="#286754" font-size="13" font-weight="700">SSD.md</text></a>
+<a href="https://github.com/Nownitya/Intercom-Alpha/blob/sprint/sprint-37-fleet-congestion-control/docs/ARCHITECTURE.md"><text x="580" y="750" fill="#286754" font-size="13" font-weight="700">ARCHITECTURE.md</text></a>
+<a href="https://github.com/Nownitya/Intercom-Alpha/blob/sprint/sprint-37-fleet-congestion-control/app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomBridge.kt"><text x="40" y="772" fill="#286754" font-size="13" font-weight="700">IntercomBridge.kt</text></a>
+</svg>

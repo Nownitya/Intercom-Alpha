@@ -15,6 +15,8 @@ import org.nowni.intercom_alpha.telemetry.ConvoyTelemetrySnapshot
 import org.nowni.intercom_alpha.telemetry.MotionState
 import org.nowni.intercom_alpha.text.CannedMessageCode
 import org.nowni.intercom_alpha.text.MeshTextMessage
+import org.nowni.intercom_alpha.ui.theme.ActivityProfile
+import org.nowni.intercom_alpha.ui.theme.TacticalThemePreset
 
 data class HomeUiState(
     val isTransmitting: Boolean = false,
@@ -28,6 +30,16 @@ data class HomeUiState(
     val showShareDialog: Boolean = false,
     val showJoinDialog: Boolean = false,
     val errorMessage: String? = null,
+
+    // ADR-0021 UI Profile & Customization State
+    val activityProfile: ActivityProfile = ActivityProfile.MOTORBIKE,
+    val themePreset: TacticalThemePreset = TacticalThemePreset.TACTICAL_AMBER,
+    val lowPowerMode: Boolean = true,
+    val showVuMeter: Boolean = false,
+    val showRadar: Boolean = true,
+    val showElevation: Boolean = true,
+    val showConvoyMap: Boolean = true,
+    val showRfDiagnostics: Boolean = false,
 
     // v2.0 Cockpit Subsystem State
     val channelState: ChannelState = ChannelState(),
@@ -101,7 +113,66 @@ data class HomeUiState(
 
     // Sprint 25 Automated Multi-Path Mesh Failover & Handover HUD (ICA-2503)
     val failoverSnapshot: org.nowni.intercom_alpha.mesh.failover.FailoverMetrics = org.nowni.intercom_alpha.mesh.failover.FailoverMetrics(),
-    val showFailoverSheet: Boolean = false
+    val showFailoverSheet: Boolean = false,
+
+    // Sprint 32 Tactile Sub-Screens & Overlays (ICA-3202)
+    val showDiagnosticsSheet: Boolean = false,
+
+    // Sprint 33 Dynamic Adaptive Mesh Bitrate Tuning (ICA-3303)
+    val linkQualityHealth: org.nowni.intercom_alpha.mesh.ClusterLinkHealth = org.nowni.intercom_alpha.mesh.ClusterLinkHealth(
+        peerCount = 0,
+        averageScore = 100,
+        worstScore = 100,
+        bestScore = 100,
+        overallGrade = org.nowni.intercom_alpha.mesh.LinkQualityGrade.EXCELLENT,
+        peerScores = emptyList()
+    ),
+    val bitrateTelemetry: org.nowni.intercom_alpha.audio.BitrateEngineTelemetry = org.nowni.intercom_alpha.audio.BitrateEngineTelemetry(
+        activeProfile = org.nowni.intercom_alpha.common.AudioProfile.MEDIUM,
+        effectiveBitrateKbps = 32,
+        effectiveFrameDurationMs = 20,
+        candidateProfile = org.nowni.intercom_alpha.common.AudioProfile.MEDIUM,
+        consecutivePristineCycles = 0,
+        hysteresisThresholdCycles = 3,
+        isPinned = false,
+        clusterPolicy = org.nowni.intercom_alpha.audio.ClusterPolicy.WORST_LINK,
+        governingScore = 100,
+        governingGrade = org.nowni.intercom_alpha.mesh.LinkQualityGrade.EXCELLENT,
+        lastTransitionReason = "Initial baseline",
+        timestampMs = 0L
+    ),
+
+    // Sprint 34 Forward Error Correction & Packet Loss Concealment (ICA-3403)
+    val fecTelemetry: org.nowni.intercom_alpha.audio.FecTelemetry = org.nowni.intercom_alpha.audio.FecTelemetry(
+        activeRatio = org.nowni.intercom_alpha.audio.FecRatio.RATIO_4_1,
+        totalPacketsEncoded = 0L,
+        totalParityGenerated = 0L,
+        totalPacketsReceived = 0L,
+        totalPacketsRecovered = 0L,
+        totalBlocksCompleted = 0L,
+        totalBlocksRecovered = 0L,
+        totalBlocksUnrecoverable = 0L
+    ),
+    val plcTelemetry: org.nowni.intercom_alpha.audio.PlcTelemetry = org.nowni.intercom_alpha.audio.PlcTelemetry(),
+
+    // Sprint 35 Ultra-Low Latency BLE ATT MTU Frame Packing (ICA-3503)
+    val bleMtuTelemetry: org.nowni.intercom_alpha.mesh.BleMtuTelemetry = org.nowni.intercom_alpha.mesh.BleMtuTelemetry(
+        negotiatedMtu = 247,
+        effectivePayloadCapacity = 240,
+        totalFramesIngested = 0L,
+        totalPacketsEmitted = 0L,
+        averageFramesPerPacket = 0.0,
+        packingEfficiencyPct = 0.0,
+        rfPacketReductionPct = 0.0
+    ),
+
+    // Sprint 36 Offline Vector Topographic & Trail Elevation Profile HUD (ICA-3603)
+    val elevationProfile: org.nowni.intercom_alpha.geo.ConvoyElevationProfile = org.nowni.intercom_alpha.geo.ConvoyElevationProfile(),
+    val showElevationSheet: Boolean = false,
+
+    // Sprint 37 Autonomous Fleet Mesh Congestion Control & Adaptive PHY (ICA-3703)
+    val phySwitcherSnapshot: org.nowni.intercom_alpha.mesh.PhySwitcherSnapshot = org.nowni.intercom_alpha.mesh.PhySwitcherSnapshot(),
+    val meshCongestionSnapshot: org.nowni.intercom_alpha.mesh.MeshCongestionSnapshot = org.nowni.intercom_alpha.mesh.MeshCongestionSnapshot()
 )
 
 sealed interface HomeUiAction {
@@ -168,6 +239,22 @@ sealed interface HomeUiAction {
     // Sprint 25 Automated Multi-Path Failover Actions (ICA-2503)
     data class ToggleFailoverSheet(val show: Boolean) : HomeUiAction
     data class SetFailoverModeOverride(val mode: org.nowni.intercom_alpha.mesh.failover.FailoverMode?) : HomeUiAction
+
+    // Sprint 32 Tactile Diagnostics Action (ICA-3202)
+    data class ToggleDiagnosticsSheet(val show: Boolean) : HomeUiAction
+
+    // Sprint 33 Dynamic Adaptive Bitrate Actions (ICA-3303)
+    data class PinAudioProfile(val profile: org.nowni.intercom_alpha.common.AudioProfile?) : HomeUiAction
+    data class SetClusterPolicy(val policy: org.nowni.intercom_alpha.audio.ClusterPolicy) : HomeUiAction
+
+    // Sprint 34 Forward Error Correction Actions (ICA-3403)
+    data class SetFecRatio(val ratio: org.nowni.intercom_alpha.audio.FecRatio) : HomeUiAction
+
+    // Sprint 35 BLE ATT MTU Actions (ICA-3503)
+    data class SetNegotiatedMtu(val mtu: Int) : HomeUiAction
+
+    // Sprint 36 Trail Elevation HUD Actions (ICA-3603)
+    data class ToggleElevationSheet(val show: Boolean) : HomeUiAction
 }
 
 sealed interface HomeUiEvent {

@@ -57,6 +57,10 @@ class HomeViewModel(
     ),
     val qosScheduler: org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler = org.nowni.intercom_alpha.mesh.qos.MeshQoSScheduler(),
     val failoverArbiter: org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter = org.nowni.intercom_alpha.mesh.failover.MultiPathFailoverArbiter(),
+    val linkQualityScorer: org.nowni.intercom_alpha.mesh.MeshLinkQualityScorer = org.nowni.intercom_alpha.mesh.MeshLinkQualityScorer(),
+    val bitrateEngine: org.nowni.intercom_alpha.audio.AdaptiveBitrateEngine = org.nowni.intercom_alpha.audio.AdaptiveBitrateEngine(),
+    val fecEngine: org.nowni.intercom_alpha.audio.MeshPacketFecEngine = org.nowni.intercom_alpha.audio.MeshPacketFecEngine(),
+    val lossConcealment: org.nowni.intercom_alpha.audio.AudioLossConcealment = org.nowni.intercom_alpha.audio.AudioLossConcealment(),
     val hardwareBridge: IntercomHardwareBridge = NoOpIntercomHardwareBridge()
 ) : ViewModel() {
 
@@ -90,6 +94,63 @@ class HomeViewModel(
         viewModelScope.launch {
             failoverArbiter.metrics.collect { snapshot ->
                 _uiState.update { it.copy(failoverSnapshot = snapshot) }
+            }
+        }
+        viewModelScope.launch {
+            hardwareBridge.failoverSnapshot.collect { snapshot ->
+                _uiState.update { it.copy(failoverSnapshot = snapshot) }
+            }
+        }
+
+        viewModelScope.launch {
+            linkQualityScorer.clusterHealth.collect { health ->
+                _uiState.update { it.copy(linkQualityHealth = health) }
+                bitrateEngine.evaluateClusterHealth(health, currentTimeMillis())
+            }
+        }
+
+        viewModelScope.launch {
+            bitrateEngine.telemetry.collect { telemetry ->
+                _uiState.update { it.copy(bitrateTelemetry = telemetry) }
+                hardwareBridge.updateAdaptiveBitrateSnapshot(telemetry)
+            }
+        }
+
+        viewModelScope.launch {
+            hardwareBridge.linkQualitySnapshot.collect { health ->
+                _uiState.update { it.copy(linkQualityHealth = health) }
+            }
+        }
+
+        viewModelScope.launch {
+            hardwareBridge.adaptiveBitrateSnapshot.collect { telemetry ->
+                _uiState.update { it.copy(bitrateTelemetry = telemetry) }
+            }
+        }
+
+        viewModelScope.launch {
+            fecEngine.telemetry.collect { telemetry ->
+                _uiState.update { it.copy(fecTelemetry = telemetry) }
+                hardwareBridge.updateFecTelemetry(telemetry)
+            }
+        }
+
+        viewModelScope.launch {
+            lossConcealment.telemetry.collect { telemetry ->
+                _uiState.update { it.copy(plcTelemetry = telemetry) }
+                hardwareBridge.updatePlcTelemetry(telemetry)
+            }
+        }
+
+        viewModelScope.launch {
+            hardwareBridge.fecTelemetrySnapshot.collect { telemetry ->
+                _uiState.update { it.copy(fecTelemetry = telemetry) }
+            }
+        }
+
+        viewModelScope.launch {
+            hardwareBridge.plcTelemetrySnapshot.collect { telemetry ->
+                _uiState.update { it.copy(plcTelemetry = telemetry) }
             }
         }
 
@@ -366,6 +427,38 @@ class HomeViewModel(
         viewModelScope.launch {
             hardwareBridge.qosSnapshot.collect { snapshot ->
                 _uiState.update { it.copy(qosSnapshot = snapshot) }
+            }
+        }
+
+        // 13. Synchronize FEC, PLC, and BLE MTU Snapshots (ICA-3403 / ICA-3503)
+        viewModelScope.launch {
+            hardwareBridge.fecTelemetrySnapshot.collect { snapshot ->
+                _uiState.update { it.copy(fecTelemetry = snapshot) }
+            }
+        }
+        viewModelScope.launch {
+            hardwareBridge.plcTelemetrySnapshot.collect { snapshot ->
+                _uiState.update { it.copy(plcTelemetry = snapshot) }
+            }
+        }
+        viewModelScope.launch {
+            hardwareBridge.bleMtuSnapshot.collect { snapshot ->
+                _uiState.update { it.copy(bleMtuTelemetry = snapshot) }
+            }
+        }
+        viewModelScope.launch {
+            hardwareBridge.elevationProfileSnapshot.collect { snapshot ->
+                _uiState.update { it.copy(elevationProfile = snapshot) }
+            }
+        }
+        viewModelScope.launch {
+            hardwareBridge.phySwitcherSnapshot.collect { snapshot ->
+                _uiState.update { it.copy(phySwitcherSnapshot = snapshot) }
+            }
+        }
+        viewModelScope.launch {
+            hardwareBridge.meshCongestionSnapshot.collect { snapshot ->
+                _uiState.update { it.copy(meshCongestionSnapshot = snapshot) }
             }
         }
     }
@@ -678,6 +771,44 @@ class HomeViewModel(
                 viewModelScope.launch {
                     failoverArbiter.forceMode(action.mode, currentTimeMillis())
                 }
+            }
+
+            is HomeUiAction.ToggleDiagnosticsSheet -> {
+                _uiState.update { it.copy(showDiagnosticsSheet = action.show) }
+            }
+
+            is HomeUiAction.PinAudioProfile -> {
+                viewModelScope.launch {
+                    if (action.profile != null) {
+                        bitrateEngine.pinProfile(action.profile, currentTimeMillis())
+                        hardwareBridge.pinAudioBitrateProfile(action.profile)
+                    } else {
+                        bitrateEngine.releasePin(currentTimeMillis())
+                        hardwareBridge.pinAudioBitrateProfile(null)
+                    }
+                }
+            }
+
+            is HomeUiAction.SetClusterPolicy -> {
+                viewModelScope.launch {
+                    bitrateEngine.setClusterPolicy(action.policy)
+                    hardwareBridge.setClusterPolicy(action.policy)
+                }
+            }
+
+            is HomeUiAction.SetFecRatio -> {
+                viewModelScope.launch {
+                    fecEngine.setFecRatio(action.ratio)
+                    hardwareBridge.setFecRatio(action.ratio)
+                }
+            }
+
+            is HomeUiAction.SetNegotiatedMtu -> {
+                hardwareBridge.setNegotiatedMtu(action.mtu)
+            }
+
+            is HomeUiAction.ToggleElevationSheet -> {
+                _uiState.update { it.copy(showElevationSheet = action.show) }
             }
         }
     }

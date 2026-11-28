@@ -1,0 +1,2220 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Intercom-Alpha — Tactical Cockpit UI/UX Master Mockup</title>
+  <style>
+    /* =========================================================================
+       1. TACTICAL DESIGN SYSTEM CSS TOKENS (ADR-0021 & DESIGN.md)
+       ========================================================================= */
+    :root {
+      /* Tactical Amber (Default Theme) */
+      --chassis-bg: #000000;
+      --surface-card: #0c121e;
+      --surface-card-hover: #152033;
+      --surface-border: #1e293b;
+      --surface-border-subtle: #111827;
+
+      --accent-primary: #f59e0b;       /* Tactical Amber */
+      --accent-primary-glow: rgba(245, 158, 11, 0.28);
+      --accent-primary-dim: #78350f;
+
+      --signal-active: #10b981;        /* Emerald Link OK / Transmit */
+      --signal-active-glow: rgba(16, 185, 129, 0.35);
+      --signal-warning: #f59e0b;       /* Amber Warning */
+      --signal-emergency: #ef4444;     /* Crimson SOS */
+      --signal-emergency-glow: rgba(239, 68, 68, 0.45);
+
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --text-inverse: #000000;
+
+      --font-mono: 'JetBrains Mono', 'SF Mono', 'Courier New', monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-pill: 9999px;
+
+      --cockpit-width: 412px;
+      --cockpit-height: 860px;
+    }
+
+    /* THEME 2: Alpine High-Vis */
+    body.theme-alpine {
+      --chassis-bg: #050b14;
+      --surface-card: #0b172a;
+      --surface-card-hover: #13243f;
+      --surface-border: #1e3a5f;
+      --surface-border-subtle: #0f233a;
+      --accent-primary: #00e5ff;       /* Cyber Cyan */
+      --accent-primary-glow: rgba(0, 229, 255, 0.35);
+      --accent-primary-dim: #00607a;
+      --signal-active: #a3e635;        /* High-vis Lime */
+      --signal-active-glow: rgba(163, 230, 53, 0.35);
+      --signal-warning: #fbbf24;
+      --signal-emergency: #ff3366;
+      --signal-emergency-glow: rgba(255, 51, 102, 0.45);
+    }
+
+    /* THEME 3: Forest Emerald */
+    body.theme-forest {
+      --chassis-bg: #050c07;
+      --surface-card: #0d1a10;
+      --surface-card-hover: #162a1c;
+      --surface-border: #1c3823;
+      --surface-border-subtle: #0f2215;
+      --accent-primary: #10b981;       /* Tactical Moss Green */
+      --accent-primary-glow: rgba(16, 185, 129, 0.35);
+      --accent-primary-dim: #064e3b;
+      --signal-active: #34d399;
+      --signal-active-glow: rgba(52, 211, 153, 0.35);
+      --signal-warning: #f59e0b;
+      --signal-emergency: #ef4444;
+      --signal-emergency-glow: rgba(239, 68, 68, 0.45);
+    }
+
+    /* THEME 4: Desert Ochre */
+    body.theme-desert {
+      --chassis-bg: #0c0906;
+      --surface-card: #19140e;
+      --surface-card-hover: #261f17;
+      --surface-border: #382c20;
+      --surface-border-subtle: #201812;
+      --accent-primary: #fbbf24;       /* Mojave Gold */
+      --accent-primary-glow: rgba(251, 191, 36, 0.35);
+      --accent-primary-dim: #78350f;
+      --signal-active: #14b8a6;
+      --signal-active-glow: rgba(20, 184, 166, 0.35);
+      --signal-warning: #fb923c;
+      --signal-emergency: #f43f5e;
+      --signal-emergency-glow: rgba(244, 63, 94, 0.45);
+    }
+
+    /* THEME 5: Monochrome Minimal */
+    body.theme-monochrome {
+      --chassis-bg: #000000;
+      --surface-card: #121212;
+      --surface-card-hover: #1e1e1e;
+      --surface-border: #2e2e2e;
+      --surface-border-subtle: #1a1a1a;
+      --accent-primary: #ffffff;       /* Pure White */
+      --accent-primary-glow: rgba(255, 255, 255, 0.3);
+      --accent-primary-dim: #525252;
+      --signal-active: #ffffff;
+      --signal-active-glow: rgba(255, 255, 255, 0.3);
+      --signal-warning: #a3a3a3;
+      --signal-emergency: #ef4444;
+      --signal-emergency-glow: rgba(239, 68, 68, 0.45);
+    }
+
+    /* =========================================================================
+       2. WORKSPACE LAYOUT (DESKTOP STUDIO PREVIEW)
+       ========================================================================= */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background-color: #080b11;
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 24px 16px 40px;
+      overflow-x: hidden;
+    }
+
+    /* Top Navigation Toolbar */
+    .studio-bar {
+      width: 100%;
+      max-width: 1180px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 20px;
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: var(--radius-lg);
+      margin-bottom: 24px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 34px;
+      height: 34px;
+      background: var(--accent-primary);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-inverse);
+      font-weight: 900;
+      font-family: var(--font-mono);
+      font-size: 18px;
+      box-shadow: 0 0 12px var(--accent-primary-glow);
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: #ffffff;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .controls-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .ctrl-label {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .select-tactical {
+      background: #090e17;
+      color: var(--text-primary);
+      border: 1px solid #223249;
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .select-tactical:focus {
+      border-color: var(--accent-primary);
+    }
+
+    .btn-toggle-frame {
+      background: #1a2536;
+      color: var(--text-primary);
+      border: 1px solid #2c3e55;
+      border-radius: var(--radius-sm);
+      padding: 6px 12px;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-toggle-frame:hover {
+      background: #24334a;
+      border-color: var(--accent-primary);
+    }
+
+    /* Main Studio Canvas */
+    .studio-canvas {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 32px;
+      width: 100%;
+      max-width: 1280px;
+    }
+
+    /* Side Telemetry Deck (Desktop Assistant) */
+    .telemetry-deck {
+      width: 340px;
+      background: #0c121e;
+      border: 1px solid #1e293b;
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .deck-title {
+      font-size: 13px;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      color: var(--accent-primary);
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #1e293b;
+      padding-bottom: 10px;
+    }
+
+    .deck-card {
+      background: #060910;
+      border: 1px solid #192333;
+      border-radius: var(--radius-md);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .deck-card-title {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      text-transform: uppercase;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .deck-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-family: var(--font-mono);
+    }
+
+    .deck-value {
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .deck-pill {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: var(--radius-pill);
+      font-weight: 800;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--signal-active);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .deck-slider-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .deck-slider {
+      width: 100%;
+      accent-color: var(--accent-primary);
+      cursor: pointer;
+    }
+
+    /* =========================================================================
+       3. TACTICAL PHONE FRAME (MOCKUP HARNESS)
+       ========================================================================= */
+    .device-wrapper {
+      position: relative;
+      background: #111827;
+      padding: 12px;
+      border-radius: 46px;
+      box-shadow:
+        0 25px 60px -15px rgba(0, 0, 0, 0.8),
+        0 0 0 1px #223249,
+        0 0 40px rgba(0, 0, 0, 0.6);
+      transition: all 0.25s ease;
+    }
+
+    .device-wrapper.borderless {
+      padding: 0;
+      border-radius: var(--radius-lg);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
+    }
+
+    /* Dynamic Island / Speaker Notch */
+    .device-island {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90px;
+      height: 22px;
+      background: #000000;
+      border-radius: 12px;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .camera-lens {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #0d1a2d;
+      border: 1px solid #1e293b;
+    }
+
+    .device-wrapper.borderless .device-island {
+      display: none;
+    }
+
+    /* Cockpit Main Container */
+    .tactical-cockpit {
+      width: var(--cockpit-width);
+      height: var(--cockpit-height);
+      background-color: var(--chassis-bg);
+      border-radius: 36px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      border: 1px solid var(--surface-border-subtle);
+    }
+
+    .device-wrapper.borderless .tactical-cockpit {
+      border-radius: var(--radius-lg);
+    }
+
+    /* =========================================================================
+       4. TOP AVIONICS STATUS HEADER (AVIONICS BAR)
+       ========================================================================= */
+    .cockpit-header {
+      background: var(--surface-card);
+      border-bottom: 1px solid var(--surface-border);
+      padding: 34px 16px 12px; /* padding for island */
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 50;
+    }
+
+    .header-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .group-identity {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .group-avatar {
+      width: 24px;
+      height: 24px;
+      background: var(--surface-border);
+      border: 1px solid var(--accent-primary);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-primary);
+      font-size: 11px;
+      font-weight: 900;
+      font-family: var(--font-mono);
+    }
+
+    .group-name {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: 0.5px;
+    }
+
+    .mesh-node-pill {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--signal-active);
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 3px 8px;
+      border-radius: var(--radius-pill);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .pulse-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--signal-active);
+      border-radius: 50%;
+      box-shadow: 0 0 6px var(--signal-active);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* Telemetry Pill Strip (PHY Mode, CBR, Battery) */
+    .header-telemetry-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .telemetry-pill-strip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pill {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 800;
+      padding: 3px 7px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      border: 1px solid transparent;
+      letter-spacing: 0.3px;
+    }
+
+    .pill-phy-2m {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--signal-active);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .pill-phy-1m {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--signal-warning);
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    .pill-phy-s8 {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--signal-emergency);
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .pill-cbr {
+      background: #111a28;
+      color: var(--text-secondary);
+      border-color: #1e293b;
+    }
+
+    .pill-cbr.congested {
+      background: rgba(245, 158, 11, 0.2);
+      color: var(--signal-warning);
+      border-color: var(--signal-warning);
+    }
+
+    .battery-pill {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-secondary);
+      font-weight: 700;
+    }
+
+    .battery-icon {
+      width: 18px;
+      height: 10px;
+      border: 1.5px solid var(--text-secondary);
+      border-radius: 2px;
+      padding: 1px;
+      position: relative;
+    }
+
+    .battery-icon::after {
+      content: '';
+      position: absolute;
+      right: -3px;
+      top: 2px;
+      width: 2px;
+      height: 4px;
+      background: var(--text-secondary);
+      border-radius: 0 1px 1px 0;
+    }
+
+    .battery-fill {
+      width: 82%;
+      height: 100%;
+      background: var(--signal-active);
+      border-radius: 1px;
+    }
+
+    /* =========================================================================
+       5. MAIN TAB VIEWPORT
+       ========================================================================= */
+    .cockpit-body {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 14px 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .cockpit-tab-pane {
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .cockpit-tab-pane.active {
+      display: flex;
+    }
+
+    /* Guarded SOS Actuator (Slide/Hold) */
+    .guarded-sos-container {
+      width: 100%;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      border-radius: var(--radius-md);
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .guarded-sos-container:hover {
+      background: rgba(239, 68, 68, 0.18);
+      border-color: var(--signal-emergency);
+    }
+
+    .guarded-sos-container.active-emergency {
+      background: var(--signal-emergency);
+      border-color: #ffffff;
+      animation: emergencyStrobe 0.8s infinite alternate;
+    }
+
+    @keyframes emergencyStrobe {
+      from { box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); }
+      to { box-shadow: 0 0 30px rgba(239, 68, 68, 0.9); }
+    }
+
+    .sos-label-side {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sos-shield-icon {
+      width: 22px;
+      height: 22px;
+      color: var(--signal-emergency);
+    }
+
+    .active-emergency .sos-shield-icon {
+      color: #ffffff;
+    }
+
+    .sos-text {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      color: var(--signal-emergency);
+    }
+
+    .active-emergency .sos-text {
+      color: #ffffff;
+    }
+
+    .sos-slider-pill {
+      background: rgba(239, 68, 68, 0.25);
+      border: 1px solid var(--signal-emergency);
+      color: var(--signal-emergency);
+      padding: 5px 12px;
+      border-radius: var(--radius-pill);
+      font-size: 10px;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      letter-spacing: 0.8px;
+    }
+
+    .active-emergency .sos-slider-pill {
+      background: #ffffff;
+      color: var(--signal-emergency);
+      border-color: #ffffff;
+    }
+
+    /* Live Speaker Hero Card */
+    .speaker-hero-card {
+      background: var(--surface-card);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.2s ease;
+    }
+
+    .speaker-hero-card.transmitting {
+      border-color: var(--signal-active);
+      box-shadow: 0 0 20px var(--signal-active-glow);
+    }
+
+    .speaker-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .speaker-tag {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .speaker-tag .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+    }
+
+    .speaker-hero-card.transmitting .status-indicator {
+      background: var(--signal-active);
+      box-shadow: 0 0 8px var(--signal-active);
+    }
+
+    .speaker-hero-card.receiving .status-indicator {
+      background: var(--accent-primary);
+      box-shadow: 0 0 8px var(--accent-primary);
+    }
+
+    .speaker-name-display {
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--text-primary);
+      letter-spacing: -0.5px;
+      font-family: var(--font-sans);
+    }
+
+    .speaker-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .channel-badge {
+      background: #111a28;
+      border: 1px solid #1e293b;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--accent-primary);
+    }
+
+    /* Discrete 4-Segment LED VU Meter (ADR-0021 Anti-Slop) */
+    .discrete-led-bar {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      height: 8px;
+      width: 100%;
+    }
+
+    .led-segment {
+      flex: 1;
+      height: 100%;
+      background: #131c2a;
+      border-radius: 2px;
+      transition: background 0.08s ease;
+    }
+
+    .led-segment.lit-1 { background: var(--signal-active); box-shadow: 0 0 4px var(--signal-active); }
+    .led-segment.lit-2 { background: var(--signal-active); box-shadow: 0 0 4px var(--signal-active); }
+    .led-segment.lit-3 { background: var(--signal-warning); box-shadow: 0 0 4px var(--signal-warning); }
+    .led-segment.lit-4 { background: var(--signal-emergency); box-shadow: 0 0 6px var(--signal-emergency); }
+
+    /* 16-Channel Selector Strip */
+    .channel-strip-container {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .section-label {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .channel-strip-scroll {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+
+    .channel-strip-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .channel-dial-pill {
+      min-width: 44px;
+      height: 38px;
+      background: var(--surface-card);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-md);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      position: relative;
+    }
+
+    .channel-dial-pill:hover {
+      background: var(--surface-card-hover);
+      border-color: #334155;
+    }
+
+    .channel-dial-pill.active {
+      background: var(--accent-primary);
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 10px var(--accent-primary-glow);
+    }
+
+    .channel-dial-pill.active .ch-num {
+      color: var(--text-inverse);
+      font-weight: 900;
+    }
+
+    .channel-dial-pill.active .ch-sub {
+      color: rgba(0, 0, 0, 0.7);
+    }
+
+    .channel-dial-pill.dual-watch::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      width: 5px;
+      height: 5px;
+      background: var(--signal-active);
+      border-radius: 50%;
+    }
+
+    .ch-num {
+      font-size: 13px;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .ch-sub {
+      font-size: 8px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+
+    /* Convoy Hazard Pills (One-Tap Shortcuts) */
+    .hazard-pills-row {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .hazard-pill-btn {
+      flex: 1;
+      height: 38px;
+      background: var(--surface-card);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .hazard-pill-btn.btn-road {
+      color: var(--signal-warning);
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    .hazard-pill-btn.btn-road:active {
+      background: var(--signal-warning);
+      color: var(--text-inverse);
+    }
+
+    .hazard-pill-btn.btn-fuel {
+      color: var(--signal-active);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .hazard-pill-btn.btn-fuel:active {
+      background: var(--signal-active);
+      color: var(--text-inverse);
+    }
+
+    .hazard-pill-btn.btn-stop {
+      color: var(--signal-emergency);
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .hazard-pill-btn.btn-stop:active {
+      background: var(--signal-emergency);
+      color: #ffffff;
+    }
+
+    /* =========================================================================
+       6. MASTER 84PT GLOVE-FRIENDLY PTT ACTUATOR SHELF
+       ========================================================================= */
+    .ptt-actuator-shelf {
+      margin-top: auto;
+      padding-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .ptt-button-outer {
+      width: 100%;
+      height: 84px; /* 84pt Glove-Friendly Height */
+      background: #0f172a;
+      border: 2px solid var(--accent-primary);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+
+    .ptt-button-outer:active,
+    .ptt-button-outer.transmitting {
+      background: var(--signal-active);
+      border-color: #ffffff;
+      transform: scale(0.985);
+      box-shadow: 0 0 30px var(--signal-active-glow), inset 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .ptt-left-block {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      text-align: left;
+    }
+
+    .ptt-main-text {
+      font-size: 20px;
+      font-weight: 900;
+      color: #ffffff;
+      letter-spacing: 1px;
+      font-family: var(--font-sans);
+    }
+
+    .ptt-button-outer.transmitting .ptt-main-text {
+      color: var(--text-inverse);
+    }
+
+    .ptt-sub-text {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--accent-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .ptt-button-outer.transmitting .ptt-sub-text {
+      color: rgba(0, 0, 0, 0.7);
+    }
+
+    .ptt-mic-circle {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--accent-primary);
+      transition: all 0.15s ease;
+    }
+
+    .ptt-button-outer.transmitting .ptt-mic-circle {
+      background: #ffffff;
+      color: var(--signal-active);
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+    }
+
+    .mic-svg {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+    }
+
+    .ptt-aux-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 4px;
+    }
+
+    .vox-toggle-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #090e17;
+      border: 1px solid #1e293b;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .vox-toggle-btn.vox-on {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: var(--signal-active);
+      color: var(--signal-active);
+    }
+
+    .sco-headset-tag {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .headset-icon {
+      width: 12px;
+      height: 12px;
+      fill: var(--signal-active);
+    }
+
+    /* =========================================================================
+       7. TACTICAL RADAR TAB (PROXIMITY COMPASS SCOPE)
+       ========================================================================= */
+    .radar-scope-card {
+      background: var(--surface-card);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      position: relative;
+    }
+
+    .radar-controls-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .radar-title {
+      font-size: 12px;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: 1px;
+    }
+
+    .zoom-pill {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: var(--radius-pill);
+      background: #111a28;
+      border: 1px solid #1e293b;
+      color: var(--accent-primary);
+      cursor: pointer;
+    }
+
+    .radar-canvas-container {
+      width: 250px;
+      height: 250px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .radar-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px dashed #1e293b;
+    }
+
+    .radar-ring.r1 { width: 70px; height: 70px; }
+    .radar-ring.r2 { width: 140px; height: 140px; }
+    .radar-ring.r3 { width: 220px; height: 220px; border-style: solid; border-color: #24354b; }
+
+    .crosshair-h, .crosshair-v {
+      position: absolute;
+      background: #152233;
+    }
+    .crosshair-h { width: 100%; height: 1px; }
+    .crosshair-v { width: 1px; height: 100%; }
+
+    .radar-center-self {
+      width: 12px;
+      height: 12px;
+      background: var(--accent-primary);
+      border-radius: 50%;
+      z-index: 10;
+      box-shadow: 0 0 10px var(--accent-primary);
+    }
+
+    /* Radar Peer Blips */
+    .radar-blip {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      z-index: 20;
+    }
+
+    .blip-dot {
+      width: 10px;
+      height: 10px;
+      background: var(--signal-active);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--signal-active);
+    }
+
+    .blip-dot.warning {
+      background: var(--signal-warning);
+      box-shadow: 0 0 8px var(--signal-warning);
+    }
+
+    .blip-label {
+      font-size: 9px;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      color: var(--text-primary);
+      background: rgba(0, 0, 0, 0.7);
+      padding: 1px 4px;
+      border-radius: 2px;
+      white-space: nowrap;
+    }
+
+    .radar-roster-list {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .radar-peer-card {
+      background: #090e17;
+      border: 1px solid #1a2738;
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* =========================================================================
+       8. TACTICAL ELEVATION TAB (TRAIL INCLINE HUD)
+       ========================================================================= */
+    .elevation-hero-card {
+      background: var(--surface-card);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .elevation-stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .elev-stat-box {
+      background: #090e17;
+      border: 1px solid #1a2738;
+      border-radius: var(--radius-md);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .elev-stat-title {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .elev-stat-val {
+      font-size: 20px;
+      font-family: var(--font-mono);
+      font-weight: 900;
+      color: var(--text-primary);
+    }
+
+    .elev-stat-val.grade-warn {
+      color: var(--signal-warning);
+    }
+
+    .topo-graph-wrapper {
+      width: 100%;
+      height: 120px;
+      background: #060910;
+      border: 1px solid #162233;
+      border-radius: var(--radius-md);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .topo-canvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* =========================================================================
+       9. TACTICAL CONVOY TAB (FLEET ROSTER)
+       ========================================================================= */
+    .convoy-list-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .convoy-member-card {
+      background: var(--surface-card);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .convoy-member-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .member-role-badge {
+      font-size: 9px;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      padding: 2px 5px;
+      border-radius: 3px;
+      text-transform: uppercase;
+    }
+
+    .role-lead { background: rgba(245, 158, 11, 0.2); color: var(--accent-primary); border: 1px solid var(--accent-primary); }
+    .role-wing { background: rgba(16, 185, 129, 0.2); color: var(--signal-active); border: 1px solid var(--signal-active); }
+    .role-sweep { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid #60a5fa; }
+
+    .member-info-col {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .member-name {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .member-telemetry {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      display: flex;
+      gap: 8px;
+    }
+
+    .convoy-member-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .signal-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 12px;
+    }
+
+    .bar {
+      width: 3px;
+      background: #1e293b;
+      border-radius: 1px;
+    }
+    .bar.h1 { height: 4px; }
+    .bar.h2 { height: 7px; }
+    .bar.h3 { height: 10px; }
+    .bar.h4 { height: 12px; }
+    .bar.lit { background: var(--signal-active); }
+
+    /* =========================================================================
+       10. BOTTOM TACTICAL DOCK BAR (NAV SWITCHER)
+       ========================================================================= */
+    .tactical-dock-bar {
+      background: var(--surface-card);
+      border-top: 1px solid var(--surface-border);
+      padding: 8px 12px 18px; /* home bar padding */
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      z-index: 50;
+    }
+
+    .dock-tab-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 14px;
+      border-radius: var(--radius-md);
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .dock-tab-btn:hover {
+      color: var(--text-secondary);
+    }
+
+    .dock-tab-btn.active {
+      color: var(--accent-primary);
+      background: #090e17;
+      border: 1px solid var(--surface-border);
+    }
+
+    .dock-tab-icon {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+
+    .dock-tab-title {
+      font-size: 9px;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    /* Minimal Profile overrides */
+    body.profile-minimal .tactical-dock-bar {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP WORKSPACE / STUDIO TOOLBAR -->
+  <header class="studio-bar">
+    <div class="brand">
+      <div class="brand-icon">ICA</div>
+      <div>
+        <div class="brand-title">Intercom-Alpha</div>
+        <div class="brand-sub">Master Tactical Cockpit Mockup • v3.0 (ADR-0021)</div>
+      </div>
+    </div>
+
+    <div class="controls-group">
+      <!-- Theme Switcher -->
+      <div>
+        <label for="themeSelect" class="ctrl-label">Theme: </label>
+        <select id="themeSelect" class="select-tactical" onchange="changeTheme(this.value)">
+          <option value="tactical" selected>Tactical Amber (#F59E0B)</option>
+          <option value="alpine">Alpine High-Vis (#00E5FF)</option>
+          <option value="forest">Forest Emerald (#10B981)</option>
+          <option value="desert">Desert Ochre (#FBBF24)</option>
+          <option value="monochrome">Monochrome Minimal (#FFFFFF)</option>
+        </select>
+      </div>
+
+      <!-- Activity Profile Switcher -->
+      <div>
+        <label for="profileSelect" class="ctrl-label">Profile: </label>
+        <select id="profileSelect" class="select-tactical" onchange="changeProfile(this.value)">
+          <option value="motorbike" selected>Motorbike (Tactical 84pt)</option>
+          <option value="overland">4x4 Overland / Car</option>
+          <option value="bicycle">Bicycle / Gravel</option>
+          <option value="mountain">Mountain Trails (Hiking)</option>
+          <option value="minimal">Minimal Walkie-Talkie</option>
+        </select>
+      </div>
+
+      <!-- Bezel Frame Toggle -->
+      <button class="btn-toggle-frame" onclick="toggleBezel()">Toggle Phone Frame</button>
+    </div>
+  </header>
+
+  <!-- STUDIO WORKSPACE CANVAS -->
+  <main class="studio-canvas">
+
+    <!-- LEFT: THE TACTICAL PHONE COCKPIT (THE APP) -->
+    <div class="device-wrapper" id="deviceFrame">
+      <div class="device-island"><div class="camera-lens"></div></div>
+
+      <div class="tactical-cockpit">
+
+        <!-- 1. TOP AVIONICS STATUS HEADER -->
+        <header class="cockpit-header">
+          <div class="header-top-row">
+            <div class="group-identity">
+              <div class="group-avatar">M1</div>
+              <div>
+                <div class="group-name" id="cockpitGroupName">ALPHA-CONVOY</div>
+              </div>
+            </div>
+
+            <div class="mesh-node-pill" onclick="switchTab('convoy')" title="View Fleet Roster">
+              <span class="pulse-dot"></span>
+              <span id="nodeCountLabel">4 NODES</span>
+            </div>
+          </div>
+
+          <!-- Dynamic PHY Mode, CBR %, Cloud, Battery -->
+          <div class="header-telemetry-row">
+            <div class="telemetry-pill-strip">
+              <span class="pill pill-phy-2m" id="headerPhyPill" title="Bluetooth 5.0 High Speed PHY">2M</span>
+              <span class="pill pill-cbr" id="headerCbrPill" title="Channel Utilization Rate">CBR 34%</span>
+              <span class="pill pill-cbr" id="headerCloudPill" title="Cloud Relay Standby">RELAY: OFF</span>
+            </div>
+
+            <div class="battery-pill">
+              <span id="batteryPercentText">88%</span>
+              <div class="battery-icon">
+                <div class="battery-fill" id="batteryFillBar"></div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <!-- 2. SCROLLABLE TAB VIEWPORT -->
+        <div class="cockpit-body">
+
+          <!-- ================= TAB 1: VOICE COCKPIT (CORE PTT) ================= -->
+          <div class="cockpit-tab-pane active" id="tabVoice">
+
+            <!-- Guarded SOS Actuator (Slide/Click for Emergency) -->
+            <div class="guarded-sos-container" id="sosContainer" onclick="toggleEmergency()">
+              <div class="sos-label-side">
+                <svg class="sos-shield-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                <span class="sos-text" id="sosTextLabel">GUARDED SOS (ECALL READY)</span>
+              </div>
+              <div class="sos-slider-pill" id="sosActionPill">TAP TO TEST</div>
+            </div>
+
+            <!-- Live Speaker Hero Card -->
+            <div class="speaker-hero-card" id="speakerCard">
+              <div class="speaker-top-row">
+                <div class="speaker-tag">
+                  <span class="status-indicator"></span>
+                  <span id="speakerTagLabel">CHANNEL STANDBY</span>
+                </div>
+                <div class="channel-badge" id="activeChannelBadge">CH-01 (142.800)</div>
+              </div>
+
+              <div class="speaker-name-display" id="speakerNameDisplay">APEX (RIDER 1)</div>
+
+              <!-- Discrete 4-Segment LED VU Meter -->
+              <div class="discrete-led-bar">
+                <div class="led-segment" id="led1"></div>
+                <div class="led-segment" id="led2"></div>
+                <div class="led-segment" id="led3"></div>
+                <div class="led-segment" id="led4"></div>
+              </div>
+            </div>
+
+            <!-- 16-Channel Selector Strip -->
+            <div class="channel-strip-container">
+              <div class="section-label">
+                <span>TACTICAL FREQUENCIES</span>
+                <span>DUAL-WATCH: CH-09</span>
+              </div>
+              <div class="channel-strip-scroll" id="channelStripScroll">
+                <!-- Injected via JS (1-16) -->
+              </div>
+            </div>
+
+            <!-- Convoy Hazard Quick Pills -->
+            <div class="hazard-pills-row">
+              <button class="hazard-pill-btn btn-road" onclick="broadcastHazard('HAZARD: ROAD DEBRIS')">HAZARD</button>
+              <button class="hazard-pill-btn btn-fuel" onclick="broadcastHazard('ALERT: FUEL LOW')">FUEL LOW</button>
+              <button class="hazard-pill-btn btn-stop" onclick="broadcastHazard('STOP IMMEDIATE')">STOP NOW</button>
+            </div>
+
+            <!-- Master 84pt Glove-Friendly PTT Actuator Shelf -->
+            <div class="ptt-actuator-shelf">
+              <button class="ptt-button-outer" id="pttButton" type="button"
+                      onmousedown="startTransmit()" onmouseup="stopTransmit()"
+                      ontouchstart="startTransmit(event)" ontouchend="stopTransmit(event)">
+                <span class="ptt-left-block">
+                  <span class="ptt-main-text" id="pttMainText">HOLD TO TALK</span>
+                  <span class="ptt-sub-text" id="pttSubText">OPUS 32 KBPS • BLE MESH</span>
+                </span>
+                <span class="ptt-mic-circle">
+                  <svg class="mic-svg" viewBox="0 0 24 24">
+                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                    <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                  </svg>
+                </span>
+              </button>
+
+              <div class="ptt-aux-row">
+                <button class="vox-toggle-btn" id="voxBtn" onclick="toggleVox()">
+                  <span>VOX:</span>
+                  <strong id="voxStatusText">OFF</strong>
+                </button>
+
+                <div class="sco-headset-tag">
+                  <svg class="headset-icon" viewBox="0 0 24 24">
+                    <path d="M12 1a9 9 0 0 0-9 9v7c0 1.66 1.34 3 3 3h3v-8H5v-2a7 7 0 0 1 14 0v2h-4v8h3c1.66 0 3-1.34 3-3v-7a9 9 0 0 0-9-9z"/>
+                  </svg>
+                  <span>CARDO PACKTALK (SCO LOCKED)</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- ================= TAB 2: PROXIMITY RADAR ================= -->
+          <div class="cockpit-tab-pane" id="tabRadar">
+            <div class="radar-scope-card">
+              <div class="radar-controls-header">
+                <span class="radar-title">360° CONVOY PROXIMITY</span>
+                <span class="zoom-pill" id="radarZoomBtn" onclick="cycleRadarZoom()">RANGE: 60M</span>
+              </div>
+
+              <div class="radar-canvas-container">
+                <div class="radar-ring r1"></div>
+                <div class="radar-ring r2"></div>
+                <div class="radar-ring r3"></div>
+                <div class="crosshair-h"></div>
+                <div class="crosshair-v"></div>
+                <div class="radar-center-self" title="Self (Host)"></div>
+
+                <!-- Blips for Convoy Peers -->
+                <div class="radar-blip" style="top: 35px; left: 110px;">
+                  <div class="blip-dot"></div>
+                  <div class="blip-label">LEAD (28m ↑)</div>
+                </div>
+
+                <div class="radar-blip" style="top: 150px; left: 185px;">
+                  <div class="blip-dot"></div>
+                  <div class="blip-label">WING (44m ↘)</div>
+                </div>
+
+                <div class="radar-blip" style="top: 195px; left: 75px;">
+                  <div class="blip-dot warning"></div>
+                  <div class="blip-label">SWEEP (58m ↙)</div>
+                </div>
+              </div>
+
+              <div class="radar-roster-list">
+                <div class="radar-peer-card">
+                  <span style="font-size:12px; font-weight:800;">Apex (Lead)</span>
+                  <span style="font-size:11px; font-family:var(--font-mono); color:var(--signal-active);">28m • Bearing 012°</span>
+                </div>
+                <div class="radar-peer-card">
+                  <span style="font-size:12px; font-weight:800;">Falcon (Wing)</span>
+                  <span style="font-size:11px; font-family:var(--font-mono); color:var(--signal-active);">44m • Bearing 130°</span>
+                </div>
+                <div class="radar-peer-card">
+                  <span style="font-size:12px; font-weight:800;">Nomad (Sweep)</span>
+                  <span style="font-size:11px; font-family:var(--font-mono); color:var(--signal-warning);">58m • Bearing 215°</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ================= TAB 3: ELEVATION HUD ================= -->
+          <div class="cockpit-tab-pane" id="tabElevation">
+            <div class="elevation-hero-card">
+              <div class="section-label">
+                <span>ALPINE TRAIL HUD</span>
+                <span>GPS ACCURACY: ±3.2M</span>
+              </div>
+
+              <div class="elevation-stat-grid">
+                <div class="elev-stat-box">
+                  <span class="elev-stat-title">CURRENT ALTITUDE</span>
+                  <span class="elev-stat-val">1,842 m</span>
+                </div>
+                <div class="elev-stat-box">
+                  <span class="elev-stat-title">SLOPE GRADE</span>
+                  <span class="elev-stat-val grade-warn">+8.4% ↑</span>
+                </div>
+                <div class="elev-stat-box">
+                  <span class="elev-stat-title">SUMMIT DELTA</span>
+                  <span class="elev-stat-val">+320 m</span>
+                </div>
+                <div class="elev-stat-box">
+                  <span class="elev-stat-title">BAROMETRIC PRESSURE</span>
+                  <span class="elev-stat-val">812 hPa</span>
+                </div>
+              </div>
+
+              <!-- Topo Canvas -->
+              <div class="topo-graph-wrapper">
+                <canvas id="topoCanvas" class="topo-canvas"></canvas>
+              </div>
+
+              <div style="font-size: 11px; font-family: var(--font-mono); color: var(--text-muted); text-align: center;">
+                ▲ High-Incline Mountain Pass Ahead • Speed Reduced
+              </div>
+            </div>
+          </div>
+
+          <!-- ================= TAB 4: CONVOY FLEET ================= -->
+          <div class="cockpit-tab-pane" id="tabConvoy">
+            <div class="section-label">
+              <span>ACTIVE MESH FLEET (4 RIDERS)</span>
+              <span>FLOODING TTL: 3</span>
+            </div>
+
+            <div class="convoy-list-container">
+              <!-- Rider 1 (Lead) -->
+              <div class="convoy-member-card">
+                <div class="convoy-member-left">
+                  <span class="member-role-badge role-lead">LEAD</span>
+                  <div class="member-info-col">
+                    <span class="member-name">Apex (Rider 1)</span>
+                    <span class="member-telemetry">PHY: 2M • 0 hops • -62 dBm</span>
+                  </div>
+                </div>
+                <div class="convoy-member-right">
+                  <div class="signal-bars">
+                    <div class="bar h1 lit"></div><div class="bar h2 lit"></div>
+                    <div class="bar h3 lit"></div><div class="bar h4 lit"></div>
+                  </div>
+                  <span style="font-size:11px; font-family:var(--font-mono); font-weight:800;">94%</span>
+                </div>
+              </div>
+
+              <!-- Rider 2 (Wingman) -->
+              <div class="convoy-member-card">
+                <div class="convoy-member-left">
+                  <span class="member-role-badge role-wing">WING</span>
+                  <div class="member-info-col">
+                    <span class="member-name">Falcon (Rider 2)</span>
+                    <span class="member-telemetry">PHY: 1M • 0 hops • -74 dBm</span>
+                  </div>
+                </div>
+                <div class="convoy-member-right">
+                  <div class="signal-bars">
+                    <div class="bar h1 lit"></div><div class="bar h2 lit"></div>
+                    <div class="bar h3 lit"></div><div class="bar h4"></div>
+                  </div>
+                  <span style="font-size:11px; font-family:var(--font-mono); font-weight:800;">81%</span>
+                </div>
+              </div>
+
+              <!-- Rider 3 (Self) -->
+              <div class="convoy-member-card" style="border-color: var(--accent-primary);">
+                <div class="convoy-member-left">
+                  <span class="member-role-badge role-wing" style="background:var(--accent-primary); color:#000;">SELF</span>
+                  <div class="member-info-col">
+                    <span class="member-name">You (Local Node)</span>
+                    <span class="member-telemetry">HOST • TRANSMIT READY</span>
+                  </div>
+                </div>
+                <div class="convoy-member-right">
+                  <span style="font-size:11px; font-family:var(--font-mono); color:var(--accent-primary); font-weight:800;">88%</span>
+                </div>
+              </div>
+
+              <!-- Rider 4 (Sweep) -->
+              <div class="convoy-member-card">
+                <div class="convoy-member-left">
+                  <span class="member-role-badge role-sweep">SWEEP</span>
+                  <div class="member-info-col">
+                    <span class="member-name">Nomad (Rider 4)</span>
+                    <span class="member-telemetry">PHY: S8 • 1 hop (Relayed) • -88 dBm</span>
+                  </div>
+                </div>
+                <div class="convoy-member-right">
+                  <div class="signal-bars">
+                    <div class="bar h1 lit"></div><div class="bar h2 lit"></div>
+                    <div class="bar h3"></div><div class="bar h4"></div>
+                  </div>
+                  <span style="font-size:11px; font-family:var(--font-mono); font-weight:800; color:var(--signal-warning);">54%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 3. BOTTOM TACTICAL DOCK BAR -->
+        <nav class="tactical-dock-bar">
+          <button class="dock-tab-btn active" id="btnTabVoice" onclick="switchTab('voice')">
+            <svg class="dock-tab-icon" viewBox="0 0 24 24">
+              <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+              <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+            </svg>
+            <span class="dock-tab-title">VOICE</span>
+          </button>
+
+          <button class="dock-tab-btn" id="btnTabRadar" onclick="switchTab('radar')">
+            <svg class="dock-tab-icon" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+              <circle cx="12" cy="12" r="6" fill="none" stroke="currentColor" stroke-width="2"/>
+              <circle cx="12" cy="12" r="2" fill="currentColor"/>
+            </svg>
+            <span class="dock-tab-title">RADAR</span>
+          </button>
+
+          <button class="dock-tab-btn" id="btnTabElevation" onclick="switchTab('elevation')">
+            <svg class="dock-tab-icon" viewBox="0 0 24 24">
+              <path d="m14 6-3.75 5L8 9.25 3 16h18l-7-10z"/>
+            </svg>
+            <span class="dock-tab-title">TRAIL</span>
+          </button>
+
+          <button class="dock-tab-btn" id="btnTabConvoy" onclick="switchTab('convoy')">
+            <svg class="dock-tab-icon" viewBox="0 0 24 24">
+              <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+            </svg>
+            <span class="dock-tab-title">CONVOY</span>
+          </button>
+        </nav>
+
+      </div>
+    </div>
+
+    <!-- RIGHT: INTERACTIVE RF SIMULATOR & AUDIT DECK -->
+    <aside class="telemetry-deck">
+      <div class="deck-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+        </svg>
+        <span>TACTICAL RF SIMULATOR</span>
+      </div>
+
+      <!-- RF Link Control Card -->
+      <div class="deck-card">
+        <div class="deck-card-title">
+          <span>RF Physical Layer</span>
+          <span class="deck-pill" id="simPhyBadge">LE 2M (HIGH SPEED)</span>
+        </div>
+        <div class="deck-row">
+          <label for="simPhySelect">Active PHY:</label>
+          <select id="simPhySelect" class="select-tactical" onchange="simulatePhySwitch(this.value)">
+            <option value="2M" selected>LE 2M (>85 Qlink, close range)</option>
+            <option value="1M">LE 1M (Standard baseline)</option>
+            <option value="S8">LE Coded S8 (4x Long-range pass)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Mesh Channel Saturation -->
+      <div class="deck-card">
+        <div class="deck-card-title">
+          <span>Channel Busy Ratio (CBR)</span>
+          <span id="simCbrLabel" class="deck-value">34%</span>
+        </div>
+        <div class="deck-slider-row">
+          <input type="range" class="deck-slider" id="cbrSlider" aria-label="Channel Busy Ratio" min="10" max="95" value="34" oninput="simulateCbr(this.value)">
+          <div style="display:flex; justify-content:space-between; font-size:9px; color:var(--text-muted); font-family:var(--font-mono);">
+            <span>10% (Clean)</span>
+            <span>70% (Throttle Threshold)</span>
+            <span>95% (Heavy Saturation)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Audio & Headset Simulator -->
+      <div class="deck-card">
+        <div class="deck-card-title">
+          <span>Acoustic Audio Simulation</span>
+          <span class="deck-pill">SCO ACTIVE</span>
+        </div>
+        <div class="deck-row">
+          <span>Simulate Remote Speaker:</span>
+          <button class="btn-toggle-frame" onclick="simulateRemoteTalk()">Trigger Voice</button>
+        </div>
+        <div class="deck-row">
+          <span>Audio Roger Beep:</span>
+          <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+            <input type="checkbox" id="audioFxToggle" checked>
+            <span style="font-size:11px;">Synth Audio FX</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Architectural Compliance Checklist -->
+      <div class="deck-card">
+        <div class="deck-card-title">
+          <span>Architectural Laws Checklist</span>
+          <span style="color:var(--signal-active); font-weight:800;">PASS (5/5)</span>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px; font-size:11px; font-family:var(--font-mono); color:var(--text-secondary);">
+          <div>✔ <strong>Rule 1:</strong> 100% Native SwiftUI (iOS)</div>
+          <div>✔ <strong>Rule 2:</strong> Shared Logic in KMP (commonMain)</div>
+          <div>✔ <strong>ADR-017:</strong> Zero-Scroll Glove PTT (84pt)</div>
+          <div>✔ <strong>ADR-021:</strong> Anti-Slop Discrete LED VU</div>
+          <div>✔ <strong>Sprint 37:</strong> Live PHY & CBR Telemetry</div>
+        </div>
+      </div>
+
+      <div style="font-size:10px; color:var(--text-muted); font-family:var(--font-mono); text-align:center; padding-top:6px;">
+        Designed for Intercom-Alpha • Antigravity Agent
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- JAVASCRIPT COCKPIT CONTROLLER & SYNTH AUDIO FX -->
+  <script>
+    // Audio Context for Radio Roger Beeps and Chirps
+    let audioCtx = null;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      return audioCtx;
+    }
+
+    function playRogerBeep(isStart) {
+      if (!document.getElementById('audioFxToggle').checked) return;
+      try {
+        const ctx = getAudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        const now = ctx.currentTime;
+        if (isStart) {
+          // PTT Open Chirp
+          osc.frequency.setValueAtTime(880, now);
+          osc.frequency.exponentialRampToValueAtTime(1440, now + 0.06);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+          osc.start(now);
+          osc.stop(now + 0.08);
+        } else {
+          // PTT Release Roger Beep (Dual Tone)
+          osc.frequency.setValueAtTime(1200, now);
+          osc.frequency.setValueAtTime(900, now + 0.05);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+          osc.start(now);
+          osc.stop(now + 0.12);
+        }
+      } catch (e) {
+        console.warn('Audio synthesis muted or unavailable:', e);
+      }
+    }
+
+    // 1. Channel Strip Initialization (16 Channels)
+    let activeChannel = 1;
+    let monitoredChannel = 9;
+
+    function initChannelStrip() {
+      const container = document.getElementById('channelStripScroll');
+      container.innerHTML = '';
+      for (let i = 1; i <= 16; i++) {
+        const pill = document.createElement('div');
+        pill.className = `channel-dial-pill ${i === activeChannel ? 'active' : ''} ${i === monitoredChannel ? 'dual-watch' : ''}`;
+        pill.innerHTML = `
+          <span class="ch-num">${i < 10 ? '0' + i : i}</span>
+          <span class="ch-sub">${(142.000 + i * 0.050).toFixed(3)}</span>
+        `;
+        pill.onclick = () => selectChannel(i);
+        container.appendChild(pill);
+      }
+    }
+
+    function selectChannel(chNum) {
+      activeChannel = chNum;
+      document.getElementById('activeChannelBadge').innerText = `CH-${chNum < 10 ? '0' + chNum : chNum} (${(142.000 + chNum * 0.050).toFixed(3)})`;
+      initChannelStrip();
+      playRogerBeep(true);
+    }
+
+    // 2. Tab Navigation Controller
+    function switchTab(tabId) {
+      document.querySelectorAll('.cockpit-tab-pane').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.dock-tab-btn').forEach(el => el.classList.remove('active'));
+
+      if (tabId === 'voice') {
+        document.getElementById('tabVoice').classList.add('active');
+        document.getElementById('btnTabVoice').classList.add('active');
+      } else if (tabId === 'radar') {
+        document.getElementById('tabRadar').classList.add('active');
+        document.getElementById('btnTabRadar').classList.add('active');
+      } else if (tabId === 'elevation') {
+        document.getElementById('tabElevation').classList.add('active');
+        document.getElementById('btnTabElevation').classList.add('active');
+        drawTopoGraph();
+      } else if (tabId === 'convoy') {
+        document.getElementById('tabConvoy').classList.add('active');
+        document.getElementById('btnTabConvoy').classList.add('active');
+      }
+    }
+
+    // 3. PTT Actuator Logic
+    let isTransmitting = false;
+    let vuInterval = null;
+
+    function startTransmit(e) {
+      if (e) e.preventDefault();
+      if (isTransmitting) return;
+      isTransmitting = true;
+
+      playRogerBeep(true);
+
+      const pttBtn = document.getElementById('pttButton');
+      const speakerCard = document.getElementById('speakerCard');
+      pttBtn.classList.add('transmitting');
+      speakerCard.classList.add('transmitting');
+
+      document.getElementById('pttMainText').innerText = 'TRANSMITTING...';
+      document.getElementById('pttSubText').innerText = 'VOICE ACTIVE • ALL NODES';
+      document.getElementById('speakerTagLabel').innerText = 'LOCAL TRANSMISSION ACTIVE';
+      document.getElementById('speakerNameDisplay').innerText = 'YOU (BROADCASTING)';
+
+      // LED VU Meter animation
+      startVuMeterAnimation(true);
+    }
+
+    function stopTransmit(e) {
+      if (e) e.preventDefault();
+      if (!isTransmitting) return;
+      isTransmitting = false;
+
+      playRogerBeep(false);
+
+      const pttBtn = document.getElementById('pttButton');
+      const speakerCard = document.getElementById('speakerCard');
+      pttBtn.classList.remove('transmitting');
+      speakerCard.classList.remove('transmitting');
+
+      document.getElementById('pttMainText').innerText = 'HOLD TO TALK';
+      document.getElementById('pttSubText').innerText = 'OPUS 32 KBPS • BLE MESH';
+      document.getElementById('speakerTagLabel').innerText = 'CHANNEL STANDBY';
+      document.getElementById('speakerNameDisplay').innerText = 'APEX (RIDER 1)';
+
+      stopVuMeterAnimation();
+    }
+
+    function startVuMeterAnimation(isTx) {
+      stopVuMeterAnimation();
+      vuInterval = setInterval(() => {
+        const level = Math.floor(Math.random() * 4) + 1;
+        setLedLevel(level);
+      }, 90);
+    }
+
+    function stopVuMeterAnimation() {
+      if (vuInterval) {
+        clearInterval(vuInterval);
+        vuInterval = null;
+      }
+      setLedLevel(0);
+    }
+
+    function setLedLevel(level) {
+      const leds = [
+        document.getElementById('led1'),
+        document.getElementById('led2'),
+        document.getElementById('led3'),
+        document.getElementById('led4')
+      ];
+      leds.forEach((led, idx) => {
+        led.className = 'led-segment';
+        if (idx < level) {
+          led.classList.add(`lit-${idx + 1}`);
+        }
+      });
+    }
+
+    // 4. Remote Speaker Simulation
+    let isRemoteTalking = false;
+    function simulateRemoteTalk() {
+      if (isTransmitting) return;
+      isRemoteTalking = !isRemoteTalking;
+
+      const speakerCard = document.getElementById('speakerCard');
+      if (isRemoteTalking) {
+        playRogerBeep(true);
+        speakerCard.classList.add('receiving');
+        document.getElementById('speakerTagLabel').innerText = 'INCOMING VOICE (LE 2M)';
+        document.getElementById('speakerNameDisplay').innerText = 'FALCON (WINGMAN)';
+        startVuMeterAnimation(false);
+      } else {
+        playRogerBeep(false);
+        speakerCard.classList.remove('receiving');
+        document.getElementById('speakerTagLabel').innerText = 'CHANNEL STANDBY';
+        document.getElementById('speakerNameDisplay').innerText = 'APEX (RIDER 1)';
+        stopVuMeterAnimation();
+      }
+    }
+
+    // 5. Emergency SOS Guarded Toggle
+    let isEmergency = false;
+    function toggleEmergency() {
+      isEmergency = !isEmergency;
+      const sosContainer = document.getElementById('sosContainer');
+      const sosText = document.getElementById('sosTextLabel');
+      const sosPill = document.getElementById('sosActionPill');
+
+      if (isEmergency) {
+        sosContainer.classList.add('active-emergency');
+        sosText.innerText = '🚨 EMERGENCY SOS ACTIVE! (ECALL BROADCAST)';
+        sosPill.innerText = 'TAP TO CANCEL';
+        playRogerBeep(true);
+      } else {
+        sosContainer.classList.remove('active-emergency');
+        sosText.innerText = 'GUARDED SOS (ECALL READY)';
+        sosPill.innerText = 'TAP TO TEST';
+        playRogerBeep(false);
+      }
+    }
+
+    // 6. Quick Hazard Pill Broadcast
+    function broadcastHazard(msg) {
+      playRogerBeep(true);
+      const originalName = document.getElementById('speakerNameDisplay').innerText;
+      document.getElementById('speakerNameDisplay').innerText = msg;
+      document.getElementById('speakerTagLabel').innerText = 'CONVOY CROWD ALERT';
+      setLedLevel(4);
+
+      setTimeout(() => {
+        document.getElementById('speakerNameDisplay').innerText = originalName;
+        document.getElementById('speakerTagLabel').innerText = 'CHANNEL STANDBY';
+        setLedLevel(0);
+      }, 2500);
+    }
+
+    // 7. VOX Toggle
+    let voxActive = false;
+    function toggleVox() {
+      voxActive = !voxActive;
+      const btn = document.getElementById('voxBtn');
+      const text = document.getElementById('voxStatusText');
+      if (voxActive) {
+        btn.classList.add('vox-on');
+        text.innerText = 'LATCHED (-40 dB)';
+      } else {
+        btn.classList.remove('vox-on');
+        text.innerText = 'OFF';
+      }
+    }
+
+    // 8. Radar Zoom Cycle
+    let radarZoom = 60;
+    function cycleRadarZoom() {
+      radarZoom = radarZoom === 60 ? 120 : 60;
+      document.getElementById('radarZoomBtn').innerText = `RANGE: ${radarZoom}M`;
+    }
+
+    // 9. Topographic Graph Canvas Renderer
+    function drawTopoGraph() {
+      const canvas = document.getElementById('topoCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width = canvas.offsetWidth;
+      const h = canvas.height = canvas.offsetHeight;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Draw Grid Lines
+      ctx.strokeStyle = '#162233';
+      ctx.lineWidth = 1;
+      for (let y = 20; y < h; y += 30) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+
+      // Draw Trail Elevation Profile Line
+      ctx.beginPath();
+      ctx.moveTo(0, h - 20);
+      ctx.bezierCurveTo(w * 0.25, h - 35, w * 0.45, h - 75, w * 0.7, h - 85);
+      ctx.bezierCurveTo(w * 0.85, h - 90, w * 0.95, h - 105, w, h - 100);
+
+      // Gradient Fill
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, 'rgba(245, 158, 11, 0.4)');
+      grad.addColorStop(1, 'rgba(245, 158, 11, 0.0)');
+
+      ctx.lineTo(w, h);
+      ctx.lineTo(0, h);
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Incline Stroke
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--accent-primary').trim() || '#f59e0b';
+      ctx.stroke();
+
+      // Current Position Dot (70% along the path)
+      const curX = w * 0.7;
+      const curY = h - 85;
+      ctx.beginPath();
+      ctx.arc(curX, curY, 5, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#f59e0b';
+      ctx.stroke();
+
+      // Label at dot
+      ctx.font = '10px monospace';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText('YOU: 1,842m', curX - 30, curY - 12);
+    }
+
+    // 10. Theme & Profile Handlers
+    function changeTheme(themeName) {
+      document.body.className = '';
+      if (themeName !== 'tactical') {
+        document.body.classList.add(`theme-${themeName}`);
+      }
+      // Re-apply profile if needed
+      const prof = document.getElementById('profileSelect').value;
+      if (prof !== 'motorbike') {
+        document.body.classList.add(`profile-${prof}`);
+      }
+      setTimeout(drawTopoGraph, 50);
+    }
+
+    function changeProfile(profileName) {
+      document.body.classList.remove('profile-motorbike', 'profile-overland', 'profile-bicycle', 'profile-mountain', 'profile-minimal');
+      document.body.classList.add(`profile-${profileName}`);
+
+      const groupName = document.getElementById('cockpitGroupName');
+      if (profileName === 'minimal') {
+        switchTab('voice');
+        groupName.innerText = 'MINIMAL WALKIE';
+      } else if (profileName === 'overland') {
+        groupName.innerText = 'OVERLAND-4X4';
+      } else if (profileName === 'mountain') {
+        groupName.innerText = 'ALPINE-TRAIL';
+      } else if (profileName === 'bicycle') {
+        groupName.innerText = 'GRAVEL-SQUAD';
+      } else {
+        groupName.innerText = 'ALPHA-CONVOY';
+      }
+    }
+
+    function toggleBezel() {
+      document.getElementById('deviceFrame').classList.toggle('borderless');
+    }
+
+    // 11. RF Simulation Controls
+    function simulatePhySwitch(val) {
+      const pill = document.getElementById('headerPhyPill');
+      const badge = document.getElementById('simPhyBadge');
+      pill.className = 'pill';
+
+      if (val === '2M') {
+        pill.classList.add('pill-phy-2m');
+        pill.innerText = '2M';
+        badge.innerText = 'LE 2M (HIGH SPEED)';
+      } else if (val === '1M') {
+        pill.classList.add('pill-phy-1m');
+        pill.innerText = '1M';
+        badge.innerText = 'LE 1M (STANDARD BASELINE)';
+      } else if (val === 'S8') {
+        pill.classList.add('pill-phy-s8');
+        pill.innerText = 'S8';
+        badge.innerText = 'LE CODED S8 (4X RANGE PASS)';
+      }
+    }
+
+    function simulateCbr(val) {
+      document.getElementById('simCbrLabel').innerText = `${val}%`;
+      const pill = document.getElementById('headerCbrPill');
+      pill.innerText = `CBR ${val}%`;
+      if (val >= 70) {
+        pill.classList.add('congested');
+      } else {
+        pill.classList.remove('congested');
+      }
+    }
+
+    // Window Resize / Init
+    window.addEventListener('resize', drawTopoGraph);
+    window.addEventListener('DOMContentLoaded', () => {
+      initChannelStrip();
+      drawTopoGraph();
+    });
+  </script>
+</body>
+</html>

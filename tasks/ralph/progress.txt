@@ -2235,6 +2235,655 @@
   - `ICA-2803: Real-Time Channel Airtime Congestion Governor & Adaptive FEC Shaper` [PASSED]
   - `ICA-2804: 32-Node Alpine Blizzard Acoustic & RF Contention Benchmark & Archify Showcase Update` [PASSED]
 
+---
+
+## 🚀 Sprint 29: Unified Hardware Bridge Integration & System Certification (v2.16.0 Roadmap, Phase 27 - Final Core Development Milestone)
+
+### [2026-10-10] - ICA-2901: Tactical Snapshots, Multi-Radio & Rekeying Hardware Bridge Wiring
+- **Branch**: `feature/ICA-2901-snapshots-radio-rekey-bridge`
+- **Objective**: Wire TacticalSnapshotProtocol, MultiRadioArbiter, and GroupRekeyProtocol into IntercomHardwareBridge and iOS IntercomBridge.kt. Expose reactive snapshots (SnapshotTransferProgress, ActiveRadioMode, RekeyEpochState) with CancellationHandle observers on iOS, ensuring full bridge integration for visual telemetry, Wi-Fi Direct offloading, and forward-secret group key rotation.
+- **Implementation**:
+  - `RekeyModels.kt`:
+    - Added `RekeyEpochSnapshot` data model with current epoch, grace period status, remaining seconds, timestamp, and trigger reason.
+  - `GroupRekeyProtocol.kt`:
+    - Added `getSnapshot(currentTimeMs)` method computing active epoch and remaining grace period.
+  - `IntercomHardwareBridge.kt`:
+    - Added StateFlows and properties for `snapshotProgress`, `multiRadioState`, and `rekeyEpochSnapshot`.
+    - Added `attachSubsystems` parameters for `snapshotManager`, `multiRadioArbiter`, and `groupRekeyProtocol`.
+    - Implemented simulation helpers in `NoOpIntercomHardwareBridge`.
+  - `AndroidPlatformBridge.kt`:
+    - Integrated `snapshotManager`, `multiRadioArbiter`, and `groupRekeyProtocol` in `attachSubsystems` with background flow collectors.
+    - Implemented override methods: `updateSnapshotProgress`, `updateMultiRadioState`, `updateRekeyEpochSnapshot`, `setPreferredRadioForBulk`, and `initiateManualRekey`.
+  - `IntercomBridge.kt` (iOS):
+    - Wired `snapshotManager`, `multiRadioArbiter`, and `rekeyProtocol`.
+    - Added Swift-friendly reactive listeners: `observeSnapshotTransfers`, `observeLatestReceivedSnapshot`, `observeMultiRadioState`, and `observeRekeyEpochSnapshot` returning lifecycle-managed `CancellationHandle`.
+    - Added `initiateManualRekey` dispatching over mesh and updating local state.
+  - `IntercomHardwareBridgeWiringTest.kt`:
+    - Verified reactive flow emissions, manual rekeying, preferred radio selection, and snapshot progress across JVM test suite.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest :app:androidApp:testDebugUnitTest :app:androidApp:assembleDebug`: BUILD SUCCESSFUL.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-29-unified-bridge-certification`).
+
+### [2026-10-10] - ICA-2902: Satellite Lifeline, Alpine Coded PHY & Wearable Companion Bridge Wiring
+- **Branch**: `feature/ICA-2902-satellite-phy-wearable-bridge`
+- **Objective**: Wire SatelliteGatewayBridge, AdaptivePhyArbiter, and WearableCompanionProtocol into IntercomHardwareBridge and iOS IntercomBridge.kt. Expose reactive states for satellite uplink beacons, BLE PHY negotiation (LE 1M, 2M, Coded S=8), and smartwatch companion telemetry (quick-PTT, heart rate, rider fall detection) with typed observers.
+- **Implementation**:
+  - `AlpineRfModels.kt` & `AdaptivePhyArbiter.kt`:
+    - Defined `PhyNegotiationSnapshot` data model with activeModes, lastEvent, and terrainProfile.
+    - Added `getSnapshot()` method to `AdaptivePhyArbiter`.
+  - `WearableCompanionModels.kt` & `WearableCompanionProtocol.kt`:
+    - Defined `WearableCompanionSnapshot` data model with deviceType, pttState, distressStatus, and vitals.
+    - Added `getSnapshot()` method to `WearableCompanionProtocol`.
+  - `IntercomHardwareBridge.kt`:
+    - Added StateFlows and properties for `satelliteBridgeStatus`, `phyNegotiationSnapshot`, and `wearableCompanionSnapshot`.
+    - Added override functions for `updateSatelliteBridgeStatus`, `updatePhyNegotiationSnapshot`, `updateWearableCompanionSnapshot`, `triggerSatelliteDistressBeacon`, and `processWearablePttClick`.
+    - Extended `attachSubsystems` parameters for `satelliteBridge`, `phyArbiter`, and `wearableProtocol`.
+    - Added simulation helpers to `NoOpIntercomHardwareBridge`.
+  - `AndroidPlatformBridge.kt`:
+    - Added `satelliteBridge`, `phyArbiter`, and `wearableProtocol` to `attachSubsystems` with background flow collectors.
+    - Implemented override methods: `updateSatelliteBridgeStatus`, `updatePhyNegotiationSnapshot`, `updateWearableCompanionSnapshot`, `triggerSatelliteDistressBeacon`, and `processWearablePttClick`.
+  - `IntercomBridge.kt` (iOS):
+    - Wired `satelliteBridge`, `phyArbiter`, and `wearableProtocol`.
+    - Added Swift-friendly reactive listeners: `observeSatelliteStatus`, `observePhyNegotiation`, and `observeWearableCompanion` returning lifecycle-managed `CancellationHandle`.
+    - Added `triggerSatelliteDistressBeacon` and `processWearablePttClick` controls.
+  - `IntercomSatellitePhyBridgeTest.kt`:
+    - 100% unit test coverage validating initial states, direct updates, satellite distress beacon dispatch, Coded PHY S=8 events, and wearable PTT clicks.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest :app:androidApp:testDebugUnitTest :app:androidApp:assembleDebug`: BUILD SUCCESSFUL.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-29-unified-bridge-certification`).
+
+### [2026-10-10] - ICA-2903: Spectral Noise DSP, Wake Word VOX & Airtime Congestion Governor Bridge Wiring
+- **Branch**: `feature/ICA-2903-spectral-vox-congestion-bridge`
+- **Objective**: Wire SpectralNoiseSuppressor, AcousticWakeWordEngine, and AirtimeCongestionGovernor into IntercomHardwareBridge and iOS IntercomBridge.kt. Exposes reactive snapshots for real-time wind noise dB attenuation, hands-free VOX state machine transitions, and channel busy ratio (CBR) congestion levels with adaptive FEC indicators.
+- **Implementation**:
+  - `SpectralNoiseModels.kt` & `SpectralNoiseSuppressor.kt`:
+    - Defined `SpectralNoiseSnapshot` data model with mode, attenuationDb, isSpeechPresent, estimatedSnrDb, inputRmsDb, and outputRmsDb.
+    - Added `getSnapshot()` and `setMode(mode: NoiseSuppressionMode)` to `SpectralNoiseSuppressor`.
+  - `WakeWordModels.kt` & `AcousticWakeWordEngine.kt`:
+    - Defined `VoxStateSnapshot` data model with state, lastDetectedKeyword, confidence, isPttActive, and energyDb.
+    - Added `getSnapshot()` and `setSensitivity(energyThresholdDb: Float)` to `AcousticWakeWordEngine` for dynamic threshold calibration.
+  - `CongestionModels.kt`:
+    - Added `typealias AirtimeCongestionSnapshot = CongestionMetricsSnapshot` for unified bridge terminology.
+  - `IntercomHardwareBridge.kt`:
+    - Added StateFlows and properties for `spectralNoiseSnapshot`, `voxStateSnapshot`, and `airtimeCongestionSnapshot`.
+    - Added override functions for `updateSpectralNoiseSnapshot`, `updateVoxStateSnapshot`, `updateAirtimeCongestionSnapshot`, `setNoiseSuppressionMode`, and `setVoxSensitivity`.
+    - Extended `attachSubsystems` parameters for `spectralSuppressor`, `wakeWordEngine`, and `congestionGovernor`.
+    - Added simulation helpers to `NoOpIntercomHardwareBridge`.
+  - `AndroidPlatformBridge.kt`:
+    - Added `spectralSuppressor`, `wakeWordEngine`, and `congestionGovernor` to `attachSubsystems` with background flow collectors.
+    - Implemented override methods: `updateSpectralNoiseSnapshot`, `updateVoxStateSnapshot`, `updateAirtimeCongestionSnapshot`, `setNoiseSuppressionMode`, and `setVoxSensitivity`.
+  - `IntercomBridge.kt` (iOS):
+    - Wired `spectralSuppressor`, `wakeWordEngine`, and `congestionGovernor`.
+    - Added Swift-friendly reactive listeners: `observeNoiseSuppression`, `observeVoxState`, and `observeCongestionLevel` returning lifecycle-managed `CancellationHandle`.
+    - Integrated hands-free VOX triggering directly into PTT transmitter activation in `start()`.
+    - Added `setNoiseSuppressionMode` and `setVoxSensitivity` controls.
+  - `IntercomAcousticQoSBridgeTest.kt`:
+    - 100% unit test coverage validating initial states, direct updates, mode switching, VOX sensitivity tuning, and real subsystem integrations.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest :app:androidApp:testDebugUnitTest :app:androidApp:assembleDebug`: BUILD SUCCESSFUL.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, ready to merge to `sprint/sprint-29-unified-bridge-certification`).
+
+### [2026-10-10] - ICA-2904: 32-Node Unified End-to-End System Simulation, Final Architecture Showcase & Certification
+- **Branch**: `feature/ICA-2904-system-certification-showcase`
+- **Objective**: Implement UnifiedSystemCertificationHarness.kt simulating 32 full-stack nodes exercising all interconnected subsystems (mesh flooding, AODV-Lite, multi-group federation, 4-tier QoS, failover hedging, snapshots, satellite lifeline, Coded PHY, spectral noise suppression, hands-free wake word, and congestion governance). Updates Archify showcase with 9/9 verification pass and signs off core development completion.
+- **Implementation**:
+  - `UnifiedSystemCertificationHarness.kt`:
+    - Full-stack simulation across 32 virtual convoy nodes organized into dual squads (Squad Alpha & Squad Bravo, 16 nodes each) traversing alpine expedition conditions.
+    - Concurrently verifies:
+      1. Spectral noise suppression speech enhancement (16 kHz, 256-point FFT, EXTREME_ALPINE).
+      2. Hands-free acoustic wake word spotter with sensitivity tuning and physical PTT override.
+      3. AODV-Lite directed mesh routing discovery and topology snapshot generation.
+      4. Inter-convoy gateway federation handshake and cross-squad bridge establishment.
+      5. 4-tier QoS queue scheduling and airtime congestion governance.
+      6. Multi-radio arbiter Wi-Fi Direct bulk offload and OTA group key rekeying.
+      7. Adaptive Coded PHY reach (Deep Canyon Gorge) and smartwatch wearable companion integration.
+      8. Canyon dead-zone satellite emergency lifeline dispatch fallback.
+      9. End-to-end multi-hop voice streaming with verified latency <= 80ms across all 32 nodes.
+      10. Zero-dropped emergency frame life-safety delivery across all nodes with instant hardware bridge dispatch.
+  - `intercom-alpha.architecture.json` & `intercom-alpha-architecture.html`:
+    - Updated Archify architecture specification with Sprint 29 / Phase 27 Unified Hardware Bridge Integration & System Certification showcase card.
+    - Delivered interactive HTML showcase via Archify CLI with 100% showcase profile (9/9 automated verification checks passed, 0 errors, 0 warnings).
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest :app:androidApp:testDebugUnitTest :app:androidApp:assembleDebug`: BUILD SUCCESSFUL (402/402 multiplatform tests passed).
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+### [2026-10-16] - ICA-3001: Compose Material 3 Expressive Tokens, Neobrutalist & Claymorphic Modifier Engine
+- **Branch**: `feature/ICA-3001-compose-design-tokens`
+- **Objective**: Establish the foundational design system in `:app:sharedUI` adhering to ADR-014. Implements `IntercomDesignTokens.kt` with M3 Expressive color schemes (Tactile Dark/High-Contrast Light, Neon Signal Accents: Tactical Amber `#FF9F0A`, International Orange `#FF453A`, Emergency Crimson `#FF3B30`, Coded PHY Emerald `#30D158`), expressive typography with tabular monospace numbers, and custom Compose Modifier extensions in `TactileModifiers.kt` (claymorphic double inner/outer depth shadows, crisp 2dp neobrutalist outlines, and frosted liquid-glass blur overlays).
+- **Implementation**:
+  - `IntercomDesignTokens.kt`:
+    - Defined tactile dark/light color roles (`chassisBackground`, `surfaceElevated`, `surfacePressed`, `neobrutalOutline`, `signalActive`, `signalHotMic`, `signalSuccess`, `signalEmergency`, `liquidGlassTint`, `specularRim`).
+    - Enforced ADR-014 ergonomic glove standards: minimum touch target $\ge 84\text{ dp}$, master PTT diameter $160\text{ dp}$, neobrutalist border $2\text{ dp}$ (high-sun contrast).
+  - `TactileModifiers.kt`:
+    - `.neobrutalistBorder()`: Hard high-contrast 2dp perimeter outlines for sunlight legibility through tinted visors.
+    - `.claymorphic()`: Soft 3D tactile convex cushion volume using dual specular highlights and recessed ambient drop shadows.
+    - `.liquidGlass()`: Frosted translucent backdrop with specular 1dp micro-rim highlight for HUD layering.
+    - `.skeuomorphicBezel()`: Concentric machined knurling and aluminum bevel styling for physical dials.
+  - `IntercomTheme.kt`:
+    - Full theme provider integrating Material 3 ColorScheme, Expressive Typography with tabular monospace telemetry labels, and `LocalTacticalColors`.
+  - `DesignSystemTokenTest.kt`:
+    - Unit tests validating touch target bounds, contrast palettes, and monospace typography contracts.
+- **Verification**:
+  - `./gradlew :app:sharedUI:jvmTest :app:androidApp:testDebugUnitTest`: BUILD SUCCESSFUL (100% unit test pass).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+  - Graphify Knowledge Sync (`graphify update .`): 4,204 nodes, 9,042 edges, 298 communities (Rule 7).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-30-design-system-foundations`).
+
+### [2026-10-17] - ICA-3002: iOS SwiftUI Tactical Design System, Liquid Glass & Tactile Haptic Modifiers
+- **Branch**: `feature/ICA-3002-ios-swiftui-design-system`
+- **Objective**: Establish the native iOS 18+ SwiftUI design system foundation in `:app:iosApp` adhering to ADR-014 and Rule 1 (100% native SwiftUI, zero Compose on iOS). Implements `TactileDesignSystem.swift`, `LiquidGlassView.swift`, and `TactileHaptics.swift` providing `.claymorphicDepth()`, `.neobrutalistOutline()`, `.liquidGlassBackground()`, `.skeuomorphicBezel()`, and high-performance pre-warmed `UIImpactFeedbackGenerator` tactile actuation triggers for heavy riding gloves.
+- **Implementation**:
+  - `TactileDesignSystem.swift`:
+    - Defined tactical tokens (`cockpitObsidian`, `cockpitElevated`, `neobrutalBorderActive`, `signalAmber`, `signalHotMicOrange`, `signalEmergencyCrimson`).
+    - Enforced $84\text{ pt}$ minimum touch target and $2\text{ pt}$ / $3\text{ pt}$ neobrutalist outline modifiers.
+    - Added `.claymorphicDepth()` modifier with dual specular and ambient shadow simulation.
+    - Added `.skeuomorphicBezel()` modifier with machined knurling rings.
+  - `LiquidGlassView.swift`:
+    - Implemented `LiquidGlassBackground` and `.liquidGlassBackground()` with `.ultraThinMaterial`, tactical dark tinting, and $1\text{ pt}$ specular reflection edge.
+  - `TactileHaptics.swift`:
+    - Implemented pre-warmed singleton `TactileHaptics.shared` supporting `.pttEngage()` (.rigid), `.pttRelease()` (.medium), `.emergencySos()` (double .heavy pulse), `.channelDetentClick()`, `.warningAlert()`, and `.successAlert()`.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+  - Graphify Knowledge Sync (`graphify update .`): 4,246 nodes, 9,130 edges, 301 communities (Rule 7).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-30-design-system-foundations`).
+
+### [2026-10-17] - ICA-3003: Expressive Tactical Audio & Cockpit Widget Components (PTT, VU Meter, SOS Switch)
+- **Branch**: `feature/ICA-3003-expressive-tactile-widgets`
+- **Objective**: Build production-grade tactical cockpit components fusing Skeuomorphism, Claymorphism, Neobrutalism, and Liquid Glass. On Android (`:app:sharedUI`): `ExpressivePttActuator.kt` (recessed knurled bevel, spring-damped deformation, dynamic ripple), `ExpressiveVuMeter.kt` (phosphor decay, peak hold, clipping alerts), and `GuardedSosSwitch.kt` (spring-loaded flip cover). On iOS (`:app:iosApp`): matching native SwiftUI `TactilePttButton.swift`, `TactileVuMeter.swift`, and `GuardedSosSwitch.swift`.
+- **Implementation**:
+  - Android Jetpack Compose (`:app:sharedUI`):
+    - `ExpressivePttActuator.kt`: $160\text{ dp}$ master PTT button with concentric knurled outer chassis bezel, spring physics deformation (`dampingRatio = MediumBouncy`), dynamic hot-mic pulse glow, and claymorphic dual shadows.
+    - `ExpressiveVuMeter.kt`: 14-segment dynamic LED bar with phosphor decay, clipping alert, and tabular monospace dB telemetry readout.
+    - `GuardedSosSwitch.kt`: Mil-spec emergency safety flip-cover requiring a deliberate lift-guard gesture before activating the crimson SOS transmitter.
+  - Native iOS SwiftUI (`:app:iosApp`):
+    - `TactilePttButton.swift`: 100% native SwiftUI button with skeuomorphic bezel, claymorphic depth, spring scale animation, and sensory haptic actuation.
+    - `TactileVuMeter.swift`: Native SwiftUI segmented audio VU meter.
+    - `GuardedSosSwitch.swift`: Native SwiftUI hinged safety flip-guard SOS switch with double-heavy haptic confirmation.
+- **Verification**:
+  - `./gradlew :app:sharedUI:jvmTest :app:androidApp:testDebugUnitTest`: BUILD SUCCESSFUL (100% unit test pass).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+  - Graphify Knowledge Sync (`graphify update .`): 4,284 nodes, 9,267 edges, 286 communities (Rule 7).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-30-design-system-foundations`).
+
+### [2026-10-17] - ICA-3004: Design System Verification Harness & Archify Visual Specification Update
+- **Branch**: `feature/ICA-3004-design-system-verification-showcase`
+- **Objective**: Implement multiplatform test suite `DesignSystemTokenTest.kt` validating token contracts, color contrast ratios, accessibility sizes, and component bounds. Updates `docs/architecture/intercom-alpha.architecture.json` and `intercom-alpha-architecture.html` showcasing Phase 28 Design System Foundations with 9/9 verified checks.
+- **Implementation**:
+  - `DesignSystemTokenTest.kt`:
+    - Extended with `testTacticalWidgetDimensions()` validating $160\text{ dp}$ master PTT diameter, $18\text{ dp}$ squircle card corner radius, and $3\text{ dp}$ heavy border thickness.
+    - 100% test pass on JVM and Android unit test runs.
+  - `intercom-alpha.architecture.json` & `intercom-alpha-architecture.html`:
+    - Added Sprint 30 UI/UX Design System Foundations showcase item detailing M3 Expressive, SwiftUI 18+ HIG, and 5-pillar aesthetic fusion.
+    - Delivered interactive HTML showcase via Archify CLI with 100% showcase profile (9/9 automated verification checks passed, 0 errors, 0 warnings).
+- **Verification**:
+  - `./gradlew :app:sharedUI:jvmTest :app:androidApp:testDebugUnitTest`: BUILD SUCCESSFUL (100% unit test pass).
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+  - Archify Validation: 9/9 checks passed, 0 composition errors, 0 warnings.
+  - Graphify Knowledge Sync (`graphify update .`): 4,285 nodes, 9,268 edges, 285 communities (Rule 7).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-30-design-system-foundations`).
+
+---
+
+## 🏆 Sprint 30: Dedicated UI/UX Design System Foundations — 100% Complete
+- **All 4 Sprint 30 stories PASSED**:
+  - `ICA-3001`: Compose Material 3 Expressive Tokens, Neobrutalist & Claymorphic Modifier Engine [PASSED]
+  - `ICA-3002`: iOS SwiftUI Tactical Design System, Liquid Glass & Tactile Haptic Modifiers [PASSED]
+  - `ICA-3003`: Expressive Tactical Audio & Cockpit Widget Components (PTT, VU Meter, SOS Switch) [PASSED]
+  - `ICA-3004`: Design System Verification Harness & Archify Visual Specification Update [PASSED]
+- **Milestone Release**: `v3.0.0-alpha1`
+
+### [2026-10-17] - ICA-3101: Android Jetpack Compose Zero-Scroll Tactical Cockpit Integration
+- **Branch**: `feature/ICA-3101-android-tactical-cockpit`
+- **Objective**: Refactor `HomeScreen.kt` in `:app:sharedUI` into a clean zero-scroll tactical cockpit adhering to ADR-014. Integrates `TactileAvionicsHeader.kt` (RF link, mesh status, battery chips), `TactileChannelDial.kt` (skeuomorphic rotary detents), `ExpressivePttActuator` (160dp master actuator), `ExpressiveVuMeter` (10-bar phosphor decay), and `GuardedSosSwitch` (mil-spec safety flip-cover).
+- **Implementation**:
+  - `TactileAvionicsHeader.kt`:
+    - Glanceable top avionics header featuring dynamic callsign badge, mesh mode indicators, node count chip, and battery telemetry.
+  - `TactileChannelDial.kt`:
+    - High-contrast channel switcher bar covering Channels 1–8 with active amber indicator and dual-watch green status.
+  - `HomeScreen.kt`:
+    - Replaced legacy multi-row UI and nested scroll with single-viewport zero-scroll tactile cockpit layout.
+    - Integrated oversized $160\text{ dp}$ master PTT button, guarded emergency SOS switch, and 10-bar LED audio spectrum meter.
+- **Verification**:
+  - `./gradlew :app:sharedUI:jvmTest :app:androidApp:testDebugUnitTest`: BUILD SUCCESSFUL (100% unit test pass).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+  - Graphify Knowledge Sync (`graphify update .`): 4,293 nodes, 9,321 edges, 283 communities (Rule 7).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-31-tactical-cockpit-redesign`).
+
+### [2026-10-17] - ICA-3102: iOS 100% Native SwiftUI Tactical Cockpit Integration
+- **Branch**: `feature/ICA-3102-ios-tactical-cockpit`
+- **Objective**: Refactor `ContentView.swift` in `:app:iosApp` into a zero-scroll tactical cockpit adhering strictly to Rule 1 (100% Native SwiftUI) and ADR-014. Integrates `TactileAvionicsHeader.swift`, `TactileChannelDial.swift`, `TactilePttButton.swift`, `TactileVuMeter.swift`, and `GuardedSosSwitch.swift` with `.liquidGlassBackground()` and `TactileHaptics` feedback.
+- **Implementation**:
+  - `TactileAvionicsHeader.swift`:
+    - 100% native SwiftUI header with group name, off-grid BLE mesh / hybrid mode status dot, clickable peer count node chip with selection haptic feedback, and battery level chip with low-power warning.
+  - `TactileChannelDial.swift`:
+    - Skeuomorphic rotary detent channel dial covering Channels 1–8 with active amber indicator, emerald dual-watch status, and selection haptic detent clicks.
+  - `ContentView.swift`:
+    - Replaced legacy multi-level stacked views with a zero-scroll single-viewport cockpit layout.
+    - Integrated `TactileAvionicsHeader`, horizontal scrollable subsystem diagnostics toolbar, `TactileChannelDial`, liquid glass overlay on spatial radar, and a master tactical controls row: 96pt mil-spec guarded SOS flip-cover, 160pt master `TactilePttButton`, and 10-segment LED `TactileVuMeter` flanked by quick Volume and VOX lock toggles.
+- **Verification**:
+  - `./gradlew :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - `./gradlew test`: 100% passing across all multiplatform test tasks.
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+  - Graphify Knowledge Sync (`graphify update .`): 4,307 nodes, 9,347 edges, 278 communities (Rule 7).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-31-tactical-cockpit-redesign`).
+
+### [2026-10-17] - ICA-3103: Glove-Friendly Spatial Radar & Telemetry Liquid Glass Card Integration
+- **Branch**: `feature/ICA-3103-tactile-radar-card`
+- **Objective**: Refactor radar viewport in Android (`HomeScreen.kt`) and iOS (`ContentView.swift`) into sleek Liquid Glass HUD cards floating over real-time spatial vectors, topo trail contours, and convoy telemetry, featuring quick-range zoom toggles (500m/1.5km/5.0km) with 84dp glove targets.
+- **Implementation**:
+  - `TactileRadarCard.kt` (`app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/ui/components/TactileRadarCard.kt`):
+    - Frosted liquid glass semi-translucent chassis (`Color(0xEE11161D)`) with neobrutalist border.
+    - Glove-friendly 84dp minimum touch target zoom cycle button with tabular range labels (`500m`, `1.5km`, `5.0km`).
+    - High-contrast circular vector radar rendering concentric distance rings, crosshairs, geofence tether perimeter, projected topo contours, active trail polylines, and proximity-color-coded convoy riders.
+    - Monospaced tabular telemetry readout chips displaying closest rider distance, bearing, and active trail launcher.
+  - `TactileRadarCard.swift` (`app/iosApp/iosApp/Components/TactileRadarCard.swift`):
+    - 100% Native SwiftUI liquid glass radar HUD card (`.liquidGlassBackground(cornerRadius: 14)`).
+    - Glove-friendly 84pt interactive zoom cycle button with tactile haptic feedback (`TactileHaptics.shared.channelDetentClick()`).
+    - Tabular monospaced telemetry chips for distance, bearing, and trail cockpit shortcut.
+  - Integration:
+    - Integrated `TactileRadarCard` into Android `HomeScreen.kt` and iOS `ContentView.swift`.
+- **Verification**:
+  - `./gradlew :app:sharedUI:compileKotlinJvm`: BUILD SUCCESSFUL.
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - `./gradlew test`: 100% passing across all multiplatform test tasks.
+  - `./gradlew :app:androidApp:assembleDebug`: BUILD SUCCESSFUL.
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+  - Graphify Knowledge Sync (`graphify update .`): 4,317 nodes, 9,392 edges, 279 communities (Rule 7).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-31-tactical-cockpit-redesign`).
+
+### [2026-10-17] - ICA-3104: Tactical Cockpit E2E Interaction Simulation & Archify Showcase Update
+- **Branch**: `feature/ICA-3104-e2e-simulation`
+- **Objective**: Implement `TacticalCockpitInteractionTest.kt` verifying PTT engagement, rotary channel changes, guarded SOS flip-cover state transitions, audio meter telemetry updates, VOX lock toggles, and zero-scroll overlay transitions. Updates Archify architecture specification with Sprint 31 Tactical Cockpit showcase card.
+- **Implementation**:
+  - `TacticalCockpitInteractionTest.kt` (`app/sharedUI/src/commonTest/kotlin/org/nowni/intercom_alpha/feature/home/TacticalCockpitInteractionTest.kt`):
+    - Comprehensive E2E state transition simulation test verifying:
+      1. PTT activation & transmission cycle (`StartTransmitting` / `StopTransmitting`)
+      2. Rotary channel detents & dual-watch (`SelectChannel`, `ToggleDualWatch`)
+      3. Mil-spec guarded SOS flip-cover transitions (`TriggerSos`, `ClearEmergency`)
+      4. Sensory VOX lock controls (`ToggleVoxLock`)
+      5. Glove-friendly 84dp radar zoom cycles (`CycleRadarZoom`)
+      6. Zero-scroll overlay sheet transitions (`ToggleTrailSheet`)
+  - Archify Architecture Specification:
+    - Updated `docs/architecture/intercom-alpha.architecture.json` and `docs/architecture/intercom-alpha-architecture.html` with Sprint 31 showcase card: Tactical Cockpit Zero-Scroll Redesign & Spatial Radar HUD (Sprint 31 / Phase 28).
+- **Verification**:
+  - `./gradlew :app:sharedUI:jvmTest`: Passed cleanly in 12s.
+  - `./gradlew test`: 100% passing across all multiplatform test tasks.
+  - `./gradlew :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+  - Graphify Knowledge Sync (`graphify update .`): 4,327 nodes, 9,432 edges, 306 communities (Rule 7).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-31-tactical-cockpit-redesign`).
+
+---
+
+## 🏆 Sprint 31: Tactical Cockpit Redesign & Spatial Radar HUD — 100% Complete
+- **All 4 Sprint 31 stories PASSED**:
+  - `ICA-3101: Android Jetpack Compose Zero-Scroll Tactical Cockpit Integration` [PASSED]
+  - `ICA-3102: iOS 100% Native SwiftUI Tactical Cockpit Integration` [PASSED]
+  - `ICA-3103: Glove-Friendly Spatial Radar & Telemetry Liquid Glass Card Integration` [PASSED]
+  - `ICA-3104: Tactical Cockpit E2E Interaction Simulation & Archify Showcase Update` [PASSED]
+- **Milestone DoD Status**: 100% Definition of Done criteria passed cleanly across all platforms with 0 regression, 0 OCR findings, and full graphify AST synchronization.
+- **Audit Remediation & Unified Cockpit Wiring**:
+  - Wired `MainCockpitScreen` into `AppNavGraph.kt` with working `MessageHistoryDialog`, `OfflineTrailCockpitSheet`, and `TrailFileManagerSheet` overlays.
+  - Resolved version catalog desync (`3.0.0-alpha1`, `versionCode = 9`), eliminated shadow binaries and duplicate task trackers.
+  - Repaired mojibake CP-1252 corruption in `docs/TASKS.md`, `CHANGELOG.md`, and `JOURNAL.md`.
+  - OpenCodeReview pre-commit gate passed cleanly (0 findings).
+
+---
+
+## 🚀 Sprint 32: Tactile Sub-Screens & Secondary Overlays Polish (Phase 28 - Dedicated UI/UX Evolution)
+
+### [2026-10-18] - ICA-3201: Android Tactile Offline Trail Sheet & File Manager Modernization
+- **Branch**: `feature/ICA-3201-offline-trail-sheet`
+- **Objective**: Refactor `OfflineTrailCockpitSheet.kt` and `TrailFileManagerSheet.kt` in `:app:sharedUI` with `IntercomTokens`, claymorphic container surfaces, neobrutalist borders, and 84dp glove-friendly touch targets with monospaced tabular telemetry.
+- **Implementation**:
+  - `OfflineTrailCockpitSheet.kt`:
+    - Liquid glass chassis with claymorphic elevation profile and waypoint chips.
+    - Monospaced tabular telemetry readouts for distance, elevation, coordinates, and ascent/descent.
+    - 84dp glove-friendly touch targets for route recording, waypoint drops, and export triggers.
+  - `TrailFileManagerSheet.kt`:
+    - Neobrutalist file cards for offline trail GPX/KML traces with file size badges and import/delete actions.
+- **Verification**:
+  - `./gradlew :app:sharedUI:jvmTest`: Passed cleanly.
+  - OpenCodeReview (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-32-tactile-subscreens`).
+
+### [2026-10-18] - ICA-3202: Android Tactile Message Dialog & Subsystem Diagnostics Modernization
+- **Branch**: `feature/ICA-3202-message-dialog-diagnostics`
+- **Objective**: Modernize `MessageHistoryDialog.kt` and implement `TactileDiagnosticsSheet.kt` in `:app:sharedUI`, adding diagnostics toggle in `HomeViewModel.kt` and `MainCockpitScreen.kt`.
+- **Implementation**:
+  - `MessageHistoryDialog.kt`: High-contrast neobrutalist chat bubbles, canned quick-response chips, and delivery ACK badges.
+  - `TactileDiagnosticsSheet.kt`: Tabular real-time breakdown of $Q_{link}$ link score, RSSI margin, RF duty-cycle, battery drain rate, AODV-lite savings, and peer telemetry list.
+  - `HomeUiState.kt` / `HomeViewModel.kt`: Added `showDiagnosticsSheet` and `ToggleDiagnosticsSheet` action.
+  - `MainCockpitScreen.kt`: Added `DIAG` tab to `CockpitNavTab` with overlay sheet.
+- **Verification**:
+  - `./gradlew :app:sharedUI:jvmTest`: Passed cleanly.
+  - OpenCodeReview (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-32-tactile-subscreens`).
+
+### [2026-10-18] - ICA-3203: iOS Native SwiftUI Trail Cockpit, File Manager & Diagnostics Modernization
+- **Branch**: `feature/ICA-3203-ios-subscreens`
+- **Objective**: Modernize iOS native secondary overlays in `OfflineTrailCockpitSheet.swift`, `TrailFileManagerSheet.swift`, and `ContentView.swift` using `TacticalTokens`, `.liquidGlassBackground()`, and `.neobrutalistOutline()`, adhering to Rule 1 (100% native SwiftUI).
+- **Implementation**:
+  - `OfflineTrailCockpitSheet.swift`: Liquid glass container with tabular GPS telemetry, elevation gains, and tactile haptic clicks.
+  - `TrailFileManagerSheet.swift`: Modernized GPX file manager sheet with neobrutalist outlines and file stats.
+  - `ContentView.swift`: Enhanced `SubsystemDiagnosticsSheetView` with tactile haptics on close/action buttons.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly (0 errors).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-32-tactile-subscreens`).
+
+### [2026-10-18] - ICA-3204: Multiplatform Sub-Screen E2E Interaction Test & Certification
+- **Branch**: `feature/ICA-3204-subscreen-interaction-test`
+- **Objective**: Implement `SubScreenInteractionTest.kt` verifying state transitions for sub-screens and execute full multiplatform build verification gate.
+- **Implementation**:
+  - Created `SubScreenInteractionTest.kt` in `:app:sharedUI:commonTest`:
+    - Verified Trail Cockpit sheet toggle (`ToggleTrailSheet`).
+    - Verified Trail File Manager sheet toggle (`ToggleTrailFileManager`).
+    - Verified Message History Dialog toggle and unread count clearing (`ToggleMessagesDialog`).
+    - Verified Tactile Diagnostics sheet toggle (`ToggleDiagnosticsSheet`).
+    - Verified waypoint additions and trail file selections.
+  - Restored `GreetingUtil.kt` in `:core` module resolving server dependency.
+- **Verification**:
+  - `./gradlew test`: 100% passed across all multiplatform test tasks.
+  - `./gradlew :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: BUILD SUCCESSFUL (Rule 6).
+  - OpenCodeReview Delegation Gate (`ocr delegate rule`): 0 findings (`APPROVED`, Rule 8).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-32-tactile-subscreens`).
+
+---
+
+## 🏆 Sprint 32: Tactile Sub-Screens & Secondary Overlays Polish — 100% Complete
+- **All 4 Sprint 32 stories PASSED**:
+  - `ICA-3201: Android Tactile Offline Trail Sheet & File Manager Modernization` [PASSED]
+  - `ICA-3202: Android Tactile Message Dialog & Subsystem Diagnostics Modernization` [PASSED]
+  - `ICA-3203: iOS Native SwiftUI Trail Cockpit, File Manager & Diagnostics Modernization` [PASSED]
+  - `ICA-3204: Multiplatform Sub-Screen E2E Interaction Test & Certification` [PASSED]
+- **Milestone DoD Status**: 100% Definition of Done criteria passed cleanly across all platforms with 0 regressions, 0 OCR findings, and full multiplatform compilation.
+
+---
+
+### [2026-10-18] - ICA-3301: Real-Time Mesh Link Quality Scoring & EWMA Loss Estimator
+- **Branch**: `feature/ICA-3301-link-quality-scorer`
+- **Objective**: Implement `MeshLinkQualityScorer.kt` in `commonMain` calculating composite $Q_{link} \in [0, 100]$ combining EWMA RSSI link margin (35%), PDR (40%), RFC 3550 jitter (15%), and ETX (10%) with severe packet loss capping.
+- **Implementation**:
+  - Created `MeshLinkQualityScorer.kt` with thread-safe `Mutex`, `PeerTracker`, and reactive `StateFlow<ClusterLinkHealth>`.
+  - Implemented `MeshLinkQualityScorerTest.kt` in `commonTest` with comprehensive coverage of link margin attenuation, sequence gap loss, jitter variance, and multi-peer cluster aggregation.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: Passed cleanly in 39s.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-33-adaptive-mesh-bitrate`).
+
+### [2026-10-18] - ICA-3302: Dynamic Adaptive Bitrate & Frame Sizing Controller
+- **Branch**: `feature/ICA-3302-adaptive-bitrate-engine`
+- **Objective**: Implement `AdaptiveBitrateEngine.kt` mapping $Q_{link}$ into dynamic `AudioProfile` bitrates (16 kbps to 48 kbps) and frame sizes (20ms to 60ms) with rapid downshift (<200ms) and conservative hysteresis step-up (3 cycles).
+- **Implementation**:
+  - Implemented `AdaptiveBitrateEngine.kt` with cluster policies (`WORST_LINK`, `CLUSTER_AVERAGE`), manual pin overrides, and reactive `BitrateEngineTelemetry`.
+  - Implemented `AdaptiveBitrateEngineTest.kt` in `commonTest` verifying rapid step-downs, hysteresis anti-flapping dampening, and profile pinning.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: Passed cleanly in 51s.
+  - iOS Simulator Compilation: Passed cleanly.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-33-adaptive-mesh-bitrate`).
+
+### [2026-10-18] - ICA-3303: Audio Pipeline Dynamic Frame Multiplexing & Cockpit Telemetry Wiring
+- **Branch**: `feature/ICA-3303-audio-pipeline-telemetry`
+- **Objective**: Wire adaptive bitrate engine and link quality telemetry into `AudioPipelineSession`, `IntercomHardwareBridge`, `IntercomBridge.kt` (iOS Swift interop), `HomeViewModel`, and cockpit UI.
+- **Implementation**:
+  - Updated `AudioPipelineSession` and `AudioEngine` to support dynamic encoding profile switches.
+  - Updated `IntercomHardwareBridge` and `AndroidPlatformBridge` with reactive `linkQualitySnapshot` and `adaptiveBitrateSnapshot`.
+  - Extended `IntercomBridge.kt` (`iosMain`) with `observeLinkQualityHealth`, `observeAdaptiveBitrateTelemetry`, `pinAudioBitrateProfile`, and `setClusterPolicy`.
+  - Added live telemetry display in `HomeUiState`, `HomeViewModel`, `TactileDiagnosticsSheet.kt`, and `MainCockpitScreen.kt`.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-33-adaptive-mesh-bitrate`).
+
+### [2026-10-18] - ICA-3304: Multi-Node Dynamic Bitrate Simulation Test & Multiplatform Certification
+- **Branch**: `feature/ICA-3304-simulation-and-certification`
+- **Objective**: Implement 8-node convoy dynamic RF simulation test verifying end-to-end bitrate adaptation and execute full multiplatform certification gates.
+- **Implementation**:
+  - Implemented `AdaptiveBitrateSimulationTest.kt` in `commonTest` covering:
+    - Stage 1: Pristine highway transmission and decoding across 8 nodes at 48 kbps HIGH.
+    - Stage 2: Deep canyon fading immediate rapid step-down (<200ms) to 16 kbps ULTRA_LOW.
+    - Stage 3: Canyon exit with 3-cycle asymmetric hysteresis recovery safely stepping back to 48 kbps HIGH.
+    - Stage 4: Single/dual straggler degradation with `WORST_LINK` downshifting to protect stragglers vs `CLUSTER_AVERAGE` maintaining 32 kbps MEDIUM.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: 125 actionable tasks passed cleanly (Rule 6).
+  - OpenCodeReview Delegation Gate: 0 findings (`APPROVED`, Rule 8).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-33-adaptive-mesh-bitrate`).
+
+---
+
+### [2026-10-18] - ICA-3401: Multiplatform Block Erasure FEC Encoder & Interleaved Block Decoder
+- **Branch**: `feature/ICA-3401-block-erasure-fec`
+- **Objective**: Implement `MeshPacketFecEngine.kt` in `commonMain` providing pure Kotlin block erasure forward error correction (configurable (N, K) parity framing) with zero Java dependencies (Rule 3).
+- **Implementation**:
+  - Implemented `MeshPacketFecEngine.kt` with pure Kotlin Galois Field $GF(2^8)$ arithmetic (irreducible polynomial $0x11D$, precomputed exp/log tables).
+  - Single-parity XOR parity generation and single-packet erasure reconstruction.
+  - Dual-parity Galois Field Reed-Solomon encoding and arbitrary 2-packet erasure reconstruction per block.
+  - Wire format framing with 14-byte binary header (`0xFE` magic, blockId, indexInBlock, dataCount, parityCount, originalSize).
+  - Configurable dynamic ratios (`DISABLED`, `RATIO_4_1`, `RATIO_3_1`, `RATIO_2_1`, `RATIO_4_2`).
+  - Unit tests in `MeshPacketFecEngineTest.kt` verifying envelope serialization, pass-through, XOR recovery, and Galois Field recovery.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: Passed cleanly.
+  - iOS Simulator Compilation: Passed cleanly.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-34-fec-and-plc`).
+
+### [2026-10-18] - ICA-3402: Predictive Packet Loss Concealment (PLC) & Waveform Interpolator
+- **Branch**: `feature/ICA-3402-packet-loss-concealment`
+- **Objective**: Implement `AudioLossConcealment.kt` in `commonMain` for multi-peer predictive packet loss concealment with pitch tracking, -2.5 dB attenuation decay, and smooth crossfading.
+- **Implementation**:
+  - Created `AudioLossConcealment.kt` with thread-safe per-peer isolated pitch estimation and history buffers (preventing cross-talk artifacts).
+  - Extrapolated waveforms with -2.5 dB (~0.75 gain) exponential decay per consecutive lost frame up to 4 frames.
+  - Smooth 4ms linear crossfade blending upon clean voice packet resumption to eliminate DC offset clicks.
+  - Comprehensive unit tests in `AudioLossConcealmentTest.kt`.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: Passed cleanly in 1m 42s.
+  - iOS Simulator Compilation: Passed cleanly.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-34-fec-and-plc`).
+
+### [2026-10-18] - ICA-3403: Closed-Loop FEC Redundancy Governor & Cockpit Telemetry Wiring
+- **Branch**: `feature/ICA-3403-fec-plc-wiring`
+- **Objective**: Integrate `MeshPacketFecEngine` and `AudioLossConcealment` into `AudioPipelineSession`, `IntercomHardwareBridge`, `AndroidPlatformBridge`, `IntercomBridge.kt` (iOS Swift interop), `HomeViewModel`, and `TactileDiagnosticsSheet.kt`.
+- **Implementation**:
+  - Updated `IntercomHardwareBridge` and `AndroidPlatformBridge` with `fecTelemetrySnapshot`, `plcTelemetrySnapshot`, `updateFecTelemetry`, `updatePlcTelemetry`, and `setFecRatio`.
+  - Added Swift-friendly observers and controls in `IntercomBridge.kt` (`iosMain`): `observeFecTelemetry`, `observePlcTelemetry`, and `setFecRatio`.
+  - Wired `fecTelemetry` and `plcTelemetry` flows into `HomeUiState`, `HomeViewModel`, and added `SetFecRatio` action.
+  - Updated `TactileDiagnosticsSheet.kt` with live RF resilience card displaying FEC mode, recovered packet counters, unrecovered blocks, PLC frame counts, and active concealment status.
+- **Verification**:
+  - `./gradlew :app:sharedUI:testAndroidHostTest :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly in 27s.
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: 125 actionable tasks passed cleanly.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-34-fec-and-plc`).
+
+### [2026-10-18] - ICA-3404: Multi-Node 25% Burst Loss Simulation Test & Multiplatform Certification
+- **Branch**: `feature/ICA-3404-fec-simulation`
+- **Objective**: Implement 8-node convoy simulation test under 25% burst/random packet drops, certify audio continuity, and execute full multiplatform verification gates.
+- **Implementation**:
+  - Added `FecLossConcealmentSimulationTest.kt` in `commonTest`:
+    - Scenario 1: 4:1 Single Parity FEC with 20% random drop (1 per block) across 7 receiving riders -> 100% voice packet recovery via XOR.
+    - Scenario 2: 4:2 Dual Parity Galois RS FEC with 40% heavy drop (2 per block) across 7 receiving riders -> 100% voice packet recovery via Galois Field algebra.
+    - Scenario 3: Burst drop exceeding FEC bounds (3 consecutive frames dropped) -> smooth synthetic waveform PLC with -2.5 dB decay and crossfade smoothing upon clean resumption.
+  - Fixed single-erasure Galois Field reconstruction (Case 1b) in `MeshPacketFecEngine.kt` to handle dropped Parity 1 when Parity 2 is received.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest`: Passed cleanly in 20s (428 tests passed).
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: 125 actionable tasks passed cleanly in 1m 6s.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-34-fec-and-plc`).
+
+---
+
+## 🏆 Sprint 34: Forward Error Correction & Packet Loss Concealment (Phase 29 - Part 2) — 100% Complete
+- **All 4 Sprint 34 stories PASSED**:
+  - `ICA-3401: Multiplatform Block Erasure FEC Encoder & Interleaved Block Decoder` [PASSED]
+  - `ICA-3402: Predictive Packet Loss Concealment (PLC) & Waveform Interpolator` [PASSED]
+  - `ICA-3403: Closed-Loop FEC Redundancy Governor & Cockpit Telemetry Wiring` [PASSED]
+  - `ICA-3404: Multi-Node 25% Burst Loss Simulation Test & Multiplatform Certification` [PASSED]
+- **Milestone DoD Status**: 100% Definition of Done criteria passed cleanly across all platforms with 0 regressions, 0 OCR findings, and full multiplatform compilation.
+
+---
+
+## 🚀 Sprint 35: Ultra-Low Latency BLE MTU Frame Packing & Interleaving (Phase 30)
+
+### [2026-10-18] - ICA-3501: Multiplatform BLE ATT MTU Frame Aggregator & Sub-Packet Framer
+- **Branch**: `feature/ICA-3501-mtu-frame-aggregator`
+- **Objective**: Implement BleMtuAggregator in commonMain to pack multiple 20ms voice/control frames into a single negotiated 247-byte MTU payload with compact 2-byte frame headers, emergency immediate flush, capacity limit flush, and timeout flush.
+- **Implementation**:
+  - Created `BleMtuAggregator.kt` in `commonMain`:
+    - Frame packing up to negotiated MTU (247 bytes default, 185 safe fallback) with magic header byte `0xBE` and sequence numbers.
+    - 2-byte sub-frame header encoding 14-bit payload length and sub-frame discriminator.
+    - Full telemetry computation: `averageFramesPerPacket`, `packingEfficiencyPct`, `rfPacketReductionPct`.
+  - Created `BleMtuAggregatorTest.kt` in `commonTest` with 6 comprehensive unit tests.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-35-ble-mtu-packing`).
+
+### [2026-10-18] - ICA-3502: Time-Diversity Block Interleaver & Playout De-jittering Unpacker
+- **Branch**: `feature/ICA-3502-frame-interleaver`
+- **Objective**: Implement BleFrameInterleaver in commonMain to perform matrix block interleaving across consecutive MTU packets, dispersing burst radio dropouts across disjoint time slots.
+- **Implementation**:
+  - Created `BleFrameInterleaver.kt` in `commonMain`:
+    - Deterministic $(M \times N)$ matrix block interleaving with `totalPacketsInBlock` and `totalFramesInBlock` headers.
+    - Receiver matrix reassembly with missing frame detection, timeout flush, and zero-latency emergency SOS frame bypass.
+  - Created `BleFrameInterleaverTest.kt` in `commonTest` with 4 comprehensive unit tests.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-35-ble-mtu-packing`).
+
+### [2026-10-18] - ICA-3503: Transport Dynamic MTU Negotiation & Cockpit Packing Telemetry Wiring
+- **Branch**: `feature/ICA-3503-mtu-telemetry-wiring`
+- **Objective**: Integrate dynamic MTU negotiation and packing telemetry into hardware bridges, AudioEngine, HomeViewModel, and TactileDiagnosticsSheet.
+- **Implementation**:
+  - `IntercomHardwareBridge.kt`: Added `bleMtuSnapshot: StateFlow<BleMtuTelemetry>`, `updateBleMtuTelemetry`, and `setNegotiatedMtu(mtu)`.
+  - `AudioEngine.kt`: Integrated `BleMtuAggregator` and `BleFrameInterleaver` into `AudioPipelineSession` with `packOutgoingPayload`, `unpackIncomingPayload`, `setNegotiatedMtu`, and `getMtuTelemetry`.
+  - `AndroidPlatformBridge.kt`: Implemented `_bleMtuSnapshot`, `updateBleMtuTelemetry`, and `setNegotiatedMtu`.
+  - `IntercomBridge.kt` (iOS): Integrated `mtuAggregator`, `bleMtuTelemetry`, `observeBleMtuTelemetry`, and `setNegotiatedMtu` with `CancellationHandle`.
+  - `HomeUiState.kt` & `HomeViewModel.kt`: Added `bleMtuTelemetry: BleMtuTelemetry` in `HomeUiState` and `SetNegotiatedMtu` in `HomeUiAction`.
+  - `TactileDiagnosticsSheet.kt`: Rendered "BLE ATT MTU FRAME PACKING & DIVERSITY" card showing negotiated MTU, packing ratio, and RF overhead saved %.
+  - `SubScreenInteractionTest.kt`: Added unit test `testBleMtuControlsAndTelemetryLifecycle`.
+- **Verification**:
+  - `./gradlew :app:sharedUI:jvmTest :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly in 12s.
+  - `./gradlew :app:androidApp:assembleDebug`: Passed cleanly in 57s.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-35-ble-mtu-packing`).
+
+### [2026-10-18] - ICA-3504: 16-Node High-Throughput MTU Packing & Burst Loss Simulation Test
+- **Branch**: `feature/ICA-3504-ble-mtu-simulation`
+- **Objective**: Implement BleMtuPackingSimulationTest.kt validating a 16-node convoy under heavy audio transmission, RF medium contention, 25% burst dropouts, and sub-60ms mouth-to-ear latency.
+- **Implementation**:
+  - Created `BleMtuPackingSimulationTest.kt` in `commonTest`:
+    - 16-node convoy simulation under 1 minute continuous voice stream (3,000 frames).
+    - Verified RF packet reduction exceeds 50% (actual ~66.7% reduction, 3,000 frames packed into 1,000 packets) with 100% reception across 15 peers.
+    - Verified $(3 \times 3)$ time-diversity block interleaving disperses 33.3% burst packet loss into isolated single erasures (e.g. $[1, 4, 7]$), preventing fatal consecutive drops.
+    - Verified zero-latency emergency SOS preemption bypassing aggregation buffer and interleaver delay.
+    - Validated mouth-to-ear latency pipeline delay bounds ($\le 65\text{ms}$).
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: 125 actionable tasks passed cleanly.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-35-ble-mtu-packing`).
+
+---
+
+## 🏆 Sprint 35: Ultra-Low Latency BLE MTU Frame Packing & Interleaving (Phase 30) — 100% Complete
+- **All 4 Sprint 35 stories PASSED**:
+  - `ICA-3501: Multiplatform BLE ATT MTU Frame Aggregator & Sub-Packet Framer` [PASSED]
+  - `ICA-3502: Time-Diversity Block Interleaver & Playout De-jittering Unpacker` [PASSED]
+  - `ICA-3503: Transport Dynamic MTU Negotiation & Cockpit Packing Telemetry Wiring` [PASSED]
+  - `ICA-3504: 16-Node High-Throughput MTU Packing & Burst Loss Simulation Test` [PASSED]
+- **Milestone DoD Status**: 100% Definition of Done criteria passed cleanly across all platforms with 0 regressions, 0 OCR findings, and full multiplatform compilation.
+
+---
+
+## 🚀 Sprint 36: Offline Vector Topographic & Trail Elevation Profile HUD (Phase 31)
+
+### [2026-10-18] - ICA-3601: Pure KMP Offline Vector Map Tile Parser & Spatial Bounding Box Cacher
+- **Branch**: `feature/ICA-3601-offline-vector-tile-engine`
+- **Objective**: Implement OfflineVectorTileEngine in commonMain providing pure Kotlin MVT tile decoding, Web Mercator projection, spatial bounding box caching, and sub-15ms spatial querying.
+- **Implementation**:
+  - Created `OfflineVectorTileEngine.kt` in `commonMain`:
+    - `BoundingBox`: min/max lat/lon in WGS-84 with point containment and intersection algorithms.
+    - `TileCoord`: Web Mercator tile coordinates $(z, x, y)$ with forward/inverse bounding box projections and intersecting tile calculations.
+    - `MvtTileDecoder`: Pure KMP vector tile decoder with zig-zag integer encoding/decoding and multi-layer feature extraction (points, linestrings, polygons).
+    - `OfflineVectorTileEngine`: In-memory tile storage with pure KMP LRU eviction cache (`ArrayDeque`), sub-15ms spatial bounding box queries, layer filtering, and query telemetry.
+  - Created `OfflineVectorTileEngineTest.kt` in `commonTest`:
+    - 6 comprehensive unit tests validating bounding box math, Web Mercator coordinate projections, zig-zag encoding symmetry, MVT tile decoding, LRU eviction bounds, and spatial query caching.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly.
+  - `./gradlew :app:androidApp:assembleDebug`: Passed cleanly in 2m 53s.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-36-vector-trail-elevation-hud`).
+
+### [2026-10-18] - ICA-3602: Real-Time Convoy Elevation Profile & Altitude Incline Math Engine
+- **Branch**: `feature/ICA-3602-convoy-elevation-engine`
+- **Objective**: Implement ConvoyElevationEngine in commonMain to compute real-time route slope grade percentage, steep alpine descent/climb warnings (> 12% grade), vertical altitude separation between convoy members, and summit peaks.
+- **Implementation**:
+  - Created `ConvoyElevationEngine.kt` in `commonMain`:
+    - Pure KMP slope grade percentage calculation with moving window smoothing over Haversine distance intervals.
+    - Steep caution (> 8%) and extreme alpine climb/descent warning detection (> 12% grade) with pure KMP formatting.
+    - Convoy vertical altitude separation ($\Delta h$) tracking between lead and tail/sweep riders.
+    - Upcoming mountain pass summit detection along planned route polylines.
+  - Created `ConvoyElevationEngineTest.kt` in `commonTest`:
+    - 5 comprehensive unit tests covering initial state, alpine climb/descent warnings, convoy vertical altitude separation, and planned route summit detection.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly in 1m 9s.
+  - `./gradlew :app:androidApp:assembleDebug`: Passed cleanly in 1m 19s.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-36-vector-trail-elevation-hud`).
+
+### [2026-10-18] - ICA-3603: Tactile Trail Elevation HUD Overlay & Cockpit Sheet Presentation
+- **Branch**: `feature/ICA-3603-trail-elevation-hud`
+- **Objective**: Create `TrailElevationHudOverlay.kt` in `sharedUI`, wire into `MainCockpitScreen.kt`, and provide reactive bridge telemetry integration via `IntercomBridge.kt` with `CancellationHandle` for iOS SwiftUI.
+- **Implementation**:
+  - Created `TrailElevationHudOverlay.kt`:
+    - OLED high-contrast dark background with glove-friendly 64dp zoom toggles (1km / 5km / 15km).
+    - Elevation profile line chart with gradient fill and real-time color-coded rider pins along the curve.
+    - Telemetry cards for slope grade % and lead/tail spread meters ($\Delta h$).
+    - Dynamic alpine warning banner for steep climbs/descents (> 8% caution, > 12% extreme).
+  - Wired `IntercomHardwareBridge.kt` and `AndroidPlatformBridge.kt` with `elevationProfileSnapshot` and `updateElevationProfile`.
+  - Wired `IntercomBridge.kt` (iOS) with `elevationEngine`, `elevationProfile`, `observeElevationProfile`, and `setPlannedRoute` with `CancellationHandle`.
+  - Updated `HomeUiState.kt` and `HomeViewModel.kt` with `elevationProfile`, `showElevationSheet`, and `ToggleElevationSheet`.
+  - Added ELEV navigation tab and sheet presentation in `MainCockpitScreen.kt`.
+  - Added `testTrailElevationHudOverlayLifecycle` in `SubScreenInteractionTest.kt`.
+- **Verification**:
+  - `./gradlew :app:sharedUI:jvmTest :app:sharedLogic:jvmTest :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly.
+  - `./gradlew :app:androidApp:assembleDebug`: Passed cleanly in 1m 33s.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-36-vector-trail-elevation-hud`).
+
+### [2026-10-18] - ICA-3604: Alpine Mountain Pass Multi-Node Elevation & Trail Sync Simulation Test
+- **Branch**: `feature/ICA-3604-alpine-elevation-simulation`
+- **Objective**: Implement `AlpineElevationSimulationTest.kt` simulating 12 convoy nodes traversing a 2,500m high-altitude mountain pass with 1,200m vertical elevation gain.
+- **Implementation**:
+  - Implemented `AlpineElevationSimulationTest.kt`:
+    - Simulated 12 nodes climbing from valley (1,300m) to summit (2,500m) and descending to 1,600m.
+    - Verified real-time grade calculations, steep climb (> 12% grade) and descent (< -12% grade) `EXTREME_ALPINE_WARNING` triggers.
+    - Verified lead vs tail/sweep rider vertical altitude separation ($\Delta h \approx 800$m) alert tracking.
+    - Verified upcoming mountain pass summit detection along route polylines.
+    - Verified offline MVT vector tile caching, sub-15ms bounding box querying, and multi-hop route synchronization across convoy relay nodes.
+- **Verification**:
+  - `./gradlew test :app:androidApp:assembleDebug :app:sharedLogic:compileKotlinIosSimulatorArm64`: 120 actionable tasks passed cleanly (100% test pass rate).
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-36-vector-trail-elevation-hud`).
+
+---
+
+## 🏆 Sprint 36 Closed & Verified (100% DoD)
+- **Target Release**: `v3.0.0-beta1`
+- **Stories Completed**:
+  - `ICA-3601: Pure KMP Offline Vector Map Tile Parser & Spatial Bounding Box Cacher` [PASSED]
+  - `ICA-3602: Real-Time Convoy Elevation Profile & Altitude Incline Math Engine` [PASSED]
+  - `ICA-3603: Tactile Trail Elevation HUD Overlay & Cockpit Sheet Presentation` [PASSED]
+  - `ICA-3604: Alpine Mountain Pass Multi-Node Elevation & Trail Sync Simulation Test` [PASSED]
+- **Milestone DoD Status**: 100% Definition of Done criteria passed cleanly across all platforms with 0 regressions, 0 OCR findings, and full multiplatform compilation.
 
 
 
@@ -2242,4 +2891,76 @@
 
 
 
+### [2026-10-31] - ICA-3701: Dynamic BLE Advertising Interval Throttler & Flooding Redundancy Governor
+- **Branch**: `feature/ICA-3701-mesh-congestion-governor`
+- **Objective**: Implement `MeshCongestionGovernor.kt` in `commonMain` dynamically adjusting BLE advertising intervals (20ms to 250ms) and probabilistic flooding suppression based on local node density and channel utilization.
+- **Implementation**:
+  - Implemented `MeshCongestionGovernor.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/`:
+    - Measures channel utilization via sliding-window airtime tracking and accepts diagnostic updates from external scorers.
+    - Tracks active neighbor node density with sliding 10s retention window.
+    - Dynamically throttles BLE advertising intervals from 20ms up to 250ms when channel utilization exceeds 70%.
+    - Enforces probabilistic flooding relay dampening for non-emergency packets in dense clusters (> 8 nodes) and high CBR.
+    - Guaranteed 100% bypass with zero latency degradation for emergency SOS frames (`CRASH_ALERT`, `GEOFENCE_ALARM`, `EMERGENCY_CRITICAL`).
+  - Created `MeshCongestionGovernorTest.kt` in `commonTest`:
+    - 12 comprehensive unit test suites validating baseline metrics, advertising throttling above 70%, node density scaling, probabilistic dampening, emergency bypass, neighbor retention pruning, airtime accumulation, and reset behavior.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest :app:sharedLogic:compileKotlinIosSimulatorArm64`: Passed cleanly.
+  - `./gradlew :app:androidApp:assembleDebug`: Passed cleanly in 3m 50s.
+  - OpenCodeReview (`ocr delegate rule`): 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-37-fleet-congestion-control`).
 
+### [2026-11-07] - ICA-3702: Adaptive Multi-PHY Switcher Engine (LE 1M, LE 2M, LE Coded S8)
+- **Branch**: `feature/ICA-3702-adaptive-phy-switcher`
+- **Objective**: Implement `AdaptivePhySwitcher.kt` in `commonMain` dynamically negotiating Bluetooth 5.0 PHY modes (LE 2M for high throughput at close range, LE Coded S8 for 4x long range through mountain passes).
+- **Implementation**:
+  - Implemented `AdaptivePhySwitcher.kt` in `app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/`:
+    - Evaluates link quality score ($Q_{link}$), RSSI, and packet loss ratio per peer.
+    - Upgrades to `LE_2M` when $Q_{link} > 85$, $\text{RSSI} > -65\text{ dBm}$, and packet loss $\le 5\%$.
+    - Steps down to `CODED_S8` when $\text{RSSI} < -85\text{ dBm}$, packet loss $> 15\%$, or $Q_{link} < 40$.
+    - Standard baseline mode is `LE_1M`.
+    - Asymmetric hysteresis dampening: requires sustained samples for upgrades (`samplesRequiredForUpgrade = 2`), rapid step-down for link protection (`samplesRequiredForDowngrade = 1`), and a cooldown timer (default 3,000ms) to prevent rapid ping-pong flapping.
+    - Aggregated active cluster PHY adopts the lowest bitrate among peers to guarantee reach for edge nodes in broadcast.
+    - Point-in-time `PhySwitcherSnapshot` with tactile pill labels (`2M`, `1M`, `S2`, `S8`) ready for cockpit telemetry.
+  - Implemented `AdaptivePhySwitcherTest.kt` in `commonTest`:
+    - 8 comprehensive unit tests validating initial state, LE_2M upgrade, low RSSI CODED_S8 step-down, high packet drop CODED_S8 step-down, hysteresis dampening against flapping, asymmetric downgrade vs upgrade, diagnostics snapshot emission, and engine reset.
+- **Verification**:
+  - `./gradlew :app:sharedLogic:jvmTest :app:sharedLogic:compileKotlinIosSimulatorArm64`: 476 tests passed cleanly.
+  - `./gradlew :app:androidApp:assembleDebug`: Built cleanly in 1m 12s.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-37-fleet-congestion-control`).
+
+### [2026-11-07] - ICA-3703: Hardware Bridge Multi-PHY Binding & Tactical Cockpit RF Pill Telemetry
+- **Branch**: `feature/ICA-3703-multi-phy-bridge-cockpit`
+- **Objective**: Wire AdaptivePhySwitcher and MeshCongestionGovernor into IntercomHardwareBridge, AndroidPlatformBridge, and IntercomBridge (iOS). Update MainCockpitScreen with tactile RF PHY pills (2M / 1M / S8) and channel congestion indicators.
+- **Implementation**:
+  - Wired `IntercomHardwareBridge.kt`:
+    - Added `phySwitcherSnapshot` and `meshCongestionSnapshot` state flows to `IntercomHardwareBridge` interface.
+    - Updated `NoOpIntercomHardwareBridge` with simulation test hooks (`simulatePhySwitcherSnapshot`, `simulateMeshCongestionSnapshot`).
+    - Added `phySwitcher` and `meshCongestionGovernor` optional references to `attachSubsystems(...)`.
+  - Wired `AndroidPlatformBridge.kt`:
+    - Backed `phySwitcherSnapshot` and `meshCongestionSnapshot` with reactive state flows.
+    - Wired `attachSubsystems` to collect `phySwitcher.switchEvents` and `meshCongestionGovernor.metrics`.
+  - Wired `IntercomBridge.kt` (iOS):
+    - Instantiated `AdaptivePhySwitcher` and `MeshCongestionGovernor`.
+    - Exposed reactive observation closures returning `CancellationHandle`: `observePhySwitcherSnapshot`, `observeMeshCongestionSnapshot`, `evaluatePeerPhy`, and `recordMeshAirtime`.
+  - Updated `HomeUiState.kt` and `HomeViewModel.kt`:
+    - Added `phySwitcherSnapshot` and `meshCongestionSnapshot` to `HomeUiState`.
+    - Collected bridge snapshot updates into `HomeUiState` in `HomeViewModel.init`.
+  - Updated `CockpitHeader.kt` & `MainCockpitScreen.kt`:
+    - Rendered high-contrast tactical RF PHY pill (`2M` in green, `1M` in amber/active, `S8` in warning/amber).
+    - Rendered high-contrast channel congestion badge (`CBR X%`) when channel utilization exceeds 70% or advertising throttling is engaged.
+  - Added unit test `testPhySwitcherAndMeshCongestionSnapshotFlows` in `HomeViewModelTest.kt`.
+- **Verification**:
+  - `./gradlew :app:sharedUI:jvmTest`: 50 tests passed cleanly (100% pass).
+  - `./gradlew :app:sharedLogic:jvmTest :app:sharedLogic:compileKotlinIosSimulatorArm64`: 476 tests passed cleanly.
+  - `./gradlew :app:androidApp:assembleDebug`: Built cleanly in 1m 17s.
+  - OpenCodeReview: 0 findings (`APPROVED`).
+- **Status**: PASSED (`passes: true` in `tasks/ralph/prd.json`, merged to `sprint/sprint-37-fleet-congestion-control`).
+
+
+
+### [2026-11-23] - ICA-3704: 24-node fleet congestion simulation
+- Implemented deterministic mixed-traffic congestion and PHY policy checks in commonTest. Airtime recovery and neighbor expiry are asserted separately.
+- Verified 478 shared JVM tests (including both new scenarios), Gradle test, Android debug assembly, and shared Kotlin iOS simulator compilation.
+- Refreshed Graphify in the feature worktree and ran offline OpenCodeReview delegation for the one changed test file. Host-agent review found no actionable issues.
+- Merged feature commit 5a92b0e into Sprint 37. Physical RF range and actual radio PHY application remain field-verification items.

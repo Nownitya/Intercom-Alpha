@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Intercom-Alpha is a BLE-first group voice intercom for Android and iOS, designed for riders and outdoor groups.">
+  <title>Intercom-Alpha — Off-grid group voice</title>
+  <link rel="stylesheet" href="site.css">
+</head>
+<body>
+  <header class="shell masthead">
+    <span class="wordmark">Intercom-Alpha</span>
+    <nav aria-label="Project"><a href="#architecture">Architecture</a><a href="https://github.com/Nownitya/Intercom-Alpha">GitHub</a></nav>
+  </header>
+  <main class="shell">
+    <section class="hero" aria-labelledby="intro">
+      <h1 id="intro">Group voice for the road and trail.</h1>
+      <p>Intercom-Alpha is a mobile intercom for riders and outdoor groups. The project is designed to carry voice between nearby phones over Bluetooth Low Energy when mobile coverage drops.</p>
+      <a class="button" href="https://github.com/Nownitya/Intercom-Alpha">View the project</a>
+    </section>
+    <section class="platforms" aria-labelledby="platforms">
+      <h2 id="platforms">Built for phones</h2>
+      <dl>
+        <div><dt>Android</dt><dd>Compose client with platform Bluetooth and audio integration.</dd></div>
+        <div><dt>iOS</dt><dd>Native SwiftUI client with platform Bluetooth and audio integration.</dd></div>
+      </dl>
+      <p>Both clients are in development. The project documentation tracks platform verification and release milestones.</p>
+    </section>
+    <section class="architecture" id="architecture" aria-labelledby="system">
+      <h2 id="system">How it fits together</h2>
+      <p>The mobile clients share Kotlin logic for audio, groups, and packet routing. BLE is the local path. A Ktor relay provides a fallback path where connectivity and configuration allow it.</p>
+      <a class="diagram-link" href="diagrams/system-map.svg">
+        <img src="diagrams/system-map.svg" width="1160" height="810" alt="Open the full-size architecture diagram showing both mobile clients, shared Kotlin logic, BLE peers, and cloud relay">
+      </a>
+      <ul class="links">
+        <li><a href="diagrams/system-map.svg">Open the full-size system map</a></li>
+        <li><a href="https://github.com/Nownitya/Intercom-Alpha/blob/main/docs/ARCHITECTURE.md">Architecture documentation</a></li>
+        <li><a href="https://github.com/Nownitya/Intercom-Alpha/releases">GitHub releases</a></li>
+      </ul>
+    </section>
+  </main>
+  <footer class="shell">Intercom-Alpha</footer>
+</body>
+</html>

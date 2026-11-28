@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 810" role="img" aria-labelledby="title description" font-family="system-ui, sans-serif"><title id="title">Vision and scope</title><desc id="description">Help a group start talking and stay connected when mobile coverage drops.</desc><defs><marker id="arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7Z" fill="#577168"/></marker></defs>
+<rect x="0" y="0" width="1160" height="810" rx="0" fill="#F3F6F3" stroke="none"/>
+<text x="40" y="45" fill="#286754" font-size="15" font-weight="700">Intercom-Alpha / Product</text>
+<text x="40" y="88" fill="#162824" font-size="32" font-weight="700">Vision and scope</text>
+<text x="40" y="117" fill="#435951" font-size="16" font-weight="400">Help a group start talking and stay connected when mobile coverage drops.</text>
+<rect x="40" y="144" width="336" height="160" rx="13" fill="#E4E9F9" stroke="none"/>
+<text x="56" y="169" fill="#375AA1" font-size="12" font-weight="700">Proposed</text>
+<text x="56" y="197" fill="#162824" font-size="19" font-weight="700">Primary user</text>
+<text x="56" y="223" fill="#435951" font-size="15" font-weight="400">Riders and outdoor groups need short,</text>
+<text x="56" y="240" fill="#435951" font-size="15" font-weight="400">hands-free or low-glance communication.</text>
+<rect x="412" y="144" width="336" height="160" rx="13" fill="#E4E9F9" stroke="none"/>
+<text x="428" y="169" fill="#375AA1" font-size="12" font-weight="700">Proposed</text>
+<text x="428" y="197" fill="#162824" font-size="19" font-weight="700">Mobile product</text>
+<text x="428" y="223" fill="#435951" font-size="15" font-weight="400">Android Compose and native iOS SwiftUI are</text>
+<text x="428" y="240" fill="#435951" font-size="15" font-weight="400">the primary experiences.</text>
+<rect x="784" y="144" width="336" height="160" rx="13" fill="#E4E9F9" stroke="none"/>
+<text x="800" y="169" fill="#375AA1" font-size="12" font-weight="700">Proposed</text>
+<text x="800" y="197" fill="#162824" font-size="19" font-weight="700">Release outcome</text>
+<text x="800" y="223" fill="#435951" font-size="15" font-weight="400">A mixed-phone group can set up offline and</text>
+<text x="800" y="240" fill="#435951" font-size="15" font-weight="400">recover from a dropped peer.</text>
+<rect x="40" y="330" width="336" height="160" rx="13" fill="#E4E9F9" stroke="none"/>
+<text x="56" y="355" fill="#375AA1" font-size="12" font-weight="700">Proposed</text>
+<text x="56" y="383" fill="#162824" font-size="19" font-weight="700">Core intercom</text>
+<text x="56" y="409" fill="#435951" font-size="15" font-weight="400">Create or join, pick a channel, talk,</text>
+<text x="56" y="426" fill="#435951" font-size="15" font-weight="400">listen and see connection state.</text>
+<rect x="412" y="330" width="336" height="160" rx="13" fill="#E4E9F9" stroke="none"/>
+<text x="428" y="355" fill="#375AA1" font-size="12" font-weight="700">Proposed</text>
+<text x="428" y="383" fill="#162824" font-size="19" font-weight="700">Supporting tools</text>
+<text x="428" y="409" fill="#435951" font-size="15" font-weight="400">Guarded SOS, group roster, radar, trail</text>
+<text x="428" y="426" fill="#435951" font-size="15" font-weight="400">files and repeater have dedicated homes.</text>
+<rect x="784" y="330" width="336" height="160" rx="13" fill="#E4E9F9" stroke="none"/>
+<text x="800" y="355" fill="#375AA1" font-size="12" font-weight="700">Proposed</text>
+<text x="800" y="383" fill="#162824" font-size="19" font-weight="700">Future fleet</text>
+<text x="800" y="409" fill="#435951" font-size="15" font-weight="400">Basecamp dispatch and longer field soaks</text>
+<text x="800" y="426" fill="#435951" font-size="15" font-weight="400">follow measured mobile reliability.</text>
+<rect x="40" y="516" width="336" height="160" rx="13" fill="#E4E9F9" stroke="none"/>
+<text x="56" y="541" fill="#375AA1" font-size="12" font-weight="700">Proposed</text>
+<text x="56" y="569" fill="#162824" font-size="19" font-weight="700">Field constraints</text>
+<text x="56" y="595" fill="#435951" font-size="15" font-weight="400">Gloves, sunlight, small screens, noisy</text>
+<text x="56" y="612" fill="#435951" font-size="15" font-weight="400">headsets and intermittent coverage.</text>
+<rect x="412" y="516" width="336" height="160" rx="13" fill="#E4E9F9" stroke="none"/>
+<text x="428" y="541" fill="#375AA1" font-size="12" font-weight="700">Proposed</text>
+<text x="428" y="569" fill="#162824" font-size="19" font-weight="700">Product boundary</text>
+<text x="428" y="595" fill="#435951" font-size="15" font-weight="400">The public site explains the app and links</text>
+<text x="428" y="612" fill="#435951" font-size="15" font-weight="400">to documentation.</text>
+<rect x="784" y="516" width="336" height="160" rx="13" fill="#E4E9F9" stroke="none"/>
+<text x="800" y="541" fill="#375AA1" font-size="12" font-weight="700">Proposed</text>
+<text x="800" y="569" fill="#162824" font-size="19" font-weight="700">Decision rule</text>
+<text x="800" y="595" fill="#435951" font-size="15" font-weight="400">Add cockpit UI only when it helps a</text>
+<text x="800" y="612" fill="#435951" font-size="15" font-weight="400">frequent or time-critical task.</text>
+<rect x="40" y="704" width="16" height="16" rx="3" fill="#DCEDE7" stroke="#286754"/>
+<text x="65" y="717" fill="#286754" font-size="13" font-weight="700">Present in source</text>
+<rect x="295" y="704" width="16" height="16" rx="3" fill="#FFF0D0" stroke="#8A580A"/>
+<text x="320" y="717" fill="#8A580A" font-size="13" font-weight="700">Runtime check needed</text>
+<rect x="550" y="704" width="16" height="16" rx="3" fill="#F9E2DE" stroke="#A23930"/>
+<text x="575" y="717" fill="#A23930" font-size="13" font-weight="700">Gap</text>
+<rect x="805" y="704" width="16" height="16" rx="3" fill="#E4E9F9" stroke="#375AA1"/>
+<text x="830" y="717" fill="#375AA1" font-size="13" font-weight="700">Proposed</text>
+<a href="https://github.com/Nownitya/Intercom-Alpha/blob/sprint/sprint-37-fleet-congestion-control/docs/PRD.md"><text x="40" y="750" fill="#286754" font-size="13" font-weight="700">PRD.md</text></a>
+<a href="https://github.com/Nownitya/Intercom-Alpha/blob/sprint/sprint-37-fleet-congestion-control/docs/ROADMAP.md"><text x="580" y="750" fill="#286754" font-size="13" font-weight="700">ROADMAP.md</text></a>
+</svg>

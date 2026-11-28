@@ -1,83 +1,108 @@
 {
   "project": "Intercom-Alpha",
-  "branchName": "sprint/sprint-28-edge-acoustic-congestion",
-  "phase": "Phase 26: Edge Acoustic Intelligence & Mesh Airtime Congestion Governance",
-  "sprint": "Sprint 28",
-  "updatedAt": "2026-10-10T11:40:00Z",
+  "branchName": "sprint/sprint-37-fleet-congestion-control",
+  "phase": "Phase 32: Autonomous Fleet Mesh Congestion Control & Adaptive PHY",
+  "sprint": "Sprint 37",
+  "updatedAt": "2026-10-18T17:48:00Z",
   "stories": [
     {
-      "id": "ICA-2801",
+      "id": "ICA-3701",
       "priority": 1,
-      "title": "Pure KMP Spectral Subtraction Speech Enhancer & Wind Noise Suppressor",
-      "description": "Implement SpectralNoiseModels.kt and SpectralNoiseSuppressor.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/. Provides real-time frequency-domain noise suppression using pure KMP spectral subtraction with recursive minimum statistics noise floor tracking, Wiener filter gain estimation, over-subtraction factor alpha, and spectral floor beta to eliminate musical noise. Attenuates dynamic non-stationary helmet wind turbulence (>80 km/h) and exhaust rumble with zero Java, C, or external ML dependencies (Rules 2 & 3).",
+      "title": "Dynamic BLE Advertising Interval Throttler & Flooding Redundancy Governor",
+      "description": "Implement MeshCongestionGovernor.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/ dynamically adjusting BLE advertising intervals (20ms to 250ms) and probabilistic flooding suppression based on local node density and channel utilization.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/SpectralNoiseModels.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/SpectralNoiseSuppressor.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/SpectralNoiseSuppressorTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/MeshCongestionGovernor.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/MeshCongestionGovernorTest.kt"
       ],
       "acceptanceCriteria": [
-        "Pure KMP implementation with zero Java, C, or external ML dependencies in commonMain (Rules 2 & 3)",
-        "Defines NoiseSuppressionMode, SpectralNoiseProfile, NoiseEstimationStats, and SpectralFrameDiagnostics data models",
-        "Implements pure Kotlin STFT/filterbank framing (256/512-point window) with Hanning analysis/synthesis and overlap-add reconstruction",
-        "Dynamic noise floor tracking adapts to changing aerodynamic speed and environment without speech distortion",
-        "100% unit test pass across JVM, Android, and iOS Simulator targets"
+        "Throttles BLE advertisement intervals dynamically when RF channel utilization exceeds 70%",
+        "Applies probabilistic relay dampening for non-emergency flooded packets in high-density clusters",
+        "Maintains zero latency degradation for emergency SOS frames",
+        "100% test coverage in commonTest"
       ],
-      "passes": true
+      "passes": true,
+      "sprintPhase": 1
     },
     {
-      "id": "ICA-2802",
+      "id": "ICA-3702",
       "priority": 2,
-      "title": "Hands-Free Acoustic Wake Word Engine & Continuous VOX Arbiter",
-      "description": "Implement WakeWordModels.kt and AcousticWakeWordEngine.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/. Provides low-latency, zero-cloud offline acoustic keyword spotting for 'Hey Alpha' and 'Emergency SOS' using energy envelope trajectory and phonetic formant band scoring, enabling hands-free PTT trigger and speech hold-tail state management during high-speed riding.",
+      "title": "Adaptive Multi-PHY Switcher Engine (LE 1M, LE 2M, LE Coded S8)",
+      "description": "Implement AdaptivePhySwitcher.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/ dynamically negotiating Bluetooth 5.0 PHY modes (LE 2M for high throughput at close range, LE Coded S8 for 4x long range through mountain passes).",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/WakeWordModels.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/audio/AcousticWakeWordEngine.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/audio/AcousticWakeWordEngineTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/AdaptivePhySwitcher.kt",
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/AdaptivePhySwitcherTest.kt"
       ],
       "acceptanceCriteria": [
-        "Pure KMP keyword spotting engine with zero cloud or third-party ML runtime dependencies",
-        "Supports 'Hey Alpha' (hands-free PTT) and 'Emergency SOS' (priority distress broadcast) wake triggers",
-        "Configurable confidence threshold, false-trigger rejection under high wind noise, and refractory cooldown periods",
-        "100% unit test pass across JVM, Android, and iOS Simulator targets"
+        "Switches to LE 2M when link quality score > 85 and RSSI > -65 dBm",
+        "Switches to LE Coded S8 when RSSI drops below -85 dBm or packet drop exceeds 15%",
+        "Provides hysteresis dampening to prevent rapid PHY flapping",
+        "Full unit tests in commonTest"
       ],
-      "passes": true
+      "passes": true,
+      "sprintPhase": 2
     },
     {
-      "id": "ICA-2803",
+      "id": "ICA-3703",
       "priority": 3,
-      "title": "Real-Time Channel Airtime Congestion Governor & Adaptive FEC Shaper",
-      "description": "Implement CongestionModels.kt and AirtimeCongestionGovernor.kt in app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/qos/. Measures local channel busy ratio (CBR) and transmission collision estimates, dynamically throttling non-voice telemetry queues (GPS beacons, biometric packets, thumbnail chunks) and adjusting audio Forward Error Correction (FEC) redundancy to maintain <= 80ms voice latency under heavy mesh airtime contention.",
+      "title": "Hardware Bridge Multi-PHY Binding & Tactical Cockpit RF Pill Telemetry",
+      "description": "Wire AdaptivePhySwitcher and MeshCongestionGovernor into IntercomHardwareBridge, AndroidPlatformBridge, and IntercomBridge (iOS). Update MainCockpitScreen with tactile RF PHY pills (2M / 1M / S8) and channel congestion indicators.",
       "targetFiles": [
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/qos/CongestionModels.kt",
-        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/mesh/qos/AirtimeCongestionGovernor.kt",
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/qos/AirtimeCongestionGovernorTest.kt"
+        "app/sharedLogic/src/commonMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomHardwareBridge.kt",
+        "app/androidApp/src/main/kotlin/org/nowni/intercom_alpha/bridge/AndroidPlatformBridge.kt",
+        "app/sharedLogic/src/iosMain/kotlin/org/nowni/intercom_alpha/bridge/IntercomBridge.kt",
+        "app/sharedUI/src/commonMain/kotlin/org/nowni/intercom_alpha/feature/home/MainCockpitScreen.kt"
       ],
       "acceptanceCriteria": [
-        "Pure KMP channel busy ratio (CBR) tracking and congestion tier classification (UNCONGESTED, MODERATE, HIGH, CRITICAL)",
-        "Dynamic duty-cycle throttling applied to bulk and non-critical control traffic during speech bursts",
-        "Adaptive audio packet repetition / FEC adjustment based on observed collision rates",
-        "100% unit test pass across JVM, Android, and iOS Simulator targets"
+        "Streams live PHY and channel congestion metrics to UI state",
+        "Exposes reactive observation closures to iOS SwiftUI with CancellationHandle",
+        "Renders glove-friendly high-contrast RF status badge in cockpit header",
+        "Compiles cleanly on Android and iOS targets"
       ],
-      "passes": true
+      "passes": true,
+      "sprintPhase": 3
     },
     {
-      "id": "ICA-2804",
+      "id": "ICA-3704",
       "priority": 4,
-      "title": "32-Node Alpine Blizzard Acoustic & RF Contention Benchmark & Archify Showcase Update",
-      "description": "Implement AlpineBlizzardSimulationHarness.kt simulating a 32-node alpine blizzard convoy under extreme wind noise (+15 dB noise-to-signal ratio), hands-free wake word triggering, and heavy RF airtime contention. Validates audio intelligibility, zero voice frame loss, and updates Archify architecture showcase with 9/9 verification pass.",
+      "title": "24-Node High-Density RF Congestion Simulation & Range Benchmark Test",
+      "description": "Implement FleetMeshCongestionSimulationTest.kt simulating 24 nodes under severe 2.4 GHz channel saturation, validating automatic PHY step-downs, collision avoidance, and voice delivery guarantees.",
       "targetFiles": [
-        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/simulation/AlpineBlizzardSimulationHarness.kt",
-        "docs/architecture/intercom-alpha.architecture.json",
-        "docs/architecture/intercom-alpha-architecture.html"
+        "app/sharedLogic/src/commonTest/kotlin/org/nowni/intercom_alpha/mesh/FleetMeshCongestionSimulationTest.kt"
       ],
       "acceptanceCriteria": [
-        "Simulates 32 nodes in blizzard conditions with severe wind turbulence and acoustic noise",
-        "Validates spectral subtraction noise suppression boosting effective SNR by >= 12 dB",
-        "Validates hands-free wake word detection and congestion governor airtime throttling",
-        "Archify architecture specification and HTML showcase updated with 9/9 verification pass",
-        "Full multiplatform test suite pass across all targets"
+        "Simulates 24 nodes transmitting voice, telemetry, and control traffic simultaneously",
+        "Verifies channel utilization throttling and automated PHY switching",
+        "100% passing tests in ./gradlew test"
       ],
-      "passes": true
+      "passes": true,
+      "sprintPhase": 4
+    }
+  ],
+  "gsdPhase": 32,
+  "phases": [
+    {
+      "number": 1,
+      "id": "ICA-3701",
+      "title": "Congestion policy",
+      "exitCondition": "Governor checks verify backoff and relief under synthetic load."
+    },
+    {
+      "number": 2,
+      "id": "ICA-3702",
+      "title": "Adaptive PHY",
+      "exitCondition": "Policy checks pass. Applied radio PHY remains a device-verification item."
+    },
+    {
+      "number": 3,
+      "id": "ICA-3703",
+      "title": "Bridge and cockpit telemetry",
+      "exitCondition": "Bridge and presentation checks pass."
+    },
+    {
+      "number": 4,
+      "id": "ICA-3704",
+      "title": "Simulation and closeout",
+      "exitCondition": "Gradle gates, Graphify and offline review pass and the change is merged."
     }
   ]
 }

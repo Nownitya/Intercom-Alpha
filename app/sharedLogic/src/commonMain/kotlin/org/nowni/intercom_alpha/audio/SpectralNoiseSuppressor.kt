@@ -118,6 +118,28 @@ class SpectralNoiseSuppressor(
         profile = newProfile
     }
 
+    fun setMode(mode: NoiseSuppressionMode) {
+        val newProfile = when (mode) {
+            NoiseSuppressionMode.OFF -> SpectralNoiseProfile.OFF
+            NoiseSuppressionMode.MILD -> SpectralNoiseProfile.MILD
+            NoiseSuppressionMode.AGGRESSIVE -> SpectralNoiseProfile.AGGRESSIVE
+            NoiseSuppressionMode.EXTREME_ALPINE -> SpectralNoiseProfile.EXTREME_ALPINE
+        }
+        profile = newProfile
+    }
+
+    fun getSnapshot(): SpectralNoiseSnapshot {
+        val diag = _latestDiagnostics.value
+        return SpectralNoiseSnapshot(
+            mode = profile.mode,
+            attenuationDb = diag.attenuationDb,
+            isSpeechPresent = diag.isSpeechPresent,
+            estimatedSnrDb = diag.estimatedSnrDb,
+            inputRmsDb = diag.inputRmsDb,
+            outputRmsDb = diag.outputRmsDb
+        )
+    }
+
     /**
      * Resets internal noise floor estimates and overlap-add history.
      */
